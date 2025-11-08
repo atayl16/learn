@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rails Seniority Coach</title>
+  <style>
+    :root {
+      --bg-primary: #f5f5f5;
+      --bg-secondary: white;
+      --bg-tertiary: #f9f9f9;
+      --text-primary: #333;
+      --text-secondary: #666;
+      --text-muted: #999;
+      --accent: #CC0000;
+      --border: #e0e0e0;
+      --shadow: rgba(0,0,0,0.1);
+      --code-bg: #f4f4f4;
+      --code-block-bg: #2b2b2b;
+      --code-block-text: #f8f8f2;
+    }
+
+    body.dark-mode {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2d2d2d;
+      --bg-tertiary: #3a3a3a;
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --text-muted: #808080;
+      --border: #404040;
+      --shadow: rgba(0,0,0,0.3);
+      --code-bg: #3a3a3a;
+      --code-block-bg: #1e1e1e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      transition: background 0.3s, color 0.3s;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    /* Header */
+    header {
+      background: var(--accent);
+      color: white;
+      padding: 20px 0;
+      margin-bottom: 30px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { font-size: 28px; }
+    header p { opacity: 0.9; margin-top: 5px; }
+
+    /* Search Box */
+    .search-container {
+      position: relative;
+      flex: 1;
+      max-width: 500px;
+      margin: 0 20px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px 15px 10px 40px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.9);
+      color: #333;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input::placeholder { color: #666; }
+    .search-input:focus {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #666;
+      font-size: 16px;
+      pointer-events: none;
+    }
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 8px;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      box-shadow: 0 4px 16px var(--shadow);
+      max-height: 70vh;
+      overflow-y: auto;
+      display: none;
+      z-index: 1000;
+    }
+    .search-results.show { display: block; }
+    .search-group {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border);
+    }
+    .search-group:last-child { border-bottom: none; }
+    .search-group-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .search-result-item {
+      padding: 10px 12px;
+      margin: 4px 0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: block;
+    }
+    .search-result-item:hover {
+      background: var(--bg-tertiary);
+    }
+    .search-result-title {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .search-result-meta {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .search-no-results {
+      padding: 30px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .search-clear {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      display: none;
+    }
+    .search-clear.show { display: block; }
+
+    /* Dark mode toggle */
+    .dark-mode-toggle {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .dark-mode-toggle:hover { background: rgba(255,255,255,0.3); }
+
+    /* Navigation */
+    nav {
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    nav a {
+      color: var(--accent);
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    nav a:hover { background: var(--bg-tertiary); }
+
+    /* Progress indicator */
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+
+    /* Cards */
+    .track-grid, .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .track-card, .topic-card {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .track-card:hover, .topic-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .track-card h3, .topic-card h3 { color: var(--accent); margin-bottom: 10px; }
+    .track-card a, .topic-card a { text-decoration: none; color: inherit; }
+
+    /* Completion badge */
+    .completion-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 24px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .completion-badge.completed { opacity: 1; }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 5px;
+    }
+    .badge-strong { background: #4CAF50; color: white; }
+    .badge-working { background: #2196F3; color: white; }
+    .badge-exposure { background: #9E9E9E; color: white; }
+
+    /* Content sections */
+    .content-section {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 30px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+    .content-section h2 {
+      color: var(--accent);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    .content-section h3 {
+      color: var(--text-primary);
+      margin-top: 25px;
+      margin-bottom: 12px;
+    }
+    .content-section ul, .content-section ol {
+      margin-left: 25px;
+      margin-top: 10px;
+    }
+    .content-section li { margin: 8px 0; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 16px;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab:hover { color: var(--accent); }
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Prev/Next navigation */
+    .topic-navigation {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    .nav-button {
+      flex: 1;
+      min-width: 200px;
+      padding: 15px 20px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-button:hover {
+      border-color: var(--accent);
+      transform: translateX(0) translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .nav-button.prev:hover { transform: translateX(-5px) translateY(-2px); }
+    .nav-button.next:hover { transform: translateX(5px) translateY(-2px); }
+    .nav-button .arrow { font-size: 20px; }
+    .nav-button .label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
+    .nav-button .title { font-weight: 600; }
+    .nav-button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* Mark complete button */
+    .complete-button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .complete-button:hover { background: #45a049; transform: scale(1.05); }
+    .complete-button.completed {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 2px solid #4CAF50;
+    }
+
+    /* Quiz styles */
+    .question {
+      background: var(--bg-tertiary);
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 6px;
+      border-left: 4px solid var(--accent);
+    }
+    .question h4 { margin-bottom: 10px; }
+    .choices { margin: 10px 0; }
+    .choice {
+      padding: 12px;
+      margin: 8px 0;
+      cursor: pointer;
+      border-radius: 4px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      transition: all 0.2s;
+    }
+    .choice:hover { border-color: var(--accent); }
+    .choice.selected { background: #e3f2fd; border-color: #2196F3; }
+    .choice.correct { background: #e8f5e9; border-color: #4CAF50; }
+    .choice.incorrect { background: #ffebee; border-color: #f44336; }
+    .explanation {
+      margin-top: 10px;
+      padding: 10px;
+      background: #fff3cd;
+      color: #856404;
+      border-radius: 4px;
+      display: none;
+    }
+    .explanation.show { display: block; }
+
+    /* References */
+    .reference-list { list-style: none; margin-left: 0; }
+    .reference-list li {
+      padding: 15px;
+      margin: 10px 0;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+    }
+    .reference-list a { color: var(--accent); font-weight: 600; }
+    .reference-list .why { color: var(--text-secondary); font-size: 14px; margin-top: 5px; }
+
+    /* Code styles */
+    code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 15px 0;
+      position: relative;
+    }
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* Copy button for code blocks */
+    .code-block-wrapper {
+      position: relative;
+      margin: 15px 0;
+    }
+    .copy-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+      opacity: 0;
+    }
+    .code-block-wrapper:hover .copy-button { opacity: 1; }
+    .copy-button:hover { background: rgba(255,255,255,0.2); }
+    .copy-button.copied { background: #4CAF50; }
+
+    /* Score display */
+    .score-display {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--accent);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px var(--shadow);
+      display: none;
+      z-index: 1000;
+    }
+    .score-display.show { display: block; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .track-grid, .topic-grid { grid-template-columns: 1fr; }
+      .tabs { overflow-x: auto; }
+      header .container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+      }
+      .search-container {
+        margin: 0;
+        max-width: 100%;
+        order: 1;
+      }
+      header > .container > div:first-child { order: 0; }
+      .dark-mode-toggle {
+        order: 2;
+        align-self: flex-end;
+      }
+      .topic-navigation { flex-direction: column; }
+      .nav-button { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div>
+        <h1>💎 Rails Seniority Coach</h1>
+        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+      </div>
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          class="search-input"
+          id="search-input"
+          placeholder="Search topics..."
+          autocomplete="off"
+        />
+        <button class="search-clear" id="search-clear" onclick="clearSearch()">×</button>
+        <div class="search-results" id="search-results"></div>
+      </div>
+      <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+        <span class="light-icon">🌙</span><span class="dark-icon" style="display:none;">☀️</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    <nav>
+      <a href="/">← All Tracks</a>
+      <div id="progress-summary"></div>
+    </nav>
+    <nav style="margin-bottom: 20px;">
+  <a href="/tracks/sql_postgres">← SQL & PostgreSQL</a>
+</nav>
+
+<!-- Previous/Next Navigation -->
+<div class="topic-navigation">
+  
+    <div class="nav-button prev" style="opacity: 0.3; cursor: not-allowed;">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Start of track</div>
+      </div>
+    </div>
+  
+
+  
+    <a href="/tracks/sql_postgres/topics/indexing" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">Database Indexing (B-tree, Partial, Composite)</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+<div style="margin-bottom: 30px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+    <div style="flex: 1;">
+      <h1>CTEs and Window Functions</h1>
+      <div style="margin: 15px 0;">
+        
+        
+          <span class="badge badge-strong">Strong</span>
+        
+        &nbsp;
+        <span style="color: var(--text-secondary);">
+          📖 12 min read &nbsp; | &nbsp; 💻 22 min exercise
+        </span>
+      </div>
+    </div>
+    <button
+      id="mark-complete-btn"
+      class="complete-button"
+      data-track-key="sql_postgres"
+      data-topic-key="ctes_windows"
+      onclick="markTopicComplete('sql_postgres', 'ctes_windows')">
+      Mark Complete
+    </button>
+  </div>
+
+  
+    <div class="content-section" style="background: #f0f7ff;">
+      <h3 style="color: #2196F3; margin-bottom: 10px;">Learning Objectives</h3>
+      <ul style="margin-left: 20px;">
+        
+          <li>Write Common Table Expressions (WITH) to simplify complex queries</li>
+        
+          <li>Use window functions (ROW_NUMBER, RANK, LAG, LEAD) for analytics</li>
+        
+          <li>Decide when to use CTEs vs subqueries for readability and performance</li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-tab="overview-tab">📖 Overview</button>
+  <button class="tab" data-tab="exercise-tab">💻 Exercise</button>
+  <button class="tab" data-tab="checkpoint-tab">✅ Checkpoint</button>
+  <button class="tab" data-tab="references-tab">🔗 References</button>
+</div>
+
+<!-- Overview Tab -->
+<div id="overview-tab" class="tab-content active">
+  <div class="content-section">
+    
+      <h1>CTEs and Window Functions</h1>
+
+<h2>What It Is</h2>
+
+<p>Common Table Expressions (CTEs) are temporary named result sets defined with WITH. They simplify complex queries by breaking them into readable steps. Window functions (ROW_NUMBER, RANK, LAG, LEAD) compute values across rows related to the current row, useful for rankings, running totals, and comparing adjacent rows.</p>
+
+<h2>Why It Matters</h2>
+
+<p>CTEs make nested subqueries readable. Window functions solve problems that require self-joins or application-level iteration. Seniors use CTEs to organize multi-step analytics queries and window functions to rank results, calculate deltas, or find top N per group without multiple queries.</p>
+
+<h2>When to Use</h2>
+
+<ul>
+<li><strong>CTEs:</strong> Break complex queries into logical steps, recursively query hierarchies, or reuse subquery results</li>
+<li><strong>ROW_NUMBER/RANK:</strong> Find top N items per category (top 3 products per seller)</li>
+<li><strong>LAG/LEAD:</strong> Compare current row with previous/next row (price changes, streaks)</li>
+<li><strong>Running totals:</strong> Calculate cumulative sums over ordered data</li>
+</ul>
+
+<h2>Three Common Pitfalls</h2>
+
+<ol>
+<li><strong>Materializing CTEs unnecessarily:</strong> Postgres 12+ optimizes CTEs by inlining them. Use MATERIALIZED keyword only when needed.</li>
+<li><strong>Forgetting PARTITION BY:</strong> Window functions without PARTITION BY operate on entire result set, not per group.</li>
+<li><strong>Using window functions where GROUP BY suffices:</strong> Window functions are powerful but slower than GROUP BY for simple aggregations. Use GROUP BY when you don&#39;t need row-level details.</li>
+</ol>
+
+<hr>
+
+<h2>Common Table Expressions (CTEs)</h2>
+
+<p><strong>Basic syntax:</strong><br>
+<code>sql<br>
+WITH cte_name AS (<br>
+  SELECT ...<br>
+)<br>
+SELECT * FROM cte_name;<br>
+</code></p>
+
+<p><strong>Example: Find users with above-average orders:</strong><br>
+<code>sql<br>
+WITH avg_orders AS (<br>
+  SELECT AVG(total) AS avg_total FROM orders<br>
+)<br>
+SELECT users.*<br>
+FROM users<br>
+JOIN orders ON orders.user_id = users.id<br>
+JOIN avg_orders ON orders.total &gt; avg_orders.avg_total;<br>
+</code></p>
+
+<p><strong>Rails (raw SQL):</strong><br>
+```ruby<br>
+sql = &lt;&lt;-SQL<br>
+  WITH avg<em>orders AS (<br>
+    SELECT AVG(total) AS avg</em>total FROM orders<br>
+  )<br>
+  SELECT users.*<br>
+  FROM users<br>
+  JOIN orders ON orders.user<em>id = users.id<br>
+  CROSS JOIN avg</em>orders<br>
+  WHERE orders.total &gt; avg<em>orders.avg</em>total<br>
+SQL</p>
+
+<p>User.find<em>by</em>sql(sql)<br>
+```</p>
+
+<p><strong>Multiple CTEs:</strong><br>
+<code>sql<br>
+WITH active_users AS (<br>
+  SELECT id FROM users WHERE last_login &gt; NOW() - INTERVAL &#39;30 days&#39;<br>
+),<br>
+recent_orders AS (<br>
+  SELECT user_id, SUM(total) AS total_spent<br>
+  FROM orders<br>
+  WHERE created_at &gt; NOW() - INTERVAL &#39;30 days&#39;<br>
+  GROUP BY user_id<br>
+)<br>
+SELECT users.*, recent_orders.total_spent<br>
+FROM users<br>
+JOIN active_users ON active_users.id = users.id<br>
+JOIN recent_orders ON recent_orders.user_id = users.id;<br>
+</code></p>
+
+<hr>
+
+<h2>Recursive CTEs</h2>
+
+<p>Query hierarchical data (org charts, category trees).</p>
+
+<p><strong>Schema:</strong><br>
+<code>ruby<br>
+create_table :categories do |t|<br>
+  t.string :name<br>
+  t.references :parent, foreign_key: { to_table: :categories }<br>
+end<br>
+</code></p>
+
+<p><strong>Recursive query:</strong><br>
+```sql<br>
+WITH RECURSIVE category<em>tree AS (<br>
+  -- Base case: root categories<br>
+  SELECT id, name, parent</em>id, 1 AS level<br>
+  FROM categories<br>
+  WHERE parent_id IS NULL</p>
+
+<p>UNION ALL</p>
+
+<p>-- Recursive case: children<br>
+  SELECT c.id, c.name, c.parent<em>id, ct.level + 1<br>
+  FROM categories c<br>
+  JOIN category</em>tree ct ON c.parent<em>id = ct.id<br>
+)<br>
+SELECT * FROM category</em>tree ORDER BY level, name;<br>
+```</p>
+
+<hr>
+
+<h2>Window Functions Basics</h2>
+
+<p><strong>Syntax:</strong><br>
+<code>sql<br>
+function_name() OVER (<br>
+  PARTITION BY column<br>
+  ORDER BY column<br>
+  ROWS/RANGE frame_clause<br>
+)<br>
+</code></p>
+
+<p><strong>Without PARTITION BY:</strong> Operates on entire result set.<br>
+<strong>With PARTITION BY:</strong> Operates within each partition (group).</p>
+
+<hr>
+
+<h2>ROW_NUMBER</h2>
+
+<p>Assign unique sequential numbers to rows.</p>
+
+<p><strong>Find top 3 products per category:</strong><br>
+<code>sql<br>
+WITH ranked_products AS (<br>
+  SELECT<br>
+    products.*,<br>
+    ROW_NUMBER() OVER (PARTITION BY category_id ORDER BY sales DESC) AS rank<br>
+  FROM products<br>
+)<br>
+SELECT * FROM ranked_products WHERE rank &lt;= 3;<br>
+</code></p>
+
+<p><strong>Rails:</strong><br>
+```ruby<br>
+sql = &lt;&lt;-SQL<br>
+  WITH ranked<em>products AS (<br>
+    SELECT products.*,<br>
+           ROW</em>NUMBER() OVER (PARTITION BY category<em>id ORDER BY sales DESC) AS rank<br>
+    FROM products<br>
+  )<br>
+  SELECT * FROM ranked</em>products WHERE rank &lt;= 3<br>
+SQL</p>
+
+<p>Product.find<em>by</em>sql(sql)<br>
+```</p>
+
+<hr>
+
+<h2>RANK and DENSE_RANK</h2>
+
+<p><strong>RANK:</strong> Gaps after ties (1, 2, 2, 4).<br>
+<strong>DENSE_RANK:</strong> No gaps after ties (1, 2, 2, 3).</p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">SELECT</span>
+  <span class="n">name</span><span class="p">,</span>
+  <span class="n">score</span><span class="p">,</span>
+  <span class="n">RANK</span><span class="p">()</span> <span class="n">OVER</span> <span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">score</span> <span class="k">DESC</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span><span class="p">,</span>
+  <span class="n">DENSE_RANK</span><span class="p">()</span> <span class="n">OVER</span> <span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">score</span> <span class="k">DESC</span><span class="p">)</span> <span class="k">AS</span> <span class="n">dense_rank</span>
+<span class="k">FROM</span> <span class="n">students</span><span class="p">;</span>
+</code></pre></div>
+<p><strong>Result:</strong><br>
+<code><br>
+name    | score | rank | dense_rank<br>
+--------|-------|------|------------<br>
+Alice   | 100   | 1    | 1<br>
+Bob     | 95    | 2    | 2<br>
+Charlie | 95    | 2    | 2<br>
+David   | 90    | 4    | 3<br>
+</code></p>
+
+<hr>
+
+<h2>LAG and LEAD</h2>
+
+<p>Access previous or next row within partition.</p>
+
+<p><strong>Calculate price changes:</strong><br>
+<code>sql<br>
+SELECT<br>
+  date,<br>
+  price,<br>
+  LAG(price) OVER (ORDER BY date) AS prev_price,<br>
+  price - LAG(price) OVER (ORDER BY date) AS price_change<br>
+FROM stock_prices;<br>
+</code></p>
+
+<p><strong>Result:</strong><br>
+<code><br>
+date       | price | prev_price | price_change<br>
+-----------|-------|------------|-------------<br>
+2024-01-01 | 100   | NULL       | NULL<br>
+2024-01-02 | 105   | 100        | 5<br>
+2024-01-03 | 102   | 105        | -3<br>
+</code></p>
+
+<p><strong>Rails:</strong><br>
+```ruby<br>
+sql = &lt;&lt;-SQL<br>
+  SELECT<br>
+    date,<br>
+    price,<br>
+    LAG(price) OVER (ORDER BY date) AS prev<em>price,<br>
+    price - LAG(price) OVER (ORDER BY date) AS price</em>change<br>
+  FROM stock_prices<br>
+SQL</p>
+
+<p>StockPrice.find<em>by</em>sql(sql)<br>
+```</p>
+
+<hr>
+
+<h2>Running Totals and Moving Averages</h2>
+
+<p><strong>Running total:</strong><br>
+<code>sql<br>
+SELECT<br>
+  date,<br>
+  amount,<br>
+  SUM(amount) OVER (ORDER BY date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_total<br>
+FROM transactions;<br>
+</code></p>
+
+<p><strong>3-day moving average:</strong><br>
+<code>sql<br>
+SELECT<br>
+  date,<br>
+  value,<br>
+  AVG(value) OVER (ORDER BY date ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS moving_avg_3day<br>
+FROM metrics;<br>
+</code></p>
+
+<hr>
+
+<h2>CTEs vs Subqueries</h2>
+
+<p><strong>Subquery (less readable):</strong><br>
+<code>sql<br>
+SELECT *<br>
+FROM users<br>
+WHERE id IN (<br>
+  SELECT user_id<br>
+  FROM orders<br>
+  WHERE total &gt; (SELECT AVG(total) FROM orders)<br>
+);<br>
+</code></p>
+
+<p><strong>CTE (more readable):</strong><br>
+<code>sql<br>
+WITH avg_total AS (<br>
+  SELECT AVG(total) AS avg FROM orders<br>
+),<br>
+high_value_orders AS (<br>
+  SELECT user_id FROM orders, avg_total WHERE total &gt; avg_total.avg<br>
+)<br>
+SELECT * FROM users WHERE id IN (SELECT user_id FROM high_value_orders);<br>
+</code></p>
+
+<p><strong>Performance:</strong> Postgres 12+ inlines CTEs like subqueries. Use MATERIALIZED to force evaluation once.</p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">WITH</span> <span class="n">materialized_cte</span> <span class="k">AS</span> <span class="n">MATERIALIZED</span> <span class="p">(</span>
+  <span class="k">SELECT</span> <span class="n">expensive_computation</span><span class="p">()</span> <span class="k">AS</span> <span class="k">result</span>
+<span class="p">)</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">materialized_cte</span><span class="p">;</span>
+</code></pre></div>
+<hr>
+
+<h2>Window Functions in Rails</h2>
+
+<p><strong>Arel:</strong><br>
+```ruby</p>
+
+<h1>ROW_NUMBER with partition</h1>
+
+<p>window = Arel::Nodes::Window.new.partition(Product.arel<em>table[:category</em>id]).order(Product.arel<em>table[:sales].desc)<br>
+row</em>number = Arel::Nodes::NamedFunction.new(&#39;ROW_NUMBER&#39;, []).over(window)</p>
+
+<p>Product.select(Product.arel<em>table[Arel.star], row</em>number.as(&#39;rank&#39;))<br>
+```</p>
+
+<p><strong>Raw SQL (simpler):</strong><br>
+```ruby<br>
+sql = &lt;&lt;-SQL<br>
+  SELECT products.*,<br>
+         ROW<em>NUMBER() OVER (PARTITION BY category</em>id ORDER BY sales DESC) AS rank<br>
+  FROM products<br>
+SQL</p>
+
+<p>Product.find<em>by</em>sql(sql)<br>
+```</p>
+
+<hr>
+
+<h2>Trade-offs Box</h2>
+
+<ul>
+<li><strong>Advantage:</strong> CTEs improve readability by naming subqueries. Window functions eliminate self-joins and multiple queries.</li>
+<li><strong>Cost:</strong> Window functions can be slower than GROUP BY for simple aggregations. Recursive CTEs risk infinite loops without proper base cases.</li>
+<li><strong>When to skip:</strong> Use GROUP BY instead of window functions when you only need aggregated results, not row-level details.</li>
+</ul>
+
+<hr>
+
+<h2>Debugging Checklist</h2>
+
+<p>When CTE or window function queries are slow:</p>
+
+<ol>
+<li>Run EXPLAIN ANALYZE to check if CTE is being materialized unnecessarily</li>
+<li>Add indexes on PARTITION BY and ORDER BY columns</li>
+<li>For recursive CTEs, verify base case terminates and doesn&#39;t scan entire table</li>
+<li>Replace window functions with GROUP BY if row-level details aren&#39;t needed</li>
+<li>Check for redundant window definitions; reuse WINDOW clause for multiple functions</li>
+<li>Use MATERIALIZED keyword if CTE result is reused multiple times</li>
+<li>Profile query with pg<em>stat</em>statements to identify bottlenecks</li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>CTEs (WITH) break complex queries into readable named steps</li>
+<li>Recursive CTEs query hierarchical data like org charts or category trees</li>
+<li>ROW<em>NUMBER assigns unique ranks; RANK/DENSE</em>RANK handle ties differently</li>
+<li>LAG/LEAD access previous/next rows for calculating deltas or streaks</li>
+<li>Window functions partition data with PARTITION BY and order with ORDER BY</li>
+</ul>
+
+    
+  </div>
+</div>
+
+<!-- Exercise Tab -->
+<div id="exercise-tab" class="tab-content">
+  <div class="content-section">
+    
+      <h1>Exercise: CTEs and Window Functions</h1>
+
+<h2>Objective</h2>
+
+<p>Practice using Common Table Expressions and window functions to solve analytics queries.</p>
+
+<h2>Task</h2>
+
+<p>You have an e-commerce database with orders and products. Write queries using CTEs and window functions to answer business questions.</p>
+
+<p><strong>Setup:</strong><br>
+```ruby</p>
+
+<h1>Schema</h1>
+
+<p>create_table :orders do |t|<br>
+  t.references :user, null: false<br>
+  t.decimal :total, precision: 10, scale: 2<br>
+  t.timestamps<br>
+end</p>
+
+<p>create<em>table :products do |t|<br>
+  t.string :name<br>
+  t.string :category<br>
+  t.integer :sales</em>count<br>
+  t.decimal :price, precision: 10, scale: 2<br>
+  t.timestamps<br>
+end<br>
+```</p>
+
+<p><strong>Business questions:</strong><br>
+1. Find the top 3 products by sales in each category<br>
+2. Calculate each order&#39;s total and the running total of all orders by date<br>
+3. For each product, show current price, previous price (by created_at), and price change<br>
+4. Find users who spent more than the average order total</p>
+
+<h2>Acceptance Criteria</h2>
+
+<ul>
+<li>[ ] Query 1: Use ROW<em>NUMBER with PARTITION BY category and ORDER BY sales</em>count DESC</li>
+<li>[ ] Query 2: Use SUM() OVER with ORDER BY for running total</li>
+<li>[ ] Query 3: Use LAG() to get previous price and calculate difference</li>
+<li>[ ] Query 4: Use a CTE to calculate average order total, then filter users</li>
+<li>[ ] All queries return correct results when tested against sample data</li>
+<li>[ ] Run EXPLAIN ANALYZE on each query and verify performance is acceptable</li>
+</ul>
+
+<h2>Verification Steps</h2>
+
+<ol>
+<li>Insert sample data: 10 categories, 50 products, 100 orders from 20 users</li>
+<li>Run Query 1 and verify exactly 3 products per category (or fewer if category has &lt; 3 products)</li>
+<li>Run Query 2 and manually verify running total matches sum of all previous orders</li>
+<li>Run Query 3 and verify price<em>change = current</em>price - previous_price</li>
+<li>Run Query 4 and verify all returned users have sum(orders.total) &gt; average</li>
+<li>Check query plans: ensure indexes are used where appropriate</li>
+</ol>
+
+<h2>Stretch (Optional)</h2>
+
+<p>Write a recursive CTE to query a hierarchical categories table (parent_id references categories.id) and display the full category path for each product.</p>
+
+<h2>Time Estimate</h2>
+
+<p>22 minutes</p>
+
+    
+  </div>
+</div>
+
+<!-- Checkpoint Tab -->
+<div id="checkpoint-tab" class="tab-content">
+  <div class="content-section">
+    
+      
+      <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
+        <p><strong>Passing Score:</strong> 7 points</p>
+        <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
+      </div>
+
+      
+        <div class="question"
+             data-question-id="0"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="A temporary named result set defined with WITH">
+          <h4>Question 1 (1 points)</h4>
+          <p style="margin: 10px 0;">What is a Common Table Expression (CTE)?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  A permanent view stored in the database
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  A temporary named result set defined with WITH
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  A type of index
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  A database constraint
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> CTEs are defined using WITH and exist only for the duration of the query.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="1"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Divides the result set into groups for the window function to operate on">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">What does PARTITION BY do in a window function?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  Divides the result set into groups for the window function to operate on
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  Orders the rows
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  Filters the rows
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Creates an index
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> PARTITION BY splits data into groups; window functions compute values within each partition.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="2"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 3 (2 points)</h4>
+          <p style="margin: 10px 0;">Explain the difference between ROW_NUMBER() and RANK() when handling ties.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">ROW_NUMBER assigns unique sequential numbers (1, 2, 3, 4) even for ties. RANK assigns the same number to ties but leaves gaps (1, 2, 2, 4). DENSE_RANK has no gaps (1, 2, 2, 3).</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="3"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Returns the previous row's value">
+          <h4>Question 4 (1 points)</h4>
+          <p style="margin: 10px 0;">What does the LAG() window function do?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  Returns the next row's value
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  Returns the previous row's value
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  Calculates a running total
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  Ranks rows
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> LAG accesses the previous row within the partition; LEAD accesses the next row.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="4"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Use CTEs for readability when breaking complex queries into steps">
+          <h4>Question 5 (1 points)</h4>
+          <p style="margin: 10px 0;">When should you use a CTE vs a subquery?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  CTEs are always faster
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  Use CTEs for readability when breaking complex queries into steps
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  Subqueries cannot be used in Postgres
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  CTEs are required for window functions
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> CTEs improve readability by naming intermediate results; performance is similar to subqueries in Postgres 12+.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="5"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">Write a query using ROW_NUMBER() to find the top 2 products by sales in each category.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">WITH ranked AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY category ORDER BY sales DESC) AS rank FROM products) SELECT * FROM ranked WHERE rank <= 2;</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Querying hierarchical data like org charts or category trees">
+          <h4>Question 7 (1 points)</h4>
+          <p style="margin: 10px 0;">What is a recursive CTE used for?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  Optimizing indexes
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  Querying hierarchical data like org charts or category trees
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  Creating materialized views
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  Enforcing constraints
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Recursive CTEs traverse parent-child relationships, useful for tree structures.
+              </div>
+            
+          
+        </div>
+      
+
+      <div style="margin-top: 30px; display: flex; gap: 10px;">
+        <button onclick="checkAnswers()" style="padding: 12px 24px; background: #CC0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600;">
+          Check Answers
+        </button>
+        <button onclick="resetQuiz()" style="padding: 12px 24px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+          Reset
+        </button>
+      </div>
+
+      <div class="score-display" data-passing="7"></div>
+    
+  </div>
+</div>
+
+<!-- References Tab -->
+<div id="references-tab" class="tab-content">
+  <div class="content-section">
+    
+      <p style="margin-bottom: 20px; color: var(--text-secondary);">
+        Curated sources to deepen your understanding. All references point to official documentation,
+        canonical books, or reputable technical content.
+      </p>
+      <ul class="reference-list">
+        
+          <li>
+            <a href="https://www.postgresql.org/docs/current/queries-with.html" target="_blank">PostgreSQL Documentation — WITH Queries (CTEs)</a>
+            <div class="why">Official Postgres documentation on Common Table Expressions and recursive queries.</div>
+          </li>
+        
+          <li>
+            <a href="https://www.postgresql.org/docs/current/tutorial-window.html" target="_blank">PostgreSQL Documentation — Window Functions</a>
+            <div class="why">Tutorial covering ROW_NUMBER, RANK, LAG, LEAD, and PARTITION BY with examples.</div>
+          </li>
+        
+          <li>
+            <a href="https://www.postgresql.org/docs/current/functions-window.html" target="_blank">PostgreSQL Documentation — Window Function Reference</a>
+            <div class="why">Complete reference for all window functions and frame clauses (ROWS, RANGE).</div>
+          </li>
+        
+          <li>
+            <a href="https://modern-sql.com/feature/over" target="_blank">Modern SQL — Window Functions</a>
+            <div class="why">Cross-database guide to window functions with practical examples.</div>
+          </li>
+        
+          <li>
+            <a href="https://use-the-index-luke.com/sql/where-clause/searching-for-ranges/recursive-queries" target="_blank">Use The Index, Luke — Querying Trees</a>
+            <div class="why">Recursive CTE patterns for hierarchical data with performance tips.</div>
+          </li>
+        
+          <li>
+            <a href="https://thoughtbot.com/blog/advanced-postgres-performance-tips" target="_blank">Thoughtbot — Advanced Postgres Queries</a>
+            <div class="why">Real-world examples of CTEs and window functions in Rails applications.</div>
+          </li>
+        
+          <li>
+            <a href="https://wiki.postgresql.org/wiki/Window_Functions" target="_blank">PostgreSQL Wiki — Window Functions</a>
+            <div class="why">Community examples and common use cases for analytics queries.</div>
+          </li>
+        
+      </ul>
+    
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="topic-navigation">
+  
+    <div class="nav-button prev" style="opacity: 0.3; cursor: not-allowed;">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Start of track</div>
+      </div>
+    </div>
+  
+
+  
+    <a href="/tracks/sql_postgres/topics/indexing" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">Database Indexing (B-tree, Partial, Composite)</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+  </div>
+
+  <script>
+    // ============================================
+    // Search Index
+    // ============================================
+    const SEARCH_INDEX = [{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"ar_relations","topic_name":"Active Record Relations & Query Interface","depth_target":"Strong","objectives":"Compose complex queries using relations and scopes Explain lazy loading and when queries execute Chain methods without triggering N+1 queries","url":"/tracks/rails_internals/topics/ar_relations.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"config_initializers","topic_name":"Configuration & Initializers","depth_target":"Strong","objectives":"Configure Rails apps using environment-specific settings Write initializers that load in correct order Manage secrets and credentials securely","url":"/tracks/rails_internals/topics/config_initializers.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"request_lifecycle","topic_name":"Request Lifecycle & Middleware","depth_target":"Strong","objectives":"Trace a Rails request from Rack through middleware to controller Identify where params are parsed and filters applied Profile a request and explain the hottest frames","url":"/tracks/rails_internals/topics/request_lifecycle.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"routing_middleware","topic_name":"Routing & Middleware Patterns","depth_target":"Strong","objectives":"Design RESTful routes with constraints and namespaces Write custom middleware for cross-cutting concerns Debug routing issues using rails routes and route helpers","url":"/tracks/rails_internals/topics/routing_middleware.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"validations_callbacks","topic_name":"Validations, Callbacks & Concerns","depth_target":"Strong","objectives":"Write custom validations and understand when they run Identify callback dangers and when to avoid them Extract shared logic using concerns","url":"/tracks/rails_internals/topics/validations_callbacks.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"autoloading_boot","topic_name":"Zeitwerk/Autoloading & Boot Sequence","depth_target":"Strong","objectives":"Explain how Zeitwerk maps file paths to constants Debug \"uninitialized constant\" and circular dependency errors Optimize boot time by controlling eager loading","url":"/tracks/rails_internals/topics/autoloading_boot.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"ctes_windows","topic_name":"CTEs and Window Functions","depth_target":"Strong","objectives":"Write Common Table Expressions (WITH) to simplify complex queries Use window functions (ROW_NUMBER, RANK, LAG, LEAD) for analytics Decide when to use CTEs vs subqueries for readability and performance","url":"/tracks/sql_postgres/topics/ctes_windows.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"indexing","topic_name":"Database Indexing (B-tree, Partial, Composite)","depth_target":"Strong","objectives":"Choose appropriate index types (B-tree, partial, composite, GIN/GiST) for query patterns Identify when indexes improve or harm performance Use EXPLAIN to verify index usage and measure query costs","url":"/tracks/sql_postgres/topics/indexing.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"modeling_constraints","topic_name":"Modeling & Constraints (FKs, Uniques, Check)","depth_target":"Strong","objectives":"Design schemas with foreign keys, unique constraints, and check constraints Write migrations that enforce data integrity at the database level Debug constraint violations and fix schema issues","url":"/tracks/sql_postgres/topics/modeling_constraints.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"explain_analyze","topic_name":"Reading Query Plans (EXPLAIN ANALYZE)","depth_target":"Strong","objectives":"Read EXPLAIN ANALYZE output to identify sequential scans, index scans, and nested loops Identify query bottlenecks (costly sorts, large row estimates, missing indexes) Use pg_stat_statements to find slowest queries in production","url":"/tracks/sql_postgres/topics/explain_analyze.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"transactions_locks","topic_name":"Transactions, Isolation, and Locks","depth_target":"Strong","objectives":"Explain ACID properties and how Postgres enforces them Choose appropriate isolation levels for concurrent operations Debug deadlocks and lock contention using pg_locks and pg_stat_activity","url":"/tracks/sql_postgres/topics/transactions_locks.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"zero_downtime_migrations","topic_name":"Zero-Downtime Migrations","depth_target":"Strong","objectives":"Write migrations that don't lock tables or cause downtime Add columns with defaults, indexes, and constraints safely Backfill data in batches to avoid long-running transactions","url":"/tracks/sql_postgres/topics/zero_downtime_migrations.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"sidekiq_basics","topic_name":"ActiveJob vs Sidekiq Fundamentals","depth_target":"Strong","objectives":"Compare ActiveJob abstraction with direct Sidekiq usage Configure Redis connection and worker concurrency Route jobs to specific queues and set priorities","url":"/tracks/background_jobs/topics/sidekiq_basics.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"idempotency_retries","topic_name":"Idempotency Patterns & Retries","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate job effects Configure retry strategies with exponential backoff Handle dead jobs in the dead letter queue","url":"/tracks/background_jobs/topics/idempotency_retries.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"job_instrumentation","topic_name":"Job Instrumentation & Backoff","depth_target":"Strong","objectives":"Log job execution with structured context Track success/failure metrics for monitoring Implement custom exponential backoff strategies Use Sidekiq lifecycle hooks for instrumentation","url":"/tracks/background_jobs/topics/job_instrumentation.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"scheduling","topic_name":"Job Scheduling & Deduplication","depth_target":"Strong","objectives":"Schedule recurring jobs with cron syntax using sidekiq-cron Prevent duplicate jobs with sidekiq-unique-jobs Use at/in syntax for delayed one-time jobs Pass job context safely without ActiveRecord objects","url":"/tracks/background_jobs/topics/scheduling.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"cache_keys_invalidations","topic_name":"Cache Keys & Invalidation Strategies","depth_target":"Strong","objectives":"Design cache keys that auto-expire on record changes Implement Russian-doll caching pattern Prevent cache stampede with locks Choose between manual and automatic invalidation","url":"/tracks/caching_performance/topics/cache_keys_invalidations.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"eager_preload","topic_name":"Eager Loading vs Preloading Strategies","depth_target":"Strong","objectives":"Distinguish between includes, preload, eager_load, and joins Choose the correct loading strategy based on query needs Optimize nested associations without over-fetching","url":"/tracks/caching_performance/topics/eager_preload.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"fragment_caching","topic_name":"Fragment & Low-Level Caching","depth_target":"Strong","objectives":"Implement view fragment caching with cache keys Use low-level caching for expensive computations Configure cache stores (memory, Redis, Memcached) Measure cache hit rates and performance gains","url":"/tracks/caching_performance/topics/fragment_caching.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"memory_gc_basics","topic_name":"Memory & Garbage Collection Awareness","depth_target":"Strong","objectives":"Track Ruby object allocation and memory usage Read and interpret GC statistics Identify memory bloat and leaks Use memory_profiler gem to profile endpoints","url":"/tracks/caching_performance/topics/memory_gc_basics.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"n_plus_one","topic_name":"N+1 Query Detection & Resolution","depth_target":"Strong","objectives":"Identify N+1 query patterns in logs and using Bullet gem Choose between includes, preload, eager_load, and joins Measure query count before and after optimization","url":"/tracks/caching_performance/topics/n_plus_one.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"apm_traces","topic_name":"APM Basics and Flamegraphs","depth_target":"Working","objectives":"Read APM flamegraphs to identify slow segments Use APM to detect N+1 queries and slow database calls Set up rack-mini-profiler for local performance analysis","url":"/tracks/observability/topics/apm_traces.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"error_tracking_model","topic_name":"Error Tracking Mental Model","depth_target":"Working","objectives":"Integrate an error tracking service (Sentry, Rollbar, or Honeybadger) Add context to errors (user info, request params, custom tags) Understand error grouping and fingerprinting","url":"/tracks/observability/topics/error_tracking_model.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"metrics_slos","topic_name":"Metrics and SLO Thinking","depth_target":"Working","objectives":"Understand RED metrics (Rate, Errors, Duration) for web services Distinguish between SLI, SLO, and SLA Set realistic SLO targets (99% vs 99.9% trade-offs)","url":"/tracks/observability/topics/metrics_slos.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"structured_logging","topic_name":"Structured Logging with Lograge","depth_target":"Strong","objectives":"Configure lograge for JSON logging in production Add custom fields like request_id and user_id to log entries Filter sensitive data from logs (passwords, tokens)","url":"/tracks/observability/topics/structured_logging.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"error_shapes","topic_name":"API Error Shapes & Standards","depth_target":"Strong","objectives":"Design consistent error response structures across API endpoints Choose appropriate HTTP status codes for different error types Distinguish user-facing from developer-facing error messages","url":"/tracks/api_security/topics/error_shapes.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"versioning","topic_name":"API Versioning Strategies","depth_target":"Strong","objectives":"Compare header-based vs path-based API versioning Implement deprecation warnings with Sunset headers Maintain backward compatibility across API versions","url":"/tracks/api_security/topics/versioning.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"authn_authz","topic_name":"Authentication & Authorization with Pundit","depth_target":"Strong","objectives":"Implement token-based authentication for API endpoints Define authorization policies using Pundit Test authorization logic in controllers and request specs","url":"/tracks/api_security/topics/authn_authz.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"csrf_cors","topic_name":"CSRF, CORS & Input Validation","depth_target":"Strong","objectives":"Configure CORS headers for cross-origin API requests Implement CSRF protection for session-based APIs Validate and sanitize inputs to prevent injection attacks","url":"/tracks/api_security/topics/csrf_cors.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"idempotency_rate_limits","topic_name":"Idempotency Keys & Rate Limiting","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate operations Configure rate limiting using rack-attack and Redis Return appropriate headers (Retry-After, X-RateLimit)","url":"/tracks/api_security/topics/idempotency_rate_limits.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"pagination_filtering","topic_name":"Pagination, Filtering & Sorting","depth_target":"Strong","objectives":"Implement cursor and offset pagination with performance trade-offs Add filtering and sorting via query parameters Return pagination metadata for client navigation","url":"/tracks/api_security/topics/pagination_filtering.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"rest_design","topic_name":"REST Design Patterns","depth_target":"Strong","objectives":"Design RESTful routes using resources and verbs correctly Choose appropriate HTTP status codes for API responses Structure JSON responses with consistent conventions","url":"/tracks/api_security/topics/rest_design.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"forms_progressive","topic_name":"Forms & progressive enhancement","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/forms_progressive.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"hotwire_frames_streams","topic_name":"Hotwire: Frames & Streams","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/hotwire_frames_streams.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"react_working_fundamentals","topic_name":"React: Working fundamentals","depth_target":"working","objectives":"","url":"/tracks/frontend_integration/topics/react_working_fundamentals.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"stimulus_patterns","topic_name":"Stimulus patterns & best practices","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/stimulus_patterns.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"adrs","topic_name":"ADRs & Lightweight Documentation","depth_target":"Strong","objectives":"Write Architecture Decision Records for major changes Store ADRs in version control alongside code Use MADR template for consistency","url":"/tracks/architecture_design/topics/adrs.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"feature_flags_rollouts","topic_name":"Feature Flags & Safe Rollouts","depth_target":"Strong","objectives":"Implement feature flags with Flipper or Unleash Design rollout strategies by percentage or user segment Monitor flagged features and clean up old flags","url":"/tracks/architecture_design/topics/feature_flags_rollouts.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"layering_services","topic_name":"Layering & Service Objects","depth_target":"Strong","objectives":"Extract complex logic from models into service objects Choose between service, form, and policy objects Apply presenters and decorators for view logic","url":"/tracks/architecture_design/topics/layering_services.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"testing_strategy","topic_name":"Testing Strategy (Unit/Request/System)","depth_target":"Strong","objectives":"Balance unit, request, and system tests using the test pyramid Use factories and fixtures appropriately Stub HTTP calls with VCR and WebMock","url":"/tracks/architecture_design/topics/testing_strategy.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"microservices_when_not","topic_name":"When NOT to Microservice","depth_target":"Working","objectives":"Recognize when monoliths outperform microservices Understand modular monolith as an alternative Identify signs that microservices add complexity without benefit","url":"/tracks/architecture_design/topics/microservices_when_not.html"}];
+
+    // ============================================
+    // Progress Tracking (localStorage)
+    // ============================================
+    const STORAGE_KEY = 'rails_coach_progress';
+    const DARK_MODE_KEY = 'rails_coach_dark_mode';
+
+    function getProgress() {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : {};
+    }
+
+    function saveProgress(progress) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      updateProgressUI();
+    }
+
+    function isTopicComplete(trackKey, topicKey) {
+      const progress = getProgress();
+      return progress[`${trackKey}/${topicKey}`] === true;
+    }
+
+    function toggleTopicComplete(trackKey, topicKey) {
+      const progress = getProgress();
+      const key = `${trackKey}/${topicKey}`;
+      progress[key] = !progress[key];
+      saveProgress(progress);
+      return progress[key];
+    }
+
+    function getTrackProgress(trackKey, totalTopics) {
+      const progress = getProgress();
+      const completed = Object.keys(progress).filter(key =>
+        key.startsWith(trackKey + '/') && progress[key]
+      ).length;
+      return { completed, total: totalTopics };
+    }
+
+    function updateProgressUI() {
+      // Update completion badges on cards
+      document.querySelectorAll('[data-topic-key]').forEach(card => {
+        const trackKey = card.dataset.trackKey;
+        const topicKey = card.dataset.topicKey;
+        const badge = card.querySelector('.completion-badge');
+        if (badge && isTopicComplete(trackKey, topicKey)) {
+          badge.classList.add('completed');
+        }
+      });
+
+      // Update mark complete button
+      const completeBtn = document.getElementById('mark-complete-btn');
+      if (completeBtn) {
+        const trackKey = completeBtn.dataset.trackKey;
+        const topicKey = completeBtn.dataset.topicKey;
+        const completed = isTopicComplete(trackKey, topicKey);
+        completeBtn.classList.toggle('completed', completed);
+        completeBtn.innerHTML = completed ? '✓ Completed' : 'Mark Complete';
+      }
+
+      // Update progress summary
+      const summary = document.getElementById('progress-summary');
+      if (summary) {
+        const progress = getProgress();
+        const total = Object.keys(progress).filter(k => progress[k]).length;
+        if (total > 0) {
+          summary.innerHTML = `<span style="color: var(--text-secondary);">Progress: ${total}/41 topics</span>`;
+        }
+      }
+    }
+
+    function markTopicComplete(trackKey, topicKey) {
+      const completed = toggleTopicComplete(trackKey, topicKey);
+      updateProgressUI();
+
+      // Show celebration if first time completing
+      if (completed) {
+        showNotification('✓ Topic marked complete!');
+      }
+    }
+
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+      }, 2000);
+    }
+
+    // ============================================
+    // Search Functionality
+    // ============================================
+    function performSearch(query) {
+      if (!query || query.trim().length < 2) {
+        hideSearchResults();
+        return;
+      }
+
+      const normalizedQuery = query.toLowerCase().trim();
+      const results = SEARCH_INDEX.filter(item => {
+        return item.topic_name.toLowerCase().includes(normalizedQuery) ||
+               item.track_name.toLowerCase().includes(normalizedQuery) ||
+               item.objectives.toLowerCase().includes(normalizedQuery) ||
+               item.depth_target.toLowerCase().includes(normalizedQuery);
+      });
+
+      displaySearchResults(results, query);
+    }
+
+    function displaySearchResults(results, query) {
+      const container = document.getElementById('search-results');
+
+      if (results.length === 0) {
+        container.innerHTML = `
+          <div class="search-no-results">
+            No topics found for "${query}"
+          </div>
+        `;
+        container.classList.add('show');
+        return;
+      }
+
+      // Group results by track
+      const grouped = {};
+      results.forEach(item => {
+        if (!grouped[item.track_key]) {
+          grouped[item.track_key] = {
+            name: item.track_name,
+            icon: item.track_icon,
+            items: []
+          };
+        }
+        grouped[item.track_key].items.push(item);
+      });
+
+      // Build HTML
+      let html = '';
+      Object.keys(grouped).forEach(trackKey => {
+        const track = grouped[trackKey];
+        html += `
+          <div class="search-group">
+            <div class="search-group-title">
+              ${track.icon} ${track.name}
+            </div>
+        `;
+        track.items.forEach(item => {
+          const badgeClass = item.depth_target === 'Strong' ? 'badge-strong' :
+                           item.depth_target === 'Working' ? 'badge-working' : 'badge-exposure';
+          html += `
+            <a href="${item.url}" class="search-result-item">
+              <div class="search-result-title">${highlightMatch(item.topic_name, query)}</div>
+              <div class="search-result-meta">
+                <span class="badge ${badgeClass}">${item.depth_target}</span>
+              </div>
+            </a>
+          `;
+        });
+        html += `</div>`;
+      });
+
+      container.innerHTML = html;
+      container.classList.add('show');
+    }
+
+    function highlightMatch(text, query) {
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<strong>$1</strong>');
+    }
+
+    function hideSearchResults() {
+      document.getElementById('search-results').classList.remove('show');
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('search-input');
+      input.value = '';
+      hideSearchResults();
+      document.getElementById('search-clear').classList.remove('show');
+      input.focus();
+    }
+
+    function initSearch() {
+      const searchInput = document.getElementById('search-input');
+      const searchClear = document.getElementById('search-clear');
+
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value;
+        if (query.length > 0) {
+          searchClear.classList.add('show');
+        } else {
+          searchClear.classList.remove('show');
+        }
+        performSearch(query);
+      });
+
+      // Close search results when clicking outside
+      document.addEventListener('click', (e) => {
+        const searchContainer = document.querySelector('.search-container');
+        if (!searchContainer.contains(e.target)) {
+          hideSearchResults();
+        }
+      });
+
+      // Keyboard shortcut: / to focus search
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+        // Escape to close search
+        if (e.key === 'Escape') {
+          clearSearch();
+        }
+      });
+    }
+
+    // ============================================
+    // Dark Mode
+    // ============================================
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem(DARK_MODE_KEY, isDark);
+
+      document.querySelector('.light-icon').style.display = isDark ? 'none' : 'inline';
+      document.querySelector('.dark-icon').style.display = isDark ? 'inline' : 'none';
+    }
+
+    function initDarkMode() {
+      const isDark = localStorage.getItem(DARK_MODE_KEY) === 'true';
+      if (isDark) {
+        document.body.classList.add('dark-mode');
+        document.querySelector('.light-icon').style.display = 'none';
+        document.querySelector('.dark-icon').style.display = 'inline';
+      }
+    }
+
+    // ============================================
+    // Tab Switching
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const targetId = tab.dataset.tab;
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          document.getElementById(targetId).classList.add('active');
+        });
+      });
+
+      // Add code copy buttons
+      addCopyButtons();
+
+      // Initialize dark mode
+      initDarkMode();
+
+      // Initialize search
+      initSearch();
+
+      // Update progress UI
+      updateProgressUI();
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        // Arrow keys for prev/next
+        if (e.key === 'ArrowLeft' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          const prevBtn = document.querySelector('.nav-button.prev');
+          if (prevBtn && !prevBtn.disabled) prevBtn.click();
+        }
+        if (e.key === 'ArrowRight' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          const nextBtn = document.querySelector('.nav-button.next');
+          if (nextBtn && !nextBtn.disabled) nextBtn.click();
+        }
+        // Number keys for tabs
+        if (e.key >= '1' && e.key <= '4') {
+          const tabs = document.querySelectorAll('.tab');
+          const index = parseInt(e.key) - 1;
+          if (tabs[index]) tabs[index].click();
+        }
+      });
+    });
+
+    // ============================================
+    // Code Copy Buttons
+    // ============================================
+    function addCopyButtons() {
+      document.querySelectorAll('pre').forEach((pre, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+
+        const button = document.createElement('button');
+        button.className = 'copy-button';
+        button.textContent = 'Copy';
+        button.onclick = () => copyCode(pre, button);
+        wrapper.appendChild(button);
+      });
+    }
+
+    function copyCode(pre, button) {
+      const code = pre.querySelector('code') || pre;
+      navigator.clipboard.writeText(code.textContent).then(() => {
+        button.textContent = '✓ Copied!';
+        button.classList.add('copied');
+        setTimeout(() => {
+          button.textContent = 'Copy';
+          button.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // ============================================
+    // Quiz Functionality
+    // ============================================
+    function selectChoice(questionId, choiceIndex) {
+      const question = document.querySelector(`[data-question-id="${questionId}"]`);
+      const choices = question.querySelectorAll('.choice');
+      choices.forEach((choice, idx) => {
+        choice.classList.remove('selected');
+        if (idx === choiceIndex) choice.classList.add('selected');
+      });
+    }
+
+    function checkAnswers() {
+      let score = 0;
+      let totalPoints = 0;
+
+      document.querySelectorAll('.question').forEach(question => {
+        const kind = question.dataset.kind;
+        const points = parseInt(question.dataset.points);
+        totalPoints += points;
+
+        if (kind === 'mcq') {
+          const correct = question.dataset.correct;
+          const selected = question.querySelector('.choice.selected');
+
+          if (selected) {
+            const selectedText = selected.textContent.trim();
+            const explanation = question.querySelector('.explanation');
+
+            if (selectedText === correct) {
+              selected.classList.add('correct');
+              score += points;
+            } else {
+              selected.classList.add('incorrect');
+              question.querySelectorAll('.choice').forEach(choice => {
+                if (choice.textContent.trim() === correct) {
+                  choice.classList.add('correct');
+                }
+              });
+            }
+
+            if (explanation) explanation.classList.add('show');
+          }
+        }
+      });
+
+      const scoreDisplay = document.querySelector('.score-display');
+      const passingScore = parseInt(scoreDisplay.dataset.passing || 7);
+      const passed = score >= passingScore;
+
+      scoreDisplay.innerHTML = `
+        <div style="font-size: 24px; font-weight: bold;">${score} / ${totalPoints}</div>
+        <div style="margin-top: 5px;">${passed ? '✅ Passed!' : '❌ Try again'}</div>
+        <div style="font-size: 12px; margin-top: 5px;">Passing: ${passingScore}</div>
+      `;
+      scoreDisplay.classList.add('show');
+    }
+
+    function resetQuiz() {
+      document.querySelectorAll('.choice').forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+      });
+      document.querySelectorAll('.explanation').forEach(exp => exp.classList.remove('show'));
+      document.querySelector('.score-display').classList.remove('show');
+    }
+  </script>
+</body>
+</html>

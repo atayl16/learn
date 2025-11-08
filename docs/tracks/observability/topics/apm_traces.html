@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rails Seniority Coach</title>
+  <style>
+    :root {
+      --bg-primary: #f5f5f5;
+      --bg-secondary: white;
+      --bg-tertiary: #f9f9f9;
+      --text-primary: #333;
+      --text-secondary: #666;
+      --text-muted: #999;
+      --accent: #CC0000;
+      --border: #e0e0e0;
+      --shadow: rgba(0,0,0,0.1);
+      --code-bg: #f4f4f4;
+      --code-block-bg: #2b2b2b;
+      --code-block-text: #f8f8f2;
+    }
+
+    body.dark-mode {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2d2d2d;
+      --bg-tertiary: #3a3a3a;
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --text-muted: #808080;
+      --border: #404040;
+      --shadow: rgba(0,0,0,0.3);
+      --code-bg: #3a3a3a;
+      --code-block-bg: #1e1e1e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      transition: background 0.3s, color 0.3s;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    /* Header */
+    header {
+      background: var(--accent);
+      color: white;
+      padding: 20px 0;
+      margin-bottom: 30px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { font-size: 28px; }
+    header p { opacity: 0.9; margin-top: 5px; }
+
+    /* Search Box */
+    .search-container {
+      position: relative;
+      flex: 1;
+      max-width: 500px;
+      margin: 0 20px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px 15px 10px 40px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.9);
+      color: #333;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input::placeholder { color: #666; }
+    .search-input:focus {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #666;
+      font-size: 16px;
+      pointer-events: none;
+    }
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 8px;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      box-shadow: 0 4px 16px var(--shadow);
+      max-height: 70vh;
+      overflow-y: auto;
+      display: none;
+      z-index: 1000;
+    }
+    .search-results.show { display: block; }
+    .search-group {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border);
+    }
+    .search-group:last-child { border-bottom: none; }
+    .search-group-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .search-result-item {
+      padding: 10px 12px;
+      margin: 4px 0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: block;
+    }
+    .search-result-item:hover {
+      background: var(--bg-tertiary);
+    }
+    .search-result-title {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .search-result-meta {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .search-no-results {
+      padding: 30px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .search-clear {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      display: none;
+    }
+    .search-clear.show { display: block; }
+
+    /* Dark mode toggle */
+    .dark-mode-toggle {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .dark-mode-toggle:hover { background: rgba(255,255,255,0.3); }
+
+    /* Navigation */
+    nav {
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    nav a {
+      color: var(--accent);
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    nav a:hover { background: var(--bg-tertiary); }
+
+    /* Progress indicator */
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+
+    /* Cards */
+    .track-grid, .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .track-card, .topic-card {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .track-card:hover, .topic-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .track-card h3, .topic-card h3 { color: var(--accent); margin-bottom: 10px; }
+    .track-card a, .topic-card a { text-decoration: none; color: inherit; }
+
+    /* Completion badge */
+    .completion-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 24px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .completion-badge.completed { opacity: 1; }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 5px;
+    }
+    .badge-strong { background: #4CAF50; color: white; }
+    .badge-working { background: #2196F3; color: white; }
+    .badge-exposure { background: #9E9E9E; color: white; }
+
+    /* Content sections */
+    .content-section {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 30px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+    .content-section h2 {
+      color: var(--accent);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    .content-section h3 {
+      color: var(--text-primary);
+      margin-top: 25px;
+      margin-bottom: 12px;
+    }
+    .content-section ul, .content-section ol {
+      margin-left: 25px;
+      margin-top: 10px;
+    }
+    .content-section li { margin: 8px 0; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 16px;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab:hover { color: var(--accent); }
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Prev/Next navigation */
+    .topic-navigation {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    .nav-button {
+      flex: 1;
+      min-width: 200px;
+      padding: 15px 20px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-button:hover {
+      border-color: var(--accent);
+      transform: translateX(0) translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .nav-button.prev:hover { transform: translateX(-5px) translateY(-2px); }
+    .nav-button.next:hover { transform: translateX(5px) translateY(-2px); }
+    .nav-button .arrow { font-size: 20px; }
+    .nav-button .label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
+    .nav-button .title { font-weight: 600; }
+    .nav-button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* Mark complete button */
+    .complete-button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .complete-button:hover { background: #45a049; transform: scale(1.05); }
+    .complete-button.completed {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 2px solid #4CAF50;
+    }
+
+    /* Quiz styles */
+    .question {
+      background: var(--bg-tertiary);
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 6px;
+      border-left: 4px solid var(--accent);
+    }
+    .question h4 { margin-bottom: 10px; }
+    .choices { margin: 10px 0; }
+    .choice {
+      padding: 12px;
+      margin: 8px 0;
+      cursor: pointer;
+      border-radius: 4px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      transition: all 0.2s;
+    }
+    .choice:hover { border-color: var(--accent); }
+    .choice.selected { background: #e3f2fd; border-color: #2196F3; }
+    .choice.correct { background: #e8f5e9; border-color: #4CAF50; }
+    .choice.incorrect { background: #ffebee; border-color: #f44336; }
+    .explanation {
+      margin-top: 10px;
+      padding: 10px;
+      background: #fff3cd;
+      color: #856404;
+      border-radius: 4px;
+      display: none;
+    }
+    .explanation.show { display: block; }
+
+    /* References */
+    .reference-list { list-style: none; margin-left: 0; }
+    .reference-list li {
+      padding: 15px;
+      margin: 10px 0;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+    }
+    .reference-list a { color: var(--accent); font-weight: 600; }
+    .reference-list .why { color: var(--text-secondary); font-size: 14px; margin-top: 5px; }
+
+    /* Code styles */
+    code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 15px 0;
+      position: relative;
+    }
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* Copy button for code blocks */
+    .code-block-wrapper {
+      position: relative;
+      margin: 15px 0;
+    }
+    .copy-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+      opacity: 0;
+    }
+    .code-block-wrapper:hover .copy-button { opacity: 1; }
+    .copy-button:hover { background: rgba(255,255,255,0.2); }
+    .copy-button.copied { background: #4CAF50; }
+
+    /* Score display */
+    .score-display {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--accent);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px var(--shadow);
+      display: none;
+      z-index: 1000;
+    }
+    .score-display.show { display: block; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .track-grid, .topic-grid { grid-template-columns: 1fr; }
+      .tabs { overflow-x: auto; }
+      header .container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+      }
+      .search-container {
+        margin: 0;
+        max-width: 100%;
+        order: 1;
+      }
+      header > .container > div:first-child { order: 0; }
+      .dark-mode-toggle {
+        order: 2;
+        align-self: flex-end;
+      }
+      .topic-navigation { flex-direction: column; }
+      .nav-button { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div>
+        <h1>💎 Rails Seniority Coach</h1>
+        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+      </div>
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          class="search-input"
+          id="search-input"
+          placeholder="Search topics..."
+          autocomplete="off"
+        />
+        <button class="search-clear" id="search-clear" onclick="clearSearch()">×</button>
+        <div class="search-results" id="search-results"></div>
+      </div>
+      <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+        <span class="light-icon">🌙</span><span class="dark-icon" style="display:none;">☀️</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    <nav>
+      <a href="/">← All Tracks</a>
+      <div id="progress-summary"></div>
+    </nav>
+    <nav style="margin-bottom: 20px;">
+  <a href="/tracks/observability">← Observability</a>
+</nav>
+
+<!-- Previous/Next Navigation -->
+<div class="topic-navigation">
+  
+    <div class="nav-button prev" style="opacity: 0.3; cursor: not-allowed;">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Start of track</div>
+      </div>
+    </div>
+  
+
+  
+    <a href="/tracks/observability/topics/error_tracking_model" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">Error Tracking Mental Model</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+<div style="margin-bottom: 30px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+    <div style="flex: 1;">
+      <h1>APM Basics and Flamegraphs</h1>
+      <div style="margin: 15px 0;">
+        
+        
+          <span class="badge badge-working">Working</span>
+        
+        &nbsp;
+        <span style="color: var(--text-secondary);">
+          📖 9 min read &nbsp; | &nbsp; 💻 17 min exercise
+        </span>
+      </div>
+    </div>
+    <button
+      id="mark-complete-btn"
+      class="complete-button"
+      data-track-key="observability"
+      data-topic-key="apm_traces"
+      onclick="markTopicComplete('observability', 'apm_traces')">
+      Mark Complete
+    </button>
+  </div>
+
+  
+    <div class="content-section" style="background: #f0f7ff;">
+      <h3 style="color: #2196F3; margin-bottom: 10px;">Learning Objectives</h3>
+      <ul style="margin-left: 20px;">
+        
+          <li>Read APM flamegraphs to identify slow segments</li>
+        
+          <li>Use APM to detect N+1 queries and slow database calls</li>
+        
+          <li>Set up rack-mini-profiler for local performance analysis</li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-tab="overview-tab">📖 Overview</button>
+  <button class="tab" data-tab="exercise-tab">💻 Exercise</button>
+  <button class="tab" data-tab="checkpoint-tab">✅ Checkpoint</button>
+  <button class="tab" data-tab="references-tab">🔗 References</button>
+</div>
+
+<!-- Overview Tab -->
+<div id="overview-tab" class="tab-content active">
+  <div class="content-section">
+    
+      <h1>APM Basics and Flamegraphs</h1>
+
+<h2>What It Is</h2>
+
+<p>Application Performance Monitoring (APM) tools (New Relic, Scout, Skylight) trace request execution through your Rails app, breaking down time spent in controllers, views, database queries, and external API calls. Flamegraphs visualize these traces as horizontal bars representing method calls and their durations. Segments (also called spans) represent individual operations like SQL queries or HTTP requests within a trace.</p>
+
+<h2>Why It Matters</h2>
+
+<p>Response time logs show total duration but hide where time is spent. APM reveals that a 2-second request spent 1.8 seconds in a single N+1 query or 500ms rendering a partial. Flamegraphs make bottlenecks visible at a glance: wide bars indicate slow operations. Detecting N+1 queries via APM prevents production performance degradation before customers complain.</p>
+
+<h2>When to Use</h2>
+
+<ul>
+<li>Identifying which controller actions are slowest in production</li>
+<li>Finding N+1 queries missed during development</li>
+<li>Pinpointing slow external API calls or database queries</li>
+<li>Comparing performance across deploys or code changes</li>
+<li>Profiling local development with rack-mini-profiler before shipping</li>
+</ul>
+
+<h2>Three Common Pitfalls</h2>
+
+<ol>
+<li><strong>Ignoring percentiles:</strong> Average response time (200ms) hides the worst cases. P95 or P99 (95th/99th percentile) reveals tail latency affecting real users. Always check high percentiles in APM dashboards.</li>
+<li><strong>Over-instrumenting:</strong> Adding custom segments to every method call increases overhead and costs. Instrument only slow operations (&gt;50ms) like API calls or complex calculations.</li>
+<li><strong>Fixing symptoms instead of root causes:</strong> Caching a slow query treats the symptom. Use flamegraphs to find the root cause (missing index, N+1, inefficient algorithm) and fix it instead.</li>
+</ol>
+
+<hr>
+
+<h2>Reading Flamegraphs</h2>
+
+<p>APM tools display traces as flamegraphs:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>Controller: UsersController#show (145ms)
+├─ SQL: SELECT * FROM users (5ms)
+├─ View: users/show.html.erb (130ms)
+│  ├─ Partial: _profile.html.erb (8ms)
+│  └─ Partial: _posts.html.erb (120ms)
+│     └─ SQL: SELECT * FROM posts WHERE user_id = ? (110ms) [N+1]
+└─ External API: fetch_avatar (10ms)
+</code></pre></div>
+<p><strong>Reading top to bottom:</strong><br>
+- Top level = controller action (total time)<br>
+- Nested levels = operations within that action<br>
+- Width = time consumed (wider = slower)</p>
+
+<p><strong>Key insight:</strong> The <code>_posts.html.erb</code> partial took 120ms, with 110ms spent on one SQL query. This indicates an N+1 problem.</p>
+
+<hr>
+
+<h2>APM Service Setup</h2>
+
+<p>Install Skylight (lightweight, Rails-focused APM):</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'skylight'</span>
+
+<span class="c1"># Terminal</span>
+<span class="n">bundle</span> <span class="n">install</span>
+<span class="n">bundle</span> <span class="nb">exec</span> <span class="n">skylight</span> <span class="n">setup</span>
+<span class="c1"># Follow prompts to create account and get auth token</span>
+
+<span class="c1"># config/application.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">skylight</span><span class="p">.</span><span class="nf">authentication</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'SKYLIGHT_AUTHENTICATION'</span><span class="p">]</span>
+</code></pre></div>
+<p>Deploy and visit Skylight dashboard to see traces.</p>
+
+<p>Alternative APM tools:<br>
+- <strong>Scout APM:</strong> Similar to Skylight, includes memory profiling<br>
+- <strong>New Relic:</strong> Full-stack APM with infrastructure monitoring<br>
+- <strong>Datadog APM:</strong> Distributed tracing across microservices</p>
+
+<hr>
+
+<h2>Segments and Spans</h2>
+
+<p>APM breaks requests into segments:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Automatic instrumentation (built-in)</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">active: </span><span class="kp">true</span><span class="p">).</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:posts</span><span class="p">)</span>  <span class="c1"># Auto-traced as SQL segment</span>
+
+<span class="c1"># Custom instrumentation for slow operations</span>
+<span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="p">.</span><span class="nf">instrument</span><span class="p">(</span><span class="s1">'process.payment'</span><span class="p">)</span> <span class="k">do</span>
+  <span class="no">PaymentGateway</span><span class="p">.</span><span class="nf">charge</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Skylight/Scout auto-instrument:<br>
+- ActiveRecord queries<br>
+- View rendering<br>
+- HTTP requests (via Net::HTTP)<br>
+- Background jobs</p>
+
+<p>Custom segments appear in flamegraphs alongside built-in ones.</p>
+
+<hr>
+
+<h2>Detecting N+1 Queries</h2>
+
+<p>APM highlights N+1 patterns:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Bad: N+1 query (1 + N queries)</span>
+<span class="vi">@users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="vi">@users</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="n">user</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">count</span>  <span class="c1"># Triggers: SELECT COUNT(*) FROM posts WHERE user_id = ?</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>APM flamegraph shows:</strong><br>
+- 1 query to fetch users (5ms)<br>
+- 10 identical COUNT queries (10 x 8ms = 80ms)</p>
+
+<p><strong>Fix with counter cache:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Good: single query with counter_cache</span>
+<span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_many</span> <span class="ss">:posts</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">Post</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:user</span><span class="p">,</span> <span class="ss">counter_cache: </span><span class="kp">true</span>
+<span class="k">end</span>
+
+<span class="vi">@users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="vi">@users</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span> <span class="nb">puts</span> <span class="n">user</span><span class="p">.</span><span class="nf">posts_count</span> <span class="p">}</span>  <span class="c1"># No extra queries</span>
+</code></pre></div>
+<p>APM shows only the initial User query.</p>
+
+<hr>
+
+<h2>Local Profiling with rack-mini-profiler</h2>
+
+<p>Install rack-mini-profiler for per-request profiling:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile (development group)</span>
+<span class="n">group</span> <span class="ss">:development</span> <span class="k">do</span>
+  <span class="n">gem</span> <span class="s1">'rack-mini-profiler'</span>
+  <span class="n">gem</span> <span class="s1">'memory_profiler'</span>
+  <span class="n">gem</span> <span class="s1">'stackprof'</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Visit any page in development - see performance badge in top-left corner:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>GET /users/123
+Total: 245ms | SQL: 18ms (4 queries) | Views: 220ms
+</code></pre></div>
+<p>Click badge for detailed breakdown:<br>
+- SQL queries with durations<br>
+- View rendering times<br>
+- Flamegraph of Ruby method calls</p>
+
+<hr>
+
+<h2>Profiling Specific Actions</h2>
+
+<p>Force profiling on specific requests:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># In controller</span>
+<span class="k">def</span> <span class="nf">show</span>
+  <span class="no">Rack</span><span class="o">::</span><span class="no">MiniProfiler</span><span class="p">.</span><span class="nf">step</span><span class="p">(</span><span class="s1">'Load user'</span><span class="p">)</span> <span class="k">do</span>
+    <span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+  <span class="k">end</span>
+
+  <span class="no">Rack</span><span class="o">::</span><span class="no">MiniProfiler</span><span class="p">.</span><span class="nf">step</span><span class="p">(</span><span class="s1">'Load posts with comments'</span><span class="p">)</span> <span class="k">do</span>
+    <span class="vi">@posts</span> <span class="o">=</span> <span class="vi">@user</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:comments</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="n">render</span> <span class="ss">:show</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>rack-mini-profiler shows each step&#39;s duration separately.</p>
+
+<hr>
+
+<h2>Trade-offs Box</h2>
+
+<ul>
+<li><strong>Advantage:</strong> APM flamegraphs instantly reveal slow queries, N+1s, and rendering bottlenecks without manual instrumentation.</li>
+<li><strong>Cost:</strong> APM services charge per-host or per-request; high-traffic apps may need sampling (trace 10% of requests) to control costs.</li>
+<li><strong>When to skip:</strong> For internal tools with &lt;100 daily users, rack-mini-profiler in development may suffice; invest in APM when optimizing user-facing production apps.</li>
+</ul>
+
+<hr>
+
+<h2>Debugging Checklist</h2>
+
+<p>When APM shows unexpected slow traces:</p>
+
+<ol>
+<li>Check percentiles: Is slowness P50 (common) or P99 (rare)?</li>
+<li>Identify widest segment: Which operation consumed most time?</li>
+<li>Look for N+1 patterns: Multiple identical queries in sequence</li>
+<li>Verify indexes: Run EXPLAIN on slow queries in Rails console</li>
+<li>Check external APIs: Are third-party calls timing out?</li>
+<li>Compare across deploys: Did recent code change introduce regression?</li>
+<li>Profile locally: Use rack-mini-profiler to reproduce issue</li>
+<li>Review sampling rate: APM may not trace all requests</li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>APM tools trace requests through Rails, showing time spent in controllers, views, SQL, and external APIs</li>
+<li>Flamegraphs visualize traces with wide bars indicating slow operations</li>
+<li>Segments (spans) represent individual operations like queries or HTTP calls</li>
+<li>N+1 queries appear as multiple identical segments in flamegraphs</li>
+<li>rack-mini-profiler provides local profiling without shipping to external APM service</li>
+</ul>
+
+    
+  </div>
+</div>
+
+<!-- Exercise Tab -->
+<div id="exercise-tab" class="tab-content">
+  <div class="content-section">
+    
+      <h1>Exercise: APM Basics and Flamegraphs</h1>
+
+<h2>Objective</h2>
+
+<p>Set up rack-mini-profiler for local performance analysis, create a controller with an N+1 query, and use profiling to identify and fix the bottleneck.</p>
+
+<h2>Task</h2>
+
+<p>In a Rails application:</p>
+
+<ol>
+<li>Install rack-mini-profiler and dependencies</li>
+<li>Create models and seed data to trigger N+1 queries</li>
+<li>Build a controller action that exhibits N+1 behavior</li>
+<li>Use rack-mini-profiler to identify the problem in the flamegraph</li>
+<li>Fix the N+1 with eager loading and verify improvement</li>
+</ol>
+
+<h2>Acceptance Criteria</h2>
+
+<ul>
+<li>[ ] rack-mini-profiler installed and showing performance badge</li>
+<li>[ ] Author and Book models with has<em>many/belongs</em>to relationship</li>
+<li>[ ] Index page displays authors and book counts (triggers N+1)</li>
+<li>[ ] Profiler shows multiple identical SELECT COUNT queries</li>
+<li>[ ] Fixed version uses includes or counter_cache</li>
+<li>[ ] Profiler confirms query reduction (from N+1 to 2-3 queries total)</li>
+</ul>
+
+<h2>Verification Steps</h2>
+
+<h3>Step 1: Install rack-mini-profiler</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Add to Gemfile development group</span>
+bundle add rack-mini-profiler <span class="nt">--group</span> development
+bundle add memory_profiler <span class="nt">--group</span> development
+bundle add stackprof <span class="nt">--group</span> development
+
+bundle <span class="nb">install</span>
+</code></pre></div>
+<h3>Step 2: Configure rack-mini-profiler</h3>
+
+<p>Create <code>config/initializers/rack_profiler.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">if</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">env</span><span class="p">.</span><span class="nf">development?</span>
+  <span class="nb">require</span> <span class="s1">'rack-mini-profiler'</span>
+
+  <span class="c1"># Memory profiling</span>
+  <span class="no">Rack</span><span class="o">::</span><span class="no">MiniProfiler</span><span class="p">.</span><span class="nf">config</span><span class="p">.</span><span class="nf">enable_advanced_debugging_tools</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 3: Create Models</h3>
+
+<p>Generate Author and Book models:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate model Author name:string bio:text
+bin/rails generate model Book title:string author:references published_year:integer
+bin/rails db:migrate
+</code></pre></div>
+<p>Edit models:</p>
+
+<p><code>app/models/author.rb</code>:<br>
+```ruby<br>
+class Author &lt; ApplicationRecord<br>
+  has_many :books</p>
+
+<p>validates :name, presence: true<br>
+end<br>
+```</p>
+
+<p><code>app/models/book.rb</code>:<br>
+```ruby<br>
+class Book &lt; ApplicationRecord<br>
+  belongs_to :author</p>
+
+<p>validates :title, presence: true<br>
+end<br>
+```</p>
+
+<h3>Step 4: Seed Test Data</h3>
+
+<p>Edit <code>db/seeds.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">puts</span> <span class="s2">"Creating authors and books..."</span>
+
+<span class="mi">10</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+  <span class="n">author</span> <span class="o">=</span> <span class="no">Author</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+    <span class="ss">name: </span><span class="s2">"Author </span><span class="si">#{</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+    <span class="ss">bio: </span><span class="s2">"Biography of author </span><span class="si">#{</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="si">}</span><span class="s2">"</span>
+  <span class="p">)</span>
+
+  <span class="nb">rand</span><span class="p">(</span><span class="mi">5</span><span class="o">..</span><span class="mi">15</span><span class="p">).</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">j</span><span class="o">|</span>
+    <span class="n">author</span><span class="p">.</span><span class="nf">books</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+      <span class="ss">title: </span><span class="s2">"Book </span><span class="si">#{</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="si">}</span><span class="s2"> by </span><span class="si">#{</span><span class="n">author</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+      <span class="ss">published_year: </span><span class="nb">rand</span><span class="p">(</span><span class="mi">1990</span><span class="o">..</span><span class="mi">2024</span><span class="p">)</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="nb">puts</span> <span class="s2">"Created </span><span class="si">#{</span><span class="no">Author</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> authors with </span><span class="si">#{</span><span class="no">Book</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> books"</span>
+</code></pre></div>
+<p>Run seeds:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails db:seed
+</code></pre></div>
+<h3>Step 5: Create Controller with N+1</h3>
+
+<p>Generate controller:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate controller Authors index
+</code></pre></div>
+<p>Edit <code>app/controllers/authors_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">AuthorsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="c1"># N+1 version - intentionally inefficient</span>
+    <span class="vi">@authors</span> <span class="o">=</span> <span class="no">Author</span><span class="p">.</span><span class="nf">all</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">index_optimized</span>
+    <span class="c1"># Optimized version with eager loading</span>
+    <span class="vi">@authors</span> <span class="o">=</span> <span class="no">Author</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:books</span><span class="p">).</span><span class="nf">all</span>
+    <span class="n">render</span> <span class="ss">:index</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 6: Create View</h3>
+
+<p>Edit <code>app/views/authors/index.html.erb</code>:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="nt">&lt;h1&gt;</span>Authors and Their Books<span class="nt">&lt;/h1&gt;</span>
+
+<span class="cp">&lt;%</span> <span class="vi">@authors</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">author</span><span class="o">|</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">style=</span><span class="s">"border: 1px solid #ccc; padding: 10px; margin: 10px 0;"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;h2&gt;</span><span class="cp">&lt;%=</span> <span class="n">author</span><span class="p">.</span><span class="nf">name</span> <span class="cp">%&gt;</span><span class="nt">&lt;/h2&gt;</span>
+    <span class="nt">&lt;p&gt;</span><span class="cp">&lt;%=</span> <span class="n">author</span><span class="p">.</span><span class="nf">bio</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
+    <span class="nt">&lt;p&gt;&lt;strong&gt;</span>Books written:<span class="nt">&lt;/strong&gt;</span> <span class="cp">&lt;%=</span> <span class="n">author</span><span class="p">.</span><span class="nf">books</span><span class="p">.</span><span class="nf">count</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
+
+    <span class="nt">&lt;ul&gt;</span>
+      <span class="cp">&lt;%</span> <span class="n">author</span><span class="p">.</span><span class="nf">books</span><span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="mi">3</span><span class="p">).</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">book</span><span class="o">|</span> <span class="cp">%&gt;</span>
+        <span class="nt">&lt;li&gt;</span><span class="cp">&lt;%=</span> <span class="n">book</span><span class="p">.</span><span class="nf">title</span> <span class="cp">%&gt;</span> (<span class="cp">&lt;%=</span> <span class="n">book</span><span class="p">.</span><span class="nf">published_year</span> <span class="cp">%&gt;</span>)<span class="nt">&lt;/li&gt;</span>
+      <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+    <span class="nt">&lt;/ul&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+
+<span class="nt">&lt;hr&gt;</span>
+<span class="nt">&lt;p&gt;</span>
+  <span class="nt">&lt;strong&gt;</span>Performance hint:<span class="nt">&lt;/strong&gt;</span> Check the rack-mini-profiler badge in the top-left corner!
+<span class="nt">&lt;/p&gt;</span>
+<span class="nt">&lt;p&gt;</span>
+  Compare this page to the <span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s1">'optimized version'</span><span class="p">,</span> <span class="n">authors_optimized_path</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;/p&gt;</span>
+</code></pre></div>
+<h3>Step 7: Update Routes</h3>
+
+<p>Edit <code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:authors</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">]</span>
+  <span class="n">get</span> <span class="s1">'authors_optimized'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'authors#index_optimized'</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 8: Test and Profile</h3>
+
+<p>Start Rails server:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails server
+</code></pre></div>
+<p>Visit <a href="http://localhost:3000/authors" target="_blank">http://localhost:3000/authors</a></p>
+
+<p><strong>Observe rack-mini-profiler badge (top-left):</strong><br>
+- Total time (e.g., 250ms)<br>
+- SQL time (e.g., 180ms)<br>
+- Number of queries (e.g., 21 queries)</p>
+
+<p>Click the badge to see detailed breakdown:</p>
+
+<p><strong>Expected N+1 pattern:</strong><br>
+<code><br>
+SQL (21 queries - 180ms)<br>
+├─ SELECT &quot;authors&quot;.* FROM &quot;authors&quot;  (1.2ms)<br>
+├─ SELECT COUNT(*) FROM &quot;books&quot; WHERE &quot;books&quot;.&quot;author_id&quot; = 1  (8.1ms)<br>
+├─ SELECT COUNT(*) FROM &quot;books&quot; WHERE &quot;books&quot;.&quot;author_id&quot; = 2  (7.9ms)<br>
+├─ SELECT COUNT(*) FROM &quot;books&quot; WHERE &quot;books&quot;.&quot;author_id&quot; = 3  (8.2ms)<br>
+... (repeated for each author)<br>
+├─ SELECT &quot;books&quot;.* FROM &quot;books&quot; WHERE &quot;books&quot;.&quot;author_id&quot; = 1 LIMIT 3  (2.1ms)<br>
+... (repeated for each author)<br>
+</code></p>
+
+<h3>Step 9: Compare with Optimized Version</h3>
+
+<p>Visit <a href="http://localhost:3000/authors_optimized" target="_blank">http://localhost:3000/authors_optimized</a></p>
+
+<p><strong>rack-mini-profiler should show:</strong><br>
+<code><br>
+SQL (2 queries - 15ms)<br>
+├─ SELECT &quot;authors&quot;.* FROM &quot;authors&quot;  (1.2ms)<br>
+└─ SELECT &quot;books&quot;.* FROM &quot;books&quot; WHERE &quot;books&quot;.&quot;author_id&quot; IN (1,2,3,4,5...)  (13.8ms)<br>
+</code></p>
+
+<p><strong>Improvement:</strong> 21 queries → 2 queries, ~170ms saved</p>
+
+<h3>Step 10: View Flamegraph</h3>
+
+<p>Click the rack-mini-profiler badge, then click &quot;flamegraph&quot; tab.</p>
+
+<p>You&#39;ll see:<br>
+- Wide bars for N+1 queries (bad version)<br>
+- Narrow bars for eager-loaded query (good version)</p>
+
+<h3>Step 11: Verify in Rails Console</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Enable SQL logging</span>
+<span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">logger</span> <span class="o">=</span> <span class="no">Logger</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="no">STDOUT</span><span class="p">)</span>
+
+<span class="c1"># N+1 version</span>
+<span class="n">authors</span> <span class="o">=</span> <span class="no">Author</span><span class="p">.</span><span class="nf">all</span>
+<span class="n">authors</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">a</span><span class="o">|</span> <span class="nb">puts</span> <span class="n">a</span><span class="p">.</span><span class="nf">books</span><span class="p">.</span><span class="nf">count</span> <span class="p">}</span>
+<span class="c1"># Watch console - you'll see COUNT(*) query for each author</span>
+
+<span class="c1"># Optimized version</span>
+<span class="n">authors</span> <span class="o">=</span> <span class="no">Author</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:books</span><span class="p">).</span><span class="nf">all</span>
+<span class="n">authors</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">a</span><span class="o">|</span> <span class="nb">puts</span> <span class="n">a</span><span class="p">.</span><span class="nf">books</span><span class="p">.</span><span class="nf">size</span> <span class="p">}</span>  <span class="c1"># Use size, not count!</span>
+<span class="c1"># Only 2 queries total</span>
+</code></pre></div>
+<h2>Stretch (Optional)</h2>
+
+<ol>
+<li>Add counter_cache to eliminate COUNT queries entirely:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate migration AddBooksCountToAuthors books_count:integer
+bin/rails db:migrate
+</code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/models/book.rb</span>
+<span class="n">belongs_to</span> <span class="ss">:author</span><span class="p">,</span> <span class="ss">counter_cache: </span><span class="kp">true</span>
+
+<span class="c1"># Reset counter cache for existing records</span>
+<span class="no">Author</span><span class="p">.</span><span class="nf">find_each</span> <span class="p">{</span> <span class="o">|</span><span class="n">a</span><span class="o">|</span> <span class="no">Author</span><span class="p">.</span><span class="nf">reset_counters</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="ss">:books</span><span class="p">)</span> <span class="p">}</span>
+</code></pre></div>
+<p>Now <code>author.books_count</code> requires zero queries.</p>
+
+<ol>
+<li>Add custom profiling steps:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">index_optimized</span>
+  <span class="no">Rack</span><span class="o">::</span><span class="no">MiniProfiler</span><span class="p">.</span><span class="nf">step</span><span class="p">(</span><span class="s1">'Load authors'</span><span class="p">)</span> <span class="k">do</span>
+    <span class="vi">@authors</span> <span class="o">=</span> <span class="no">Author</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:books</span><span class="p">).</span><span class="nf">all</span>
+  <span class="k">end</span>
+
+  <span class="no">Rack</span><span class="o">::</span><span class="no">MiniProfiler</span><span class="p">.</span><span class="nf">step</span><span class="p">(</span><span class="s1">'Render view'</span><span class="p">)</span> <span class="k">do</span>
+    <span class="n">render</span> <span class="ss">:index</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<ol>
+<li>Profile memory usage (click &quot;memory&quot; in rack-mini-profiler):</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># In controller</span>
+<span class="k">def</span> <span class="nf">index</span>
+  <span class="no">MemoryProfiler</span><span class="p">.</span><span class="nf">report</span> <span class="k">do</span>
+    <span class="vi">@authors</span> <span class="o">=</span> <span class="no">Author</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:books</span><span class="p">).</span><span class="nf">all</span>
+  <span class="k">end</span><span class="p">.</span><span class="nf">pretty_print</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2>Time Estimate</h2>
+
+<p>17 minutes</p>
+
+    
+  </div>
+</div>
+
+<!-- Checkpoint Tab -->
+<div id="checkpoint-tab" class="tab-content">
+  <div class="content-section">
+    
+      
+      <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
+        <p><strong>Passing Score:</strong> 6 points</p>
+        <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
+      </div>
+
+      
+        <div class="question"
+             data-question-id="0"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="A method that consumed significant time">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What does a wide horizontal bar in an APM flamegraph indicate?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  A frequently called method
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  A method that consumed significant time
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  A method with many parameters
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  An error in the code
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Bar width represents duration; wider bars show where time is spent.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="1"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">How does an N+1 query appear in an APM trace?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Multiple identical SQL queries in sequence, one for each record in a loop.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="2"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="All of the above">
+          <h4>Question 3 (1 points)</h4>
+          <p style="margin: 10px 0;">What Rails method fixes N+1 queries caused by associations?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  preload
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  includes
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  eager_load
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  All of the above
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> All three methods eager-load associations, though includes is most common.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="3"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Averages hide worst-case performance affecting real users">
+          <h4>Question 4 (2 points)</h4>
+          <p style="margin: 10px 0;">Why check P95/P99 percentiles instead of average response time?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  Percentiles are easier to calculate
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  Averages hide worst-case performance affecting real users
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  Percentiles cost less to monitor
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  Averages only work in production
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> A 100ms average may hide 5% of requests taking 2+ seconds.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="4"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">What gem enables local performance profiling in Rails development?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">rack-mini-profiler</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="5"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="An individual operation like a SQL query or HTTP request">
+          <h4>Question 6 (1 points)</h4>
+          <p style="margin: 10px 0;">What is a segment or span in APM terminology?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  A user session
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  An individual operation like a SQL query or HTTP request
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  A full request trace
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  A database table
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Segments/spans represent operations within a trace, like queries or API calls.
+              </div>
+            
+          
+        </div>
+      
+
+      <div style="margin-top: 30px; display: flex; gap: 10px;">
+        <button onclick="checkAnswers()" style="padding: 12px 24px; background: #CC0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600;">
+          Check Answers
+        </button>
+        <button onclick="resetQuiz()" style="padding: 12px 24px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+          Reset
+        </button>
+      </div>
+
+      <div class="score-display" data-passing="6"></div>
+    
+  </div>
+</div>
+
+<!-- References Tab -->
+<div id="references-tab" class="tab-content">
+  <div class="content-section">
+    
+      <p style="margin-bottom: 20px; color: var(--text-secondary);">
+        Curated sources to deepen your understanding. All references point to official documentation,
+        canonical books, or reputable technical content.
+      </p>
+      <ul class="reference-list">
+        
+          <li>
+            <a href="https://www.skylight.io/support/getting-started" target="_blank">Skylight Documentation — Getting Started</a>
+            <div class="why">Official guide for installing and using Skylight APM in Rails applications.</div>
+          </li>
+        
+          <li>
+            <a href="https://scoutapm.com/docs/ruby/rails" target="_blank">Scout APM — Rails Performance Monitoring</a>
+            <div class="why">Alternative APM focused on Rails with memory profiling and N+1 detection.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/MiniProfiler/rack-mini-profiler" target="_blank">rack-mini-profiler GitHub</a>
+            <div class="why">Open-source local profiler for development; includes flamegraphs and SQL analysis.</div>
+          </li>
+        
+          <li>
+            <a href="https://docs.newrelic.com/docs/apm/transactions/transaction-traces/" target="_blank">New Relic — Understanding Traces</a>
+            <div class="why">Deep dive into reading transaction traces and identifying bottlenecks.</div>
+          </li>
+        
+          <li>
+            <a href="https://www.brendangregg.com/flamegraphs.html" target="_blank">Brendan Gregg — Flame Graphs</a>
+            <div class="why">Inventor of flamegraphs explains how to read and interpret them.</div>
+          </li>
+        
+          <li>
+            <a href="https://guides.rubyonrails.org/active_record_querying.html#eager-loading-associations" target="_blank">Rails Guides — Active Record Query Interface</a>
+            <div class="why">Canonical reference for includes, preload, eager_load to fix N+1 queries.</div>
+          </li>
+        
+          <li>
+            <a href="https://www.youtube.com/watch?v=ktZLpjCanvg" target="_blank">RailsConf 2019 — The Technical and Organizational Sides of Fixing Performance (Nate Berkopec)</a>
+            <div class="why">Practical strategies for using APM to identify and prioritize performance fixes.</div>
+          </li>
+        
+      </ul>
+    
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="topic-navigation">
+  
+    <div class="nav-button prev" style="opacity: 0.3; cursor: not-allowed;">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Start of track</div>
+      </div>
+    </div>
+  
+
+  
+    <a href="/tracks/observability/topics/error_tracking_model" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">Error Tracking Mental Model</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+  </div>
+
+  <script>
+    // ============================================
+    // Search Index
+    // ============================================
+    const SEARCH_INDEX = [{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"ar_relations","topic_name":"Active Record Relations & Query Interface","depth_target":"Strong","objectives":"Compose complex queries using relations and scopes Explain lazy loading and when queries execute Chain methods without triggering N+1 queries","url":"/tracks/rails_internals/topics/ar_relations.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"config_initializers","topic_name":"Configuration & Initializers","depth_target":"Strong","objectives":"Configure Rails apps using environment-specific settings Write initializers that load in correct order Manage secrets and credentials securely","url":"/tracks/rails_internals/topics/config_initializers.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"request_lifecycle","topic_name":"Request Lifecycle & Middleware","depth_target":"Strong","objectives":"Trace a Rails request from Rack through middleware to controller Identify where params are parsed and filters applied Profile a request and explain the hottest frames","url":"/tracks/rails_internals/topics/request_lifecycle.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"routing_middleware","topic_name":"Routing & Middleware Patterns","depth_target":"Strong","objectives":"Design RESTful routes with constraints and namespaces Write custom middleware for cross-cutting concerns Debug routing issues using rails routes and route helpers","url":"/tracks/rails_internals/topics/routing_middleware.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"validations_callbacks","topic_name":"Validations, Callbacks & Concerns","depth_target":"Strong","objectives":"Write custom validations and understand when they run Identify callback dangers and when to avoid them Extract shared logic using concerns","url":"/tracks/rails_internals/topics/validations_callbacks.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"autoloading_boot","topic_name":"Zeitwerk/Autoloading & Boot Sequence","depth_target":"Strong","objectives":"Explain how Zeitwerk maps file paths to constants Debug \"uninitialized constant\" and circular dependency errors Optimize boot time by controlling eager loading","url":"/tracks/rails_internals/topics/autoloading_boot.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"ctes_windows","topic_name":"CTEs and Window Functions","depth_target":"Strong","objectives":"Write Common Table Expressions (WITH) to simplify complex queries Use window functions (ROW_NUMBER, RANK, LAG, LEAD) for analytics Decide when to use CTEs vs subqueries for readability and performance","url":"/tracks/sql_postgres/topics/ctes_windows.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"indexing","topic_name":"Database Indexing (B-tree, Partial, Composite)","depth_target":"Strong","objectives":"Choose appropriate index types (B-tree, partial, composite, GIN/GiST) for query patterns Identify when indexes improve or harm performance Use EXPLAIN to verify index usage and measure query costs","url":"/tracks/sql_postgres/topics/indexing.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"modeling_constraints","topic_name":"Modeling & Constraints (FKs, Uniques, Check)","depth_target":"Strong","objectives":"Design schemas with foreign keys, unique constraints, and check constraints Write migrations that enforce data integrity at the database level Debug constraint violations and fix schema issues","url":"/tracks/sql_postgres/topics/modeling_constraints.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"explain_analyze","topic_name":"Reading Query Plans (EXPLAIN ANALYZE)","depth_target":"Strong","objectives":"Read EXPLAIN ANALYZE output to identify sequential scans, index scans, and nested loops Identify query bottlenecks (costly sorts, large row estimates, missing indexes) Use pg_stat_statements to find slowest queries in production","url":"/tracks/sql_postgres/topics/explain_analyze.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"transactions_locks","topic_name":"Transactions, Isolation, and Locks","depth_target":"Strong","objectives":"Explain ACID properties and how Postgres enforces them Choose appropriate isolation levels for concurrent operations Debug deadlocks and lock contention using pg_locks and pg_stat_activity","url":"/tracks/sql_postgres/topics/transactions_locks.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"zero_downtime_migrations","topic_name":"Zero-Downtime Migrations","depth_target":"Strong","objectives":"Write migrations that don't lock tables or cause downtime Add columns with defaults, indexes, and constraints safely Backfill data in batches to avoid long-running transactions","url":"/tracks/sql_postgres/topics/zero_downtime_migrations.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"sidekiq_basics","topic_name":"ActiveJob vs Sidekiq Fundamentals","depth_target":"Strong","objectives":"Compare ActiveJob abstraction with direct Sidekiq usage Configure Redis connection and worker concurrency Route jobs to specific queues and set priorities","url":"/tracks/background_jobs/topics/sidekiq_basics.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"idempotency_retries","topic_name":"Idempotency Patterns & Retries","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate job effects Configure retry strategies with exponential backoff Handle dead jobs in the dead letter queue","url":"/tracks/background_jobs/topics/idempotency_retries.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"job_instrumentation","topic_name":"Job Instrumentation & Backoff","depth_target":"Strong","objectives":"Log job execution with structured context Track success/failure metrics for monitoring Implement custom exponential backoff strategies Use Sidekiq lifecycle hooks for instrumentation","url":"/tracks/background_jobs/topics/job_instrumentation.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"scheduling","topic_name":"Job Scheduling & Deduplication","depth_target":"Strong","objectives":"Schedule recurring jobs with cron syntax using sidekiq-cron Prevent duplicate jobs with sidekiq-unique-jobs Use at/in syntax for delayed one-time jobs Pass job context safely without ActiveRecord objects","url":"/tracks/background_jobs/topics/scheduling.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"cache_keys_invalidations","topic_name":"Cache Keys & Invalidation Strategies","depth_target":"Strong","objectives":"Design cache keys that auto-expire on record changes Implement Russian-doll caching pattern Prevent cache stampede with locks Choose between manual and automatic invalidation","url":"/tracks/caching_performance/topics/cache_keys_invalidations.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"eager_preload","topic_name":"Eager Loading vs Preloading Strategies","depth_target":"Strong","objectives":"Distinguish between includes, preload, eager_load, and joins Choose the correct loading strategy based on query needs Optimize nested associations without over-fetching","url":"/tracks/caching_performance/topics/eager_preload.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"fragment_caching","topic_name":"Fragment & Low-Level Caching","depth_target":"Strong","objectives":"Implement view fragment caching with cache keys Use low-level caching for expensive computations Configure cache stores (memory, Redis, Memcached) Measure cache hit rates and performance gains","url":"/tracks/caching_performance/topics/fragment_caching.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"memory_gc_basics","topic_name":"Memory & Garbage Collection Awareness","depth_target":"Strong","objectives":"Track Ruby object allocation and memory usage Read and interpret GC statistics Identify memory bloat and leaks Use memory_profiler gem to profile endpoints","url":"/tracks/caching_performance/topics/memory_gc_basics.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"n_plus_one","topic_name":"N+1 Query Detection & Resolution","depth_target":"Strong","objectives":"Identify N+1 query patterns in logs and using Bullet gem Choose between includes, preload, eager_load, and joins Measure query count before and after optimization","url":"/tracks/caching_performance/topics/n_plus_one.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"apm_traces","topic_name":"APM Basics and Flamegraphs","depth_target":"Working","objectives":"Read APM flamegraphs to identify slow segments Use APM to detect N+1 queries and slow database calls Set up rack-mini-profiler for local performance analysis","url":"/tracks/observability/topics/apm_traces.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"error_tracking_model","topic_name":"Error Tracking Mental Model","depth_target":"Working","objectives":"Integrate an error tracking service (Sentry, Rollbar, or Honeybadger) Add context to errors (user info, request params, custom tags) Understand error grouping and fingerprinting","url":"/tracks/observability/topics/error_tracking_model.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"metrics_slos","topic_name":"Metrics and SLO Thinking","depth_target":"Working","objectives":"Understand RED metrics (Rate, Errors, Duration) for web services Distinguish between SLI, SLO, and SLA Set realistic SLO targets (99% vs 99.9% trade-offs)","url":"/tracks/observability/topics/metrics_slos.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"structured_logging","topic_name":"Structured Logging with Lograge","depth_target":"Strong","objectives":"Configure lograge for JSON logging in production Add custom fields like request_id and user_id to log entries Filter sensitive data from logs (passwords, tokens)","url":"/tracks/observability/topics/structured_logging.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"error_shapes","topic_name":"API Error Shapes & Standards","depth_target":"Strong","objectives":"Design consistent error response structures across API endpoints Choose appropriate HTTP status codes for different error types Distinguish user-facing from developer-facing error messages","url":"/tracks/api_security/topics/error_shapes.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"versioning","topic_name":"API Versioning Strategies","depth_target":"Strong","objectives":"Compare header-based vs path-based API versioning Implement deprecation warnings with Sunset headers Maintain backward compatibility across API versions","url":"/tracks/api_security/topics/versioning.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"authn_authz","topic_name":"Authentication & Authorization with Pundit","depth_target":"Strong","objectives":"Implement token-based authentication for API endpoints Define authorization policies using Pundit Test authorization logic in controllers and request specs","url":"/tracks/api_security/topics/authn_authz.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"csrf_cors","topic_name":"CSRF, CORS & Input Validation","depth_target":"Strong","objectives":"Configure CORS headers for cross-origin API requests Implement CSRF protection for session-based APIs Validate and sanitize inputs to prevent injection attacks","url":"/tracks/api_security/topics/csrf_cors.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"idempotency_rate_limits","topic_name":"Idempotency Keys & Rate Limiting","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate operations Configure rate limiting using rack-attack and Redis Return appropriate headers (Retry-After, X-RateLimit)","url":"/tracks/api_security/topics/idempotency_rate_limits.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"pagination_filtering","topic_name":"Pagination, Filtering & Sorting","depth_target":"Strong","objectives":"Implement cursor and offset pagination with performance trade-offs Add filtering and sorting via query parameters Return pagination metadata for client navigation","url":"/tracks/api_security/topics/pagination_filtering.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"rest_design","topic_name":"REST Design Patterns","depth_target":"Strong","objectives":"Design RESTful routes using resources and verbs correctly Choose appropriate HTTP status codes for API responses Structure JSON responses with consistent conventions","url":"/tracks/api_security/topics/rest_design.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"forms_progressive","topic_name":"Forms & progressive enhancement","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/forms_progressive.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"hotwire_frames_streams","topic_name":"Hotwire: Frames & Streams","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/hotwire_frames_streams.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"react_working_fundamentals","topic_name":"React: Working fundamentals","depth_target":"working","objectives":"","url":"/tracks/frontend_integration/topics/react_working_fundamentals.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"stimulus_patterns","topic_name":"Stimulus patterns & best practices","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/stimulus_patterns.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"adrs","topic_name":"ADRs & Lightweight Documentation","depth_target":"Strong","objectives":"Write Architecture Decision Records for major changes Store ADRs in version control alongside code Use MADR template for consistency","url":"/tracks/architecture_design/topics/adrs.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"feature_flags_rollouts","topic_name":"Feature Flags & Safe Rollouts","depth_target":"Strong","objectives":"Implement feature flags with Flipper or Unleash Design rollout strategies by percentage or user segment Monitor flagged features and clean up old flags","url":"/tracks/architecture_design/topics/feature_flags_rollouts.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"layering_services","topic_name":"Layering & Service Objects","depth_target":"Strong","objectives":"Extract complex logic from models into service objects Choose between service, form, and policy objects Apply presenters and decorators for view logic","url":"/tracks/architecture_design/topics/layering_services.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"testing_strategy","topic_name":"Testing Strategy (Unit/Request/System)","depth_target":"Strong","objectives":"Balance unit, request, and system tests using the test pyramid Use factories and fixtures appropriately Stub HTTP calls with VCR and WebMock","url":"/tracks/architecture_design/topics/testing_strategy.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"microservices_when_not","topic_name":"When NOT to Microservice","depth_target":"Working","objectives":"Recognize when monoliths outperform microservices Understand modular monolith as an alternative Identify signs that microservices add complexity without benefit","url":"/tracks/architecture_design/topics/microservices_when_not.html"}];
+
+    // ============================================
+    // Progress Tracking (localStorage)
+    // ============================================
+    const STORAGE_KEY = 'rails_coach_progress';
+    const DARK_MODE_KEY = 'rails_coach_dark_mode';
+
+    function getProgress() {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : {};
+    }
+
+    function saveProgress(progress) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      updateProgressUI();
+    }
+
+    function isTopicComplete(trackKey, topicKey) {
+      const progress = getProgress();
+      return progress[`${trackKey}/${topicKey}`] === true;
+    }
+
+    function toggleTopicComplete(trackKey, topicKey) {
+      const progress = getProgress();
+      const key = `${trackKey}/${topicKey}`;
+      progress[key] = !progress[key];
+      saveProgress(progress);
+      return progress[key];
+    }
+
+    function getTrackProgress(trackKey, totalTopics) {
+      const progress = getProgress();
+      const completed = Object.keys(progress).filter(key =>
+        key.startsWith(trackKey + '/') && progress[key]
+      ).length;
+      return { completed, total: totalTopics };
+    }
+
+    function updateProgressUI() {
+      // Update completion badges on cards
+      document.querySelectorAll('[data-topic-key]').forEach(card => {
+        const trackKey = card.dataset.trackKey;
+        const topicKey = card.dataset.topicKey;
+        const badge = card.querySelector('.completion-badge');
+        if (badge && isTopicComplete(trackKey, topicKey)) {
+          badge.classList.add('completed');
+        }
+      });
+
+      // Update mark complete button
+      const completeBtn = document.getElementById('mark-complete-btn');
+      if (completeBtn) {
+        const trackKey = completeBtn.dataset.trackKey;
+        const topicKey = completeBtn.dataset.topicKey;
+        const completed = isTopicComplete(trackKey, topicKey);
+        completeBtn.classList.toggle('completed', completed);
+        completeBtn.innerHTML = completed ? '✓ Completed' : 'Mark Complete';
+      }
+
+      // Update progress summary
+      const summary = document.getElementById('progress-summary');
+      if (summary) {
+        const progress = getProgress();
+        const total = Object.keys(progress).filter(k => progress[k]).length;
+        if (total > 0) {
+          summary.innerHTML = `<span style="color: var(--text-secondary);">Progress: ${total}/41 topics</span>`;
+        }
+      }
+    }
+
+    function markTopicComplete(trackKey, topicKey) {
+      const completed = toggleTopicComplete(trackKey, topicKey);
+      updateProgressUI();
+
+      // Show celebration if first time completing
+      if (completed) {
+        showNotification('✓ Topic marked complete!');
+      }
+    }
+
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+      }, 2000);
+    }
+
+    // ============================================
+    // Search Functionality
+    // ============================================
+    function performSearch(query) {
+      if (!query || query.trim().length < 2) {
+        hideSearchResults();
+        return;
+      }
+
+      const normalizedQuery = query.toLowerCase().trim();
+      const results = SEARCH_INDEX.filter(item => {
+        return item.topic_name.toLowerCase().includes(normalizedQuery) ||
+               item.track_name.toLowerCase().includes(normalizedQuery) ||
+               item.objectives.toLowerCase().includes(normalizedQuery) ||
+               item.depth_target.toLowerCase().includes(normalizedQuery);
+      });
+
+      displaySearchResults(results, query);
+    }
+
+    function displaySearchResults(results, query) {
+      const container = document.getElementById('search-results');
+
+      if (results.length === 0) {
+        container.innerHTML = `
+          <div class="search-no-results">
+            No topics found for "${query}"
+          </div>
+        `;
+        container.classList.add('show');
+        return;
+      }
+
+      // Group results by track
+      const grouped = {};
+      results.forEach(item => {
+        if (!grouped[item.track_key]) {
+          grouped[item.track_key] = {
+            name: item.track_name,
+            icon: item.track_icon,
+            items: []
+          };
+        }
+        grouped[item.track_key].items.push(item);
+      });
+
+      // Build HTML
+      let html = '';
+      Object.keys(grouped).forEach(trackKey => {
+        const track = grouped[trackKey];
+        html += `
+          <div class="search-group">
+            <div class="search-group-title">
+              ${track.icon} ${track.name}
+            </div>
+        `;
+        track.items.forEach(item => {
+          const badgeClass = item.depth_target === 'Strong' ? 'badge-strong' :
+                           item.depth_target === 'Working' ? 'badge-working' : 'badge-exposure';
+          html += `
+            <a href="${item.url}" class="search-result-item">
+              <div class="search-result-title">${highlightMatch(item.topic_name, query)}</div>
+              <div class="search-result-meta">
+                <span class="badge ${badgeClass}">${item.depth_target}</span>
+              </div>
+            </a>
+          `;
+        });
+        html += `</div>`;
+      });
+
+      container.innerHTML = html;
+      container.classList.add('show');
+    }
+
+    function highlightMatch(text, query) {
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<strong>$1</strong>');
+    }
+
+    function hideSearchResults() {
+      document.getElementById('search-results').classList.remove('show');
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('search-input');
+      input.value = '';
+      hideSearchResults();
+      document.getElementById('search-clear').classList.remove('show');
+      input.focus();
+    }
+
+    function initSearch() {
+      const searchInput = document.getElementById('search-input');
+      const searchClear = document.getElementById('search-clear');
+
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value;
+        if (query.length > 0) {
+          searchClear.classList.add('show');
+        } else {
+          searchClear.classList.remove('show');
+        }
+        performSearch(query);
+      });
+
+      // Close search results when clicking outside
+      document.addEventListener('click', (e) => {
+        const searchContainer = document.querySelector('.search-container');
+        if (!searchContainer.contains(e.target)) {
+          hideSearchResults();
+        }
+      });
+
+      // Keyboard shortcut: / to focus search
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+        // Escape to close search
+        if (e.key === 'Escape') {
+          clearSearch();
+        }
+      });
+    }
+
+    // ============================================
+    // Dark Mode
+    // ============================================
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem(DARK_MODE_KEY, isDark);
+
+      document.querySelector('.light-icon').style.display = isDark ? 'none' : 'inline';
+      document.querySelector('.dark-icon').style.display = isDark ? 'inline' : 'none';
+    }
+
+    function initDarkMode() {
+      const isDark = localStorage.getItem(DARK_MODE_KEY) === 'true';
+      if (isDark) {
+        document.body.classList.add('dark-mode');
+        document.querySelector('.light-icon').style.display = 'none';
+        document.querySelector('.dark-icon').style.display = 'inline';
+      }
+    }
+
+    // ============================================
+    // Tab Switching
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const targetId = tab.dataset.tab;
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          document.getElementById(targetId).classList.add('active');
+        });
+      });
+
+      // Add code copy buttons
+      addCopyButtons();
+
+      // Initialize dark mode
+      initDarkMode();
+
+      // Initialize search
+      initSearch();
+
+      // Update progress UI
+      updateProgressUI();
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        // Arrow keys for prev/next
+        if (e.key === 'ArrowLeft' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          const prevBtn = document.querySelector('.nav-button.prev');
+          if (prevBtn && !prevBtn.disabled) prevBtn.click();
+        }
+        if (e.key === 'ArrowRight' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          const nextBtn = document.querySelector('.nav-button.next');
+          if (nextBtn && !nextBtn.disabled) nextBtn.click();
+        }
+        // Number keys for tabs
+        if (e.key >= '1' && e.key <= '4') {
+          const tabs = document.querySelectorAll('.tab');
+          const index = parseInt(e.key) - 1;
+          if (tabs[index]) tabs[index].click();
+        }
+      });
+    });
+
+    // ============================================
+    // Code Copy Buttons
+    // ============================================
+    function addCopyButtons() {
+      document.querySelectorAll('pre').forEach((pre, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+
+        const button = document.createElement('button');
+        button.className = 'copy-button';
+        button.textContent = 'Copy';
+        button.onclick = () => copyCode(pre, button);
+        wrapper.appendChild(button);
+      });
+    }
+
+    function copyCode(pre, button) {
+      const code = pre.querySelector('code') || pre;
+      navigator.clipboard.writeText(code.textContent).then(() => {
+        button.textContent = '✓ Copied!';
+        button.classList.add('copied');
+        setTimeout(() => {
+          button.textContent = 'Copy';
+          button.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // ============================================
+    // Quiz Functionality
+    // ============================================
+    function selectChoice(questionId, choiceIndex) {
+      const question = document.querySelector(`[data-question-id="${questionId}"]`);
+      const choices = question.querySelectorAll('.choice');
+      choices.forEach((choice, idx) => {
+        choice.classList.remove('selected');
+        if (idx === choiceIndex) choice.classList.add('selected');
+      });
+    }
+
+    function checkAnswers() {
+      let score = 0;
+      let totalPoints = 0;
+
+      document.querySelectorAll('.question').forEach(question => {
+        const kind = question.dataset.kind;
+        const points = parseInt(question.dataset.points);
+        totalPoints += points;
+
+        if (kind === 'mcq') {
+          const correct = question.dataset.correct;
+          const selected = question.querySelector('.choice.selected');
+
+          if (selected) {
+            const selectedText = selected.textContent.trim();
+            const explanation = question.querySelector('.explanation');
+
+            if (selectedText === correct) {
+              selected.classList.add('correct');
+              score += points;
+            } else {
+              selected.classList.add('incorrect');
+              question.querySelectorAll('.choice').forEach(choice => {
+                if (choice.textContent.trim() === correct) {
+                  choice.classList.add('correct');
+                }
+              });
+            }
+
+            if (explanation) explanation.classList.add('show');
+          }
+        }
+      });
+
+      const scoreDisplay = document.querySelector('.score-display');
+      const passingScore = parseInt(scoreDisplay.dataset.passing || 7);
+      const passed = score >= passingScore;
+
+      scoreDisplay.innerHTML = `
+        <div style="font-size: 24px; font-weight: bold;">${score} / ${totalPoints}</div>
+        <div style="margin-top: 5px;">${passed ? '✅ Passed!' : '❌ Try again'}</div>
+        <div style="font-size: 12px; margin-top: 5px;">Passing: ${passingScore}</div>
+      `;
+      scoreDisplay.classList.add('show');
+    }
+
+    function resetQuiz() {
+      document.querySelectorAll('.choice').forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+      });
+      document.querySelectorAll('.explanation').forEach(exp => exp.classList.remove('show'));
+      document.querySelector('.score-display').classList.remove('show');
+    }
+  </script>
+</body>
+</html>

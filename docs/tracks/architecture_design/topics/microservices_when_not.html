@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rails Seniority Coach</title>
+  <style>
+    :root {
+      --bg-primary: #f5f5f5;
+      --bg-secondary: white;
+      --bg-tertiary: #f9f9f9;
+      --text-primary: #333;
+      --text-secondary: #666;
+      --text-muted: #999;
+      --accent: #CC0000;
+      --border: #e0e0e0;
+      --shadow: rgba(0,0,0,0.1);
+      --code-bg: #f4f4f4;
+      --code-block-bg: #2b2b2b;
+      --code-block-text: #f8f8f2;
+    }
+
+    body.dark-mode {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2d2d2d;
+      --bg-tertiary: #3a3a3a;
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --text-muted: #808080;
+      --border: #404040;
+      --shadow: rgba(0,0,0,0.3);
+      --code-bg: #3a3a3a;
+      --code-block-bg: #1e1e1e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      transition: background 0.3s, color 0.3s;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    /* Header */
+    header {
+      background: var(--accent);
+      color: white;
+      padding: 20px 0;
+      margin-bottom: 30px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { font-size: 28px; }
+    header p { opacity: 0.9; margin-top: 5px; }
+
+    /* Search Box */
+    .search-container {
+      position: relative;
+      flex: 1;
+      max-width: 500px;
+      margin: 0 20px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px 15px 10px 40px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.9);
+      color: #333;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input::placeholder { color: #666; }
+    .search-input:focus {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #666;
+      font-size: 16px;
+      pointer-events: none;
+    }
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 8px;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      box-shadow: 0 4px 16px var(--shadow);
+      max-height: 70vh;
+      overflow-y: auto;
+      display: none;
+      z-index: 1000;
+    }
+    .search-results.show { display: block; }
+    .search-group {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border);
+    }
+    .search-group:last-child { border-bottom: none; }
+    .search-group-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .search-result-item {
+      padding: 10px 12px;
+      margin: 4px 0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: block;
+    }
+    .search-result-item:hover {
+      background: var(--bg-tertiary);
+    }
+    .search-result-title {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .search-result-meta {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .search-no-results {
+      padding: 30px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .search-clear {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      display: none;
+    }
+    .search-clear.show { display: block; }
+
+    /* Dark mode toggle */
+    .dark-mode-toggle {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .dark-mode-toggle:hover { background: rgba(255,255,255,0.3); }
+
+    /* Navigation */
+    nav {
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    nav a {
+      color: var(--accent);
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    nav a:hover { background: var(--bg-tertiary); }
+
+    /* Progress indicator */
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+
+    /* Cards */
+    .track-grid, .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .track-card, .topic-card {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .track-card:hover, .topic-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .track-card h3, .topic-card h3 { color: var(--accent); margin-bottom: 10px; }
+    .track-card a, .topic-card a { text-decoration: none; color: inherit; }
+
+    /* Completion badge */
+    .completion-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 24px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .completion-badge.completed { opacity: 1; }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 5px;
+    }
+    .badge-strong { background: #4CAF50; color: white; }
+    .badge-working { background: #2196F3; color: white; }
+    .badge-exposure { background: #9E9E9E; color: white; }
+
+    /* Content sections */
+    .content-section {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 30px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+    .content-section h2 {
+      color: var(--accent);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    .content-section h3 {
+      color: var(--text-primary);
+      margin-top: 25px;
+      margin-bottom: 12px;
+    }
+    .content-section ul, .content-section ol {
+      margin-left: 25px;
+      margin-top: 10px;
+    }
+    .content-section li { margin: 8px 0; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 16px;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab:hover { color: var(--accent); }
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Prev/Next navigation */
+    .topic-navigation {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    .nav-button {
+      flex: 1;
+      min-width: 200px;
+      padding: 15px 20px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-button:hover {
+      border-color: var(--accent);
+      transform: translateX(0) translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .nav-button.prev:hover { transform: translateX(-5px) translateY(-2px); }
+    .nav-button.next:hover { transform: translateX(5px) translateY(-2px); }
+    .nav-button .arrow { font-size: 20px; }
+    .nav-button .label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
+    .nav-button .title { font-weight: 600; }
+    .nav-button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* Mark complete button */
+    .complete-button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .complete-button:hover { background: #45a049; transform: scale(1.05); }
+    .complete-button.completed {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 2px solid #4CAF50;
+    }
+
+    /* Quiz styles */
+    .question {
+      background: var(--bg-tertiary);
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 6px;
+      border-left: 4px solid var(--accent);
+    }
+    .question h4 { margin-bottom: 10px; }
+    .choices { margin: 10px 0; }
+    .choice {
+      padding: 12px;
+      margin: 8px 0;
+      cursor: pointer;
+      border-radius: 4px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      transition: all 0.2s;
+    }
+    .choice:hover { border-color: var(--accent); }
+    .choice.selected { background: #e3f2fd; border-color: #2196F3; }
+    .choice.correct { background: #e8f5e9; border-color: #4CAF50; }
+    .choice.incorrect { background: #ffebee; border-color: #f44336; }
+    .explanation {
+      margin-top: 10px;
+      padding: 10px;
+      background: #fff3cd;
+      color: #856404;
+      border-radius: 4px;
+      display: none;
+    }
+    .explanation.show { display: block; }
+
+    /* References */
+    .reference-list { list-style: none; margin-left: 0; }
+    .reference-list li {
+      padding: 15px;
+      margin: 10px 0;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+    }
+    .reference-list a { color: var(--accent); font-weight: 600; }
+    .reference-list .why { color: var(--text-secondary); font-size: 14px; margin-top: 5px; }
+
+    /* Code styles */
+    code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 15px 0;
+      position: relative;
+    }
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* Copy button for code blocks */
+    .code-block-wrapper {
+      position: relative;
+      margin: 15px 0;
+    }
+    .copy-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+      opacity: 0;
+    }
+    .code-block-wrapper:hover .copy-button { opacity: 1; }
+    .copy-button:hover { background: rgba(255,255,255,0.2); }
+    .copy-button.copied { background: #4CAF50; }
+
+    /* Score display */
+    .score-display {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--accent);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px var(--shadow);
+      display: none;
+      z-index: 1000;
+    }
+    .score-display.show { display: block; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .track-grid, .topic-grid { grid-template-columns: 1fr; }
+      .tabs { overflow-x: auto; }
+      header .container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+      }
+      .search-container {
+        margin: 0;
+        max-width: 100%;
+        order: 1;
+      }
+      header > .container > div:first-child { order: 0; }
+      .dark-mode-toggle {
+        order: 2;
+        align-self: flex-end;
+      }
+      .topic-navigation { flex-direction: column; }
+      .nav-button { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div>
+        <h1>💎 Rails Seniority Coach</h1>
+        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+      </div>
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          class="search-input"
+          id="search-input"
+          placeholder="Search topics..."
+          autocomplete="off"
+        />
+        <button class="search-clear" id="search-clear" onclick="clearSearch()">×</button>
+        <div class="search-results" id="search-results"></div>
+      </div>
+      <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+        <span class="light-icon">🌙</span><span class="dark-icon" style="display:none;">☀️</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    <nav>
+      <a href="/">← All Tracks</a>
+      <div id="progress-summary"></div>
+    </nav>
+    <nav style="margin-bottom: 20px;">
+  <a href="/tracks/architecture_design">← Architecture & Design</a>
+</nav>
+
+<!-- Previous/Next Navigation -->
+<div class="topic-navigation">
+  
+    <a href="/tracks/architecture_design/topics/testing_strategy" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Testing Strategy (Unit/Request/System)</div>
+      </div>
+    </a>
+  
+
+  
+    <div class="nav-button next" style="opacity: 0.3; cursor: not-allowed;">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">End of track</div>
+      </div>
+      <span class="arrow">→</span>
+    </div>
+  
+</div>
+
+<div style="margin-bottom: 30px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+    <div style="flex: 1;">
+      <h1>When NOT to Microservice</h1>
+      <div style="margin: 15px 0;">
+        
+        
+          <span class="badge badge-working">Working</span>
+        
+        &nbsp;
+        <span style="color: var(--text-secondary);">
+          📖 9 min read &nbsp; | &nbsp; 💻 18 min exercise
+        </span>
+      </div>
+    </div>
+    <button
+      id="mark-complete-btn"
+      class="complete-button"
+      data-track-key="architecture_design"
+      data-topic-key="microservices_when_not"
+      onclick="markTopicComplete('architecture_design', 'microservices_when_not')">
+      Mark Complete
+    </button>
+  </div>
+
+  
+    <div class="content-section" style="background: #f0f7ff;">
+      <h3 style="color: #2196F3; margin-bottom: 10px;">Learning Objectives</h3>
+      <ul style="margin-left: 20px;">
+        
+          <li>Recognize when monoliths outperform microservices</li>
+        
+          <li>Understand modular monolith as an alternative</li>
+        
+          <li>Identify signs that microservices add complexity without benefit</li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-tab="overview-tab">📖 Overview</button>
+  <button class="tab" data-tab="exercise-tab">💻 Exercise</button>
+  <button class="tab" data-tab="checkpoint-tab">✅ Checkpoint</button>
+  <button class="tab" data-tab="references-tab">🔗 References</button>
+</div>
+
+<!-- Overview Tab -->
+<div id="overview-tab" class="tab-content active">
+  <div class="content-section">
+    
+      <h1>When NOT to Microservice</h1>
+
+<h2>What It Is</h2>
+
+<p>Microservices split an application into independent services with separate databases, deployed and scaled individually. The monolith-first principle recommends starting with a single codebase and extracting services only when organizational or scaling needs demand it. A modular monolith structures code into isolated modules (domains) within one application, giving many benefits of microservices without distributed system complexity.</p>
+
+<h2>Why It Matters</h2>
+
+<p>Microservices add latency, distributed transactions, deployment complexity, and debugging overhead. A 10-person team splitting a 6-month-old app into 20 services spends months on orchestration, monitoring, and network failures instead of shipping features. Monoliths with clear module boundaries scale further than premature microservices with tangled dependencies. Microservices solve specific problems (team independence, independent scaling); applying them without those problems wastes time.</p>
+
+<h2>When to Use</h2>
+
+<ul>
+<li>Independent teams need to deploy without coordinating (50+ engineers, multiple product lines)</li>
+<li>Specific components require different scaling (background jobs, real-time feeds)</li>
+<li>Different technology stacks are necessary (Python for ML, Go for high-throughput APIs)</li>
+<li>Compliance requires data isolation (PCI-DSS for payment data, GDPR for EU customers)</li>
+<li>After a modular monolith proves domain boundaries are stable</li>
+</ul>
+
+<h2>Three Common Pitfalls</h2>
+
+<ol>
+<li><p><strong>Splitting before validating domain boundaries:</strong> Microservices lock in boundaries. If domains shift (User service needs Order data), refactoring requires cross-service changes, database migrations, and contract updates. Start with a modular monolith to validate boundaries cheaply.</p></li>
+<li><p><strong>Ignoring distributed system costs:</strong> Microservices introduce network failures, eventual consistency, distributed tracing, and service discovery. A monolith handles these concerns with database transactions and stack traces. Don&#39;t pay distributed system costs without distributed system benefits.</p></li>
+<li><p><strong>Premature extraction for &quot;best practices&quot;:</strong> Extracting services because &quot;it&#39;s how big companies do it&quot; ignores that big companies have big-company problems (hundreds of engineers, polyglot needs). A 5-person team doesn&#39;t have those problems yet.</p></li>
+</ol>
+
+<hr>
+
+<h2>Monolith First Principle</h2>
+
+<p>Start with a monolith. Extract services when scaling or organizational needs justify the cost.</p>
+
+<p><strong>Signs you need microservices:</strong><br>
+- Teams block each other on deployments<br>
+- One component (e.g., image processing) requires 10x more resources than others<br>
+- Hiring requires different tech stacks (ML in Python, core app in Rails)</p>
+
+<p><strong>Signs you don&#39;t:</strong><br>
+- Team is under 20 engineers<br>
+- App deploys successfully multiple times per day<br>
+- No component requires vastly different scaling</p>
+
+<p>Monoliths deploy faster, debug easier, and refactor cheaper. Extract services only when monolith constraints become painful.</p>
+
+<h2>Modular Monolith Alternative</h2>
+
+<p>A modular monolith structures code into isolated modules (domains) with clear boundaries but shares one database and deployment.</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/domains/orders/</span>
+<span class="c1">#   models/</span>
+<span class="c1">#     order.rb</span>
+<span class="c1">#   services/</span>
+<span class="c1">#     checkout_order.rb</span>
+<span class="c1">#   controllers/</span>
+<span class="c1">#     orders_controller.rb</span>
+
+<span class="c1"># app/domains/inventory/</span>
+<span class="c1">#   models/</span>
+<span class="c1">#     product.rb</span>
+<span class="c1">#   services/</span>
+<span class="c1">#     reserve_stock.rb</span>
+
+<span class="c1"># Orders module calls Inventory via service interface</span>
+<span class="k">class</span> <span class="nc">CheckoutOrder</span>
+  <span class="k">def</span> <span class="nf">call</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="no">Inventory</span><span class="o">::</span><span class="no">ReserveStock</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="ss">product_id: </span><span class="n">context</span><span class="p">.</span><span class="nf">product_id</span><span class="p">)</span>
+    <span class="n">context</span><span class="p">.</span><span class="nf">fail!</span><span class="p">(</span><span class="ss">error: </span><span class="s2">"Out of stock"</span><span class="p">)</span> <span class="k">unless</span> <span class="n">result</span><span class="p">.</span><span class="nf">success?</span>
+    <span class="c1"># ...</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Modules communicate through service objects, not direct model access. Benefits: domain isolation, easier extraction later. Costs: discipline required to enforce boundaries.</p>
+
+<h2>When Microservices Help</h2>
+
+<p>Microservices solve organizational and scaling problems, not code quality problems.</p>
+
+<p><strong>Independent Teams:</strong> 3 product teams ship features without coordinating deploys. Each team owns a service.</p>
+
+<p><strong>Independent Scaling:</strong> Image processing service needs 50 workers; web API needs 5 servers. Scaling them together wastes resources.</p>
+
+<p><strong>Polyglot Requirements:</strong> ML models run in Python; real-time feed in Go; core app in Rails. Language boundaries map to service boundaries.</p>
+
+<h2>When Microservices Hurt</h2>
+
+<p><strong>Shared Data:</strong> If Services A and B both read/write User data, they&#39;re not independent. Splitting forces distributed transactions or eventual consistency, complicating logic that was simple in a monolith.</p>
+
+<p><strong>Distributed Transactions:</strong> Charging a credit card and updating order status must succeed or fail together. Microservices require sagas (multi-step compensating transactions) instead of database rollbacks.</p>
+
+<p><strong>Debugging Complexity:</strong> A 500 error in a monolith has a stack trace. In microservices, trace the request across 5 services using distributed tracing tools like Jaeger.</p>
+
+<h2>Message Queues (Exposure Only)</h2>
+
+<p>Microservices communicate asynchronously via message queues (Kafka, RabbitMQ) to decouple services.</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># orders-service publishes event</span>
+<span class="no">OrderCreatedPublisher</span><span class="p">.</span><span class="nf">publish</span><span class="p">(</span><span class="ss">order_id: </span><span class="n">order</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="ss">user_id: </span><span class="n">order</span><span class="p">.</span><span class="nf">user_id</span><span class="p">)</span>
+
+<span class="c1"># inventory-service consumes event</span>
+<span class="k">class</span> <span class="nc">OrderCreatedConsumer</span>
+  <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+    <span class="no">Inventory</span><span class="o">::</span><span class="no">ReserveStock</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="ss">order_id: </span><span class="n">event</span><span class="p">[</span><span class="ss">:order_id</span><span class="p">])</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Message queues enable eventual consistency but complicate debugging (messages lost, duplicate processing, ordering issues). Use only when async processing or decoupling justifies the complexity.</p>
+
+<h2>Distributed Transactions Example</h2>
+
+<p>A monolith handles order checkout in a single transaction:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Order</span><span class="p">.</span><span class="nf">transaction</span> <span class="k">do</span>
+  <span class="n">order</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">status: </span><span class="s2">"paid"</span><span class="p">)</span>
+  <span class="no">PaymentGateway</span><span class="p">.</span><span class="nf">charge</span><span class="p">(</span><span class="n">order</span><span class="p">.</span><span class="nf">total</span><span class="p">)</span>
+  <span class="no">Inventory</span><span class="p">.</span><span class="nf">decrement</span><span class="p">(</span><span class="n">order</span><span class="p">.</span><span class="nf">product_id</span><span class="p">,</span> <span class="n">order</span><span class="p">.</span><span class="nf">quantity</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>If any step fails, the database rolls back. In microservices:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># orders-service</span>
+<span class="n">result</span> <span class="o">=</span> <span class="no">PaymentService</span><span class="p">.</span><span class="nf">charge</span><span class="p">(</span><span class="n">order</span><span class="p">.</span><span class="nf">total</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">result</span><span class="p">.</span><span class="nf">success?</span>
+  <span class="no">InventoryService</span><span class="p">.</span><span class="nf">decrement</span><span class="p">(</span><span class="n">order</span><span class="p">.</span><span class="nf">product_id</span><span class="p">,</span> <span class="n">order</span><span class="p">.</span><span class="nf">quantity</span><span class="p">)</span>
+<span class="k">else</span>
+  <span class="c1"># Compensate: what if inventory already decremented?</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Microservices require saga patterns (event-driven compensation) to handle failures, adding complexity.</p>
+
+<h2>Signs You Prematurely Extracted Services</h2>
+
+<ul>
+<li>Deploying requires coordinating 5+ service releases</li>
+<li>Database queries join data across service boundaries via API calls</li>
+<li>Adding a feature touches 3+ services</li>
+<li>Engineers spend more time debugging network issues than business logic</li>
+<li>&quot;Distributed monolith&quot;: services share a database or deploy together</li>
+</ul>
+
+<p>Recombine services or adopt a modular monolith.</p>
+
+<hr>
+
+<h2>Trade-offs Box</h2>
+
+<ul>
+<li><strong>Advantage:</strong> Monoliths simplify deployment, debugging, and refactoring; modular monoliths provide domain boundaries without distributed costs.</li>
+<li><strong>Cost:</strong> Monoliths eventually hit organizational or scaling limits; refactoring into services later requires careful boundary extraction.</li>
+<li><strong>When to skip:</strong> Skip microservices if team is under 20 engineers, app deploys multiple times daily, and no component requires vastly different scaling.</li>
+</ul>
+
+<hr>
+
+<h2>Debugging Checklist</h2>
+
+<p>When microservices cause pain, check:</p>
+
+<ol>
+<li>Team size: If under 20 engineers, reconsider whether services add value</li>
+<li>Deployment frequency: If services must deploy together, they&#39;re a distributed monolith</li>
+<li>Shared data: If services share a database or frequently call each other&#39;s APIs, boundaries are wrong</li>
+<li>Network failures: If debugging involves tracing requests across 5+ services, evaluate consolidation</li>
+<li>Transaction complexity: If compensating sagas replace simple database rollbacks, consider a monolith</li>
+<li>Module boundaries: If a modular monolith enforces boundaries equally well, delay extraction</li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>Monolith-first principle: start with one codebase, extract services only when organizational or scaling needs justify distributed costs</li>
+<li>Modular monoliths provide domain isolation without network, transaction, or debugging complexity</li>
+<li>Microservices help when teams need independent deploys, components need independent scaling, or polyglot stacks are required</li>
+<li>Microservices hurt when data is shared, transactions span services, or debugging becomes tracing network calls</li>
+<li>Signs of premature extraction: coordinated deploys, cross-service joins, engineers debugging orchestration instead of features</li>
+</ul>
+
+    
+  </div>
+</div>
+
+<!-- Exercise Tab -->
+<div id="exercise-tab" class="tab-content">
+  <div class="content-section">
+    
+      <h1>Exercise: When NOT to Microservice</h1>
+
+<h2>Objective</h2>
+
+<p>Evaluate whether a scenario justifies microservices or a modular monolith.</p>
+
+<h2>Task</h2>
+
+<p>You&#39;re consulting for three teams considering microservices. Evaluate each scenario and recommend either:<br>
+- <strong>Microservices</strong> (justify with specific organizational or scaling needs)<br>
+- <strong>Modular Monolith</strong> (explain why microservices add complexity without benefit)</p>
+
+<p><strong>Scenario A:</strong> 8-person team, 1-year-old Rails app, 50K users, deploys 3x per day, no deployment conflicts. Team wants to &quot;prepare for scale.&quot;</p>
+
+<p><strong>Scenario B:</strong> 60-person engineering org, 3 product teams, shared User model causes deployment conflicts weekly. Checkout team needs to deploy payment changes without coordinating with other teams.</p>
+
+<p><strong>Scenario C:</strong> E-commerce app where Orders and Inventory are tightly coupled (every order checks inventory). Team extracted them into separate services. Now writes involve API calls between services, and failures require compensating transactions.</p>
+
+<p>For each scenario:<br>
+1. Recommend microservices or modular monolith<br>
+2. Explain the primary reason for your recommendation<br>
+3. List the main trade-off your recommendation introduces</p>
+
+<h2>Acceptance Criteria</h2>
+
+<ul>
+<li>[ ] Scenario A recommendation includes team size and deployment frequency as factors</li>
+<li>[ ] Scenario B recommendation addresses organizational independence needs</li>
+<li>[ ] Scenario C recommendation discusses shared data and distributed transaction costs</li>
+<li>[ ] Each recommendation includes one concrete trade-off (what you gain vs what you lose)</li>
+<li>[ ] Recommendations reference specific signals (team size, deployment conflicts, shared data)</li>
+</ul>
+
+<h2>Verification Steps</h2>
+
+<ol>
+<li>Confirm Scenario A recommendation explains why premature extraction adds complexity</li>
+<li>Verify Scenario B recommendation identifies team independence as justification for services</li>
+<li>Check Scenario C recommendation suggests recombining or using a modular monolith</li>
+<li>Ensure each recommendation mentions a specific cost (debugging complexity, deployment overhead, refactoring difficulty)</li>
+</ol>
+
+<h2>Stretch (Optional)</h2>
+
+<p>For Scenario C, design a modular monolith structure with Orders and Inventory modules that communicate via service objects, avoiding direct model access.</p>
+
+<h2>Time Estimate</h2>
+
+<p>18 minutes</p>
+
+    
+  </div>
+</div>
+
+<!-- Checkpoint Tab -->
+<div id="checkpoint-tab" class="tab-content">
+  <div class="content-section">
+    
+      
+      <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
+        <p><strong>Passing Score:</strong> 6 points</p>
+        <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
+      </div>
+
+      
+        <div class="question"
+             data-question-id="0"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Start with a monolith and extract services only when organizational or scaling needs justify distributed costs">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the monolith-first principle?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  Always use a monolith; microservices are never appropriate
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  Start with a monolith and extract services only when organizational or scaling needs justify distributed costs
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  Build microservices first, then combine them into a monolith
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  Monoliths are outdated; all new apps should be microservices
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Monoliths are simpler; microservices solve specific problems that emerge at scale.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="1"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Code structured into isolated modules within one application and database">
+          <h4>Question 2 (1 points)</h4>
+          <p style="margin: 10px 0;">What is a modular monolith?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  A monolith split into microservices
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  Code structured into isolated modules within one application and database
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  Multiple monoliths sharing a database
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  A deprecated architecture pattern
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Modular monoliths provide domain boundaries without distributed system complexity.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="2"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 3 (2 points)</h4>
+          <p style="margin: 10px 0;">Name two problems microservices solve and two problems they introduce.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Solve: team independence, independent scaling. Introduce: distributed transactions, debugging complexity across services.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="3"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="When services share data or require distributed transactions">
+          <h4>Question 4 (2 points)</h4>
+          <p style="margin: 10px 0;">When do microservices hurt more than they help?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  When teams need independent deploys
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  When services share data or require distributed transactions
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  When using Rails instead of Go
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  When team size exceeds 50 engineers
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Shared data or cross-service transactions add complexity that monoliths handle with database transactions.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="4"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">What is a 'distributed monolith' and why is it a problem?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Services that share a database or must deploy together, combining microservice complexity with monolith coupling.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="5"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Deploying requires coordinating multiple service releases">
+          <h4>Question 6 (1 points)</h4>
+          <p style="margin: 10px 0;">What's a sign you prematurely extracted microservices?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  Team size exceeds 20 engineers
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  Deploying requires coordinating multiple service releases
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  App uses a relational database
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  Code is written in Ruby
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Coordinated deploys indicate services aren't independent, negating microservice benefits.
+              </div>
+            
+          
+        </div>
+      
+
+      <div style="margin-top: 30px; display: flex; gap: 10px;">
+        <button onclick="checkAnswers()" style="padding: 12px 24px; background: #CC0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600;">
+          Check Answers
+        </button>
+        <button onclick="resetQuiz()" style="padding: 12px 24px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+          Reset
+        </button>
+      </div>
+
+      <div class="score-display" data-passing="6"></div>
+    
+  </div>
+</div>
+
+<!-- References Tab -->
+<div id="references-tab" class="tab-content">
+  <div class="content-section">
+    
+      <p style="margin-bottom: 20px; color: var(--text-secondary);">
+        Curated sources to deepen your understanding. All references point to official documentation,
+        canonical books, or reputable technical content.
+      </p>
+      <ul class="reference-list">
+        
+          <li>
+            <a href="https://martinfowler.com/bliki/MonolithFirst.html" target="_blank">Monolith First (Martin Fowler)</a>
+            <div class="why">Fowler's argument for starting with monoliths and extracting services later.</div>
+          </li>
+        
+          <li>
+            <a href="https://www.youtube.com/watch?v=5OjqD-ow8GE" target="_blank">Modular Monoliths (Simon Brown)</a>
+            <div class="why">How to structure monoliths into modules with clear boundaries.</div>
+          </li>
+        
+          <li>
+            <a href="https://martinfowler.com/bliki/MicroservicePrerequisites.html" target="_blank">Microservices Prerequisites (Martin Fowler)</a>
+            <div class="why">Organizational and technical capabilities needed before adopting microservices.</div>
+          </li>
+        
+          <li>
+            <a href="https://samnewman.io/books/building_microservices/" target="_blank">Building Microservices (Sam Newman)</a>
+            <div class="why">Comprehensive guide covering when microservices help and when they hurt.</div>
+          </li>
+        
+          <li>
+            <a href="https://shopify.engineering/deconstructing-monolith-designing-software-maximizes-developer-productivity" target="_blank">Shopify's Modular Monolith</a>
+            <div class="why">How Shopify structures Rails monoliths into domains to support 1000+ engineers.</div>
+          </li>
+        
+          <li>
+            <a href="https://m.signalvnoise.com/the-majestic-monolith/" target="_blank">The Majestic Monolith (DHH)</a>
+            <div class="why">Basecamp's defense of monoliths for most teams and why they work at scale.</div>
+          </li>
+        
+          <li>
+            <a href="https://kafka.apache.org/documentation/" target="_blank">Kafka Documentation</a>
+            <div class="why">Event streaming platform commonly used for microservice communication (exposure only).</div>
+          </li>
+        
+      </ul>
+    
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="topic-navigation">
+  
+    <a href="/tracks/architecture_design/topics/testing_strategy" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Testing Strategy (Unit/Request/System)</div>
+      </div>
+    </a>
+  
+
+  
+    <div class="nav-button next" style="opacity: 0.3; cursor: not-allowed;">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">End of track</div>
+      </div>
+      <span class="arrow">→</span>
+    </div>
+  
+</div>
+
+  </div>
+
+  <script>
+    // ============================================
+    // Search Index
+    // ============================================
+    const SEARCH_INDEX = [{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"ar_relations","topic_name":"Active Record Relations & Query Interface","depth_target":"Strong","objectives":"Compose complex queries using relations and scopes Explain lazy loading and when queries execute Chain methods without triggering N+1 queries","url":"/tracks/rails_internals/topics/ar_relations.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"config_initializers","topic_name":"Configuration & Initializers","depth_target":"Strong","objectives":"Configure Rails apps using environment-specific settings Write initializers that load in correct order Manage secrets and credentials securely","url":"/tracks/rails_internals/topics/config_initializers.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"request_lifecycle","topic_name":"Request Lifecycle & Middleware","depth_target":"Strong","objectives":"Trace a Rails request from Rack through middleware to controller Identify where params are parsed and filters applied Profile a request and explain the hottest frames","url":"/tracks/rails_internals/topics/request_lifecycle.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"routing_middleware","topic_name":"Routing & Middleware Patterns","depth_target":"Strong","objectives":"Design RESTful routes with constraints and namespaces Write custom middleware for cross-cutting concerns Debug routing issues using rails routes and route helpers","url":"/tracks/rails_internals/topics/routing_middleware.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"validations_callbacks","topic_name":"Validations, Callbacks & Concerns","depth_target":"Strong","objectives":"Write custom validations and understand when they run Identify callback dangers and when to avoid them Extract shared logic using concerns","url":"/tracks/rails_internals/topics/validations_callbacks.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"autoloading_boot","topic_name":"Zeitwerk/Autoloading & Boot Sequence","depth_target":"Strong","objectives":"Explain how Zeitwerk maps file paths to constants Debug \"uninitialized constant\" and circular dependency errors Optimize boot time by controlling eager loading","url":"/tracks/rails_internals/topics/autoloading_boot.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"ctes_windows","topic_name":"CTEs and Window Functions","depth_target":"Strong","objectives":"Write Common Table Expressions (WITH) to simplify complex queries Use window functions (ROW_NUMBER, RANK, LAG, LEAD) for analytics Decide when to use CTEs vs subqueries for readability and performance","url":"/tracks/sql_postgres/topics/ctes_windows.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"indexing","topic_name":"Database Indexing (B-tree, Partial, Composite)","depth_target":"Strong","objectives":"Choose appropriate index types (B-tree, partial, composite, GIN/GiST) for query patterns Identify when indexes improve or harm performance Use EXPLAIN to verify index usage and measure query costs","url":"/tracks/sql_postgres/topics/indexing.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"modeling_constraints","topic_name":"Modeling & Constraints (FKs, Uniques, Check)","depth_target":"Strong","objectives":"Design schemas with foreign keys, unique constraints, and check constraints Write migrations that enforce data integrity at the database level Debug constraint violations and fix schema issues","url":"/tracks/sql_postgres/topics/modeling_constraints.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"explain_analyze","topic_name":"Reading Query Plans (EXPLAIN ANALYZE)","depth_target":"Strong","objectives":"Read EXPLAIN ANALYZE output to identify sequential scans, index scans, and nested loops Identify query bottlenecks (costly sorts, large row estimates, missing indexes) Use pg_stat_statements to find slowest queries in production","url":"/tracks/sql_postgres/topics/explain_analyze.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"transactions_locks","topic_name":"Transactions, Isolation, and Locks","depth_target":"Strong","objectives":"Explain ACID properties and how Postgres enforces them Choose appropriate isolation levels for concurrent operations Debug deadlocks and lock contention using pg_locks and pg_stat_activity","url":"/tracks/sql_postgres/topics/transactions_locks.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"zero_downtime_migrations","topic_name":"Zero-Downtime Migrations","depth_target":"Strong","objectives":"Write migrations that don't lock tables or cause downtime Add columns with defaults, indexes, and constraints safely Backfill data in batches to avoid long-running transactions","url":"/tracks/sql_postgres/topics/zero_downtime_migrations.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"sidekiq_basics","topic_name":"ActiveJob vs Sidekiq Fundamentals","depth_target":"Strong","objectives":"Compare ActiveJob abstraction with direct Sidekiq usage Configure Redis connection and worker concurrency Route jobs to specific queues and set priorities","url":"/tracks/background_jobs/topics/sidekiq_basics.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"idempotency_retries","topic_name":"Idempotency Patterns & Retries","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate job effects Configure retry strategies with exponential backoff Handle dead jobs in the dead letter queue","url":"/tracks/background_jobs/topics/idempotency_retries.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"job_instrumentation","topic_name":"Job Instrumentation & Backoff","depth_target":"Strong","objectives":"Log job execution with structured context Track success/failure metrics for monitoring Implement custom exponential backoff strategies Use Sidekiq lifecycle hooks for instrumentation","url":"/tracks/background_jobs/topics/job_instrumentation.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"scheduling","topic_name":"Job Scheduling & Deduplication","depth_target":"Strong","objectives":"Schedule recurring jobs with cron syntax using sidekiq-cron Prevent duplicate jobs with sidekiq-unique-jobs Use at/in syntax for delayed one-time jobs Pass job context safely without ActiveRecord objects","url":"/tracks/background_jobs/topics/scheduling.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"cache_keys_invalidations","topic_name":"Cache Keys & Invalidation Strategies","depth_target":"Strong","objectives":"Design cache keys that auto-expire on record changes Implement Russian-doll caching pattern Prevent cache stampede with locks Choose between manual and automatic invalidation","url":"/tracks/caching_performance/topics/cache_keys_invalidations.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"eager_preload","topic_name":"Eager Loading vs Preloading Strategies","depth_target":"Strong","objectives":"Distinguish between includes, preload, eager_load, and joins Choose the correct loading strategy based on query needs Optimize nested associations without over-fetching","url":"/tracks/caching_performance/topics/eager_preload.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"fragment_caching","topic_name":"Fragment & Low-Level Caching","depth_target":"Strong","objectives":"Implement view fragment caching with cache keys Use low-level caching for expensive computations Configure cache stores (memory, Redis, Memcached) Measure cache hit rates and performance gains","url":"/tracks/caching_performance/topics/fragment_caching.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"memory_gc_basics","topic_name":"Memory & Garbage Collection Awareness","depth_target":"Strong","objectives":"Track Ruby object allocation and memory usage Read and interpret GC statistics Identify memory bloat and leaks Use memory_profiler gem to profile endpoints","url":"/tracks/caching_performance/topics/memory_gc_basics.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"n_plus_one","topic_name":"N+1 Query Detection & Resolution","depth_target":"Strong","objectives":"Identify N+1 query patterns in logs and using Bullet gem Choose between includes, preload, eager_load, and joins Measure query count before and after optimization","url":"/tracks/caching_performance/topics/n_plus_one.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"apm_traces","topic_name":"APM Basics and Flamegraphs","depth_target":"Working","objectives":"Read APM flamegraphs to identify slow segments Use APM to detect N+1 queries and slow database calls Set up rack-mini-profiler for local performance analysis","url":"/tracks/observability/topics/apm_traces.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"error_tracking_model","topic_name":"Error Tracking Mental Model","depth_target":"Working","objectives":"Integrate an error tracking service (Sentry, Rollbar, or Honeybadger) Add context to errors (user info, request params, custom tags) Understand error grouping and fingerprinting","url":"/tracks/observability/topics/error_tracking_model.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"metrics_slos","topic_name":"Metrics and SLO Thinking","depth_target":"Working","objectives":"Understand RED metrics (Rate, Errors, Duration) for web services Distinguish between SLI, SLO, and SLA Set realistic SLO targets (99% vs 99.9% trade-offs)","url":"/tracks/observability/topics/metrics_slos.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"structured_logging","topic_name":"Structured Logging with Lograge","depth_target":"Strong","objectives":"Configure lograge for JSON logging in production Add custom fields like request_id and user_id to log entries Filter sensitive data from logs (passwords, tokens)","url":"/tracks/observability/topics/structured_logging.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"error_shapes","topic_name":"API Error Shapes & Standards","depth_target":"Strong","objectives":"Design consistent error response structures across API endpoints Choose appropriate HTTP status codes for different error types Distinguish user-facing from developer-facing error messages","url":"/tracks/api_security/topics/error_shapes.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"versioning","topic_name":"API Versioning Strategies","depth_target":"Strong","objectives":"Compare header-based vs path-based API versioning Implement deprecation warnings with Sunset headers Maintain backward compatibility across API versions","url":"/tracks/api_security/topics/versioning.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"authn_authz","topic_name":"Authentication & Authorization with Pundit","depth_target":"Strong","objectives":"Implement token-based authentication for API endpoints Define authorization policies using Pundit Test authorization logic in controllers and request specs","url":"/tracks/api_security/topics/authn_authz.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"csrf_cors","topic_name":"CSRF, CORS & Input Validation","depth_target":"Strong","objectives":"Configure CORS headers for cross-origin API requests Implement CSRF protection for session-based APIs Validate and sanitize inputs to prevent injection attacks","url":"/tracks/api_security/topics/csrf_cors.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"idempotency_rate_limits","topic_name":"Idempotency Keys & Rate Limiting","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate operations Configure rate limiting using rack-attack and Redis Return appropriate headers (Retry-After, X-RateLimit)","url":"/tracks/api_security/topics/idempotency_rate_limits.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"pagination_filtering","topic_name":"Pagination, Filtering & Sorting","depth_target":"Strong","objectives":"Implement cursor and offset pagination with performance trade-offs Add filtering and sorting via query parameters Return pagination metadata for client navigation","url":"/tracks/api_security/topics/pagination_filtering.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"rest_design","topic_name":"REST Design Patterns","depth_target":"Strong","objectives":"Design RESTful routes using resources and verbs correctly Choose appropriate HTTP status codes for API responses Structure JSON responses with consistent conventions","url":"/tracks/api_security/topics/rest_design.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"forms_progressive","topic_name":"Forms & progressive enhancement","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/forms_progressive.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"hotwire_frames_streams","topic_name":"Hotwire: Frames & Streams","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/hotwire_frames_streams.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"react_working_fundamentals","topic_name":"React: Working fundamentals","depth_target":"working","objectives":"","url":"/tracks/frontend_integration/topics/react_working_fundamentals.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"stimulus_patterns","topic_name":"Stimulus patterns & best practices","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/stimulus_patterns.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"adrs","topic_name":"ADRs & Lightweight Documentation","depth_target":"Strong","objectives":"Write Architecture Decision Records for major changes Store ADRs in version control alongside code Use MADR template for consistency","url":"/tracks/architecture_design/topics/adrs.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"feature_flags_rollouts","topic_name":"Feature Flags & Safe Rollouts","depth_target":"Strong","objectives":"Implement feature flags with Flipper or Unleash Design rollout strategies by percentage or user segment Monitor flagged features and clean up old flags","url":"/tracks/architecture_design/topics/feature_flags_rollouts.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"layering_services","topic_name":"Layering & Service Objects","depth_target":"Strong","objectives":"Extract complex logic from models into service objects Choose between service, form, and policy objects Apply presenters and decorators for view logic","url":"/tracks/architecture_design/topics/layering_services.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"testing_strategy","topic_name":"Testing Strategy (Unit/Request/System)","depth_target":"Strong","objectives":"Balance unit, request, and system tests using the test pyramid Use factories and fixtures appropriately Stub HTTP calls with VCR and WebMock","url":"/tracks/architecture_design/topics/testing_strategy.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"microservices_when_not","topic_name":"When NOT to Microservice","depth_target":"Working","objectives":"Recognize when monoliths outperform microservices Understand modular monolith as an alternative Identify signs that microservices add complexity without benefit","url":"/tracks/architecture_design/topics/microservices_when_not.html"}];
+
+    // ============================================
+    // Progress Tracking (localStorage)
+    // ============================================
+    const STORAGE_KEY = 'rails_coach_progress';
+    const DARK_MODE_KEY = 'rails_coach_dark_mode';
+
+    function getProgress() {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : {};
+    }
+
+    function saveProgress(progress) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      updateProgressUI();
+    }
+
+    function isTopicComplete(trackKey, topicKey) {
+      const progress = getProgress();
+      return progress[`${trackKey}/${topicKey}`] === true;
+    }
+
+    function toggleTopicComplete(trackKey, topicKey) {
+      const progress = getProgress();
+      const key = `${trackKey}/${topicKey}`;
+      progress[key] = !progress[key];
+      saveProgress(progress);
+      return progress[key];
+    }
+
+    function getTrackProgress(trackKey, totalTopics) {
+      const progress = getProgress();
+      const completed = Object.keys(progress).filter(key =>
+        key.startsWith(trackKey + '/') && progress[key]
+      ).length;
+      return { completed, total: totalTopics };
+    }
+
+    function updateProgressUI() {
+      // Update completion badges on cards
+      document.querySelectorAll('[data-topic-key]').forEach(card => {
+        const trackKey = card.dataset.trackKey;
+        const topicKey = card.dataset.topicKey;
+        const badge = card.querySelector('.completion-badge');
+        if (badge && isTopicComplete(trackKey, topicKey)) {
+          badge.classList.add('completed');
+        }
+      });
+
+      // Update mark complete button
+      const completeBtn = document.getElementById('mark-complete-btn');
+      if (completeBtn) {
+        const trackKey = completeBtn.dataset.trackKey;
+        const topicKey = completeBtn.dataset.topicKey;
+        const completed = isTopicComplete(trackKey, topicKey);
+        completeBtn.classList.toggle('completed', completed);
+        completeBtn.innerHTML = completed ? '✓ Completed' : 'Mark Complete';
+      }
+
+      // Update progress summary
+      const summary = document.getElementById('progress-summary');
+      if (summary) {
+        const progress = getProgress();
+        const total = Object.keys(progress).filter(k => progress[k]).length;
+        if (total > 0) {
+          summary.innerHTML = `<span style="color: var(--text-secondary);">Progress: ${total}/41 topics</span>`;
+        }
+      }
+    }
+
+    function markTopicComplete(trackKey, topicKey) {
+      const completed = toggleTopicComplete(trackKey, topicKey);
+      updateProgressUI();
+
+      // Show celebration if first time completing
+      if (completed) {
+        showNotification('✓ Topic marked complete!');
+      }
+    }
+
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+      }, 2000);
+    }
+
+    // ============================================
+    // Search Functionality
+    // ============================================
+    function performSearch(query) {
+      if (!query || query.trim().length < 2) {
+        hideSearchResults();
+        return;
+      }
+
+      const normalizedQuery = query.toLowerCase().trim();
+      const results = SEARCH_INDEX.filter(item => {
+        return item.topic_name.toLowerCase().includes(normalizedQuery) ||
+               item.track_name.toLowerCase().includes(normalizedQuery) ||
+               item.objectives.toLowerCase().includes(normalizedQuery) ||
+               item.depth_target.toLowerCase().includes(normalizedQuery);
+      });
+
+      displaySearchResults(results, query);
+    }
+
+    function displaySearchResults(results, query) {
+      const container = document.getElementById('search-results');
+
+      if (results.length === 0) {
+        container.innerHTML = `
+          <div class="search-no-results">
+            No topics found for "${query}"
+          </div>
+        `;
+        container.classList.add('show');
+        return;
+      }
+
+      // Group results by track
+      const grouped = {};
+      results.forEach(item => {
+        if (!grouped[item.track_key]) {
+          grouped[item.track_key] = {
+            name: item.track_name,
+            icon: item.track_icon,
+            items: []
+          };
+        }
+        grouped[item.track_key].items.push(item);
+      });
+
+      // Build HTML
+      let html = '';
+      Object.keys(grouped).forEach(trackKey => {
+        const track = grouped[trackKey];
+        html += `
+          <div class="search-group">
+            <div class="search-group-title">
+              ${track.icon} ${track.name}
+            </div>
+        `;
+        track.items.forEach(item => {
+          const badgeClass = item.depth_target === 'Strong' ? 'badge-strong' :
+                           item.depth_target === 'Working' ? 'badge-working' : 'badge-exposure';
+          html += `
+            <a href="${item.url}" class="search-result-item">
+              <div class="search-result-title">${highlightMatch(item.topic_name, query)}</div>
+              <div class="search-result-meta">
+                <span class="badge ${badgeClass}">${item.depth_target}</span>
+              </div>
+            </a>
+          `;
+        });
+        html += `</div>`;
+      });
+
+      container.innerHTML = html;
+      container.classList.add('show');
+    }
+
+    function highlightMatch(text, query) {
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<strong>$1</strong>');
+    }
+
+    function hideSearchResults() {
+      document.getElementById('search-results').classList.remove('show');
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('search-input');
+      input.value = '';
+      hideSearchResults();
+      document.getElementById('search-clear').classList.remove('show');
+      input.focus();
+    }
+
+    function initSearch() {
+      const searchInput = document.getElementById('search-input');
+      const searchClear = document.getElementById('search-clear');
+
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value;
+        if (query.length > 0) {
+          searchClear.classList.add('show');
+        } else {
+          searchClear.classList.remove('show');
+        }
+        performSearch(query);
+      });
+
+      // Close search results when clicking outside
+      document.addEventListener('click', (e) => {
+        const searchContainer = document.querySelector('.search-container');
+        if (!searchContainer.contains(e.target)) {
+          hideSearchResults();
+        }
+      });
+
+      // Keyboard shortcut: / to focus search
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+        // Escape to close search
+        if (e.key === 'Escape') {
+          clearSearch();
+        }
+      });
+    }
+
+    // ============================================
+    // Dark Mode
+    // ============================================
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem(DARK_MODE_KEY, isDark);
+
+      document.querySelector('.light-icon').style.display = isDark ? 'none' : 'inline';
+      document.querySelector('.dark-icon').style.display = isDark ? 'inline' : 'none';
+    }
+
+    function initDarkMode() {
+      const isDark = localStorage.getItem(DARK_MODE_KEY) === 'true';
+      if (isDark) {
+        document.body.classList.add('dark-mode');
+        document.querySelector('.light-icon').style.display = 'none';
+        document.querySelector('.dark-icon').style.display = 'inline';
+      }
+    }
+
+    // ============================================
+    // Tab Switching
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const targetId = tab.dataset.tab;
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          document.getElementById(targetId).classList.add('active');
+        });
+      });
+
+      // Add code copy buttons
+      addCopyButtons();
+
+      // Initialize dark mode
+      initDarkMode();
+
+      // Initialize search
+      initSearch();
+
+      // Update progress UI
+      updateProgressUI();
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        // Arrow keys for prev/next
+        if (e.key === 'ArrowLeft' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          const prevBtn = document.querySelector('.nav-button.prev');
+          if (prevBtn && !prevBtn.disabled) prevBtn.click();
+        }
+        if (e.key === 'ArrowRight' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          const nextBtn = document.querySelector('.nav-button.next');
+          if (nextBtn && !nextBtn.disabled) nextBtn.click();
+        }
+        // Number keys for tabs
+        if (e.key >= '1' && e.key <= '4') {
+          const tabs = document.querySelectorAll('.tab');
+          const index = parseInt(e.key) - 1;
+          if (tabs[index]) tabs[index].click();
+        }
+      });
+    });
+
+    // ============================================
+    // Code Copy Buttons
+    // ============================================
+    function addCopyButtons() {
+      document.querySelectorAll('pre').forEach((pre, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+
+        const button = document.createElement('button');
+        button.className = 'copy-button';
+        button.textContent = 'Copy';
+        button.onclick = () => copyCode(pre, button);
+        wrapper.appendChild(button);
+      });
+    }
+
+    function copyCode(pre, button) {
+      const code = pre.querySelector('code') || pre;
+      navigator.clipboard.writeText(code.textContent).then(() => {
+        button.textContent = '✓ Copied!';
+        button.classList.add('copied');
+        setTimeout(() => {
+          button.textContent = 'Copy';
+          button.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // ============================================
+    // Quiz Functionality
+    // ============================================
+    function selectChoice(questionId, choiceIndex) {
+      const question = document.querySelector(`[data-question-id="${questionId}"]`);
+      const choices = question.querySelectorAll('.choice');
+      choices.forEach((choice, idx) => {
+        choice.classList.remove('selected');
+        if (idx === choiceIndex) choice.classList.add('selected');
+      });
+    }
+
+    function checkAnswers() {
+      let score = 0;
+      let totalPoints = 0;
+
+      document.querySelectorAll('.question').forEach(question => {
+        const kind = question.dataset.kind;
+        const points = parseInt(question.dataset.points);
+        totalPoints += points;
+
+        if (kind === 'mcq') {
+          const correct = question.dataset.correct;
+          const selected = question.querySelector('.choice.selected');
+
+          if (selected) {
+            const selectedText = selected.textContent.trim();
+            const explanation = question.querySelector('.explanation');
+
+            if (selectedText === correct) {
+              selected.classList.add('correct');
+              score += points;
+            } else {
+              selected.classList.add('incorrect');
+              question.querySelectorAll('.choice').forEach(choice => {
+                if (choice.textContent.trim() === correct) {
+                  choice.classList.add('correct');
+                }
+              });
+            }
+
+            if (explanation) explanation.classList.add('show');
+          }
+        }
+      });
+
+      const scoreDisplay = document.querySelector('.score-display');
+      const passingScore = parseInt(scoreDisplay.dataset.passing || 7);
+      const passed = score >= passingScore;
+
+      scoreDisplay.innerHTML = `
+        <div style="font-size: 24px; font-weight: bold;">${score} / ${totalPoints}</div>
+        <div style="margin-top: 5px;">${passed ? '✅ Passed!' : '❌ Try again'}</div>
+        <div style="font-size: 12px; margin-top: 5px;">Passing: ${passingScore}</div>
+      `;
+      scoreDisplay.classList.add('show');
+    }
+
+    function resetQuiz() {
+      document.querySelectorAll('.choice').forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+      });
+      document.querySelectorAll('.explanation').forEach(exp => exp.classList.remove('show'));
+      document.querySelector('.score-display').classList.remove('show');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rails Seniority Coach</title>
+  <style>
+    :root {
+      --bg-primary: #f5f5f5;
+      --bg-secondary: white;
+      --bg-tertiary: #f9f9f9;
+      --text-primary: #333;
+      --text-secondary: #666;
+      --text-muted: #999;
+      --accent: #CC0000;
+      --border: #e0e0e0;
+      --shadow: rgba(0,0,0,0.1);
+      --code-bg: #f4f4f4;
+      --code-block-bg: #2b2b2b;
+      --code-block-text: #f8f8f2;
+    }
+
+    body.dark-mode {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2d2d2d;
+      --bg-tertiary: #3a3a3a;
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --text-muted: #808080;
+      --border: #404040;
+      --shadow: rgba(0,0,0,0.3);
+      --code-bg: #3a3a3a;
+      --code-block-bg: #1e1e1e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      transition: background 0.3s, color 0.3s;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    /* Header */
+    header {
+      background: var(--accent);
+      color: white;
+      padding: 20px 0;
+      margin-bottom: 30px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { font-size: 28px; }
+    header p { opacity: 0.9; margin-top: 5px; }
+
+    /* Search Box */
+    .search-container {
+      position: relative;
+      flex: 1;
+      max-width: 500px;
+      margin: 0 20px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px 15px 10px 40px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.9);
+      color: #333;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input::placeholder { color: #666; }
+    .search-input:focus {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #666;
+      font-size: 16px;
+      pointer-events: none;
+    }
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 8px;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      box-shadow: 0 4px 16px var(--shadow);
+      max-height: 70vh;
+      overflow-y: auto;
+      display: none;
+      z-index: 1000;
+    }
+    .search-results.show { display: block; }
+    .search-group {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border);
+    }
+    .search-group:last-child { border-bottom: none; }
+    .search-group-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .search-result-item {
+      padding: 10px 12px;
+      margin: 4px 0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: block;
+    }
+    .search-result-item:hover {
+      background: var(--bg-tertiary);
+    }
+    .search-result-title {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .search-result-meta {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .search-no-results {
+      padding: 30px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .search-clear {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      display: none;
+    }
+    .search-clear.show { display: block; }
+
+    /* Dark mode toggle */
+    .dark-mode-toggle {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .dark-mode-toggle:hover { background: rgba(255,255,255,0.3); }
+
+    /* Navigation */
+    nav {
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    nav a {
+      color: var(--accent);
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    nav a:hover { background: var(--bg-tertiary); }
+
+    /* Progress indicator */
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+
+    /* Cards */
+    .track-grid, .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .track-card, .topic-card {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .track-card:hover, .topic-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .track-card h3, .topic-card h3 { color: var(--accent); margin-bottom: 10px; }
+    .track-card a, .topic-card a { text-decoration: none; color: inherit; }
+
+    /* Completion badge */
+    .completion-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 24px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .completion-badge.completed { opacity: 1; }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 5px;
+    }
+    .badge-strong { background: #4CAF50; color: white; }
+    .badge-working { background: #2196F3; color: white; }
+    .badge-exposure { background: #9E9E9E; color: white; }
+
+    /* Content sections */
+    .content-section {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 30px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+    .content-section h2 {
+      color: var(--accent);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    .content-section h3 {
+      color: var(--text-primary);
+      margin-top: 25px;
+      margin-bottom: 12px;
+    }
+    .content-section ul, .content-section ol {
+      margin-left: 25px;
+      margin-top: 10px;
+    }
+    .content-section li { margin: 8px 0; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 16px;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab:hover { color: var(--accent); }
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Prev/Next navigation */
+    .topic-navigation {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    .nav-button {
+      flex: 1;
+      min-width: 200px;
+      padding: 15px 20px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-button:hover {
+      border-color: var(--accent);
+      transform: translateX(0) translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .nav-button.prev:hover { transform: translateX(-5px) translateY(-2px); }
+    .nav-button.next:hover { transform: translateX(5px) translateY(-2px); }
+    .nav-button .arrow { font-size: 20px; }
+    .nav-button .label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
+    .nav-button .title { font-weight: 600; }
+    .nav-button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* Mark complete button */
+    .complete-button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .complete-button:hover { background: #45a049; transform: scale(1.05); }
+    .complete-button.completed {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 2px solid #4CAF50;
+    }
+
+    /* Quiz styles */
+    .question {
+      background: var(--bg-tertiary);
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 6px;
+      border-left: 4px solid var(--accent);
+    }
+    .question h4 { margin-bottom: 10px; }
+    .choices { margin: 10px 0; }
+    .choice {
+      padding: 12px;
+      margin: 8px 0;
+      cursor: pointer;
+      border-radius: 4px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      transition: all 0.2s;
+    }
+    .choice:hover { border-color: var(--accent); }
+    .choice.selected { background: #e3f2fd; border-color: #2196F3; }
+    .choice.correct { background: #e8f5e9; border-color: #4CAF50; }
+    .choice.incorrect { background: #ffebee; border-color: #f44336; }
+    .explanation {
+      margin-top: 10px;
+      padding: 10px;
+      background: #fff3cd;
+      color: #856404;
+      border-radius: 4px;
+      display: none;
+    }
+    .explanation.show { display: block; }
+
+    /* References */
+    .reference-list { list-style: none; margin-left: 0; }
+    .reference-list li {
+      padding: 15px;
+      margin: 10px 0;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+    }
+    .reference-list a { color: var(--accent); font-weight: 600; }
+    .reference-list .why { color: var(--text-secondary); font-size: 14px; margin-top: 5px; }
+
+    /* Code styles */
+    code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 15px 0;
+      position: relative;
+    }
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* Copy button for code blocks */
+    .code-block-wrapper {
+      position: relative;
+      margin: 15px 0;
+    }
+    .copy-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+      opacity: 0;
+    }
+    .code-block-wrapper:hover .copy-button { opacity: 1; }
+    .copy-button:hover { background: rgba(255,255,255,0.2); }
+    .copy-button.copied { background: #4CAF50; }
+
+    /* Score display */
+    .score-display {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--accent);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px var(--shadow);
+      display: none;
+      z-index: 1000;
+    }
+    .score-display.show { display: block; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .track-grid, .topic-grid { grid-template-columns: 1fr; }
+      .tabs { overflow-x: auto; }
+      header .container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+      }
+      .search-container {
+        margin: 0;
+        max-width: 100%;
+        order: 1;
+      }
+      header > .container > div:first-child { order: 0; }
+      .dark-mode-toggle {
+        order: 2;
+        align-self: flex-end;
+      }
+      .topic-navigation { flex-direction: column; }
+      .nav-button { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div>
+        <h1>💎 Rails Seniority Coach</h1>
+        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+      </div>
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          class="search-input"
+          id="search-input"
+          placeholder="Search topics..."
+          autocomplete="off"
+        />
+        <button class="search-clear" id="search-clear" onclick="clearSearch()">×</button>
+        <div class="search-results" id="search-results"></div>
+      </div>
+      <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+        <span class="light-icon">🌙</span><span class="dark-icon" style="display:none;">☀️</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    <nav>
+      <a href="/">← All Tracks</a>
+      <div id="progress-summary"></div>
+    </nav>
+    <nav style="margin-bottom: 20px;">
+  <a href="/tracks/caching_performance">← Caching & Performance</a>
+</nav>
+
+<!-- Previous/Next Navigation -->
+<div class="topic-navigation">
+  
+    <a href="/tracks/caching_performance/topics/eager_preload" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Eager Loading vs Preloading Strategies</div>
+      </div>
+    </a>
+  
+
+  
+    <a href="/tracks/caching_performance/topics/memory_gc_basics" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">Memory & Garbage Collection Awareness</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+<div style="margin-bottom: 30px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+    <div style="flex: 1;">
+      <h1>Fragment & Low-Level Caching</h1>
+      <div style="margin: 15px 0;">
+        
+        
+          <span class="badge badge-strong">Strong</span>
+        
+        &nbsp;
+        <span style="color: var(--text-secondary);">
+          📖 9 min read &nbsp; | &nbsp; 💻 22 min exercise
+        </span>
+      </div>
+    </div>
+    <button
+      id="mark-complete-btn"
+      class="complete-button"
+      data-track-key="caching_performance"
+      data-topic-key="fragment_caching"
+      onclick="markTopicComplete('caching_performance', 'fragment_caching')">
+      Mark Complete
+    </button>
+  </div>
+
+  
+    <div class="content-section" style="background: #f0f7ff;">
+      <h3 style="color: #2196F3; margin-bottom: 10px;">Learning Objectives</h3>
+      <ul style="margin-left: 20px;">
+        
+          <li>Implement view fragment caching with cache keys</li>
+        
+          <li>Use low-level caching for expensive computations</li>
+        
+          <li>Configure cache stores (memory, Redis, Memcached)</li>
+        
+          <li>Measure cache hit rates and performance gains</li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-tab="overview-tab">📖 Overview</button>
+  <button class="tab" data-tab="exercise-tab">💻 Exercise</button>
+  <button class="tab" data-tab="checkpoint-tab">✅ Checkpoint</button>
+  <button class="tab" data-tab="references-tab">🔗 References</button>
+</div>
+
+<!-- Overview Tab -->
+<div id="overview-tab" class="tab-content active">
+  <div class="content-section">
+    
+      <h1>Fragment &amp; Low-Level Caching</h1>
+
+<h2>What It Is</h2>
+
+<p>Fragment caching stores rendered view partials in a cache store (memory, Redis, Memcached), skipping database queries and template rendering on subsequent requests. Low-level caching uses <code>Rails.cache.fetch</code> to cache arbitrary data like API responses or expensive calculations. Both reduce CPU and database load by serving precomputed results.</p>
+
+<h2>Why It Matters</h2>
+
+<p>Fragment caching can reduce view rendering time from 500ms to 5ms when hitting cached keys. A cached product listing avoids querying thousands of records and rendering complex ERB templates. Low-level caching prevents redundant API calls or calculations that run on every request. Production apps routinely achieve 70-90% cache hit rates, cutting server costs by half.</p>
+
+<h2>When to Use</h2>
+
+<ul>
+<li>Fragment caching: expensive partials, product listings, user dashboards, navigation menus</li>
+<li>Low-level caching: external API calls, complex calculations, aggregated statistics</li>
+<li>Skip caching: user-specific content that varies per request, data that changes every second</li>
+<li>Cache stores: memory for single-server dev, Redis/Memcached for production multi-server</li>
+<li>Measure first: only cache if profiling shows rendering/computation is slow</li>
+</ul>
+
+<h2>Three Common Pitfalls</h2>
+
+<ol>
+<li><strong>Stale cache keys:</strong> Cached fragment doesn&#39;t invalidate when underlying data changes. Use <code>cache_key_with_version</code> or <code>touch: true</code> to auto-expire.</li>
+<li><strong>Over-caching user-specific content:</strong> Caching <code>current_user.name</code> across requests serves wrong user&#39;s data. Scope cache keys by user ID.</li>
+<li><strong>Memory exhaustion:</strong> Caching too much in memory store causes OOM. Set <code>max_size</code> or use Redis with eviction policies.</li>
+</ol>
+
+<hr>
+
+<h2>Fragment Caching in Views</h2>
+
+<p>Wrap expensive partials with <code>cache</code> block:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="c">&lt;!-- app/views/posts/index.html.erb --&gt;</span>
+<span class="cp">&lt;%</span> <span class="vi">@posts</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">post</span><span class="o">|</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%</span> <span class="n">cache</span> <span class="n">post</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"post"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;h2&gt;</span><span class="cp">&lt;%=</span> <span class="n">post</span><span class="p">.</span><span class="nf">title</span> <span class="cp">%&gt;</span><span class="nt">&lt;/h2&gt;</span>
+      <span class="nt">&lt;p&gt;</span><span class="cp">&lt;%=</span> <span class="n">post</span><span class="p">.</span><span class="nf">body</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
+      <span class="nt">&lt;small&gt;</span>By <span class="cp">&lt;%=</span> <span class="n">post</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">name</span> <span class="cp">%&gt;</span> at <span class="cp">&lt;%=</span> <span class="n">post</span><span class="p">.</span><span class="nf">created_at</span> <span class="cp">%&gt;</span><span class="nt">&lt;/small&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+  <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre></div>
+<p><strong>Generated cache key:</strong><br>
+<code><br>
+views/posts/123-20250108120000/a3f2b1c4d5e6f7<br>
+</code></p>
+
+<p>Cache expires automatically when <code>post.updated_at</code> changes (Rails uses <code>cache_key_with_version</code>).</p>
+
+<hr>
+
+<h2>Low-Level Caching</h2>
+
+<p>Cache arbitrary data with <code>Rails.cache.fetch</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/models/statistics.rb</span>
+<span class="k">class</span> <span class="nc">Statistics</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">daily_revenue</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"stats/daily_revenue/</span><span class="si">#{</span><span class="no">Date</span><span class="p">.</span><span class="nf">today</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">1</span><span class="p">.</span><span class="nf">hour</span><span class="p">)</span> <span class="k">do</span>
+      <span class="c1"># Expensive calculation</span>
+      <span class="no">Order</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">created_at: </span><span class="no">Date</span><span class="p">.</span><span class="nf">today</span><span class="p">.</span><span class="nf">all_day</span><span class="p">).</span><span class="nf">sum</span><span class="p">(</span><span class="ss">:total</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>First call:</strong> Runs query, stores result in cache.<br>
+<strong>Subsequent calls:</strong> Returns cached value without hitting database.</p>
+
+<hr>
+
+<h2>Cache Stores</h2>
+
+<p>Rails supports multiple backends:</p>
+
+<p><strong>Memory store (development):</strong><br>
+```ruby</p>
+
+<h1>config/environments/development.rb</h1>
+
+<p>config.cache<em>store = :memory</em>store, { size: 64.megabytes }<br>
+```</p>
+
+<p><strong>Redis (production):</strong><br>
+```ruby</p>
+
+<h1>Gemfile</h1>
+
+<p>gem &#39;redis&#39;</p>
+
+<h1>config/environments/production.rb</h1>
+
+<p>config.cache<em>store = :redis</em>cache<em>store, { url: ENV[&#39;REDIS</em>URL&#39;], expires_in: 1.day }<br>
+```</p>
+
+<p><strong>Memcached:</strong><br>
+<code>ruby<br>
+gem &#39;dalli&#39;<br>
+config.cache_store = :mem_cache_store, &quot;cache1.example.com&quot;, &quot;cache2.example.com&quot;<br>
+</code></p>
+
+<p><strong>Comparison:</strong><br>
+- Memory: fast but single-server, lost on restart<br>
+- Redis: persists, multi-server, supports complex eviction<br>
+- Memcached: simple, high throughput, no persistence</p>
+
+<hr>
+
+<h2>Cache Key Design</h2>
+
+<p>Good cache keys are specific and auto-expiring:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># BAD: never expires</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"user_posts"</span><span class="p">)</span> <span class="p">{</span> <span class="vi">@user</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">to_a</span> <span class="p">}</span>
+
+<span class="c1"># GOOD: expires when user or posts change</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">([</span><span class="s2">"user_posts"</span><span class="p">,</span> <span class="vi">@user</span><span class="p">,</span> <span class="vi">@user</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">maximum</span><span class="p">(</span><span class="ss">:updated_at</span><span class="p">)])</span> <span class="k">do</span>
+  <span class="vi">@user</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">to_a</span>
+<span class="k">end</span>
+
+<span class="c1"># BETTER: use cache_key helper</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">([</span><span class="vi">@user</span><span class="p">,</span> <span class="s2">"posts"</span><span class="p">,</span> <span class="vi">@user</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">maximum</span><span class="p">(</span><span class="ss">:updated_at</span><span class="p">)])</span> <span class="k">do</span>
+  <span class="vi">@user</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">to_a</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Array keys:</strong> Rails joins with <code>/</code> to create string key.</p>
+
+<hr>
+
+<h2>Expiration Strategies</h2>
+
+<p><strong>Time-based:</strong><br>
+<code>ruby<br>
+Rails.cache.fetch(&quot;trending_posts&quot;, expires_in: 15.minutes) do<br>
+  Post.order(views: :desc).limit(10)<br>
+end<br>
+</code></p>
+
+<p><strong>Version-based (auto-expire on model change):</strong><br>
+<code>erb<br>
+&lt;% cache [&quot;sidebar&quot;, @user] do %&gt;<br>
+  &lt;%= render &quot;shared/sidebar&quot; %&gt;<br>
+&lt;% end %&gt;<br>
+</code></p>
+
+<p>If <code>@user.updated_at</code> changes, cache key changes → cache miss → re-render.</p>
+
+<p><strong>Manual deletion:</strong><br>
+<code>ruby<br>
+Rails.cache.delete(&quot;user_posts/#{@user.id}&quot;)<br>
+Rails.cache.delete_matched(&quot;user_posts/*&quot;) # Delete all matching<br>
+</code></p>
+
+<hr>
+
+<h2>Measuring Cache Performance</h2>
+
+<p>Track hit/miss rates:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/initializers/cache_instrumentation.rb</span>
+<span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="p">.</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">"cache_read.active_support"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|*</span><span class="n">args</span><span class="o">|</span>
+  <span class="n">event</span> <span class="o">=</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="o">::</span><span class="no">Event</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+  <span class="n">hit</span> <span class="o">=</span> <span class="n">event</span><span class="p">.</span><span class="nf">payload</span><span class="p">[</span><span class="ss">:hit</span><span class="p">]</span>
+  <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Cache </span><span class="si">#{</span><span class="n">hit</span> <span class="p">?</span> <span class="s1">'HIT'</span> <span class="p">:</span> <span class="s1">'MISS'</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">event</span><span class="p">.</span><span class="nf">payload</span><span class="p">[</span><span class="ss">:key</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Rack Mini Profiler</strong> shows cache hits in speed badge.</p>
+
+<p><strong>Production monitoring:</strong> Track hit rate via Datadog/New Relic.</p>
+
+<hr>
+
+<h2>Fragment Caching Best Practices</h2>
+
+<p><strong>Cache the expensive part:</strong><br>
+```erb<br>
+&lt;!-- DON&#39;T cache entire page with user-specific header --&gt;<br>
+&lt;% cache do %&gt;<br>
+  &lt;%= render &quot;header&quot; %&gt; &lt;!-- user-specific! --&gt;<br>
+  &lt;%= render &quot;posts&quot; %&gt;<br>
+&lt;% end %&gt;</p>
+
+<!-- DO cache just the posts -->
+
+<p>&lt;%= render &quot;header&quot; %&gt;<br>
+&lt;% cache &quot;posts_list&quot; do %&gt;<br>
+  &lt;%= render &quot;posts&quot; %&gt;<br>
+&lt;% end %&gt;<br>
+```</p>
+
+<p><strong>Scope by user when needed:</strong><br>
+<code>erb<br>
+&lt;% cache [current_user, &quot;dashboard&quot;] do %&gt;<br>
+  Welcome &lt;%= current_user.name %&gt;<br>
+&lt;% end %&gt;<br>
+</code></p>
+
+<p><strong>Nest caches (Russian-doll pattern):</strong><br>
+<code>erb<br>
+&lt;% cache [&quot;posts&quot;, @posts.maximum(:updated_at)] do %&gt;<br>
+  &lt;% @posts.each do |post| %&gt;<br>
+    &lt;% cache post do %&gt;<br>
+      &lt;%= render post %&gt;<br>
+    &lt;% end %&gt;<br>
+  &lt;% end %&gt;<br>
+&lt;% end %&gt;<br>
+</code></p>
+
+<p>Outer cache expires when any post changes. Inner caches allow partial reuse.</p>
+
+<hr>
+
+<h2>When NOT to Cache</h2>
+
+<p>Skip caching for:<br>
+- <strong>Real-time data:</strong> stock prices, live scores (data changes constantly)<br>
+- <strong>User-specific without scoping:</strong> <code>current_user</code> content cached globally<br>
+- <strong>Small, fast queries:</strong> <code>User.find(1)</code> is faster than cache lookup<br>
+- <strong>First-time traffic:</strong> cache warm-up can slow initial requests</p>
+
+<p>Profile first. If rendering takes &lt;10ms, caching overhead may exceed savings.</p>
+
+<hr>
+
+<h2>Trade-offs Box</h2>
+
+<ul>
+<li><strong>Advantage:</strong> Fragment caching reduces rendering time by 40-80% for expensive views; low-level caching eliminates redundant API calls.</li>
+<li><strong>Cost:</strong> Stale cache bugs serve outdated data; cache storage uses memory/Redis; complexity in key design and invalidation.</li>
+<li><strong>When to skip:</strong> Fast queries (&lt;10ms), real-time data, single-user content without scoping, or when cache overhead exceeds rendering cost.</li>
+</ul>
+
+<hr>
+
+<h2>Debugging Checklist</h2>
+
+<p>When caching doesn&#39;t work as expected:</p>
+
+<ol>
+<li>Check cache store is configured: <code>Rails.cache.class</code> in console</li>
+<li>Verify cache keys: log <code>Rails.cache.fetch(key) { ... }</code> to see actual keys</li>
+<li>Clear cache: <code>Rails.cache.clear</code> to test fresh rendering</li>
+<li>Check expiration: <code>Rails.cache.read(key)</code> to inspect stored value</li>
+<li>Monitor hit/miss: subscribe to <code>cache_read.active_support</code> notifications</li>
+<li>Profile memory: ensure cache store isn&#39;t causing OOM (check <code>max_size</code>)</li>
+<li>Test invalidation: change record and verify cache key changes</li>
+<li>Check Redis connection: <code>Rails.cache.redis.ping</code> for Redis store</li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>Fragment caching stores rendered partials; low-level caching stores arbitrary data</li>
+<li>Use <code>cache</code> block in views, <code>Rails.cache.fetch</code> in models/controllers</li>
+<li>Cache stores: memory (dev), Redis (production multi-server), Memcached (simple)</li>
+<li>Design cache keys to auto-expire on data changes (use <code>cache_key_with_version</code>)</li>
+<li>Measure hit rates to validate caching improves performance</li>
+</ul>
+
+    
+  </div>
+</div>
+
+<!-- Exercise Tab -->
+<div id="exercise-tab" class="tab-content">
+  <div class="content-section">
+    
+      <h1>Exercise: Fragment &amp; Low-Level Caching</h1>
+
+<h2>Objective</h2>
+
+<p>Implement fragment caching in views and low-level caching in models, then measure cache hit rates and performance gains.</p>
+
+<h2>Task</h2>
+
+<p>In a Rails app with posts and comments:</p>
+
+<ol>
+<li>Add fragment caching to post list partial</li>
+<li>Implement low-level caching for expensive calculation</li>
+<li>Configure Redis cache store</li>
+<li>Instrument cache hits/misses</li>
+<li>Measure rendering time before and after caching</li>
+<li>Test cache invalidation when records update</li>
+</ol>
+
+<h2>Acceptance Criteria</h2>
+
+<ul>
+<li>[ ] Fragment cache wraps post list rendering</li>
+<li>[ ] Cache keys auto-expire when post <code>updated_at</code> changes</li>
+<li>[ ] Low-level cache stores aggregated comment count</li>
+<li>[ ] Redis configured as cache store in development</li>
+<li>[ ] Logs show cache HIT/MISS for each read</li>
+<li>[ ] Benchmark shows &gt;80% rendering time reduction on cache hit</li>
+<li>[ ] Updating a post invalidates its cache entry</li>
+</ul>
+
+<h2>Verification Steps</h2>
+
+<ol>
+<li><p>First request (cache miss):<br>
+<code><br>
+Cache MISS: views/posts/123-20250108120000/...<br>
+Post Load (15.2ms)<br>
+Rendered posts/_post.html.erb (25.3ms)<br>
+Completed 200 OK in 150ms<br>
+</code></p></li>
+<li><p>Second request (cache hit):<br>
+<code><br>
+Cache HIT: views/posts/123-20250108120000/...<br>
+Completed 200 OK in 12ms<br>
+</code></p></li>
+<li><p>After updating post:<br>
+<code><br>
+Cache MISS: views/posts/123-20250108130000/...<br>
+(New cache key due to updated_at change)<br>
+</code></p></li>
+</ol>
+
+<h2>Setup Code</h2>
+
+<h3>Step 1: Create Rails App</h3>
+<div class="highlight"><pre class="highlight shell"><code>rails new caching_demo <span class="nt">--skip-javascript</span>
+<span class="nb">cd </span>caching_demo
+bin/rails generate scaffold Post title:string body:text
+bin/rails generate model Comment body:text post:references
+bin/rails db:migrate
+</code></pre></div>
+<p><strong>Add associations:</strong></p>
+
+<p><code>app/models/post.rb</code>:<br>
+<code>ruby<br>
+class Post &lt; ApplicationRecord<br>
+  has_many :comments<br>
+end<br>
+</code></p>
+
+<p><code>app/models/comment.rb</code>:<br>
+<code>ruby<br>
+class Comment &lt; ApplicationRecord<br>
+  belongs_to :post<br>
+end<br>
+</code></p>
+
+<h3>Step 2: Configure Redis Cache Store</h3>
+<div class="highlight"><pre class="highlight shell"><code>bundle add redis
+</code></pre></div>
+<p>Edit <code>config/environments/development.rb</code>:<br>
+```ruby<br>
+Rails.application.configure do<br>
+  # ... existing config</p>
+
+<p>config.cache<em>store = :redis</em>cache<em>store, {<br>
+    url: ENV.fetch(&quot;REDIS</em>URL&quot;, &quot;redis://localhost:6379/1&quot;),<br>
+    expires_in: 1.hour<br>
+  }<br>
+end<br>
+```</p>
+
+<p>Start Redis (if not running):<br>
+```bash</p>
+
+<h1>macOS: brew services start redis</h1>
+
+<h1>Linux: sudo systemctl start redis</h1>
+
+<h1>Or use Docker: docker run -p 6379:6379 redis</h1>
+<div class="highlight"><pre class="highlight plaintext"><code>
+### Step 3: Seed Data
+
+```bash
+bin/rails console
+</code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="mi">20</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+  <span class="n">post</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">title: </span><span class="s2">"Post </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">body: </span><span class="s2">"Body content </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+  <span class="nb">rand</span><span class="p">(</span><span class="mi">5</span><span class="o">..</span><span class="mi">15</span><span class="p">).</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">j</span><span class="o">|</span>
+    <span class="no">Comment</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">body: </span><span class="s2">"Comment </span><span class="si">#{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">post: </span><span class="n">post</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="nb">puts</span> <span class="s2">"Created </span><span class="si">#{</span><span class="no">Post</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> posts, </span><span class="si">#{</span><span class="no">Comment</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> comments"</span>
+</code></pre></div>
+<h3>Step 4: Add Fragment Caching</h3>
+
+<p>Edit <code>app/views/posts/index.html.erb</code>:<br>
+```erb<br>
+<h1>Posts</h1></p>
+
+<div id="posts">
+  <% @posts.each do |post| %>
+    <% cache post do %>
+      <%= render post %>
+    <% end %>
+  <% end %>
+</div>
+
+<p>&lt;%= link<em>to &quot;New post&quot;, new</em>post_path %&gt;<br>
+```</p>
+
+<p>Edit <code>app/views/posts/_post.html.erb</code>:<br>
+<code>erb<br>
+&lt;div class=&quot;post&quot;&gt;<br>
+  &lt;h2&gt;&lt;%= link_to post.title, post %&gt;&lt;/h2&gt;<br>
+  &lt;p&gt;&lt;%= post.body %&gt;&lt;/p&gt;<br>
+  &lt;small&gt;<br>
+    &lt;%= post.comments.count %&gt; comments<br>
+    | Created &lt;%= time_ago_in_words(post.created_at) %&gt; ago<br>
+  &lt;/small&gt;<br>
+&lt;/div&gt;<br>
+</code></p>
+
+<h3>Step 5: Add Low-Level Caching</h3>
+
+<p>Create <code>app/models/post_statistics.rb</code>:<br>
+```ruby<br>
+class PostStatistics<br>
+  def self.total<em>comments</em>today<br>
+    Rails.cache.fetch(&quot;stats/comments<em>today/#{Date.today}&quot;, expires</em>in: 15.minutes) do<br>
+      Comment.where(created<em>at: Date.today.all</em>day).count<br>
+    end<br>
+  end</p>
+
+<p>def self.average<em>comments</em>per<em>post<br>
+    Rails.cache.fetch(&quot;stats/avg</em>comments&quot;, expires<em>in: 1.hour) do<br>
+      (Comment.count.to</em>f / Post.count).round(2)<br>
+    end<br>
+  end<br>
+end<br>
+```</p>
+
+<p>Add to <code>app/views/posts/index.html.erb</code>:<br>
+<code>erb<br>
+&lt;div class=&quot;stats&quot;&gt;<br>
+  &lt;p&gt;Comments today: &lt;%= PostStatistics.total_comments_today %&gt;&lt;/p&gt;<br>
+  &lt;p&gt;Avg comments/post: &lt;%= PostStatistics.average_comments_per_post %&gt;&lt;/p&gt;<br>
+&lt;/div&gt;<br>
+</code></p>
+
+<h3>Step 6: Instrument Cache Hits/Misses</h3>
+
+<p>Create <code>config/initializers/cache_instrumentation.rb</code>:<br>
+```ruby<br>
+ActiveSupport::Notifications.subscribe(&quot;cache<em>read.active</em>support&quot;) do |<em>args|<br>
+  event = ActiveSupport::Notifications::Event.new(</em>args)<br>
+  hit = event.payload[:hit]<br>
+  key = event.payload[:key]</p>
+
+<p>Rails.logger.info &quot;CACHE #{hit ? &#39;HIT&#39; : &#39;MISS&#39;}: #{key}&quot;<br>
+end<br>
+```</p>
+
+<p>Restart server to load initializer.</p>
+
+<h3>Step 7: Benchmark Performance</h3>
+
+<p>Create <code>lib/tasks/benchmark_caching.rake</code>:<br>
+```ruby<br>
+require &#39;benchmark&#39;</p>
+
+<p>namespace :cache do<br>
+  desc &quot;Benchmark fragment caching&quot;<br>
+  task benchmark: :environment do<br>
+    post = Post.first</p>
+<div class="highlight"><pre class="highlight plaintext"><code># Clear cache
+Rails.cache.clear
+
+Benchmark.bm(20) do |x|
+  x.report("First render (miss)") do
+    ApplicationController.render(partial: "posts/post", locals: { post: post })
+  end
+
+  x.report("Second render (hit)") do
+    ApplicationController.render(partial: "posts/post", locals: { post: post })
+  end
+
+  # Clear and test again
+  Rails.cache.clear
+
+  x.report("After cache clear") do
+    ApplicationController.render(partial: "posts/post", locals: { post: post })
+  end
+end
+</code></pre></div>
+<p>end<br>
+end<br>
+```</p>
+
+<p>Run benchmark:<br>
+<code>bash<br>
+bin/rails cache:benchmark<br>
+</code></p>
+
+<h3>Step 8: Test Cache Invalidation</h3>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails console
+</code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Check cache key</span>
+<span class="n">post</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">first</span>
+<span class="nb">puts</span> <span class="n">post</span><span class="p">.</span><span class="nf">cache_key_with_version</span>
+<span class="c1"># =&gt; "posts/1-20250108120000000000000"</span>
+
+<span class="c1"># Render partial to populate cache</span>
+<span class="no">ApplicationController</span><span class="p">.</span><span class="nf">render</span><span class="p">(</span><span class="ss">partial: </span><span class="s2">"posts/post"</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">post: </span><span class="n">post</span> <span class="p">})</span>
+
+<span class="c1"># Check if cached</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">exist?</span><span class="p">(</span><span class="n">post</span><span class="p">.</span><span class="nf">cache_key_with_version</span><span class="p">)</span> <span class="c1"># =&gt; true</span>
+
+<span class="c1"># Update post (changes updated_at)</span>
+<span class="n">post</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="ss">title: </span><span class="s2">"Updated Title"</span><span class="p">)</span>
+
+<span class="c1"># Old cache key still exists but won't be used</span>
+<span class="nb">puts</span> <span class="n">post</span><span class="p">.</span><span class="nf">cache_key_with_version</span>
+<span class="c1"># =&gt; "posts/1-20250108130000000000000" (new timestamp)</span>
+
+<span class="c1"># New render will miss cache with new key</span>
+<span class="no">ApplicationController</span><span class="p">.</span><span class="nf">render</span><span class="p">(</span><span class="ss">partial: </span><span class="s2">"posts/post"</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">post: </span><span class="n">post</span> <span class="p">})</span>
+</code></pre></div>
+<h3>Step 9: Manual Cache Operations</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Write to cache</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">write</span><span class="p">(</span><span class="s2">"my_key"</span><span class="p">,</span> <span class="s2">"my_value"</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">5</span><span class="p">.</span><span class="nf">minutes</span><span class="p">)</span>
+
+<span class="c1"># Read from cache</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">read</span><span class="p">(</span><span class="s2">"my_key"</span><span class="p">)</span> <span class="c1"># =&gt; "my_value"</span>
+
+<span class="c1"># Fetch (read or write)</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"expensive_calc"</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">1</span><span class="p">.</span><span class="nf">hour</span><span class="p">)</span> <span class="k">do</span>
+  <span class="nb">sleep</span> <span class="mi">2</span> <span class="c1"># Simulate slow calculation</span>
+  <span class="mi">42</span>
+<span class="k">end</span>
+
+<span class="c1"># Delete</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="s2">"my_key"</span><span class="p">)</span>
+
+<span class="c1"># Clear all</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">clear</span>
+</code></pre></div>
+<h2>Stretch (Optional)</h2>
+
+<ol>
+<li><p>Implement Russian-doll caching:<br>
+<code>erb<br>
+&lt;% cache [&quot;posts&quot;, @posts.maximum(:updated_at)] do %&gt;<br>
+&lt;% @posts.each do |post| %&gt;<br>
+&lt;% cache post do %&gt;<br>
+  &lt;%= render post %&gt;<br>
+&lt;% end %&gt;<br>
+&lt;% end %&gt;<br>
+&lt;% end %&gt;<br>
+</code></p></li>
+<li><p>Add cache hit rate tracking to a dashboard:<br>
+```ruby</p>
+
+<h1>Track in Redis</h1>
+
+<p>hits = Rails.cache.redis.get(&quot;cache<em>hits&quot;).to</em>i<br>
+misses = Rails.cache.redis.get(&quot;cache<em>misses&quot;).to</em>i<br>
+rate = (hits.to_f / (hits + misses) * 100).round(2)<br>
+```</p></li>
+<li><p>Compare memory vs Redis cache stores by benchmarking 1000 reads.</p></li>
+</ol>
+
+<h2>Time Estimate</h2>
+
+<p>22 minutes</p>
+
+    
+  </div>
+</div>
+
+<!-- Checkpoint Tab -->
+<div id="checkpoint-tab" class="tab-content">
+  <div class="content-section">
+    
+      
+      <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
+        <p><strong>Passing Score:</strong> 7 points</p>
+        <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
+      </div>
+
+      
+        <div class="question"
+             data-question-id="0"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Rendered HTML from view partials">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What does fragment caching in Rails store?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  Database query results
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  Rendered HTML from view partials
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  Ruby objects in memory
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  HTTP response headers
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Fragment caching stores rendered view output to skip template rendering on subsequent requests.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="1"
+             data-kind="mcq"
+             data-points="2"
+             data-correct=":redis_cache_store">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">Which cache store persists data across server restarts and supports multiple servers?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  :memory_store
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  :null_store
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  :redis_cache_store
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  :file_store
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Redis persists to disk and can be shared across multiple app servers.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="2"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 3 (2 points)</h4>
+          <p style="margin: 10px 0;">Write code to cache an expensive calculation that expires after 1 hour.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Rails.cache.fetch('calc_key', expires_in: 1.hour) { expensive_calculation }</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="3"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="The cache key includes post.cache_key_with_version (id + updated_at)">
+          <h4>Question 4 (1 points)</h4>
+          <p style="margin: 10px 0;">What happens when you wrap a partial with <% cache post do %>?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  The cache key is 'post'
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  The cache key includes post.cache_key_with_version (id + updated_at)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  The cache never expires
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  Rails raises an error
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Rails auto-generates cache keys using cache_key_with_version which includes updated_at for auto-invalidation.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="4"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">Why should you scope user-specific cached content by user ID?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">To prevent serving one user's cached data to another user, avoiding security issues and incorrect content display.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="5"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Both A and C">
+          <h4>Question 6 (1 points)</h4>
+          <p style="margin: 10px 0;">When should you skip fragment caching?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  When rendering time is under 10ms
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  When using Redis
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  When data changes frequently
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  Both A and C
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Skip caching for fast renders where cache overhead exceeds savings, and for real-time data that changes constantly.
+              </div>
+            
+          
+        </div>
+      
+
+      <div style="margin-top: 30px; display: flex; gap: 10px;">
+        <button onclick="checkAnswers()" style="padding: 12px 24px; background: #CC0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600;">
+          Check Answers
+        </button>
+        <button onclick="resetQuiz()" style="padding: 12px 24px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+          Reset
+        </button>
+      </div>
+
+      <div class="score-display" data-passing="7"></div>
+    
+  </div>
+</div>
+
+<!-- References Tab -->
+<div id="references-tab" class="tab-content">
+  <div class="content-section">
+    
+      <p style="margin-bottom: 20px; color: var(--text-secondary);">
+        Curated sources to deepen your understanding. All references point to official documentation,
+        canonical books, or reputable technical content.
+      </p>
+      <ul class="reference-list">
+        
+          <li>
+            <a href="https://guides.rubyonrails.org/caching_with_rails.html" target="_blank">Rails Guides — Caching with Rails</a>
+            <div class="why">Official guide covering fragment, low-level, and SQL caching with cache store configuration.</div>
+          </li>
+        
+          <li>
+            <a href="https://redis.io/docs/" target="_blank">Redis Documentation</a>
+            <div class="why">Official Redis docs for understanding cache store operations and eviction policies.</div>
+          </li>
+        
+          <li>
+            <a href="https://memcached.org/" target="_blank">Memcached Documentation</a>
+            <div class="why">Alternative cache store with simple key-value operations and high throughput.</div>
+          </li>
+        
+          <li>
+            <a href="https://www.railsspeed.com/" target="_blank">The Complete Guide to Rails Performance (Book by Nate Berkopec)</a>
+            <div class="why">Chapter on caching strategies with benchmarks and hit rate optimization.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/MiniProfiler/rack-mini-profiler" target="_blank">Rack Mini Profiler</a>
+            <div class="why">Shows cache hits/misses and rendering time in development.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/petergoldstein/dalli" target="_blank">Dalli Gem (Memcached Client)</a>
+            <div class="why">Ruby client for Memcached cache store.</div>
+          </li>
+        
+          <li>
+            <a href="https://evilmartians.com/chronicles/how-to-setup-caching-in-rails" target="_blank">Evil Martians — Caching Best Practices</a>
+            <div class="why">Practical guide to fragment and low-level caching patterns in production.</div>
+          </li>
+        
+      </ul>
+    
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="topic-navigation">
+  
+    <a href="/tracks/caching_performance/topics/eager_preload" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Eager Loading vs Preloading Strategies</div>
+      </div>
+    </a>
+  
+
+  
+    <a href="/tracks/caching_performance/topics/memory_gc_basics" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">Memory & Garbage Collection Awareness</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+  </div>
+
+  <script>
+    // ============================================
+    // Search Index
+    // ============================================
+    const SEARCH_INDEX = [{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"ar_relations","topic_name":"Active Record Relations & Query Interface","depth_target":"Strong","objectives":"Compose complex queries using relations and scopes Explain lazy loading and when queries execute Chain methods without triggering N+1 queries","url":"/tracks/rails_internals/topics/ar_relations.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"config_initializers","topic_name":"Configuration & Initializers","depth_target":"Strong","objectives":"Configure Rails apps using environment-specific settings Write initializers that load in correct order Manage secrets and credentials securely","url":"/tracks/rails_internals/topics/config_initializers.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"request_lifecycle","topic_name":"Request Lifecycle & Middleware","depth_target":"Strong","objectives":"Trace a Rails request from Rack through middleware to controller Identify where params are parsed and filters applied Profile a request and explain the hottest frames","url":"/tracks/rails_internals/topics/request_lifecycle.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"routing_middleware","topic_name":"Routing & Middleware Patterns","depth_target":"Strong","objectives":"Design RESTful routes with constraints and namespaces Write custom middleware for cross-cutting concerns Debug routing issues using rails routes and route helpers","url":"/tracks/rails_internals/topics/routing_middleware.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"validations_callbacks","topic_name":"Validations, Callbacks & Concerns","depth_target":"Strong","objectives":"Write custom validations and understand when they run Identify callback dangers and when to avoid them Extract shared logic using concerns","url":"/tracks/rails_internals/topics/validations_callbacks.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"autoloading_boot","topic_name":"Zeitwerk/Autoloading & Boot Sequence","depth_target":"Strong","objectives":"Explain how Zeitwerk maps file paths to constants Debug \"uninitialized constant\" and circular dependency errors Optimize boot time by controlling eager loading","url":"/tracks/rails_internals/topics/autoloading_boot.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"ctes_windows","topic_name":"CTEs and Window Functions","depth_target":"Strong","objectives":"Write Common Table Expressions (WITH) to simplify complex queries Use window functions (ROW_NUMBER, RANK, LAG, LEAD) for analytics Decide when to use CTEs vs subqueries for readability and performance","url":"/tracks/sql_postgres/topics/ctes_windows.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"indexing","topic_name":"Database Indexing (B-tree, Partial, Composite)","depth_target":"Strong","objectives":"Choose appropriate index types (B-tree, partial, composite, GIN/GiST) for query patterns Identify when indexes improve or harm performance Use EXPLAIN to verify index usage and measure query costs","url":"/tracks/sql_postgres/topics/indexing.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"modeling_constraints","topic_name":"Modeling & Constraints (FKs, Uniques, Check)","depth_target":"Strong","objectives":"Design schemas with foreign keys, unique constraints, and check constraints Write migrations that enforce data integrity at the database level Debug constraint violations and fix schema issues","url":"/tracks/sql_postgres/topics/modeling_constraints.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"explain_analyze","topic_name":"Reading Query Plans (EXPLAIN ANALYZE)","depth_target":"Strong","objectives":"Read EXPLAIN ANALYZE output to identify sequential scans, index scans, and nested loops Identify query bottlenecks (costly sorts, large row estimates, missing indexes) Use pg_stat_statements to find slowest queries in production","url":"/tracks/sql_postgres/topics/explain_analyze.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"transactions_locks","topic_name":"Transactions, Isolation, and Locks","depth_target":"Strong","objectives":"Explain ACID properties and how Postgres enforces them Choose appropriate isolation levels for concurrent operations Debug deadlocks and lock contention using pg_locks and pg_stat_activity","url":"/tracks/sql_postgres/topics/transactions_locks.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"zero_downtime_migrations","topic_name":"Zero-Downtime Migrations","depth_target":"Strong","objectives":"Write migrations that don't lock tables or cause downtime Add columns with defaults, indexes, and constraints safely Backfill data in batches to avoid long-running transactions","url":"/tracks/sql_postgres/topics/zero_downtime_migrations.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"sidekiq_basics","topic_name":"ActiveJob vs Sidekiq Fundamentals","depth_target":"Strong","objectives":"Compare ActiveJob abstraction with direct Sidekiq usage Configure Redis connection and worker concurrency Route jobs to specific queues and set priorities","url":"/tracks/background_jobs/topics/sidekiq_basics.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"idempotency_retries","topic_name":"Idempotency Patterns & Retries","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate job effects Configure retry strategies with exponential backoff Handle dead jobs in the dead letter queue","url":"/tracks/background_jobs/topics/idempotency_retries.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"job_instrumentation","topic_name":"Job Instrumentation & Backoff","depth_target":"Strong","objectives":"Log job execution with structured context Track success/failure metrics for monitoring Implement custom exponential backoff strategies Use Sidekiq lifecycle hooks for instrumentation","url":"/tracks/background_jobs/topics/job_instrumentation.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"scheduling","topic_name":"Job Scheduling & Deduplication","depth_target":"Strong","objectives":"Schedule recurring jobs with cron syntax using sidekiq-cron Prevent duplicate jobs with sidekiq-unique-jobs Use at/in syntax for delayed one-time jobs Pass job context safely without ActiveRecord objects","url":"/tracks/background_jobs/topics/scheduling.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"cache_keys_invalidations","topic_name":"Cache Keys & Invalidation Strategies","depth_target":"Strong","objectives":"Design cache keys that auto-expire on record changes Implement Russian-doll caching pattern Prevent cache stampede with locks Choose between manual and automatic invalidation","url":"/tracks/caching_performance/topics/cache_keys_invalidations.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"eager_preload","topic_name":"Eager Loading vs Preloading Strategies","depth_target":"Strong","objectives":"Distinguish between includes, preload, eager_load, and joins Choose the correct loading strategy based on query needs Optimize nested associations without over-fetching","url":"/tracks/caching_performance/topics/eager_preload.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"fragment_caching","topic_name":"Fragment & Low-Level Caching","depth_target":"Strong","objectives":"Implement view fragment caching with cache keys Use low-level caching for expensive computations Configure cache stores (memory, Redis, Memcached) Measure cache hit rates and performance gains","url":"/tracks/caching_performance/topics/fragment_caching.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"memory_gc_basics","topic_name":"Memory & Garbage Collection Awareness","depth_target":"Strong","objectives":"Track Ruby object allocation and memory usage Read and interpret GC statistics Identify memory bloat and leaks Use memory_profiler gem to profile endpoints","url":"/tracks/caching_performance/topics/memory_gc_basics.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"n_plus_one","topic_name":"N+1 Query Detection & Resolution","depth_target":"Strong","objectives":"Identify N+1 query patterns in logs and using Bullet gem Choose between includes, preload, eager_load, and joins Measure query count before and after optimization","url":"/tracks/caching_performance/topics/n_plus_one.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"apm_traces","topic_name":"APM Basics and Flamegraphs","depth_target":"Working","objectives":"Read APM flamegraphs to identify slow segments Use APM to detect N+1 queries and slow database calls Set up rack-mini-profiler for local performance analysis","url":"/tracks/observability/topics/apm_traces.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"error_tracking_model","topic_name":"Error Tracking Mental Model","depth_target":"Working","objectives":"Integrate an error tracking service (Sentry, Rollbar, or Honeybadger) Add context to errors (user info, request params, custom tags) Understand error grouping and fingerprinting","url":"/tracks/observability/topics/error_tracking_model.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"metrics_slos","topic_name":"Metrics and SLO Thinking","depth_target":"Working","objectives":"Understand RED metrics (Rate, Errors, Duration) for web services Distinguish between SLI, SLO, and SLA Set realistic SLO targets (99% vs 99.9% trade-offs)","url":"/tracks/observability/topics/metrics_slos.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"structured_logging","topic_name":"Structured Logging with Lograge","depth_target":"Strong","objectives":"Configure lograge for JSON logging in production Add custom fields like request_id and user_id to log entries Filter sensitive data from logs (passwords, tokens)","url":"/tracks/observability/topics/structured_logging.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"error_shapes","topic_name":"API Error Shapes & Standards","depth_target":"Strong","objectives":"Design consistent error response structures across API endpoints Choose appropriate HTTP status codes for different error types Distinguish user-facing from developer-facing error messages","url":"/tracks/api_security/topics/error_shapes.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"versioning","topic_name":"API Versioning Strategies","depth_target":"Strong","objectives":"Compare header-based vs path-based API versioning Implement deprecation warnings with Sunset headers Maintain backward compatibility across API versions","url":"/tracks/api_security/topics/versioning.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"authn_authz","topic_name":"Authentication & Authorization with Pundit","depth_target":"Strong","objectives":"Implement token-based authentication for API endpoints Define authorization policies using Pundit Test authorization logic in controllers and request specs","url":"/tracks/api_security/topics/authn_authz.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"csrf_cors","topic_name":"CSRF, CORS & Input Validation","depth_target":"Strong","objectives":"Configure CORS headers for cross-origin API requests Implement CSRF protection for session-based APIs Validate and sanitize inputs to prevent injection attacks","url":"/tracks/api_security/topics/csrf_cors.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"idempotency_rate_limits","topic_name":"Idempotency Keys & Rate Limiting","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate operations Configure rate limiting using rack-attack and Redis Return appropriate headers (Retry-After, X-RateLimit)","url":"/tracks/api_security/topics/idempotency_rate_limits.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"pagination_filtering","topic_name":"Pagination, Filtering & Sorting","depth_target":"Strong","objectives":"Implement cursor and offset pagination with performance trade-offs Add filtering and sorting via query parameters Return pagination metadata for client navigation","url":"/tracks/api_security/topics/pagination_filtering.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"rest_design","topic_name":"REST Design Patterns","depth_target":"Strong","objectives":"Design RESTful routes using resources and verbs correctly Choose appropriate HTTP status codes for API responses Structure JSON responses with consistent conventions","url":"/tracks/api_security/topics/rest_design.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"forms_progressive","topic_name":"Forms & progressive enhancement","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/forms_progressive.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"hotwire_frames_streams","topic_name":"Hotwire: Frames & Streams","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/hotwire_frames_streams.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"react_working_fundamentals","topic_name":"React: Working fundamentals","depth_target":"working","objectives":"","url":"/tracks/frontend_integration/topics/react_working_fundamentals.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"stimulus_patterns","topic_name":"Stimulus patterns & best practices","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/stimulus_patterns.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"adrs","topic_name":"ADRs & Lightweight Documentation","depth_target":"Strong","objectives":"Write Architecture Decision Records for major changes Store ADRs in version control alongside code Use MADR template for consistency","url":"/tracks/architecture_design/topics/adrs.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"feature_flags_rollouts","topic_name":"Feature Flags & Safe Rollouts","depth_target":"Strong","objectives":"Implement feature flags with Flipper or Unleash Design rollout strategies by percentage or user segment Monitor flagged features and clean up old flags","url":"/tracks/architecture_design/topics/feature_flags_rollouts.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"layering_services","topic_name":"Layering & Service Objects","depth_target":"Strong","objectives":"Extract complex logic from models into service objects Choose between service, form, and policy objects Apply presenters and decorators for view logic","url":"/tracks/architecture_design/topics/layering_services.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"testing_strategy","topic_name":"Testing Strategy (Unit/Request/System)","depth_target":"Strong","objectives":"Balance unit, request, and system tests using the test pyramid Use factories and fixtures appropriately Stub HTTP calls with VCR and WebMock","url":"/tracks/architecture_design/topics/testing_strategy.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"microservices_when_not","topic_name":"When NOT to Microservice","depth_target":"Working","objectives":"Recognize when monoliths outperform microservices Understand modular monolith as an alternative Identify signs that microservices add complexity without benefit","url":"/tracks/architecture_design/topics/microservices_when_not.html"}];
+
+    // ============================================
+    // Progress Tracking (localStorage)
+    // ============================================
+    const STORAGE_KEY = 'rails_coach_progress';
+    const DARK_MODE_KEY = 'rails_coach_dark_mode';
+
+    function getProgress() {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : {};
+    }
+
+    function saveProgress(progress) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      updateProgressUI();
+    }
+
+    function isTopicComplete(trackKey, topicKey) {
+      const progress = getProgress();
+      return progress[`${trackKey}/${topicKey}`] === true;
+    }
+
+    function toggleTopicComplete(trackKey, topicKey) {
+      const progress = getProgress();
+      const key = `${trackKey}/${topicKey}`;
+      progress[key] = !progress[key];
+      saveProgress(progress);
+      return progress[key];
+    }
+
+    function getTrackProgress(trackKey, totalTopics) {
+      const progress = getProgress();
+      const completed = Object.keys(progress).filter(key =>
+        key.startsWith(trackKey + '/') && progress[key]
+      ).length;
+      return { completed, total: totalTopics };
+    }
+
+    function updateProgressUI() {
+      // Update completion badges on cards
+      document.querySelectorAll('[data-topic-key]').forEach(card => {
+        const trackKey = card.dataset.trackKey;
+        const topicKey = card.dataset.topicKey;
+        const badge = card.querySelector('.completion-badge');
+        if (badge && isTopicComplete(trackKey, topicKey)) {
+          badge.classList.add('completed');
+        }
+      });
+
+      // Update mark complete button
+      const completeBtn = document.getElementById('mark-complete-btn');
+      if (completeBtn) {
+        const trackKey = completeBtn.dataset.trackKey;
+        const topicKey = completeBtn.dataset.topicKey;
+        const completed = isTopicComplete(trackKey, topicKey);
+        completeBtn.classList.toggle('completed', completed);
+        completeBtn.innerHTML = completed ? '✓ Completed' : 'Mark Complete';
+      }
+
+      // Update progress summary
+      const summary = document.getElementById('progress-summary');
+      if (summary) {
+        const progress = getProgress();
+        const total = Object.keys(progress).filter(k => progress[k]).length;
+        if (total > 0) {
+          summary.innerHTML = `<span style="color: var(--text-secondary);">Progress: ${total}/41 topics</span>`;
+        }
+      }
+    }
+
+    function markTopicComplete(trackKey, topicKey) {
+      const completed = toggleTopicComplete(trackKey, topicKey);
+      updateProgressUI();
+
+      // Show celebration if first time completing
+      if (completed) {
+        showNotification('✓ Topic marked complete!');
+      }
+    }
+
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+      }, 2000);
+    }
+
+    // ============================================
+    // Search Functionality
+    // ============================================
+    function performSearch(query) {
+      if (!query || query.trim().length < 2) {
+        hideSearchResults();
+        return;
+      }
+
+      const normalizedQuery = query.toLowerCase().trim();
+      const results = SEARCH_INDEX.filter(item => {
+        return item.topic_name.toLowerCase().includes(normalizedQuery) ||
+               item.track_name.toLowerCase().includes(normalizedQuery) ||
+               item.objectives.toLowerCase().includes(normalizedQuery) ||
+               item.depth_target.toLowerCase().includes(normalizedQuery);
+      });
+
+      displaySearchResults(results, query);
+    }
+
+    function displaySearchResults(results, query) {
+      const container = document.getElementById('search-results');
+
+      if (results.length === 0) {
+        container.innerHTML = `
+          <div class="search-no-results">
+            No topics found for "${query}"
+          </div>
+        `;
+        container.classList.add('show');
+        return;
+      }
+
+      // Group results by track
+      const grouped = {};
+      results.forEach(item => {
+        if (!grouped[item.track_key]) {
+          grouped[item.track_key] = {
+            name: item.track_name,
+            icon: item.track_icon,
+            items: []
+          };
+        }
+        grouped[item.track_key].items.push(item);
+      });
+
+      // Build HTML
+      let html = '';
+      Object.keys(grouped).forEach(trackKey => {
+        const track = grouped[trackKey];
+        html += `
+          <div class="search-group">
+            <div class="search-group-title">
+              ${track.icon} ${track.name}
+            </div>
+        `;
+        track.items.forEach(item => {
+          const badgeClass = item.depth_target === 'Strong' ? 'badge-strong' :
+                           item.depth_target === 'Working' ? 'badge-working' : 'badge-exposure';
+          html += `
+            <a href="${item.url}" class="search-result-item">
+              <div class="search-result-title">${highlightMatch(item.topic_name, query)}</div>
+              <div class="search-result-meta">
+                <span class="badge ${badgeClass}">${item.depth_target}</span>
+              </div>
+            </a>
+          `;
+        });
+        html += `</div>`;
+      });
+
+      container.innerHTML = html;
+      container.classList.add('show');
+    }
+
+    function highlightMatch(text, query) {
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<strong>$1</strong>');
+    }
+
+    function hideSearchResults() {
+      document.getElementById('search-results').classList.remove('show');
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('search-input');
+      input.value = '';
+      hideSearchResults();
+      document.getElementById('search-clear').classList.remove('show');
+      input.focus();
+    }
+
+    function initSearch() {
+      const searchInput = document.getElementById('search-input');
+      const searchClear = document.getElementById('search-clear');
+
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value;
+        if (query.length > 0) {
+          searchClear.classList.add('show');
+        } else {
+          searchClear.classList.remove('show');
+        }
+        performSearch(query);
+      });
+
+      // Close search results when clicking outside
+      document.addEventListener('click', (e) => {
+        const searchContainer = document.querySelector('.search-container');
+        if (!searchContainer.contains(e.target)) {
+          hideSearchResults();
+        }
+      });
+
+      // Keyboard shortcut: / to focus search
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+        // Escape to close search
+        if (e.key === 'Escape') {
+          clearSearch();
+        }
+      });
+    }
+
+    // ============================================
+    // Dark Mode
+    // ============================================
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem(DARK_MODE_KEY, isDark);
+
+      document.querySelector('.light-icon').style.display = isDark ? 'none' : 'inline';
+      document.querySelector('.dark-icon').style.display = isDark ? 'inline' : 'none';
+    }
+
+    function initDarkMode() {
+      const isDark = localStorage.getItem(DARK_MODE_KEY) === 'true';
+      if (isDark) {
+        document.body.classList.add('dark-mode');
+        document.querySelector('.light-icon').style.display = 'none';
+        document.querySelector('.dark-icon').style.display = 'inline';
+      }
+    }
+
+    // ============================================
+    // Tab Switching
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const targetId = tab.dataset.tab;
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          document.getElementById(targetId).classList.add('active');
+        });
+      });
+
+      // Add code copy buttons
+      addCopyButtons();
+
+      // Initialize dark mode
+      initDarkMode();
+
+      // Initialize search
+      initSearch();
+
+      // Update progress UI
+      updateProgressUI();
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        // Arrow keys for prev/next
+        if (e.key === 'ArrowLeft' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          const prevBtn = document.querySelector('.nav-button.prev');
+          if (prevBtn && !prevBtn.disabled) prevBtn.click();
+        }
+        if (e.key === 'ArrowRight' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          const nextBtn = document.querySelector('.nav-button.next');
+          if (nextBtn && !nextBtn.disabled) nextBtn.click();
+        }
+        // Number keys for tabs
+        if (e.key >= '1' && e.key <= '4') {
+          const tabs = document.querySelectorAll('.tab');
+          const index = parseInt(e.key) - 1;
+          if (tabs[index]) tabs[index].click();
+        }
+      });
+    });
+
+    // ============================================
+    // Code Copy Buttons
+    // ============================================
+    function addCopyButtons() {
+      document.querySelectorAll('pre').forEach((pre, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+
+        const button = document.createElement('button');
+        button.className = 'copy-button';
+        button.textContent = 'Copy';
+        button.onclick = () => copyCode(pre, button);
+        wrapper.appendChild(button);
+      });
+    }
+
+    function copyCode(pre, button) {
+      const code = pre.querySelector('code') || pre;
+      navigator.clipboard.writeText(code.textContent).then(() => {
+        button.textContent = '✓ Copied!';
+        button.classList.add('copied');
+        setTimeout(() => {
+          button.textContent = 'Copy';
+          button.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // ============================================
+    // Quiz Functionality
+    // ============================================
+    function selectChoice(questionId, choiceIndex) {
+      const question = document.querySelector(`[data-question-id="${questionId}"]`);
+      const choices = question.querySelectorAll('.choice');
+      choices.forEach((choice, idx) => {
+        choice.classList.remove('selected');
+        if (idx === choiceIndex) choice.classList.add('selected');
+      });
+    }
+
+    function checkAnswers() {
+      let score = 0;
+      let totalPoints = 0;
+
+      document.querySelectorAll('.question').forEach(question => {
+        const kind = question.dataset.kind;
+        const points = parseInt(question.dataset.points);
+        totalPoints += points;
+
+        if (kind === 'mcq') {
+          const correct = question.dataset.correct;
+          const selected = question.querySelector('.choice.selected');
+
+          if (selected) {
+            const selectedText = selected.textContent.trim();
+            const explanation = question.querySelector('.explanation');
+
+            if (selectedText === correct) {
+              selected.classList.add('correct');
+              score += points;
+            } else {
+              selected.classList.add('incorrect');
+              question.querySelectorAll('.choice').forEach(choice => {
+                if (choice.textContent.trim() === correct) {
+                  choice.classList.add('correct');
+                }
+              });
+            }
+
+            if (explanation) explanation.classList.add('show');
+          }
+        }
+      });
+
+      const scoreDisplay = document.querySelector('.score-display');
+      const passingScore = parseInt(scoreDisplay.dataset.passing || 7);
+      const passed = score >= passingScore;
+
+      scoreDisplay.innerHTML = `
+        <div style="font-size: 24px; font-weight: bold;">${score} / ${totalPoints}</div>
+        <div style="margin-top: 5px;">${passed ? '✅ Passed!' : '❌ Try again'}</div>
+        <div style="font-size: 12px; margin-top: 5px;">Passing: ${passingScore}</div>
+      `;
+      scoreDisplay.classList.add('show');
+    }
+
+    function resetQuiz() {
+      document.querySelectorAll('.choice').forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+      });
+      document.querySelectorAll('.explanation').forEach(exp => exp.classList.remove('show'));
+      document.querySelector('.score-display').classList.remove('show');
+    }
+  </script>
+</body>
+</html>

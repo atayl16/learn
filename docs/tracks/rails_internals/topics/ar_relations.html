@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rails Seniority Coach</title>
+  <style>
+    :root {
+      --bg-primary: #f5f5f5;
+      --bg-secondary: white;
+      --bg-tertiary: #f9f9f9;
+      --text-primary: #333;
+      --text-secondary: #666;
+      --text-muted: #999;
+      --accent: #CC0000;
+      --border: #e0e0e0;
+      --shadow: rgba(0,0,0,0.1);
+      --code-bg: #f4f4f4;
+      --code-block-bg: #2b2b2b;
+      --code-block-text: #f8f8f2;
+    }
+
+    body.dark-mode {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2d2d2d;
+      --bg-tertiary: #3a3a3a;
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --text-muted: #808080;
+      --border: #404040;
+      --shadow: rgba(0,0,0,0.3);
+      --code-bg: #3a3a3a;
+      --code-block-bg: #1e1e1e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      transition: background 0.3s, color 0.3s;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    /* Header */
+    header {
+      background: var(--accent);
+      color: white;
+      padding: 20px 0;
+      margin-bottom: 30px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { font-size: 28px; }
+    header p { opacity: 0.9; margin-top: 5px; }
+
+    /* Search Box */
+    .search-container {
+      position: relative;
+      flex: 1;
+      max-width: 500px;
+      margin: 0 20px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px 15px 10px 40px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.9);
+      color: #333;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input::placeholder { color: #666; }
+    .search-input:focus {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #666;
+      font-size: 16px;
+      pointer-events: none;
+    }
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 8px;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      box-shadow: 0 4px 16px var(--shadow);
+      max-height: 70vh;
+      overflow-y: auto;
+      display: none;
+      z-index: 1000;
+    }
+    .search-results.show { display: block; }
+    .search-group {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border);
+    }
+    .search-group:last-child { border-bottom: none; }
+    .search-group-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .search-result-item {
+      padding: 10px 12px;
+      margin: 4px 0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: block;
+    }
+    .search-result-item:hover {
+      background: var(--bg-tertiary);
+    }
+    .search-result-title {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .search-result-meta {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .search-no-results {
+      padding: 30px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .search-clear {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      display: none;
+    }
+    .search-clear.show { display: block; }
+
+    /* Dark mode toggle */
+    .dark-mode-toggle {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .dark-mode-toggle:hover { background: rgba(255,255,255,0.3); }
+
+    /* Navigation */
+    nav {
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    nav a {
+      color: var(--accent);
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    nav a:hover { background: var(--bg-tertiary); }
+
+    /* Progress indicator */
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+
+    /* Cards */
+    .track-grid, .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .track-card, .topic-card {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .track-card:hover, .topic-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .track-card h3, .topic-card h3 { color: var(--accent); margin-bottom: 10px; }
+    .track-card a, .topic-card a { text-decoration: none; color: inherit; }
+
+    /* Completion badge */
+    .completion-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 24px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .completion-badge.completed { opacity: 1; }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 5px;
+    }
+    .badge-strong { background: #4CAF50; color: white; }
+    .badge-working { background: #2196F3; color: white; }
+    .badge-exposure { background: #9E9E9E; color: white; }
+
+    /* Content sections */
+    .content-section {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 30px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+    .content-section h2 {
+      color: var(--accent);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    .content-section h3 {
+      color: var(--text-primary);
+      margin-top: 25px;
+      margin-bottom: 12px;
+    }
+    .content-section ul, .content-section ol {
+      margin-left: 25px;
+      margin-top: 10px;
+    }
+    .content-section li { margin: 8px 0; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 16px;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab:hover { color: var(--accent); }
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Prev/Next navigation */
+    .topic-navigation {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    .nav-button {
+      flex: 1;
+      min-width: 200px;
+      padding: 15px 20px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-button:hover {
+      border-color: var(--accent);
+      transform: translateX(0) translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .nav-button.prev:hover { transform: translateX(-5px) translateY(-2px); }
+    .nav-button.next:hover { transform: translateX(5px) translateY(-2px); }
+    .nav-button .arrow { font-size: 20px; }
+    .nav-button .label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
+    .nav-button .title { font-weight: 600; }
+    .nav-button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* Mark complete button */
+    .complete-button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .complete-button:hover { background: #45a049; transform: scale(1.05); }
+    .complete-button.completed {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 2px solid #4CAF50;
+    }
+
+    /* Quiz styles */
+    .question {
+      background: var(--bg-tertiary);
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 6px;
+      border-left: 4px solid var(--accent);
+    }
+    .question h4 { margin-bottom: 10px; }
+    .choices { margin: 10px 0; }
+    .choice {
+      padding: 12px;
+      margin: 8px 0;
+      cursor: pointer;
+      border-radius: 4px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      transition: all 0.2s;
+    }
+    .choice:hover { border-color: var(--accent); }
+    .choice.selected { background: #e3f2fd; border-color: #2196F3; }
+    .choice.correct { background: #e8f5e9; border-color: #4CAF50; }
+    .choice.incorrect { background: #ffebee; border-color: #f44336; }
+    .explanation {
+      margin-top: 10px;
+      padding: 10px;
+      background: #fff3cd;
+      color: #856404;
+      border-radius: 4px;
+      display: none;
+    }
+    .explanation.show { display: block; }
+
+    /* References */
+    .reference-list { list-style: none; margin-left: 0; }
+    .reference-list li {
+      padding: 15px;
+      margin: 10px 0;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+    }
+    .reference-list a { color: var(--accent); font-weight: 600; }
+    .reference-list .why { color: var(--text-secondary); font-size: 14px; margin-top: 5px; }
+
+    /* Code styles */
+    code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 15px 0;
+      position: relative;
+    }
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* Copy button for code blocks */
+    .code-block-wrapper {
+      position: relative;
+      margin: 15px 0;
+    }
+    .copy-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+      opacity: 0;
+    }
+    .code-block-wrapper:hover .copy-button { opacity: 1; }
+    .copy-button:hover { background: rgba(255,255,255,0.2); }
+    .copy-button.copied { background: #4CAF50; }
+
+    /* Score display */
+    .score-display {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--accent);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px var(--shadow);
+      display: none;
+      z-index: 1000;
+    }
+    .score-display.show { display: block; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .track-grid, .topic-grid { grid-template-columns: 1fr; }
+      .tabs { overflow-x: auto; }
+      header .container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+      }
+      .search-container {
+        margin: 0;
+        max-width: 100%;
+        order: 1;
+      }
+      header > .container > div:first-child { order: 0; }
+      .dark-mode-toggle {
+        order: 2;
+        align-self: flex-end;
+      }
+      .topic-navigation { flex-direction: column; }
+      .nav-button { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div>
+        <h1>💎 Rails Seniority Coach</h1>
+        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+      </div>
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          class="search-input"
+          id="search-input"
+          placeholder="Search topics..."
+          autocomplete="off"
+        />
+        <button class="search-clear" id="search-clear" onclick="clearSearch()">×</button>
+        <div class="search-results" id="search-results"></div>
+      </div>
+      <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+        <span class="light-icon">🌙</span><span class="dark-icon" style="display:none;">☀️</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    <nav>
+      <a href="/">← All Tracks</a>
+      <div id="progress-summary"></div>
+    </nav>
+    <nav style="margin-bottom: 20px;">
+  <a href="/tracks/rails_internals">← Ruby & Rails Core</a>
+</nav>
+
+<!-- Previous/Next Navigation -->
+<div class="topic-navigation">
+  
+    <div class="nav-button prev" style="opacity: 0.3; cursor: not-allowed;">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Start of track</div>
+      </div>
+    </div>
+  
+
+  
+    <a href="/tracks/rails_internals/topics/config_initializers" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">Configuration & Initializers</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+<div style="margin-bottom: 30px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+    <div style="flex: 1;">
+      <h1>Active Record Relations & Query Interface</h1>
+      <div style="margin: 15px 0;">
+        
+        
+          <span class="badge badge-strong">Strong</span>
+        
+        &nbsp;
+        <span style="color: var(--text-secondary);">
+          📖 12 min read &nbsp; | &nbsp; 💻 20 min exercise
+        </span>
+      </div>
+    </div>
+    <button
+      id="mark-complete-btn"
+      class="complete-button"
+      data-track-key="rails_internals"
+      data-topic-key="ar_relations"
+      onclick="markTopicComplete('rails_internals', 'ar_relations')">
+      Mark Complete
+    </button>
+  </div>
+
+  
+    <div class="content-section" style="background: #f0f7ff;">
+      <h3 style="color: #2196F3; margin-bottom: 10px;">Learning Objectives</h3>
+      <ul style="margin-left: 20px;">
+        
+          <li>Compose complex queries using relations and scopes</li>
+        
+          <li>Explain lazy loading and when queries execute</li>
+        
+          <li>Chain methods without triggering N+1 queries</li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-tab="overview-tab">📖 Overview</button>
+  <button class="tab" data-tab="exercise-tab">💻 Exercise</button>
+  <button class="tab" data-tab="checkpoint-tab">✅ Checkpoint</button>
+  <button class="tab" data-tab="references-tab">🔗 References</button>
+</div>
+
+<!-- Overview Tab -->
+<div id="overview-tab" class="tab-content active">
+  <div class="content-section">
+    
+      <h1>Active Record Relations &amp; Query Interface</h1>
+
+<h2>What It Is</h2>
+
+<p>ActiveRecord::Relation is a lazy, chainable query builder that translates Ruby method calls into SQL. Relations don&#39;t execute immediately; they defer database queries until you iterate, count, or call <code>to_a</code>. This enables composing complex queries by chaining <code>.where</code>, <code>.joins</code>, <code>.order</code>, etc.</p>
+
+<h2>Why It Matters</h2>
+
+<p>Mastering relations prevents N+1 queries, reduces database load, and makes code reusable. Chaining allows building queries conditionally (filters, pagination, sorting) without string concatenation. Lazy loading means queries only run when needed, avoiding unnecessary database hits.</p>
+
+<h2>When to Use</h2>
+
+<ul>
+<li>Building complex filters: search, pagination, sorting</li>
+<li>Reusing query logic: scopes and class methods</li>
+<li>Optimizing: combining multiple conditions into one query</li>
+<li>Conditional queries: adding <code>.where</code> based on params</li>
+</ul>
+
+<h2>Three Common Pitfalls</h2>
+
+<ol>
+<li><strong>Triggering queries unintentionally:</strong> <code>.count</code>, <code>.each</code>, <code>.to_a</code>, <code>.first</code> all execute immediately. Assigning a relation (<code>users = User.where(...)</code>) doesn&#39;t query yet; calling <code>users.count</code> does.</li>
+<li><strong>Overusing <code>find_by_sql</code>:</strong> Raw SQL bypasses relation chaining and returns plain arrays. Prefer ActiveRecord methods for composability.</li>
+<li><strong>Forgetting <code>distinct</code>:</strong> <code>User.joins(:posts).where(posts: {published: true})</code> returns duplicate users if they have multiple posts. Add <code>.distinct</code> to deduplicate.</li>
+</ol>
+
+<hr>
+
+<h2>Lazy Loading</h2>
+
+<p>Relations defer execution:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># No query yet — just builds the relation</span>
+<span class="n">users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">active: </span><span class="kp">true</span><span class="p">)</span>
+
+<span class="c1"># Query executes here</span>
+<span class="n">users</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">u</span><span class="o">|</span> <span class="nb">puts</span> <span class="n">u</span><span class="p">.</span><span class="nf">name</span> <span class="p">}</span>
+<span class="c1"># SQL: SELECT * FROM users WHERE active = true</span>
+</code></pre></div>
+<p><strong>When queries execute:</strong><br>
+- <code>.each</code>, <code>.map</code>, <code>.to_a</code> (enumeration)<br>
+- <code>.first</code>, <code>.last</code>, <code>.take</code> (single record)<br>
+- <code>.count</code>, <code>.sum</code>, <code>.average</code> (aggregates)<br>
+- <code>.exists?</code>, <code>.any?</code>, <code>.none?</code> (boolean checks)</p>
+
+<p><strong>Check generated SQL:</strong><br>
+```ruby<br>
+User.where(active: true).to_sql</p>
+
+<h1>=&gt; &quot;SELECT \&quot;users\&quot;.* FROM \&quot;users\&quot; WHERE \&quot;users\&quot;.\&quot;active\&quot; = TRUE&quot;</h1>
+<div class="highlight"><pre class="highlight plaintext"><code>
+---
+
+## Chaining Methods
+
+Build queries step-by-step:
+
+```ruby
+User
+  .where(active: true)
+  .where("created_at &gt; ?", 1.year.ago)
+  .order(created_at: :desc)
+  .limit(10)
+# SELECT * FROM users
+# WHERE active = true AND created_at &gt; '2024-01-01'
+# ORDER BY created_at DESC LIMIT 10
+</code></pre></div>
+<p><strong>Hash conditions:</strong><br>
+```ruby<br>
+User.where(role: &quot;admin&quot;, active: true)</p>
+
+<h1>WHERE role = &#39;admin&#39; AND active = true</h1>
+<div class="highlight"><pre class="highlight plaintext"><code>
+**SQL fragments (use placeholders to prevent SQL injection):**
+```ruby
+User.where("age &gt; ?", 18)
+User.where("name LIKE ?", "%John%")
+</code></pre></div>
+<p><strong>Arrays for IN clauses:</strong><br>
+```ruby<br>
+User.where(id: [1, 2, 3])</p>
+
+<h1>WHERE id IN (1, 2, 3)</h1>
+<div class="highlight"><pre class="highlight plaintext"><code>
+---
+
+## Scopes
+
+Encapsulate reusable query logic:
+
+```ruby
+class User &lt; ApplicationRecord
+  scope :active, -&gt; { where(active: true) }
+  scope :recent, -&gt; { where("created_at &gt; ?", 1.week.ago) }
+  scope :admins, -&gt; { where(role: "admin") }
+end
+
+User.active.recent.admins
+# SELECT * FROM users
+# WHERE active = true AND created_at &gt; '2024-10-01' AND role = 'admin'
+</code></pre></div>
+<p><strong>Scopes with arguments:</strong><br>
+```ruby<br>
+scope :created<em>after, -&gt;(date) { where(&quot;created</em>at &gt; ?&quot;, date) }</p>
+
+<p>User.created_after(1.month.ago)<br>
+```</p>
+
+<p><strong>Class methods (alternative):</strong><br>
+```ruby<br>
+class User &lt; ApplicationRecord<br>
+  def self.active<br>
+    where(active: true)<br>
+  end<br>
+end</p>
+
+<p>User.active  # same as scope<br>
+```</p>
+
+<hr>
+
+<h2>Joins and Includes</h2>
+
+<h3>Inner Join (only users with posts)</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">joins</span><span class="p">(</span><span class="ss">:posts</span><span class="p">)</span>
+<span class="c1"># SELECT users.* FROM users INNER JOIN posts ON posts.user_id = users.id</span>
+</code></pre></div>
+<h3>Left Outer Join (all users, with/without posts)</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">left_joins</span><span class="p">(</span><span class="ss">:posts</span><span class="p">)</span>
+<span class="c1"># SELECT users.* FROM users LEFT OUTER JOIN posts ON posts.user_id = users.id</span>
+</code></pre></div>
+<h3>Filtering joined tables</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">joins</span><span class="p">(</span><span class="ss">:posts</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="ss">posts: </span><span class="p">{</span> <span class="ss">published: </span><span class="kp">true</span> <span class="p">})</span>
+<span class="c1"># SELECT users.* FROM users</span>
+<span class="c1"># INNER JOIN posts ON posts.user_id = users.id</span>
+<span class="c1"># WHERE posts.published = true</span>
+</code></pre></div>
+<h3>Preloading (avoid N+1)</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Bad: N+1 queries</span>
+<span class="n">users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">all</span>
+<span class="n">users</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">u</span><span class="o">|</span> <span class="nb">puts</span> <span class="n">u</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">count</span> <span class="p">}</span>
+<span class="c1"># Query 1: SELECT * FROM users</span>
+<span class="c1"># Query 2-N: SELECT * FROM posts WHERE user_id = 1 (repeated per user)</span>
+
+<span class="c1"># Good: Eager load posts</span>
+<span class="n">users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:posts</span><span class="p">)</span>
+<span class="n">users</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">u</span><span class="o">|</span> <span class="nb">puts</span> <span class="n">u</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">count</span> <span class="p">}</span>
+<span class="c1"># Query 1: SELECT * FROM users</span>
+<span class="c1"># Query 2: SELECT * FROM posts WHERE user_id IN (1,2,3,...)</span>
+</code></pre></div>
+<p><strong>Difference:</strong><br>
+- <code>joins</code>: SQL JOIN, filters users, no preloading<br>
+- <code>includes</code>: Preloads associations, prevents N+1</p>
+
+<hr>
+
+<h2>Aggregations</h2>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">count</span>
+<span class="c1"># SELECT COUNT(*) FROM users</span>
+
+<span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">active: </span><span class="kp">true</span><span class="p">).</span><span class="nf">count</span>
+<span class="c1"># SELECT COUNT(*) FROM users WHERE active = true</span>
+
+<span class="no">User</span><span class="p">.</span><span class="nf">average</span><span class="p">(</span><span class="ss">:age</span><span class="p">)</span>
+<span class="c1"># SELECT AVG(age) FROM users</span>
+
+<span class="no">User</span><span class="p">.</span><span class="nf">group</span><span class="p">(</span><span class="ss">:role</span><span class="p">).</span><span class="nf">count</span>
+<span class="c1"># SELECT role, COUNT(*) FROM users GROUP BY role</span>
+<span class="c1"># =&gt; {"admin" =&gt; 5, "user" =&gt; 120}</span>
+</code></pre></div>
+<hr>
+
+<h2>Select and Pluck</h2>
+
+<p><strong>Select specific columns:</strong><br>
+```ruby<br>
+User.select(:id, :name)</p>
+
+<h1>SELECT id, name FROM users</h1>
+<div class="highlight"><pre class="highlight plaintext"><code>
+**Pluck (returns array, not ActiveRecord objects):**
+```ruby
+User.pluck(:email)
+# =&gt; ["alice@ex.com", "bob@ex.com"]
+# SELECT email FROM users
+
+User.pluck(:id, :name)
+# =&gt; [[1, "Alice"], [2, "Bob"]]
+</code></pre></div>
+<p><strong>Performance:</strong> <code>pluck</code> is faster than <code>map</code> because it skips object instantiation.</p>
+
+<hr>
+
+<h2>Or and Not</h2>
+
+<p><strong>Or:</strong><br>
+```ruby<br>
+User.where(role: &quot;admin&quot;).or(User.where(active: true))</p>
+
+<h1>WHERE (role = &#39;admin&#39;) OR (active = true)</h1>
+<div class="highlight"><pre class="highlight plaintext"><code>
+**Not:**
+```ruby
+User.where.not(role: "guest")
+# WHERE role != 'guest'
+</code></pre></div>
+<hr>
+
+<h2>Reordering and Reversing</h2>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="ss">:created_at</span><span class="p">).</span><span class="nf">reverse_order</span>
+<span class="c1"># ORDER BY created_at DESC</span>
+
+<span class="no">User</span><span class="p">.</span><span class="nf">reorder</span><span class="p">(</span><span class="ss">name: :asc</span><span class="p">)</span>
+<span class="c1"># Replaces existing order</span>
+</code></pre></div>
+<hr>
+
+<h2>Trade-offs Box</h2>
+
+<ul>
+<li><strong>Advantage:</strong> Chainable, composable, lazy evaluation reduces unnecessary queries.</li>
+<li><strong>Cost:</strong> Abstraction can hide inefficient SQL (e.g., accidental N+1). Always check generated SQL.</li>
+<li><strong>When to skip:</strong> For very complex queries (CTEs, window functions), use <code>find_by_sql</code> or Arel.</li>
+</ul>
+
+<hr>
+
+<h2>Debugging Checklist</h2>
+
+<p>When queries misbehave:</p>
+
+<ol>
+<li>Check generated SQL: <code>relation.to_sql</code></li>
+<li>Enable query logging: <code>ActiveRecord::Base.logger = Logger.new(STDOUT)</code></li>
+<li>Use <code>explain</code>: <code>User.where(...).explain</code> to see query plan</li>
+<li>Check for N+1 with Bullet gem</li>
+<li>Verify associations: <code>has_many :posts</code> must exist for <code>.includes(:posts)</code></li>
+<li>Use <code>distinct</code> if joins return duplicates</li>
+<li>Profile with <code>ActiveSupport::Notifications.subscribe(&quot;sql.active_record&quot;)</code></li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>ActiveRecord::Relation is lazy: no query until enumeration/count/first</li>
+<li>Chain methods to build complex queries: <code>.where.joins.order.limit</code></li>
+<li>Scopes encapsulate reusable query logic</li>
+<li><code>joins</code> filters via SQL JOIN; <code>includes</code> preloads to avoid N+1</li>
+<li>Always check generated SQL with <code>.to_sql</code> and profile with <code>explain</code></li>
+</ul>
+
+    
+  </div>
+</div>
+
+<!-- Exercise Tab -->
+<div id="exercise-tab" class="tab-content">
+  <div class="content-section">
+    
+      <h1>Exercise: Active Record Relations &amp; Query Interface</h1>
+
+<h2>Objective</h2>
+
+<p>Build complex queries using scopes, chaining, and lazy evaluation without triggering N+1 queries.</p>
+
+<h2>Task</h2>
+
+<p>In a Rails app with <code>User</code> and <code>Post</code> models:</p>
+
+<ol>
+<li>Create scopes for filtering active users and recent posts</li>
+<li>Write a query that finds active users with published posts from the last week</li>
+<li>Use <code>includes</code> to preload posts and avoid N+1</li>
+<li>Check the generated SQL and verify it&#39;s efficient</li>
+</ol>
+
+<h2>Acceptance Criteria</h2>
+
+<ul>
+<li>[ ] <code>User.active</code> scope returns only <code>active: true</code> users</li>
+<li>[ ] <code>Post.recent</code> scope returns posts from the last 7 days</li>
+<li>[ ] Query finds users with recent published posts using joins</li>
+<li>[ ] Eager loading with <code>includes(:posts)</code> prevents N+1 when iterating</li>
+<li>[ ] <code>.to_sql</code> output shows expected WHERE and JOIN clauses</li>
+<li>[ ] <code>development.log</code> shows 2 queries (users + posts), not N queries</li>
+</ul>
+
+<h2>Verification Steps</h2>
+
+<ol>
+<li><p>Run in console:<br>
+```ruby<br>
+users = User.active.joins(:posts).where(posts: { published: true, created<em>at: 7.days.ago.. }).distinct<br>
+puts users.to</em>sql</p>
+
+<h1>Verify SQL has JOIN and WHERE clauses</h1>
+<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
+<li><p>Check N+1 prevention:<br>
+```ruby<br>
+users = User.includes(:posts).limit(5)<br>
+users.each { |u| puts &quot;#{u.name}: #{u.posts.count} posts&quot; }</p>
+
+<h1>Check log: should show 2 queries, not 6</h1>
+<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
+<li><p>Test scopes:<br>
+<code>ruby<br>
+User.active.count<br>
+Post.recent.count<br>
+</code></p></li>
+</ol>
+
+<h2>Setup Code</h2>
+
+<h3>Step 1: Create Models</h3>
+<div class="highlight"><pre class="highlight shell"><code>rails new relations_demo <span class="nt">--skip-javascript</span>
+<span class="nb">cd </span>relations_demo
+bin/rails generate model User name:string email:string active:boolean role:string
+bin/rails generate model Post title:string body:text published:boolean user:references
+bin/rails db:migrate
+</code></pre></div>
+<h3>Step 2: Add Scopes</h3>
+
+<p>Edit <code>app/models/user.rb</code>:<br>
+```ruby<br>
+class User &lt; ApplicationRecord<br>
+  has_many :posts</p>
+
+<p>scope :active, -&gt; { where(active: true) }<br>
+  scope :admins, -&gt; { where(role: &quot;admin&quot;) }<br>
+  scope :with_posts, -&gt; { joins(:posts).distinct }<br>
+end<br>
+```</p>
+
+<p>Edit <code>app/models/post.rb</code>:<br>
+```ruby<br>
+class Post &lt; ApplicationRecord<br>
+  belongs_to :user</p>
+
+<p>scope :published, -&gt; { where(published: true) }<br>
+  scope :recent, -&gt; { where(&quot;created_at &gt; ?&quot;, 7.days.ago) }<br>
+end<br>
+```</p>
+
+<h3>Step 3: Seed Data</h3>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails console
+</code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Create users</span>
+<span class="mi">5</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+  <span class="no">User</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">name: </span><span class="s2">"User </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">email: </span><span class="s2">"user</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">@example.com"</span><span class="p">,</span> <span class="ss">active: </span><span class="n">i</span><span class="p">.</span><span class="nf">even?</span><span class="p">,</span> <span class="ss">role: </span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="p">?</span> <span class="s2">"admin"</span> <span class="p">:</span> <span class="s2">"user"</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="c1"># Create posts</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">all</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span>
+  <span class="mi">3</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">j</span><span class="o">|</span>
+    <span class="no">Post</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span>
+      <span class="ss">user: </span><span class="n">user</span><span class="p">,</span>
+      <span class="ss">title: </span><span class="s2">"Post </span><span class="si">#{</span><span class="n">j</span><span class="si">}</span><span class="s2"> by </span><span class="si">#{</span><span class="n">user</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+      <span class="ss">body: </span><span class="s2">"Content..."</span><span class="p">,</span>
+      <span class="ss">published: </span><span class="n">j</span><span class="p">.</span><span class="nf">odd?</span><span class="p">,</span>
+      <span class="ss">created_at: </span><span class="p">(</span><span class="mi">10</span> <span class="o">-</span> <span class="n">j</span><span class="p">).</span><span class="nf">days</span><span class="p">.</span><span class="nf">ago</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 4: Test Chaining</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Active users with published posts</span>
+<span class="n">users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">active</span><span class="p">.</span><span class="nf">joins</span><span class="p">(</span><span class="ss">:posts</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="ss">posts: </span><span class="p">{</span> <span class="ss">published: </span><span class="kp">true</span> <span class="p">}).</span><span class="nf">distinct</span>
+<span class="nb">puts</span> <span class="n">users</span><span class="p">.</span><span class="nf">to_sql</span>
+
+<span class="c1"># Verify SQL:</span>
+<span class="c1"># SELECT DISTINCT users.* FROM users</span>
+<span class="c1"># INNER JOIN posts ON posts.user_id = users.id</span>
+<span class="c1"># WHERE users.active = true AND posts.published = true</span>
+</code></pre></div>
+<h3>Step 5: Prevent N+1</h3>
+
+<p><strong>Bad (N+1):</strong><br>
+```ruby<br>
+users = User.limit(3)<br>
+users.each { |u| puts &quot;#{u.name}: #{u.posts.count}&quot; }</p>
+
+<h1>Check log: 1 query for users + 3 queries for posts = 4 total</h1>
+<div class="highlight"><pre class="highlight plaintext"><code>
+**Good (eager loading):**
+```ruby
+users = User.includes(:posts).limit(3)
+users.each { |u| puts "#{u.name}: #{u.posts.count}" }
+# Check log: 1 query for users + 1 query for posts = 2 total
+</code></pre></div>
+<h3>Step 6: Aggregations</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Count by role</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">group</span><span class="p">(</span><span class="ss">:role</span><span class="p">).</span><span class="nf">count</span>
+<span class="c1"># =&gt; {"admin" =&gt; 2, "user" =&gt; 3}</span>
+
+<span class="c1"># Average posts per user</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">joins</span><span class="p">(</span><span class="ss">:posts</span><span class="p">).</span><span class="nf">group</span><span class="p">(</span><span class="s2">"users.id"</span><span class="p">).</span><span class="nf">count</span><span class="p">.</span><span class="nf">values</span><span class="p">.</span><span class="nf">sum</span> <span class="o">/</span> <span class="no">User</span><span class="p">.</span><span class="nf">count</span><span class="p">.</span><span class="nf">to_f</span>
+</code></pre></div>
+<h2>Stretch (Optional)</h2>
+
+<ol>
+<li><p>Create a scope that combines multiple conditions:<br>
+<code>ruby<br>
+scope :active_admins_with_recent_posts, -&gt; {<br>
+active.admins.joins(:posts).where(posts: { created_at: 7.days.ago.. }).distinct<br>
+}<br>
+</code></p></li>
+<li><p>Use <code>pluck</code> to extract emails efficiently:<br>
+```ruby<br>
+User.active.pluck(:email)</p>
+
+<h1>Returns array of emails without instantiating User objects</h1>
+<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
+<li><p>Add an <code>or</code> condition:<br>
+<code>ruby<br>
+User.where(role: &quot;admin&quot;).or(User.where(active: true))<br>
+</code></p></li>
+</ol>
+
+<h2>Time Estimate</h2>
+
+<p>20 minutes</p>
+
+    
+  </div>
+</div>
+
+<!-- Checkpoint Tab -->
+<div id="checkpoint-tab" class="tab-content">
+  <div class="content-section">
+    
+      
+      <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
+        <p><strong>Passing Score:</strong> 7 points</p>
+        <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
+      </div>
+
+      
+        <div class="question"
+             data-question-id="0"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="When you call .to_a, .each, .count, or similar">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">When does User.where(active: true) execute a database query?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  Immediately when the line runs
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  When you call .to_a, .each, .count, or similar
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  Only when you call .execute
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  Never, it's a class method
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Relations are lazy and defer execution until enumeration or aggregation.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="1"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="joins filters via SQL JOIN; includes preloads associations">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">What's the difference between joins and includes?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  No difference, they're aliases
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  joins filters via SQL JOIN; includes preloads associations
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  includes is deprecated
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  joins is faster in all cases
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> joins runs a SQL JOIN but doesn't load associations; includes prevents N+1 by preloading.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="2"
+             data-kind="short"
+             data-points="3"
+             >
+          <h4>Question 3 (3 points)</h4>
+          <p style="margin: 10px 0;">Write a scope that returns users created in the last 30 days with active status.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">scope :recent_active, -> { where(active: true).where('created_at > ?', 30.days.ago) }</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="3"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="pluck">
+          <h4>Question 4 (1 points)</h4>
+          <p style="margin: 10px 0;">Which method returns an array instead of ActiveRecord objects?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  select
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  pluck
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  where
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  find
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> pluck extracts column values without instantiating ActiveRecord objects, returning an array.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="4"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">How would you check the SQL generated by User.active.recent without executing it?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">User.active.recent.to_sql</p>
+            </div>
+          
+        </div>
+      
+
+      <div style="margin-top: 30px; display: flex; gap: 10px;">
+        <button onclick="checkAnswers()" style="padding: 12px 24px; background: #CC0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600;">
+          Check Answers
+        </button>
+        <button onclick="resetQuiz()" style="padding: 12px 24px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+          Reset
+        </button>
+      </div>
+
+      <div class="score-display" data-passing="7"></div>
+    
+  </div>
+</div>
+
+<!-- References Tab -->
+<div id="references-tab" class="tab-content">
+  <div class="content-section">
+    
+      <p style="margin-bottom: 20px; color: var(--text-secondary);">
+        Curated sources to deepen your understanding. All references point to official documentation,
+        canonical books, or reputable technical content.
+      </p>
+      <ul class="reference-list">
+        
+          <li>
+            <a href="https://guides.rubyonrails.org/active_record_querying.html" target="_blank">Rails Guides — Active Record Query Interface</a>
+            <div class="why">Comprehensive reference for where, joins, includes, scopes, and aggregations.</div>
+          </li>
+        
+          <li>
+            <a href="https://guides.rubyonrails.org/association_basics.html" target="_blank">Rails Guides — Active Record Associations</a>
+            <div class="why">Explains has_many, belongs_to, and how associations relate to queries.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/flyerhzm/bullet" target="_blank">Bullet Gem</a>
+            <div class="why">Detects N+1 queries and suggests eager loading fixes.</div>
+          </li>
+        
+          <li>
+            <a href="https://www.youtube.com/watch?v=2MfJ8ZvQqFU" target="_blank">Advanced Active Record (Prathamesh Sonpatki)</a>
+            <div class="why">RailsConf talk on query optimization, scopes, and common pitfalls.</div>
+          </li>
+        
+          <li>
+            <a href="https://thoughtbot.com/blog/advanced-sql-in-rails" target="_blank">Rails Anti-Patterns (Thoughtbot)</a>
+            <div class="why">Covers when to drop to SQL and when ActiveRecord is enough.</div>
+          </li>
+        
+          <li>
+            <a href="https://theartofpostgresql.com/" target="_blank">The Art of PostgreSQL (Dimitri Fontaine)</a>
+            <div class="why">Deep dive into SQL including how ORMs generate queries.</div>
+          </li>
+        
+      </ul>
+    
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="topic-navigation">
+  
+    <div class="nav-button prev" style="opacity: 0.3; cursor: not-allowed;">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Start of track</div>
+      </div>
+    </div>
+  
+
+  
+    <a href="/tracks/rails_internals/topics/config_initializers" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">Configuration & Initializers</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+  </div>
+
+  <script>
+    // ============================================
+    // Search Index
+    // ============================================
+    const SEARCH_INDEX = [{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"ar_relations","topic_name":"Active Record Relations & Query Interface","depth_target":"Strong","objectives":"Compose complex queries using relations and scopes Explain lazy loading and when queries execute Chain methods without triggering N+1 queries","url":"/tracks/rails_internals/topics/ar_relations.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"config_initializers","topic_name":"Configuration & Initializers","depth_target":"Strong","objectives":"Configure Rails apps using environment-specific settings Write initializers that load in correct order Manage secrets and credentials securely","url":"/tracks/rails_internals/topics/config_initializers.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"request_lifecycle","topic_name":"Request Lifecycle & Middleware","depth_target":"Strong","objectives":"Trace a Rails request from Rack through middleware to controller Identify where params are parsed and filters applied Profile a request and explain the hottest frames","url":"/tracks/rails_internals/topics/request_lifecycle.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"routing_middleware","topic_name":"Routing & Middleware Patterns","depth_target":"Strong","objectives":"Design RESTful routes with constraints and namespaces Write custom middleware for cross-cutting concerns Debug routing issues using rails routes and route helpers","url":"/tracks/rails_internals/topics/routing_middleware.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"validations_callbacks","topic_name":"Validations, Callbacks & Concerns","depth_target":"Strong","objectives":"Write custom validations and understand when they run Identify callback dangers and when to avoid them Extract shared logic using concerns","url":"/tracks/rails_internals/topics/validations_callbacks.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"autoloading_boot","topic_name":"Zeitwerk/Autoloading & Boot Sequence","depth_target":"Strong","objectives":"Explain how Zeitwerk maps file paths to constants Debug \"uninitialized constant\" and circular dependency errors Optimize boot time by controlling eager loading","url":"/tracks/rails_internals/topics/autoloading_boot.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"ctes_windows","topic_name":"CTEs and Window Functions","depth_target":"Strong","objectives":"Write Common Table Expressions (WITH) to simplify complex queries Use window functions (ROW_NUMBER, RANK, LAG, LEAD) for analytics Decide when to use CTEs vs subqueries for readability and performance","url":"/tracks/sql_postgres/topics/ctes_windows.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"indexing","topic_name":"Database Indexing (B-tree, Partial, Composite)","depth_target":"Strong","objectives":"Choose appropriate index types (B-tree, partial, composite, GIN/GiST) for query patterns Identify when indexes improve or harm performance Use EXPLAIN to verify index usage and measure query costs","url":"/tracks/sql_postgres/topics/indexing.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"modeling_constraints","topic_name":"Modeling & Constraints (FKs, Uniques, Check)","depth_target":"Strong","objectives":"Design schemas with foreign keys, unique constraints, and check constraints Write migrations that enforce data integrity at the database level Debug constraint violations and fix schema issues","url":"/tracks/sql_postgres/topics/modeling_constraints.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"explain_analyze","topic_name":"Reading Query Plans (EXPLAIN ANALYZE)","depth_target":"Strong","objectives":"Read EXPLAIN ANALYZE output to identify sequential scans, index scans, and nested loops Identify query bottlenecks (costly sorts, large row estimates, missing indexes) Use pg_stat_statements to find slowest queries in production","url":"/tracks/sql_postgres/topics/explain_analyze.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"transactions_locks","topic_name":"Transactions, Isolation, and Locks","depth_target":"Strong","objectives":"Explain ACID properties and how Postgres enforces them Choose appropriate isolation levels for concurrent operations Debug deadlocks and lock contention using pg_locks and pg_stat_activity","url":"/tracks/sql_postgres/topics/transactions_locks.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"zero_downtime_migrations","topic_name":"Zero-Downtime Migrations","depth_target":"Strong","objectives":"Write migrations that don't lock tables or cause downtime Add columns with defaults, indexes, and constraints safely Backfill data in batches to avoid long-running transactions","url":"/tracks/sql_postgres/topics/zero_downtime_migrations.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"sidekiq_basics","topic_name":"ActiveJob vs Sidekiq Fundamentals","depth_target":"Strong","objectives":"Compare ActiveJob abstraction with direct Sidekiq usage Configure Redis connection and worker concurrency Route jobs to specific queues and set priorities","url":"/tracks/background_jobs/topics/sidekiq_basics.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"idempotency_retries","topic_name":"Idempotency Patterns & Retries","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate job effects Configure retry strategies with exponential backoff Handle dead jobs in the dead letter queue","url":"/tracks/background_jobs/topics/idempotency_retries.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"job_instrumentation","topic_name":"Job Instrumentation & Backoff","depth_target":"Strong","objectives":"Log job execution with structured context Track success/failure metrics for monitoring Implement custom exponential backoff strategies Use Sidekiq lifecycle hooks for instrumentation","url":"/tracks/background_jobs/topics/job_instrumentation.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"scheduling","topic_name":"Job Scheduling & Deduplication","depth_target":"Strong","objectives":"Schedule recurring jobs with cron syntax using sidekiq-cron Prevent duplicate jobs with sidekiq-unique-jobs Use at/in syntax for delayed one-time jobs Pass job context safely without ActiveRecord objects","url":"/tracks/background_jobs/topics/scheduling.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"cache_keys_invalidations","topic_name":"Cache Keys & Invalidation Strategies","depth_target":"Strong","objectives":"Design cache keys that auto-expire on record changes Implement Russian-doll caching pattern Prevent cache stampede with locks Choose between manual and automatic invalidation","url":"/tracks/caching_performance/topics/cache_keys_invalidations.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"eager_preload","topic_name":"Eager Loading vs Preloading Strategies","depth_target":"Strong","objectives":"Distinguish between includes, preload, eager_load, and joins Choose the correct loading strategy based on query needs Optimize nested associations without over-fetching","url":"/tracks/caching_performance/topics/eager_preload.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"fragment_caching","topic_name":"Fragment & Low-Level Caching","depth_target":"Strong","objectives":"Implement view fragment caching with cache keys Use low-level caching for expensive computations Configure cache stores (memory, Redis, Memcached) Measure cache hit rates and performance gains","url":"/tracks/caching_performance/topics/fragment_caching.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"memory_gc_basics","topic_name":"Memory & Garbage Collection Awareness","depth_target":"Strong","objectives":"Track Ruby object allocation and memory usage Read and interpret GC statistics Identify memory bloat and leaks Use memory_profiler gem to profile endpoints","url":"/tracks/caching_performance/topics/memory_gc_basics.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"n_plus_one","topic_name":"N+1 Query Detection & Resolution","depth_target":"Strong","objectives":"Identify N+1 query patterns in logs and using Bullet gem Choose between includes, preload, eager_load, and joins Measure query count before and after optimization","url":"/tracks/caching_performance/topics/n_plus_one.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"apm_traces","topic_name":"APM Basics and Flamegraphs","depth_target":"Working","objectives":"Read APM flamegraphs to identify slow segments Use APM to detect N+1 queries and slow database calls Set up rack-mini-profiler for local performance analysis","url":"/tracks/observability/topics/apm_traces.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"error_tracking_model","topic_name":"Error Tracking Mental Model","depth_target":"Working","objectives":"Integrate an error tracking service (Sentry, Rollbar, or Honeybadger) Add context to errors (user info, request params, custom tags) Understand error grouping and fingerprinting","url":"/tracks/observability/topics/error_tracking_model.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"metrics_slos","topic_name":"Metrics and SLO Thinking","depth_target":"Working","objectives":"Understand RED metrics (Rate, Errors, Duration) for web services Distinguish between SLI, SLO, and SLA Set realistic SLO targets (99% vs 99.9% trade-offs)","url":"/tracks/observability/topics/metrics_slos.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"structured_logging","topic_name":"Structured Logging with Lograge","depth_target":"Strong","objectives":"Configure lograge for JSON logging in production Add custom fields like request_id and user_id to log entries Filter sensitive data from logs (passwords, tokens)","url":"/tracks/observability/topics/structured_logging.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"error_shapes","topic_name":"API Error Shapes & Standards","depth_target":"Strong","objectives":"Design consistent error response structures across API endpoints Choose appropriate HTTP status codes for different error types Distinguish user-facing from developer-facing error messages","url":"/tracks/api_security/topics/error_shapes.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"versioning","topic_name":"API Versioning Strategies","depth_target":"Strong","objectives":"Compare header-based vs path-based API versioning Implement deprecation warnings with Sunset headers Maintain backward compatibility across API versions","url":"/tracks/api_security/topics/versioning.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"authn_authz","topic_name":"Authentication & Authorization with Pundit","depth_target":"Strong","objectives":"Implement token-based authentication for API endpoints Define authorization policies using Pundit Test authorization logic in controllers and request specs","url":"/tracks/api_security/topics/authn_authz.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"csrf_cors","topic_name":"CSRF, CORS & Input Validation","depth_target":"Strong","objectives":"Configure CORS headers for cross-origin API requests Implement CSRF protection for session-based APIs Validate and sanitize inputs to prevent injection attacks","url":"/tracks/api_security/topics/csrf_cors.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"idempotency_rate_limits","topic_name":"Idempotency Keys & Rate Limiting","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate operations Configure rate limiting using rack-attack and Redis Return appropriate headers (Retry-After, X-RateLimit)","url":"/tracks/api_security/topics/idempotency_rate_limits.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"pagination_filtering","topic_name":"Pagination, Filtering & Sorting","depth_target":"Strong","objectives":"Implement cursor and offset pagination with performance trade-offs Add filtering and sorting via query parameters Return pagination metadata for client navigation","url":"/tracks/api_security/topics/pagination_filtering.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"rest_design","topic_name":"REST Design Patterns","depth_target":"Strong","objectives":"Design RESTful routes using resources and verbs correctly Choose appropriate HTTP status codes for API responses Structure JSON responses with consistent conventions","url":"/tracks/api_security/topics/rest_design.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"forms_progressive","topic_name":"Forms & progressive enhancement","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/forms_progressive.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"hotwire_frames_streams","topic_name":"Hotwire: Frames & Streams","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/hotwire_frames_streams.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"react_working_fundamentals","topic_name":"React: Working fundamentals","depth_target":"working","objectives":"","url":"/tracks/frontend_integration/topics/react_working_fundamentals.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"stimulus_patterns","topic_name":"Stimulus patterns & best practices","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/stimulus_patterns.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"adrs","topic_name":"ADRs & Lightweight Documentation","depth_target":"Strong","objectives":"Write Architecture Decision Records for major changes Store ADRs in version control alongside code Use MADR template for consistency","url":"/tracks/architecture_design/topics/adrs.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"feature_flags_rollouts","topic_name":"Feature Flags & Safe Rollouts","depth_target":"Strong","objectives":"Implement feature flags with Flipper or Unleash Design rollout strategies by percentage or user segment Monitor flagged features and clean up old flags","url":"/tracks/architecture_design/topics/feature_flags_rollouts.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"layering_services","topic_name":"Layering & Service Objects","depth_target":"Strong","objectives":"Extract complex logic from models into service objects Choose between service, form, and policy objects Apply presenters and decorators for view logic","url":"/tracks/architecture_design/topics/layering_services.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"testing_strategy","topic_name":"Testing Strategy (Unit/Request/System)","depth_target":"Strong","objectives":"Balance unit, request, and system tests using the test pyramid Use factories and fixtures appropriately Stub HTTP calls with VCR and WebMock","url":"/tracks/architecture_design/topics/testing_strategy.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"microservices_when_not","topic_name":"When NOT to Microservice","depth_target":"Working","objectives":"Recognize when monoliths outperform microservices Understand modular monolith as an alternative Identify signs that microservices add complexity without benefit","url":"/tracks/architecture_design/topics/microservices_when_not.html"}];
+
+    // ============================================
+    // Progress Tracking (localStorage)
+    // ============================================
+    const STORAGE_KEY = 'rails_coach_progress';
+    const DARK_MODE_KEY = 'rails_coach_dark_mode';
+
+    function getProgress() {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : {};
+    }
+
+    function saveProgress(progress) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      updateProgressUI();
+    }
+
+    function isTopicComplete(trackKey, topicKey) {
+      const progress = getProgress();
+      return progress[`${trackKey}/${topicKey}`] === true;
+    }
+
+    function toggleTopicComplete(trackKey, topicKey) {
+      const progress = getProgress();
+      const key = `${trackKey}/${topicKey}`;
+      progress[key] = !progress[key];
+      saveProgress(progress);
+      return progress[key];
+    }
+
+    function getTrackProgress(trackKey, totalTopics) {
+      const progress = getProgress();
+      const completed = Object.keys(progress).filter(key =>
+        key.startsWith(trackKey + '/') && progress[key]
+      ).length;
+      return { completed, total: totalTopics };
+    }
+
+    function updateProgressUI() {
+      // Update completion badges on cards
+      document.querySelectorAll('[data-topic-key]').forEach(card => {
+        const trackKey = card.dataset.trackKey;
+        const topicKey = card.dataset.topicKey;
+        const badge = card.querySelector('.completion-badge');
+        if (badge && isTopicComplete(trackKey, topicKey)) {
+          badge.classList.add('completed');
+        }
+      });
+
+      // Update mark complete button
+      const completeBtn = document.getElementById('mark-complete-btn');
+      if (completeBtn) {
+        const trackKey = completeBtn.dataset.trackKey;
+        const topicKey = completeBtn.dataset.topicKey;
+        const completed = isTopicComplete(trackKey, topicKey);
+        completeBtn.classList.toggle('completed', completed);
+        completeBtn.innerHTML = completed ? '✓ Completed' : 'Mark Complete';
+      }
+
+      // Update progress summary
+      const summary = document.getElementById('progress-summary');
+      if (summary) {
+        const progress = getProgress();
+        const total = Object.keys(progress).filter(k => progress[k]).length;
+        if (total > 0) {
+          summary.innerHTML = `<span style="color: var(--text-secondary);">Progress: ${total}/41 topics</span>`;
+        }
+      }
+    }
+
+    function markTopicComplete(trackKey, topicKey) {
+      const completed = toggleTopicComplete(trackKey, topicKey);
+      updateProgressUI();
+
+      // Show celebration if first time completing
+      if (completed) {
+        showNotification('✓ Topic marked complete!');
+      }
+    }
+
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+      }, 2000);
+    }
+
+    // ============================================
+    // Search Functionality
+    // ============================================
+    function performSearch(query) {
+      if (!query || query.trim().length < 2) {
+        hideSearchResults();
+        return;
+      }
+
+      const normalizedQuery = query.toLowerCase().trim();
+      const results = SEARCH_INDEX.filter(item => {
+        return item.topic_name.toLowerCase().includes(normalizedQuery) ||
+               item.track_name.toLowerCase().includes(normalizedQuery) ||
+               item.objectives.toLowerCase().includes(normalizedQuery) ||
+               item.depth_target.toLowerCase().includes(normalizedQuery);
+      });
+
+      displaySearchResults(results, query);
+    }
+
+    function displaySearchResults(results, query) {
+      const container = document.getElementById('search-results');
+
+      if (results.length === 0) {
+        container.innerHTML = `
+          <div class="search-no-results">
+            No topics found for "${query}"
+          </div>
+        `;
+        container.classList.add('show');
+        return;
+      }
+
+      // Group results by track
+      const grouped = {};
+      results.forEach(item => {
+        if (!grouped[item.track_key]) {
+          grouped[item.track_key] = {
+            name: item.track_name,
+            icon: item.track_icon,
+            items: []
+          };
+        }
+        grouped[item.track_key].items.push(item);
+      });
+
+      // Build HTML
+      let html = '';
+      Object.keys(grouped).forEach(trackKey => {
+        const track = grouped[trackKey];
+        html += `
+          <div class="search-group">
+            <div class="search-group-title">
+              ${track.icon} ${track.name}
+            </div>
+        `;
+        track.items.forEach(item => {
+          const badgeClass = item.depth_target === 'Strong' ? 'badge-strong' :
+                           item.depth_target === 'Working' ? 'badge-working' : 'badge-exposure';
+          html += `
+            <a href="${item.url}" class="search-result-item">
+              <div class="search-result-title">${highlightMatch(item.topic_name, query)}</div>
+              <div class="search-result-meta">
+                <span class="badge ${badgeClass}">${item.depth_target}</span>
+              </div>
+            </a>
+          `;
+        });
+        html += `</div>`;
+      });
+
+      container.innerHTML = html;
+      container.classList.add('show');
+    }
+
+    function highlightMatch(text, query) {
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<strong>$1</strong>');
+    }
+
+    function hideSearchResults() {
+      document.getElementById('search-results').classList.remove('show');
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('search-input');
+      input.value = '';
+      hideSearchResults();
+      document.getElementById('search-clear').classList.remove('show');
+      input.focus();
+    }
+
+    function initSearch() {
+      const searchInput = document.getElementById('search-input');
+      const searchClear = document.getElementById('search-clear');
+
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value;
+        if (query.length > 0) {
+          searchClear.classList.add('show');
+        } else {
+          searchClear.classList.remove('show');
+        }
+        performSearch(query);
+      });
+
+      // Close search results when clicking outside
+      document.addEventListener('click', (e) => {
+        const searchContainer = document.querySelector('.search-container');
+        if (!searchContainer.contains(e.target)) {
+          hideSearchResults();
+        }
+      });
+
+      // Keyboard shortcut: / to focus search
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+        // Escape to close search
+        if (e.key === 'Escape') {
+          clearSearch();
+        }
+      });
+    }
+
+    // ============================================
+    // Dark Mode
+    // ============================================
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem(DARK_MODE_KEY, isDark);
+
+      document.querySelector('.light-icon').style.display = isDark ? 'none' : 'inline';
+      document.querySelector('.dark-icon').style.display = isDark ? 'inline' : 'none';
+    }
+
+    function initDarkMode() {
+      const isDark = localStorage.getItem(DARK_MODE_KEY) === 'true';
+      if (isDark) {
+        document.body.classList.add('dark-mode');
+        document.querySelector('.light-icon').style.display = 'none';
+        document.querySelector('.dark-icon').style.display = 'inline';
+      }
+    }
+
+    // ============================================
+    // Tab Switching
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const targetId = tab.dataset.tab;
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          document.getElementById(targetId).classList.add('active');
+        });
+      });
+
+      // Add code copy buttons
+      addCopyButtons();
+
+      // Initialize dark mode
+      initDarkMode();
+
+      // Initialize search
+      initSearch();
+
+      // Update progress UI
+      updateProgressUI();
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        // Arrow keys for prev/next
+        if (e.key === 'ArrowLeft' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          const prevBtn = document.querySelector('.nav-button.prev');
+          if (prevBtn && !prevBtn.disabled) prevBtn.click();
+        }
+        if (e.key === 'ArrowRight' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          const nextBtn = document.querySelector('.nav-button.next');
+          if (nextBtn && !nextBtn.disabled) nextBtn.click();
+        }
+        // Number keys for tabs
+        if (e.key >= '1' && e.key <= '4') {
+          const tabs = document.querySelectorAll('.tab');
+          const index = parseInt(e.key) - 1;
+          if (tabs[index]) tabs[index].click();
+        }
+      });
+    });
+
+    // ============================================
+    // Code Copy Buttons
+    // ============================================
+    function addCopyButtons() {
+      document.querySelectorAll('pre').forEach((pre, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+
+        const button = document.createElement('button');
+        button.className = 'copy-button';
+        button.textContent = 'Copy';
+        button.onclick = () => copyCode(pre, button);
+        wrapper.appendChild(button);
+      });
+    }
+
+    function copyCode(pre, button) {
+      const code = pre.querySelector('code') || pre;
+      navigator.clipboard.writeText(code.textContent).then(() => {
+        button.textContent = '✓ Copied!';
+        button.classList.add('copied');
+        setTimeout(() => {
+          button.textContent = 'Copy';
+          button.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // ============================================
+    // Quiz Functionality
+    // ============================================
+    function selectChoice(questionId, choiceIndex) {
+      const question = document.querySelector(`[data-question-id="${questionId}"]`);
+      const choices = question.querySelectorAll('.choice');
+      choices.forEach((choice, idx) => {
+        choice.classList.remove('selected');
+        if (idx === choiceIndex) choice.classList.add('selected');
+      });
+    }
+
+    function checkAnswers() {
+      let score = 0;
+      let totalPoints = 0;
+
+      document.querySelectorAll('.question').forEach(question => {
+        const kind = question.dataset.kind;
+        const points = parseInt(question.dataset.points);
+        totalPoints += points;
+
+        if (kind === 'mcq') {
+          const correct = question.dataset.correct;
+          const selected = question.querySelector('.choice.selected');
+
+          if (selected) {
+            const selectedText = selected.textContent.trim();
+            const explanation = question.querySelector('.explanation');
+
+            if (selectedText === correct) {
+              selected.classList.add('correct');
+              score += points;
+            } else {
+              selected.classList.add('incorrect');
+              question.querySelectorAll('.choice').forEach(choice => {
+                if (choice.textContent.trim() === correct) {
+                  choice.classList.add('correct');
+                }
+              });
+            }
+
+            if (explanation) explanation.classList.add('show');
+          }
+        }
+      });
+
+      const scoreDisplay = document.querySelector('.score-display');
+      const passingScore = parseInt(scoreDisplay.dataset.passing || 7);
+      const passed = score >= passingScore;
+
+      scoreDisplay.innerHTML = `
+        <div style="font-size: 24px; font-weight: bold;">${score} / ${totalPoints}</div>
+        <div style="margin-top: 5px;">${passed ? '✅ Passed!' : '❌ Try again'}</div>
+        <div style="font-size: 12px; margin-top: 5px;">Passing: ${passingScore}</div>
+      `;
+      scoreDisplay.classList.add('show');
+    }
+
+    function resetQuiz() {
+      document.querySelectorAll('.choice').forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+      });
+      document.querySelectorAll('.explanation').forEach(exp => exp.classList.remove('show'));
+      document.querySelector('.score-display').classList.remove('show');
+    }
+  </script>
+</body>
+</html>

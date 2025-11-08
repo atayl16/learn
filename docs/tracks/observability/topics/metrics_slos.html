@@ -1,0 +1,1908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rails Seniority Coach</title>
+  <style>
+    :root {
+      --bg-primary: #f5f5f5;
+      --bg-secondary: white;
+      --bg-tertiary: #f9f9f9;
+      --text-primary: #333;
+      --text-secondary: #666;
+      --text-muted: #999;
+      --accent: #CC0000;
+      --border: #e0e0e0;
+      --shadow: rgba(0,0,0,0.1);
+      --code-bg: #f4f4f4;
+      --code-block-bg: #2b2b2b;
+      --code-block-text: #f8f8f2;
+    }
+
+    body.dark-mode {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2d2d2d;
+      --bg-tertiary: #3a3a3a;
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --text-muted: #808080;
+      --border: #404040;
+      --shadow: rgba(0,0,0,0.3);
+      --code-bg: #3a3a3a;
+      --code-block-bg: #1e1e1e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      transition: background 0.3s, color 0.3s;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    /* Header */
+    header {
+      background: var(--accent);
+      color: white;
+      padding: 20px 0;
+      margin-bottom: 30px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { font-size: 28px; }
+    header p { opacity: 0.9; margin-top: 5px; }
+
+    /* Search Box */
+    .search-container {
+      position: relative;
+      flex: 1;
+      max-width: 500px;
+      margin: 0 20px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px 15px 10px 40px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.9);
+      color: #333;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input::placeholder { color: #666; }
+    .search-input:focus {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #666;
+      font-size: 16px;
+      pointer-events: none;
+    }
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 8px;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      box-shadow: 0 4px 16px var(--shadow);
+      max-height: 70vh;
+      overflow-y: auto;
+      display: none;
+      z-index: 1000;
+    }
+    .search-results.show { display: block; }
+    .search-group {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border);
+    }
+    .search-group:last-child { border-bottom: none; }
+    .search-group-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .search-result-item {
+      padding: 10px 12px;
+      margin: 4px 0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: block;
+    }
+    .search-result-item:hover {
+      background: var(--bg-tertiary);
+    }
+    .search-result-title {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .search-result-meta {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .search-no-results {
+      padding: 30px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .search-clear {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      display: none;
+    }
+    .search-clear.show { display: block; }
+
+    /* Dark mode toggle */
+    .dark-mode-toggle {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .dark-mode-toggle:hover { background: rgba(255,255,255,0.3); }
+
+    /* Navigation */
+    nav {
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    nav a {
+      color: var(--accent);
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    nav a:hover { background: var(--bg-tertiary); }
+
+    /* Progress indicator */
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+
+    /* Cards */
+    .track-grid, .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .track-card, .topic-card {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .track-card:hover, .topic-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .track-card h3, .topic-card h3 { color: var(--accent); margin-bottom: 10px; }
+    .track-card a, .topic-card a { text-decoration: none; color: inherit; }
+
+    /* Completion badge */
+    .completion-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 24px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .completion-badge.completed { opacity: 1; }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 5px;
+    }
+    .badge-strong { background: #4CAF50; color: white; }
+    .badge-working { background: #2196F3; color: white; }
+    .badge-exposure { background: #9E9E9E; color: white; }
+
+    /* Content sections */
+    .content-section {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 30px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+    .content-section h2 {
+      color: var(--accent);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    .content-section h3 {
+      color: var(--text-primary);
+      margin-top: 25px;
+      margin-bottom: 12px;
+    }
+    .content-section ul, .content-section ol {
+      margin-left: 25px;
+      margin-top: 10px;
+    }
+    .content-section li { margin: 8px 0; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 16px;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab:hover { color: var(--accent); }
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Prev/Next navigation */
+    .topic-navigation {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    .nav-button {
+      flex: 1;
+      min-width: 200px;
+      padding: 15px 20px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-button:hover {
+      border-color: var(--accent);
+      transform: translateX(0) translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .nav-button.prev:hover { transform: translateX(-5px) translateY(-2px); }
+    .nav-button.next:hover { transform: translateX(5px) translateY(-2px); }
+    .nav-button .arrow { font-size: 20px; }
+    .nav-button .label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
+    .nav-button .title { font-weight: 600; }
+    .nav-button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* Mark complete button */
+    .complete-button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .complete-button:hover { background: #45a049; transform: scale(1.05); }
+    .complete-button.completed {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 2px solid #4CAF50;
+    }
+
+    /* Quiz styles */
+    .question {
+      background: var(--bg-tertiary);
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 6px;
+      border-left: 4px solid var(--accent);
+    }
+    .question h4 { margin-bottom: 10px; }
+    .choices { margin: 10px 0; }
+    .choice {
+      padding: 12px;
+      margin: 8px 0;
+      cursor: pointer;
+      border-radius: 4px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      transition: all 0.2s;
+    }
+    .choice:hover { border-color: var(--accent); }
+    .choice.selected { background: #e3f2fd; border-color: #2196F3; }
+    .choice.correct { background: #e8f5e9; border-color: #4CAF50; }
+    .choice.incorrect { background: #ffebee; border-color: #f44336; }
+    .explanation {
+      margin-top: 10px;
+      padding: 10px;
+      background: #fff3cd;
+      color: #856404;
+      border-radius: 4px;
+      display: none;
+    }
+    .explanation.show { display: block; }
+
+    /* References */
+    .reference-list { list-style: none; margin-left: 0; }
+    .reference-list li {
+      padding: 15px;
+      margin: 10px 0;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+    }
+    .reference-list a { color: var(--accent); font-weight: 600; }
+    .reference-list .why { color: var(--text-secondary); font-size: 14px; margin-top: 5px; }
+
+    /* Code styles */
+    code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 15px 0;
+      position: relative;
+    }
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* Copy button for code blocks */
+    .code-block-wrapper {
+      position: relative;
+      margin: 15px 0;
+    }
+    .copy-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+      opacity: 0;
+    }
+    .code-block-wrapper:hover .copy-button { opacity: 1; }
+    .copy-button:hover { background: rgba(255,255,255,0.2); }
+    .copy-button.copied { background: #4CAF50; }
+
+    /* Score display */
+    .score-display {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--accent);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px var(--shadow);
+      display: none;
+      z-index: 1000;
+    }
+    .score-display.show { display: block; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .track-grid, .topic-grid { grid-template-columns: 1fr; }
+      .tabs { overflow-x: auto; }
+      header .container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+      }
+      .search-container {
+        margin: 0;
+        max-width: 100%;
+        order: 1;
+      }
+      header > .container > div:first-child { order: 0; }
+      .dark-mode-toggle {
+        order: 2;
+        align-self: flex-end;
+      }
+      .topic-navigation { flex-direction: column; }
+      .nav-button { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div>
+        <h1>💎 Rails Seniority Coach</h1>
+        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+      </div>
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          class="search-input"
+          id="search-input"
+          placeholder="Search topics..."
+          autocomplete="off"
+        />
+        <button class="search-clear" id="search-clear" onclick="clearSearch()">×</button>
+        <div class="search-results" id="search-results"></div>
+      </div>
+      <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+        <span class="light-icon">🌙</span><span class="dark-icon" style="display:none;">☀️</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    <nav>
+      <a href="/">← All Tracks</a>
+      <div id="progress-summary"></div>
+    </nav>
+    <nav style="margin-bottom: 20px;">
+  <a href="/tracks/observability">← Observability</a>
+</nav>
+
+<!-- Previous/Next Navigation -->
+<div class="topic-navigation">
+  
+    <a href="/tracks/observability/topics/error_tracking_model" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Error Tracking Mental Model</div>
+      </div>
+    </a>
+  
+
+  
+    <a href="/tracks/observability/topics/structured_logging" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">Structured Logging with Lograge</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+<div style="margin-bottom: 30px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+    <div style="flex: 1;">
+      <h1>Metrics and SLO Thinking</h1>
+      <div style="margin: 15px 0;">
+        
+        
+          <span class="badge badge-working">Working</span>
+        
+        &nbsp;
+        <span style="color: var(--text-secondary);">
+          📖 8 min read &nbsp; | &nbsp; 💻 15 min exercise
+        </span>
+      </div>
+    </div>
+    <button
+      id="mark-complete-btn"
+      class="complete-button"
+      data-track-key="observability"
+      data-topic-key="metrics_slos"
+      onclick="markTopicComplete('observability', 'metrics_slos')">
+      Mark Complete
+    </button>
+  </div>
+
+  
+    <div class="content-section" style="background: #f0f7ff;">
+      <h3 style="color: #2196F3; margin-bottom: 10px;">Learning Objectives</h3>
+      <ul style="margin-left: 20px;">
+        
+          <li>Understand RED metrics (Rate, Errors, Duration) for web services</li>
+        
+          <li>Distinguish between SLI, SLO, and SLA</li>
+        
+          <li>Set realistic SLO targets (99% vs 99.9% trade-offs)</li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-tab="overview-tab">📖 Overview</button>
+  <button class="tab" data-tab="exercise-tab">💻 Exercise</button>
+  <button class="tab" data-tab="checkpoint-tab">✅ Checkpoint</button>
+  <button class="tab" data-tab="references-tab">🔗 References</button>
+</div>
+
+<!-- Overview Tab -->
+<div id="overview-tab" class="tab-content active">
+  <div class="content-section">
+    
+      <h1>Metrics and SLO Thinking</h1>
+
+<h2>What It Is</h2>
+
+<p>RED metrics (Rate, Errors, Duration) measure web service health by tracking request rate (requests/second), error rate (percentage of failed requests), and response duration (latency percentiles). Service Level Indicators (SLIs) are specific measurements (P99 latency, error rate); Service Level Objectives (SLOs) are target thresholds (P99 &lt; 500ms, errors &lt; 0.1%); Service Level Agreements (SLAs) are contractual commitments with penalties for violations.</p>
+
+<h2>Why It Matters</h2>
+
+<p>Monitoring individual errors or slow requests creates noise without revealing system health. RED metrics provide a unified view: a spike in error rate signals a problem even if individual errors seem unrelated. SLOs convert monitoring into business objectives, answering &quot;is our service reliable enough?&quot; with data. Setting realistic SLOs (99% instead of 100%) creates error budgets that balance reliability with development velocity.</p>
+
+<h2>When to Use</h2>
+
+<ul>
+<li>Defining service health for dashboards and alerts</li>
+<li>Comparing reliability across services or deployments</li>
+<li>Setting alert thresholds that reflect user impact</li>
+<li>Communicating service quality to stakeholders</li>
+<li>Deciding whether to prioritize reliability work or new features</li>
+</ul>
+
+<h2>Three Common Pitfalls</h2>
+
+<ol>
+<li><strong>Targeting 100% uptime:</strong> Perfect reliability is impossible and expensive. Aiming for 100% blocks deployments and experiments. Calculate realistic SLOs (99%-99.9%) based on user expectations and error budgets.</li>
+<li><strong>Alerting on every blip:</strong> A single slow request or brief error spike doesn&#39;t indicate system failure. Alert when SLOs are violated over windows (5+ minutes) to reduce false positives and on-call fatigue.</li>
+<li><strong>Measuring vanity metrics:</strong> Tracking &quot;total users&quot; or &quot;requests per day&quot; doesn&#39;t reveal service health. Focus on actionable metrics (error rate, latency) that indicate problems requiring immediate action.</li>
+</ol>
+
+<hr>
+
+<h2>RED Metrics Explained</h2>
+
+<p><strong>Rate:</strong> Requests per second (throughput)<br>
+```ruby</p>
+
+<h1>Track with StatsD or Prometheus</h1>
+
+<p>StatsD.increment(&#39;requests.count&#39;)<br>
+```</p>
+
+<p><strong>Errors:</strong> Percentage of requests returning 5xx status<br>
+```ruby</p>
+
+<h1>Track error rate</h1>
+
+<p>if response.status &gt;= 500<br>
+  StatsD.increment(&#39;requests.errors&#39;)<br>
+end</p>
+
+<h1>Calculate: errors / total_requests * 100</h1>
+<div class="highlight"><pre class="highlight plaintext"><code>
+**Duration:** Request latency (P50, P95, P99)
+```ruby
+# Track response time
+start = Time.current
+process_request
+duration_ms = (Time.current - start) * 1000
+StatsD.measure('requests.duration', duration_ms)
+</code></pre></div>
+<p>These three metrics reveal most service problems.</p>
+
+<hr>
+
+<h2>SLI vs SLO vs SLA</h2>
+
+<p><strong>SLI (Service Level Indicator):</strong> What you measure<br>
+- P99 latency: 450ms<br>
+- Error rate: 0.05%<br>
+- Availability: 99.95%</p>
+
+<p><strong>SLO (Service Level Objective):</strong> Your internal target<br>
+- P99 latency &lt; 500ms<br>
+- Error rate &lt; 0.1%<br>
+- Availability &gt; 99.9%</p>
+
+<p><strong>SLA (Service Level Agreement):</strong> External commitment with consequences<br>
+- P99 latency &lt; 1000ms (credits if violated)<br>
+- Availability &gt; 99.5% (refund if violated)</p>
+
+<p><strong>Hierarchy:</strong> SLA ≤ SLO ≤ current SLI</p>
+
+<p>Set SLOs stricter than SLAs to catch problems before violating contracts.</p>
+
+<hr>
+
+<h2>Setting Realistic SLOs</h2>
+
+<p>Compare uptime targets:</p>
+
+<table><thead>
+<tr>
+<th>SLO</th>
+<th>Downtime/Year</th>
+<th>Downtime/Month</th>
+<th>Use Case</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>99%</td>
+<td>3.65 days</td>
+<td>7.2 hours</td>
+<td>Internal tools</td>
+</tr>
+<tr>
+<td>99.9%</td>
+<td>8.76 hours</td>
+<td>43 minutes</td>
+<td>Most web apps</td>
+</tr>
+<tr>
+<td>99.95%</td>
+<td>4.38 hours</td>
+<td>21 minutes</td>
+<td>Critical services</td>
+</tr>
+<tr>
+<td>99.99%</td>
+<td>52 minutes</td>
+<td>4 minutes</td>
+<td>Payment processing</td>
+</tr>
+</tbody></table>
+
+<p><strong>Higher SLOs cost more:</strong><br>
+- 99.9% → 99.99% = 10x cost (redundancy, chaos engineering, on-call)</p>
+
+<p>Calculate based on user impact:<br>
+- Can users tolerate 40 minutes downtime/month? → 99.9%<br>
+- Must users have &lt;5 minutes downtime/month? → 99.99%</p>
+
+<hr>
+
+<h2>Error Budgets</h2>
+
+<p>Error budget = allowed failures based on SLO</p>
+
+<p><strong>Example:</strong> 99.9% uptime SLO<br>
+- Target: 99.9% of requests succeed<br>
+- Error budget: 0.1% can fail<br>
+- At 1M requests/month: 1,000 errors allowed</p>
+
+<p><strong>Using error budget:</strong><br>
+- Budget remaining → ship new features aggressively<br>
+- Budget exhausted → freeze feature work, fix reliability<br>
+- Budget overspent → miss SLO, investigate incident</p>
+
+<p>Error budgets balance innovation with stability.</p>
+
+<hr>
+
+<h2>Dashboard Design</h2>
+
+<p>Effective dashboards answer: &quot;Is the service healthy?&quot;</p>
+
+<p><strong>Layout:</strong><br>
+<code><br>
+┌─────────────────────────────────────┐<br>
+│ Service Health: ✓ All SLOs Met     │<br>
+├─────────────────────────────────────┤<br>
+│ Rate:     1,240 req/s  (normal)    │<br>
+│ Errors:   0.03%        (SLO: &lt;0.1%)│<br>
+│ Duration: P99 = 380ms  (SLO: &lt;500ms)│<br>
+├─────────────────────────────────────┤<br>
+│ Error Budget: 67% remaining        │<br>
+└─────────────────────────────────────┘<br>
+</code></p>
+
+<p><strong>Design principles:</strong><br>
+- RED metrics on every dashboard<br>
+- Show current value vs SLO threshold<br>
+- Graph last 24 hours (spot trends)<br>
+- Include error budget status</p>
+
+<hr>
+
+<h2>Alerting Thresholds</h2>
+
+<p>Alert when SLO violation is imminent:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Good: Alert on sustained SLO violation</span>
+<span class="k">if</span> <span class="n">error_rate</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="o">%</span> <span class="k">for</span> <span class="mi">5</span><span class="p">.</span><span class="nf">minutes</span>
+  <span class="n">page_oncall</span><span class="p">(</span><span class="s2">"Error rate SLO violated"</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="k">if</span> <span class="n">p99_latency</span> <span class="o">&gt;</span> <span class="mi">500</span><span class="p">.</span><span class="nf">ms</span> <span class="k">for</span> <span class="mi">10</span><span class="p">.</span><span class="nf">minutes</span>
+  <span class="n">page_oncall</span><span class="p">(</span><span class="s2">"Latency SLO violated"</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Bad alerts:</strong><br>
+```ruby</p>
+
+<h1>Don&#39;t alert on single errors</h1>
+
+<p>if single<em>request.status == 500<br>
+  page</em>oncall  # TOO NOISY<br>
+end</p>
+
+<h1>Don&#39;t alert on arbitrary thresholds</h1>
+
+<p>if error<em>rate &gt; 1%  # Why 1%? Is it tied to user impact?<br>
+  page</em>oncall<br>
+end<br>
+```</p>
+
+<p>Every alert should answer: &quot;Does this require immediate human action?&quot;</p>
+
+<hr>
+
+<h2>Instrumenting Rails for RED Metrics</h2>
+
+<p>Send metrics to StatsD/Prometheus:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'statsd-instrument'</span>
+
+<span class="c1"># config/initializers/statsd.rb</span>
+<span class="no">StatsD</span><span class="p">.</span><span class="nf">backend</span> <span class="o">=</span> <span class="no">StatsD</span><span class="o">::</span><span class="no">Instrument</span><span class="o">::</span><span class="no">Backends</span><span class="o">::</span><span class="no">UDPBackend</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span>
+  <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'STATSD_ADDR'</span><span class="p">,</span> <span class="s1">'localhost:8125'</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="c1"># config/application.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">use</span><span class="p">(</span><span class="no">StatsD</span><span class="o">::</span><span class="no">Instrument</span><span class="o">::</span><span class="no">Middleware</span><span class="p">)</span>
+</code></pre></div>
+<p>Metrics sent automatically:<br>
+- Request rate: <code>requests.count</code><br>
+- Error rate: <code>requests.status.5xx</code><br>
+- Duration: <code>requests.duration</code></p>
+
+<p>Build Grafana/Datadog dashboards from these metrics.</p>
+
+<hr>
+
+<h2>Trade-offs Box</h2>
+
+<ul>
+<li><strong>Advantage:</strong> RED metrics and SLOs convert chaotic monitoring into clear health signals; error budgets justify reliability investments with data.</li>
+<li><strong>Cost:</strong> Requires metrics infrastructure (StatsD, Prometheus, Datadog); setting SLOs demands understanding user expectations and cost trade-offs.</li>
+<li><strong>When to skip:</strong> For prototype apps or internal tools with &lt;10 users, manual testing suffices; adopt SLOs when scaling to 1000+ users or building customer-facing SaaS.</li>
+</ul>
+
+<hr>
+
+<h2>Debugging Checklist</h2>
+
+<p>When SLO violations occur:</p>
+
+<ol>
+<li>Check RED metrics: Which metric violated SLO? (rate, errors, duration)</li>
+<li>Identify time window: When did violation start? Correlate with deploys</li>
+<li>Review error logs: What exceptions or status codes increased?</li>
+<li>Check dependencies: Did external API or database slow down?</li>
+<li>Compare percentiles: Is P99 slow but P50 normal? (tail latency)</li>
+<li>Inspect dashboards: Are all endpoints affected or just one?</li>
+<li>Review recent changes: Code deploys, config changes, traffic spikes</li>
+<li>Calculate error budget: How much budget remains this month?</li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>RED metrics (Rate, Errors, Duration) provide unified service health view</li>
+<li>SLIs are measurements; SLOs are targets; SLAs are external contracts</li>
+<li>Set realistic SLOs (99%-99.9%) based on user impact, not perfection</li>
+<li>Error budgets balance feature velocity with reliability work</li>
+<li>Alert on sustained SLO violations over time windows, not single events</li>
+</ul>
+
+    
+  </div>
+</div>
+
+<!-- Exercise Tab -->
+<div id="exercise-tab" class="tab-content">
+  <div class="content-section">
+    
+      <h1>Exercise: Metrics and SLO Thinking</h1>
+
+<h2>Objective</h2>
+
+<p>Instrument a Rails application to track RED metrics, define SLOs for error rate and latency, and create a simple dashboard showing SLO compliance.</p>
+
+<h2>Task</h2>
+
+<p>In a Rails application:</p>
+
+<ol>
+<li>Install statsd-instrument gem</li>
+<li>Configure StatsD middleware to track requests</li>
+<li>Create a controller that reports metrics</li>
+<li>Define SLOs for error rate and P99 latency</li>
+<li>Build a simple dashboard endpoint showing SLO status</li>
+</ol>
+
+<h2>Acceptance Criteria</h2>
+
+<ul>
+<li>[ ] statsd-instrument gem installed and configured</li>
+<li>[ ] Middleware tracks request rate, errors, and duration</li>
+<li>[ ] Dashboard shows current error rate and P99 latency</li>
+<li>[ ] SLO thresholds defined (error rate &lt; 1%, P99 &lt; 500ms)</li>
+<li>[ ] Dashboard indicates SLO compliance (pass/fail)</li>
+<li>[ ] Test endpoints demonstrate metrics collection</li>
+</ul>
+
+<h2>Verification Steps</h2>
+
+<h3>Step 1: Install statsd-instrument</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Add to Gemfile</span>
+bundle add statsd-instrument
+
+bundle <span class="nb">install</span>
+</code></pre></div>
+<h3>Step 2: Configure StatsD</h3>
+
+<p>Create <code>config/initializers/statsd.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># For development, we'll use logger backend to see metrics in console</span>
+<span class="c1"># In production, use UDP backend pointing to real StatsD server</span>
+<span class="k">if</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">env</span><span class="p">.</span><span class="nf">production?</span>
+  <span class="no">StatsD</span><span class="p">.</span><span class="nf">backend</span> <span class="o">=</span> <span class="no">StatsD</span><span class="o">::</span><span class="no">Instrument</span><span class="o">::</span><span class="no">Backends</span><span class="o">::</span><span class="no">UDPBackend</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span>
+    <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'STATSD_ADDR'</span><span class="p">,</span> <span class="s1">'localhost:8125'</span><span class="p">)</span>
+  <span class="p">)</span>
+<span class="k">else</span>
+  <span class="c1"># Development: log metrics to console</span>
+  <span class="no">StatsD</span><span class="p">.</span><span class="nf">backend</span> <span class="o">=</span> <span class="no">StatsD</span><span class="o">::</span><span class="no">Instrument</span><span class="o">::</span><span class="no">Backends</span><span class="o">::</span><span class="no">LoggerBackend</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="no">StatsD</span><span class="p">.</span><span class="nf">prefix</span> <span class="o">=</span> <span class="s1">'myapp'</span>
+<span class="no">StatsD</span><span class="p">.</span><span class="nf">default_sample_rate</span> <span class="o">=</span> <span class="mf">1.0</span>
+</code></pre></div>
+<h3>Step 3: Add Metrics Middleware</h3>
+
+<p>Edit <code>config/application.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">YourApp</span>
+  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="no">Rails</span><span class="o">::</span><span class="no">Application</span>
+    <span class="c1"># ... existing config ...</span>
+
+    <span class="c1"># Track RED metrics for all requests</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">insert_before</span><span class="p">(</span>
+      <span class="no">Rails</span><span class="o">::</span><span class="no">Rack</span><span class="o">::</span><span class="no">Logger</span><span class="p">,</span>
+      <span class="no">StatsD</span><span class="o">::</span><span class="no">Instrument</span><span class="o">::</span><span class="no">Middleware</span><span class="p">,</span>
+      <span class="no">StatsD</span><span class="p">.</span><span class="nf">backend</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 4: Create Metrics Store</h3>
+
+<p>Create <code>app/services/metrics_store.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">MetricsStore</span>
+  <span class="no">WINDOW_SIZE</span> <span class="o">=</span> <span class="mi">60</span> <span class="c1"># Track last 60 seconds</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">record_request</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">duration_ms</span><span class="p">)</span>
+    <span class="vi">@requests</span> <span class="o">||=</span> <span class="p">[]</span>
+    <span class="vi">@requests</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+      <span class="ss">status: </span><span class="n">status</span><span class="p">,</span>
+      <span class="ss">duration_ms: </span><span class="n">duration_ms</span><span class="p">,</span>
+      <span class="ss">timestamp: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Clean old entries</span>
+    <span class="n">cutoff</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span> <span class="o">-</span> <span class="no">WINDOW_SIZE</span><span class="p">.</span><span class="nf">seconds</span>
+    <span class="vi">@requests</span><span class="p">.</span><span class="nf">reject!</span> <span class="p">{</span> <span class="o">|</span><span class="n">r</span><span class="o">|</span> <span class="n">r</span><span class="p">[</span><span class="ss">:timestamp</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">cutoff</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">stats</span>
+    <span class="vi">@requests</span> <span class="o">||=</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="n">default_stats</span> <span class="k">if</span> <span class="vi">@requests</span><span class="p">.</span><span class="nf">empty?</span>
+
+    <span class="n">total</span> <span class="o">=</span> <span class="vi">@requests</span><span class="p">.</span><span class="nf">size</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="vi">@requests</span><span class="p">.</span><span class="nf">count</span> <span class="p">{</span> <span class="o">|</span><span class="n">r</span><span class="o">|</span> <span class="n">r</span><span class="p">[</span><span class="ss">:status</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">500</span> <span class="p">}</span>
+    <span class="n">error_rate</span> <span class="o">=</span> <span class="p">(</span><span class="n">errors</span><span class="p">.</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">durations</span> <span class="o">=</span> <span class="vi">@requests</span><span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">r</span><span class="o">|</span> <span class="n">r</span><span class="p">[</span><span class="ss">:duration_ms</span><span class="p">]</span> <span class="p">}.</span><span class="nf">sort</span>
+    <span class="n">p99_index</span> <span class="o">=</span> <span class="p">[(</span><span class="n">durations</span><span class="p">.</span><span class="nf">size</span> <span class="o">*</span> <span class="mf">0.99</span><span class="p">).</span><span class="nf">ceil</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">].</span><span class="nf">max</span>
+    <span class="n">p99_latency</span> <span class="o">=</span> <span class="n">durations</span><span class="p">[</span><span class="n">p99_index</span><span class="p">]</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">||</span> <span class="mi">0</span>
+
+    <span class="p">{</span>
+      <span class="ss">total_requests: </span><span class="n">total</span><span class="p">,</span>
+      <span class="ss">error_count: </span><span class="n">errors</span><span class="p">,</span>
+      <span class="ss">error_rate_percent: </span><span class="n">error_rate</span><span class="p">,</span>
+      <span class="ss">p99_latency_ms: </span><span class="n">p99_latency</span><span class="p">,</span>
+      <span class="ss">window_seconds: </span><span class="no">WINDOW_SIZE</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">default_stats</span>
+    <span class="p">{</span>
+      <span class="ss">total_requests: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">error_count: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">error_rate_percent: </span><span class="mf">0.0</span><span class="p">,</span>
+      <span class="ss">p99_latency_ms: </span><span class="mf">0.0</span><span class="p">,</span>
+      <span class="ss">window_seconds: </span><span class="no">WINDOW_SIZE</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">reset!</span>
+    <span class="vi">@requests</span> <span class="o">=</span> <span class="p">[]</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 5: Track Metrics in ApplicationController</h3>
+
+<p>Edit <code>app/controllers/application_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ApplicationController</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">around_action</span> <span class="ss">:track_metrics</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">track_metrics</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+    <span class="k">yield</span>
+    <span class="n">duration_ms</span> <span class="o">=</span> <span class="p">(</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span>
+
+    <span class="no">MetricsStore</span><span class="p">.</span><span class="nf">record_request</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">status</span><span class="p">,</span> <span class="n">duration_ms</span><span class="p">)</span>
+
+    <span class="c1"># Send to StatsD</span>
+    <span class="no">StatsD</span><span class="p">.</span><span class="nf">increment</span><span class="p">(</span><span class="s1">'requests.count'</span><span class="p">)</span>
+    <span class="no">StatsD</span><span class="p">.</span><span class="nf">increment</span><span class="p">(</span><span class="s2">"requests.status.</span><span class="si">#{</span><span class="n">response</span><span class="p">.</span><span class="nf">status</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="no">StatsD</span><span class="p">.</span><span class="nf">measure</span><span class="p">(</span><span class="s1">'requests.duration'</span><span class="p">,</span> <span class="n">duration_ms</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">response</span><span class="p">.</span><span class="nf">status</span> <span class="o">&gt;=</span> <span class="mi">500</span>
+      <span class="no">StatsD</span><span class="p">.</span><span class="nf">increment</span><span class="p">(</span><span class="s1">'requests.errors'</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 6: Create Dashboard Controller</h3>
+
+<p>Generate controller:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate controller Dashboard index
+</code></pre></div>
+<p>Edit <code>app/controllers/dashboard_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">DashboardController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="c1"># Define SLOs</span>
+  <span class="no">SLO_ERROR_RATE_PERCENT</span> <span class="o">=</span> <span class="mf">1.0</span>
+  <span class="no">SLO_P99_LATENCY_MS</span> <span class="o">=</span> <span class="mf">500.0</span>
+
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="vi">@stats</span> <span class="o">=</span> <span class="no">MetricsStore</span><span class="p">.</span><span class="nf">stats</span>
+    <span class="vi">@slos</span> <span class="o">=</span> <span class="n">slo_status</span><span class="p">(</span><span class="vi">@stats</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">slo_status</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span>
+    <span class="n">error_rate_met</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="ss">:error_rate_percent</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="no">SLO_ERROR_RATE_PERCENT</span>
+    <span class="n">latency_met</span> <span class="o">=</span> <span class="n">stats</span><span class="p">[</span><span class="ss">:p99_latency_ms</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="no">SLO_P99_LATENCY_MS</span>
+    <span class="n">all_met</span> <span class="o">=</span> <span class="n">error_rate_met</span> <span class="o">&amp;&amp;</span> <span class="n">latency_met</span>
+
+    <span class="p">{</span>
+      <span class="ss">error_rate: </span><span class="p">{</span>
+        <span class="ss">current: </span><span class="n">stats</span><span class="p">[</span><span class="ss">:error_rate_percent</span><span class="p">],</span>
+        <span class="ss">target: </span><span class="no">SLO_ERROR_RATE_PERCENT</span><span class="p">,</span>
+        <span class="ss">met: </span><span class="n">error_rate_met</span>
+      <span class="p">},</span>
+      <span class="ss">p99_latency: </span><span class="p">{</span>
+        <span class="ss">current: </span><span class="n">stats</span><span class="p">[</span><span class="ss">:p99_latency_ms</span><span class="p">],</span>
+        <span class="ss">target: </span><span class="no">SLO_P99_LATENCY_MS</span><span class="p">,</span>
+        <span class="ss">met: </span><span class="n">latency_met</span>
+      <span class="p">},</span>
+      <span class="ss">all_slos_met: </span><span class="n">all_met</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 7: Create Dashboard View</h3>
+
+<p>Edit <code>app/views/dashboard/index.html.erb</code>:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="nt">&lt;h1&gt;</span>Service Health Dashboard<span class="nt">&lt;/h1&gt;</span>
+
+<span class="nt">&lt;div</span> <span class="na">style=</span><span class="s">"padding: 20px; border: 2px solid </span><span class="cp">&lt;%=</span> <span class="vi">@slos</span><span class="p">[</span><span class="ss">:all_slos_met</span><span class="p">]</span> <span class="p">?</span> <span class="s1">'green'</span> <span class="p">:</span> <span class="s1">'red'</span> <span class="cp">%&gt;</span><span class="s">; margin: 20px 0;"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;h2&gt;</span>
+    Overall Status:
+    <span class="cp">&lt;%=</span> <span class="vi">@slos</span><span class="p">[</span><span class="ss">:all_slos_met</span><span class="p">]</span> <span class="p">?</span> <span class="s1">'✓ All SLOs Met'</span> <span class="p">:</span> <span class="s1">'✗ SLO Violation'</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;/h2&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+
+<span class="nt">&lt;h2&gt;</span>RED Metrics (Last <span class="cp">&lt;%=</span> <span class="vi">@stats</span><span class="p">[</span><span class="ss">:window_seconds</span><span class="p">]</span> <span class="cp">%&gt;</span> seconds)<span class="nt">&lt;/h2&gt;</span>
+
+<span class="nt">&lt;table</span> <span class="na">border=</span><span class="s">"1"</span> <span class="na">cellpadding=</span><span class="s">"10"</span> <span class="na">style=</span><span class="s">"border-collapse: collapse; width: 100%;"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;tr&gt;</span>
+    <span class="nt">&lt;th&gt;</span>Metric<span class="nt">&lt;/th&gt;</span>
+    <span class="nt">&lt;th&gt;</span>Current Value<span class="nt">&lt;/th&gt;</span>
+    <span class="nt">&lt;th&gt;</span>SLO Target<span class="nt">&lt;/th&gt;</span>
+    <span class="nt">&lt;th&gt;</span>Status<span class="nt">&lt;/th&gt;</span>
+  <span class="nt">&lt;/tr&gt;</span>
+
+  <span class="nt">&lt;tr&gt;</span>
+    <span class="nt">&lt;td&gt;&lt;strong&gt;</span>Rate<span class="nt">&lt;/strong&gt;&lt;/td&gt;</span>
+    <span class="nt">&lt;td&gt;</span><span class="cp">&lt;%=</span> <span class="vi">@stats</span><span class="p">[</span><span class="ss">:total_requests</span><span class="p">]</span> <span class="cp">%&gt;</span> requests<span class="nt">&lt;/td&gt;</span>
+    <span class="nt">&lt;td&gt;</span>-<span class="nt">&lt;/td&gt;</span>
+    <span class="nt">&lt;td&gt;</span>ℹ️ Info only<span class="nt">&lt;/td&gt;</span>
+  <span class="nt">&lt;/tr&gt;</span>
+
+  <span class="nt">&lt;tr</span> <span class="na">style=</span><span class="s">"background-color: </span><span class="cp">&lt;%=</span> <span class="vi">@slos</span><span class="p">[</span><span class="ss">:error_rate</span><span class="p">][</span><span class="ss">:met</span><span class="p">]</span> <span class="p">?</span> <span class="s1">'#d4edda'</span> <span class="p">:</span> <span class="s1">'#f8d7da'</span> <span class="cp">%&gt;</span><span class="s">"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;td&gt;&lt;strong&gt;</span>Errors<span class="nt">&lt;/strong&gt;&lt;/td&gt;</span>
+    <span class="nt">&lt;td&gt;</span>
+      <span class="cp">&lt;%=</span> <span class="vi">@stats</span><span class="p">[</span><span class="ss">:error_rate_percent</span><span class="p">]</span> <span class="cp">%&gt;</span>%
+      (<span class="cp">&lt;%=</span> <span class="vi">@stats</span><span class="p">[</span><span class="ss">:error_count</span><span class="p">]</span> <span class="cp">%&gt;</span> / <span class="cp">&lt;%=</span> <span class="vi">@stats</span><span class="p">[</span><span class="ss">:total_requests</span><span class="p">]</span> <span class="cp">%&gt;</span> requests)
+    <span class="nt">&lt;/td&gt;</span>
+    <span class="nt">&lt;td&gt;</span><span class="ni">&amp;lt;</span> <span class="cp">&lt;%=</span> <span class="vi">@slos</span><span class="p">[</span><span class="ss">:error_rate</span><span class="p">][</span><span class="ss">:target</span><span class="p">]</span> <span class="cp">%&gt;</span>%<span class="nt">&lt;/td&gt;</span>
+    <span class="nt">&lt;td&gt;</span><span class="cp">&lt;%=</span> <span class="vi">@slos</span><span class="p">[</span><span class="ss">:error_rate</span><span class="p">][</span><span class="ss">:met</span><span class="p">]</span> <span class="p">?</span> <span class="s1">'✓ Pass'</span> <span class="p">:</span> <span class="s1">'✗ Fail'</span> <span class="cp">%&gt;</span><span class="nt">&lt;/td&gt;</span>
+  <span class="nt">&lt;/tr&gt;</span>
+
+  <span class="nt">&lt;tr</span> <span class="na">style=</span><span class="s">"background-color: </span><span class="cp">&lt;%=</span> <span class="vi">@slos</span><span class="p">[</span><span class="ss">:p99_latency</span><span class="p">][</span><span class="ss">:met</span><span class="p">]</span> <span class="p">?</span> <span class="s1">'#d4edda'</span> <span class="p">:</span> <span class="s1">'#f8d7da'</span> <span class="cp">%&gt;</span><span class="s">"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;td&gt;&lt;strong&gt;</span>Duration (P99)<span class="nt">&lt;/strong&gt;&lt;/td&gt;</span>
+    <span class="nt">&lt;td&gt;</span><span class="cp">&lt;%=</span> <span class="vi">@stats</span><span class="p">[</span><span class="ss">:p99_latency_ms</span><span class="p">]</span> <span class="cp">%&gt;</span> ms<span class="nt">&lt;/td&gt;</span>
+    <span class="nt">&lt;td&gt;</span><span class="ni">&amp;lt;</span> <span class="cp">&lt;%=</span> <span class="vi">@slos</span><span class="p">[</span><span class="ss">:p99_latency</span><span class="p">][</span><span class="ss">:target</span><span class="p">]</span> <span class="cp">%&gt;</span> ms<span class="nt">&lt;/td&gt;</span>
+    <span class="nt">&lt;td&gt;</span><span class="cp">&lt;%=</span> <span class="vi">@slos</span><span class="p">[</span><span class="ss">:p99_latency</span><span class="p">][</span><span class="ss">:met</span><span class="p">]</span> <span class="p">?</span> <span class="s1">'✓ Pass'</span> <span class="p">:</span> <span class="s1">'✗ Fail'</span> <span class="cp">%&gt;</span><span class="nt">&lt;/td&gt;</span>
+  <span class="nt">&lt;/tr&gt;</span>
+<span class="nt">&lt;/table&gt;</span>
+
+<span class="nt">&lt;hr&gt;</span>
+
+<span class="nt">&lt;h3&gt;</span>Test Endpoints<span class="nt">&lt;/h3&gt;</span>
+<span class="nt">&lt;ul&gt;</span>
+  <span class="nt">&lt;li&gt;</span><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s1">'Fast endpoint (50ms)'</span><span class="p">,</span> <span class="n">fast_test_path</span> <span class="cp">%&gt;</span><span class="nt">&lt;/li&gt;</span>
+  <span class="nt">&lt;li&gt;</span><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s1">'Slow endpoint (600ms)'</span><span class="p">,</span> <span class="n">slow_test_path</span> <span class="cp">%&gt;</span><span class="nt">&lt;/li&gt;</span>
+  <span class="nt">&lt;li&gt;</span><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s1">'Error endpoint (500)'</span><span class="p">,</span> <span class="n">error_test_path</span> <span class="cp">%&gt;</span><span class="nt">&lt;/li&gt;</span>
+  <span class="nt">&lt;li&gt;</span><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s1">'Reset metrics'</span><span class="p">,</span> <span class="n">reset_metrics_path</span><span class="p">,</span> <span class="ss">method: :post</span> <span class="cp">%&gt;</span><span class="nt">&lt;/li&gt;</span>
+<span class="nt">&lt;/ul&gt;</span>
+</code></pre></div>
+<h3>Step 8: Create Test Endpoints</h3>
+
+<p>Edit <code>app/controllers/dashboard_controller.rb</code> (add actions):</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">fast_test</span>
+  <span class="nb">sleep</span> <span class="mf">0.05</span>
+  <span class="n">render</span> <span class="ss">plain: </span><span class="s1">'Fast response (50ms)'</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">slow_test</span>
+  <span class="nb">sleep</span> <span class="mf">0.6</span>
+  <span class="n">render</span> <span class="ss">plain: </span><span class="s1">'Slow response (600ms)'</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">error_test</span>
+  <span class="k">raise</span> <span class="no">StandardError</span><span class="p">,</span> <span class="s1">'Intentional error for testing'</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">reset_metrics</span>
+  <span class="no">MetricsStore</span><span class="p">.</span><span class="nf">reset!</span>
+  <span class="n">redirect_to</span> <span class="n">dashboard_index_path</span><span class="p">,</span> <span class="ss">notice: </span><span class="s1">'Metrics reset'</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Update <code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">get</span> <span class="s1">'dashboard'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'dashboard#index'</span><span class="p">,</span> <span class="ss">as: :dashboard_index</span>
+  <span class="n">get</span> <span class="s1">'dashboard/fast'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'dashboard#fast_test'</span><span class="p">,</span> <span class="ss">as: :fast_test</span>
+  <span class="n">get</span> <span class="s1">'dashboard/slow'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'dashboard#slow_test'</span><span class="p">,</span> <span class="ss">as: :slow_test</span>
+  <span class="n">get</span> <span class="s1">'dashboard/error'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'dashboard#error_test'</span><span class="p">,</span> <span class="ss">as: :error_test</span>
+  <span class="n">post</span> <span class="s1">'dashboard/reset'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'dashboard#reset_metrics'</span><span class="p">,</span> <span class="ss">as: :reset_metrics</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 9: Test the Dashboard</h3>
+
+<p>Start Rails server:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails server
+</code></pre></div>
+<ol>
+<li>Visit <a href="http://localhost:3000/dashboard" target="_blank">http://localhost:3000/dashboard</a></li>
+<li>Should show &quot;All SLOs Met&quot; (no requests yet)</li>
+<li>Click &quot;Fast endpoint&quot; 10 times</li>
+<li>Return to dashboard - should still pass SLOs</li>
+<li>Click &quot;Slow endpoint&quot; 5 times</li>
+<li>Dashboard should show P99 SLO violation (&gt;500ms)</li>
+<li>Click &quot;Error endpoint&quot; 2 times</li>
+<li>Dashboard may show error rate violation</li>
+<li>Click &quot;Reset metrics&quot; to start over</li>
+</ol>
+
+<h3>Step 10: Observe StatsD Logs</h3>
+
+<p>Check <code>log/development.log</code> for StatsD metrics:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>[StatsD] myapp.requests.count:1|c
+[StatsD] myapp.requests.status.200:1|c
+[StatsD] myapp.requests.duration:52.3|ms
+</code></pre></div>
+<p>In production, these would be sent to actual StatsD server.</p>
+
+<h2>Stretch (Optional)</h2>
+
+<ol>
+<li>Add error budget calculation:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># In dashboard_controller.rb</span>
+<span class="k">def</span> <span class="nf">error_budget</span>
+  <span class="n">slo_uptime</span> <span class="o">=</span> <span class="mf">0.999</span>  <span class="c1"># 99.9%</span>
+  <span class="n">allowed_error_rate</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">slo_uptime</span>  <span class="c1"># 0.1%</span>
+  <span class="n">current_error_rate</span> <span class="o">=</span> <span class="vi">@stats</span><span class="p">[</span><span class="ss">:error_rate_percent</span><span class="p">]</span> <span class="o">/</span> <span class="mi">100</span>
+  <span class="n">budget_used</span> <span class="o">=</span> <span class="p">(</span><span class="n">current_error_rate</span> <span class="o">/</span> <span class="n">allowed_error_rate</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+  <span class="p">{</span>
+    <span class="ss">allowed_error_rate_percent: </span><span class="n">allowed_error_rate</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="ss">budget_used_percent: </span><span class="n">budget_used</span><span class="p">,</span>
+    <span class="ss">budget_remaining_percent: </span><span class="mi">100</span> <span class="o">-</span> <span class="n">budget_used</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<ol>
+<li>Add request rate (requests/sec):</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">stats</span>
+  <span class="c1"># ... existing code ...</span>
+  <span class="n">rate_per_second</span> <span class="o">=</span> <span class="p">(</span><span class="n">total</span><span class="p">.</span><span class="nf">to_f</span> <span class="o">/</span> <span class="no">WINDOW_SIZE</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+  <span class="p">{</span> <span class="ss">rate_per_second: </span><span class="n">rate_per_second</span><span class="p">,</span> <span class="o">...</span> <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<ol>
+<li>Track per-endpoint metrics:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">StatsD</span><span class="p">.</span><span class="nf">increment</span><span class="p">(</span><span class="s2">"requests.endpoint.</span><span class="si">#{</span><span class="n">controller_name</span><span class="si">}</span><span class="s2">.</span><span class="si">#{</span><span class="n">action_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div>
+<h2>Time Estimate</h2>
+
+<p>15 minutes</p>
+
+    
+  </div>
+</div>
+
+<!-- Checkpoint Tab -->
+<div id="checkpoint-tab" class="tab-content">
+  <div class="content-section">
+    
+      
+      <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
+        <p><strong>Passing Score:</strong> 6 points</p>
+        <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
+      </div>
+
+      
+        <div class="question"
+             data-question-id="0"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Rate, Errors, Duration">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What are the three RED metrics?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  Requests, Errors, Database
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  Rate, Errors, Duration
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  Response, Efficiency, Downtime
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  Reliability, Errors, Deployment
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> RED = Rate (requests/sec), Errors (error percentage), Duration (latency).
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="1"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the difference between an SLO and an SLA?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">SLO is an internal target; SLA is an external commitment with penalties for violations.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="2"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="43 minutes">
+          <h4>Question 3 (1 points)</h4>
+          <p style="margin: 10px 0;">How much downtime per month does a 99.9% uptime SLO allow?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  4 minutes
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  43 minutes
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  7 hours
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  No downtime
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> 99.9% allows 0.1% downtime: 30 days × 24 hours × 60 min × 0.001 ≈ 43 minutes.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="3"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 4 (2 points)</h4>
+          <p style="margin: 10px 0;">What is an error budget and how is it used?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Allowed failures based on SLO. Budget remaining → ship features; budget exhausted → focus on reliability.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="4"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Sustained violations indicate real user impact; single errors create noise">
+          <h4>Question 5 (1 points)</h4>
+          <p style="margin: 10px 0;">Why alert on sustained SLO violations instead of single errors?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  Single errors don't matter
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  Sustained violations indicate real user impact; single errors create noise
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  It's cheaper to monitor less frequently
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  Single errors can't be tracked
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Alerting on every error causes fatigue; time windows filter transient blips.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="5"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="P95 or P99">
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">What percentile should you monitor to catch worst-case latency?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  P50 (median)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  P75
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  P95 or P99
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  Average
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> P95/P99 reveals tail latency affecting real users; averages hide worst cases.
+              </div>
+            
+          
+        </div>
+      
+
+      <div style="margin-top: 30px; display: flex; gap: 10px;">
+        <button onclick="checkAnswers()" style="padding: 12px 24px; background: #CC0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600;">
+          Check Answers
+        </button>
+        <button onclick="resetQuiz()" style="padding: 12px 24px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+          Reset
+        </button>
+      </div>
+
+      <div class="score-display" data-passing="6"></div>
+    
+  </div>
+</div>
+
+<!-- References Tab -->
+<div id="references-tab" class="tab-content">
+  <div class="content-section">
+    
+      <p style="margin-bottom: 20px; color: var(--text-secondary);">
+        Curated sources to deepen your understanding. All references point to official documentation,
+        canonical books, or reputable technical content.
+      </p>
+      <ul class="reference-list">
+        
+          <li>
+            <a href="https://sre.google/sre-book/service-level-objectives/" target="_blank">Google SRE Book — Service Level Objectives</a>
+            <div class="why">Canonical reference for defining SLIs, SLOs, SLAs, and error budgets.</div>
+          </li>
+        
+          <li>
+            <a href="https://sre.google/sre-book/monitoring-distributed-systems/" target="_blank">The Four Golden Signals (Google SRE)</a>
+            <div class="why">Explains latency, traffic, errors, and saturation as core monitoring metrics.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/Shopify/statsd-instrument" target="_blank">statsd-instrument GitHub</a>
+            <div class="why">Official documentation for instrumenting Rails apps with StatsD metrics.</div>
+          </li>
+        
+          <li>
+            <a href="https://prometheus.io/docs/practices/naming/" target="_blank">Prometheus Documentation — Best Practices</a>
+            <div class="why">Metric naming conventions and patterns for time-series monitoring.</div>
+          </li>
+        
+          <li>
+            <a href="https://grafana.com/grafana/dashboards/" target="_blank">Grafana Dashboards for Rails</a>
+            <div class="why">Pre-built dashboard templates for visualizing RED metrics and SLOs.</div>
+          </li>
+        
+          <li>
+            <a href="https://www.alex-hidalgo.com/the-slo-book" target="_blank">Implementing Service Level Objectives (Alex Hidalgo)</a>
+            <div class="why">Practical guide to setting and managing SLOs in production systems.</div>
+          </li>
+        
+          <li>
+            <a href="https://sre.google/books/" target="_blank">Site Reliability Engineering (O'Reilly Book)</a>
+            <div class="why">Foundational book covering SLOs, error budgets, monitoring, and on-call practices.</div>
+          </li>
+        
+      </ul>
+    
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="topic-navigation">
+  
+    <a href="/tracks/observability/topics/error_tracking_model" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Error Tracking Mental Model</div>
+      </div>
+    </a>
+  
+
+  
+    <a href="/tracks/observability/topics/structured_logging" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">Structured Logging with Lograge</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+  </div>
+
+  <script>
+    // ============================================
+    // Search Index
+    // ============================================
+    const SEARCH_INDEX = [{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"ar_relations","topic_name":"Active Record Relations & Query Interface","depth_target":"Strong","objectives":"Compose complex queries using relations and scopes Explain lazy loading and when queries execute Chain methods without triggering N+1 queries","url":"/tracks/rails_internals/topics/ar_relations.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"config_initializers","topic_name":"Configuration & Initializers","depth_target":"Strong","objectives":"Configure Rails apps using environment-specific settings Write initializers that load in correct order Manage secrets and credentials securely","url":"/tracks/rails_internals/topics/config_initializers.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"request_lifecycle","topic_name":"Request Lifecycle & Middleware","depth_target":"Strong","objectives":"Trace a Rails request from Rack through middleware to controller Identify where params are parsed and filters applied Profile a request and explain the hottest frames","url":"/tracks/rails_internals/topics/request_lifecycle.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"routing_middleware","topic_name":"Routing & Middleware Patterns","depth_target":"Strong","objectives":"Design RESTful routes with constraints and namespaces Write custom middleware for cross-cutting concerns Debug routing issues using rails routes and route helpers","url":"/tracks/rails_internals/topics/routing_middleware.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"validations_callbacks","topic_name":"Validations, Callbacks & Concerns","depth_target":"Strong","objectives":"Write custom validations and understand when they run Identify callback dangers and when to avoid them Extract shared logic using concerns","url":"/tracks/rails_internals/topics/validations_callbacks.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"autoloading_boot","topic_name":"Zeitwerk/Autoloading & Boot Sequence","depth_target":"Strong","objectives":"Explain how Zeitwerk maps file paths to constants Debug \"uninitialized constant\" and circular dependency errors Optimize boot time by controlling eager loading","url":"/tracks/rails_internals/topics/autoloading_boot.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"ctes_windows","topic_name":"CTEs and Window Functions","depth_target":"Strong","objectives":"Write Common Table Expressions (WITH) to simplify complex queries Use window functions (ROW_NUMBER, RANK, LAG, LEAD) for analytics Decide when to use CTEs vs subqueries for readability and performance","url":"/tracks/sql_postgres/topics/ctes_windows.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"indexing","topic_name":"Database Indexing (B-tree, Partial, Composite)","depth_target":"Strong","objectives":"Choose appropriate index types (B-tree, partial, composite, GIN/GiST) for query patterns Identify when indexes improve or harm performance Use EXPLAIN to verify index usage and measure query costs","url":"/tracks/sql_postgres/topics/indexing.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"modeling_constraints","topic_name":"Modeling & Constraints (FKs, Uniques, Check)","depth_target":"Strong","objectives":"Design schemas with foreign keys, unique constraints, and check constraints Write migrations that enforce data integrity at the database level Debug constraint violations and fix schema issues","url":"/tracks/sql_postgres/topics/modeling_constraints.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"explain_analyze","topic_name":"Reading Query Plans (EXPLAIN ANALYZE)","depth_target":"Strong","objectives":"Read EXPLAIN ANALYZE output to identify sequential scans, index scans, and nested loops Identify query bottlenecks (costly sorts, large row estimates, missing indexes) Use pg_stat_statements to find slowest queries in production","url":"/tracks/sql_postgres/topics/explain_analyze.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"transactions_locks","topic_name":"Transactions, Isolation, and Locks","depth_target":"Strong","objectives":"Explain ACID properties and how Postgres enforces them Choose appropriate isolation levels for concurrent operations Debug deadlocks and lock contention using pg_locks and pg_stat_activity","url":"/tracks/sql_postgres/topics/transactions_locks.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"zero_downtime_migrations","topic_name":"Zero-Downtime Migrations","depth_target":"Strong","objectives":"Write migrations that don't lock tables or cause downtime Add columns with defaults, indexes, and constraints safely Backfill data in batches to avoid long-running transactions","url":"/tracks/sql_postgres/topics/zero_downtime_migrations.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"sidekiq_basics","topic_name":"ActiveJob vs Sidekiq Fundamentals","depth_target":"Strong","objectives":"Compare ActiveJob abstraction with direct Sidekiq usage Configure Redis connection and worker concurrency Route jobs to specific queues and set priorities","url":"/tracks/background_jobs/topics/sidekiq_basics.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"idempotency_retries","topic_name":"Idempotency Patterns & Retries","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate job effects Configure retry strategies with exponential backoff Handle dead jobs in the dead letter queue","url":"/tracks/background_jobs/topics/idempotency_retries.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"job_instrumentation","topic_name":"Job Instrumentation & Backoff","depth_target":"Strong","objectives":"Log job execution with structured context Track success/failure metrics for monitoring Implement custom exponential backoff strategies Use Sidekiq lifecycle hooks for instrumentation","url":"/tracks/background_jobs/topics/job_instrumentation.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"scheduling","topic_name":"Job Scheduling & Deduplication","depth_target":"Strong","objectives":"Schedule recurring jobs with cron syntax using sidekiq-cron Prevent duplicate jobs with sidekiq-unique-jobs Use at/in syntax for delayed one-time jobs Pass job context safely without ActiveRecord objects","url":"/tracks/background_jobs/topics/scheduling.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"cache_keys_invalidations","topic_name":"Cache Keys & Invalidation Strategies","depth_target":"Strong","objectives":"Design cache keys that auto-expire on record changes Implement Russian-doll caching pattern Prevent cache stampede with locks Choose between manual and automatic invalidation","url":"/tracks/caching_performance/topics/cache_keys_invalidations.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"eager_preload","topic_name":"Eager Loading vs Preloading Strategies","depth_target":"Strong","objectives":"Distinguish between includes, preload, eager_load, and joins Choose the correct loading strategy based on query needs Optimize nested associations without over-fetching","url":"/tracks/caching_performance/topics/eager_preload.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"fragment_caching","topic_name":"Fragment & Low-Level Caching","depth_target":"Strong","objectives":"Implement view fragment caching with cache keys Use low-level caching for expensive computations Configure cache stores (memory, Redis, Memcached) Measure cache hit rates and performance gains","url":"/tracks/caching_performance/topics/fragment_caching.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"memory_gc_basics","topic_name":"Memory & Garbage Collection Awareness","depth_target":"Strong","objectives":"Track Ruby object allocation and memory usage Read and interpret GC statistics Identify memory bloat and leaks Use memory_profiler gem to profile endpoints","url":"/tracks/caching_performance/topics/memory_gc_basics.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"n_plus_one","topic_name":"N+1 Query Detection & Resolution","depth_target":"Strong","objectives":"Identify N+1 query patterns in logs and using Bullet gem Choose between includes, preload, eager_load, and joins Measure query count before and after optimization","url":"/tracks/caching_performance/topics/n_plus_one.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"apm_traces","topic_name":"APM Basics and Flamegraphs","depth_target":"Working","objectives":"Read APM flamegraphs to identify slow segments Use APM to detect N+1 queries and slow database calls Set up rack-mini-profiler for local performance analysis","url":"/tracks/observability/topics/apm_traces.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"error_tracking_model","topic_name":"Error Tracking Mental Model","depth_target":"Working","objectives":"Integrate an error tracking service (Sentry, Rollbar, or Honeybadger) Add context to errors (user info, request params, custom tags) Understand error grouping and fingerprinting","url":"/tracks/observability/topics/error_tracking_model.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"metrics_slos","topic_name":"Metrics and SLO Thinking","depth_target":"Working","objectives":"Understand RED metrics (Rate, Errors, Duration) for web services Distinguish between SLI, SLO, and SLA Set realistic SLO targets (99% vs 99.9% trade-offs)","url":"/tracks/observability/topics/metrics_slos.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"structured_logging","topic_name":"Structured Logging with Lograge","depth_target":"Strong","objectives":"Configure lograge for JSON logging in production Add custom fields like request_id and user_id to log entries Filter sensitive data from logs (passwords, tokens)","url":"/tracks/observability/topics/structured_logging.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"error_shapes","topic_name":"API Error Shapes & Standards","depth_target":"Strong","objectives":"Design consistent error response structures across API endpoints Choose appropriate HTTP status codes for different error types Distinguish user-facing from developer-facing error messages","url":"/tracks/api_security/topics/error_shapes.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"versioning","topic_name":"API Versioning Strategies","depth_target":"Strong","objectives":"Compare header-based vs path-based API versioning Implement deprecation warnings with Sunset headers Maintain backward compatibility across API versions","url":"/tracks/api_security/topics/versioning.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"authn_authz","topic_name":"Authentication & Authorization with Pundit","depth_target":"Strong","objectives":"Implement token-based authentication for API endpoints Define authorization policies using Pundit Test authorization logic in controllers and request specs","url":"/tracks/api_security/topics/authn_authz.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"csrf_cors","topic_name":"CSRF, CORS & Input Validation","depth_target":"Strong","objectives":"Configure CORS headers for cross-origin API requests Implement CSRF protection for session-based APIs Validate and sanitize inputs to prevent injection attacks","url":"/tracks/api_security/topics/csrf_cors.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"idempotency_rate_limits","topic_name":"Idempotency Keys & Rate Limiting","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate operations Configure rate limiting using rack-attack and Redis Return appropriate headers (Retry-After, X-RateLimit)","url":"/tracks/api_security/topics/idempotency_rate_limits.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"pagination_filtering","topic_name":"Pagination, Filtering & Sorting","depth_target":"Strong","objectives":"Implement cursor and offset pagination with performance trade-offs Add filtering and sorting via query parameters Return pagination metadata for client navigation","url":"/tracks/api_security/topics/pagination_filtering.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"rest_design","topic_name":"REST Design Patterns","depth_target":"Strong","objectives":"Design RESTful routes using resources and verbs correctly Choose appropriate HTTP status codes for API responses Structure JSON responses with consistent conventions","url":"/tracks/api_security/topics/rest_design.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"forms_progressive","topic_name":"Forms & progressive enhancement","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/forms_progressive.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"hotwire_frames_streams","topic_name":"Hotwire: Frames & Streams","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/hotwire_frames_streams.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"react_working_fundamentals","topic_name":"React: Working fundamentals","depth_target":"working","objectives":"","url":"/tracks/frontend_integration/topics/react_working_fundamentals.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"stimulus_patterns","topic_name":"Stimulus patterns & best practices","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/stimulus_patterns.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"adrs","topic_name":"ADRs & Lightweight Documentation","depth_target":"Strong","objectives":"Write Architecture Decision Records for major changes Store ADRs in version control alongside code Use MADR template for consistency","url":"/tracks/architecture_design/topics/adrs.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"feature_flags_rollouts","topic_name":"Feature Flags & Safe Rollouts","depth_target":"Strong","objectives":"Implement feature flags with Flipper or Unleash Design rollout strategies by percentage or user segment Monitor flagged features and clean up old flags","url":"/tracks/architecture_design/topics/feature_flags_rollouts.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"layering_services","topic_name":"Layering & Service Objects","depth_target":"Strong","objectives":"Extract complex logic from models into service objects Choose between service, form, and policy objects Apply presenters and decorators for view logic","url":"/tracks/architecture_design/topics/layering_services.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"testing_strategy","topic_name":"Testing Strategy (Unit/Request/System)","depth_target":"Strong","objectives":"Balance unit, request, and system tests using the test pyramid Use factories and fixtures appropriately Stub HTTP calls with VCR and WebMock","url":"/tracks/architecture_design/topics/testing_strategy.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"microservices_when_not","topic_name":"When NOT to Microservice","depth_target":"Working","objectives":"Recognize when monoliths outperform microservices Understand modular monolith as an alternative Identify signs that microservices add complexity without benefit","url":"/tracks/architecture_design/topics/microservices_when_not.html"}];
+
+    // ============================================
+    // Progress Tracking (localStorage)
+    // ============================================
+    const STORAGE_KEY = 'rails_coach_progress';
+    const DARK_MODE_KEY = 'rails_coach_dark_mode';
+
+    function getProgress() {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : {};
+    }
+
+    function saveProgress(progress) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      updateProgressUI();
+    }
+
+    function isTopicComplete(trackKey, topicKey) {
+      const progress = getProgress();
+      return progress[`${trackKey}/${topicKey}`] === true;
+    }
+
+    function toggleTopicComplete(trackKey, topicKey) {
+      const progress = getProgress();
+      const key = `${trackKey}/${topicKey}`;
+      progress[key] = !progress[key];
+      saveProgress(progress);
+      return progress[key];
+    }
+
+    function getTrackProgress(trackKey, totalTopics) {
+      const progress = getProgress();
+      const completed = Object.keys(progress).filter(key =>
+        key.startsWith(trackKey + '/') && progress[key]
+      ).length;
+      return { completed, total: totalTopics };
+    }
+
+    function updateProgressUI() {
+      // Update completion badges on cards
+      document.querySelectorAll('[data-topic-key]').forEach(card => {
+        const trackKey = card.dataset.trackKey;
+        const topicKey = card.dataset.topicKey;
+        const badge = card.querySelector('.completion-badge');
+        if (badge && isTopicComplete(trackKey, topicKey)) {
+          badge.classList.add('completed');
+        }
+      });
+
+      // Update mark complete button
+      const completeBtn = document.getElementById('mark-complete-btn');
+      if (completeBtn) {
+        const trackKey = completeBtn.dataset.trackKey;
+        const topicKey = completeBtn.dataset.topicKey;
+        const completed = isTopicComplete(trackKey, topicKey);
+        completeBtn.classList.toggle('completed', completed);
+        completeBtn.innerHTML = completed ? '✓ Completed' : 'Mark Complete';
+      }
+
+      // Update progress summary
+      const summary = document.getElementById('progress-summary');
+      if (summary) {
+        const progress = getProgress();
+        const total = Object.keys(progress).filter(k => progress[k]).length;
+        if (total > 0) {
+          summary.innerHTML = `<span style="color: var(--text-secondary);">Progress: ${total}/41 topics</span>`;
+        }
+      }
+    }
+
+    function markTopicComplete(trackKey, topicKey) {
+      const completed = toggleTopicComplete(trackKey, topicKey);
+      updateProgressUI();
+
+      // Show celebration if first time completing
+      if (completed) {
+        showNotification('✓ Topic marked complete!');
+      }
+    }
+
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+      }, 2000);
+    }
+
+    // ============================================
+    // Search Functionality
+    // ============================================
+    function performSearch(query) {
+      if (!query || query.trim().length < 2) {
+        hideSearchResults();
+        return;
+      }
+
+      const normalizedQuery = query.toLowerCase().trim();
+      const results = SEARCH_INDEX.filter(item => {
+        return item.topic_name.toLowerCase().includes(normalizedQuery) ||
+               item.track_name.toLowerCase().includes(normalizedQuery) ||
+               item.objectives.toLowerCase().includes(normalizedQuery) ||
+               item.depth_target.toLowerCase().includes(normalizedQuery);
+      });
+
+      displaySearchResults(results, query);
+    }
+
+    function displaySearchResults(results, query) {
+      const container = document.getElementById('search-results');
+
+      if (results.length === 0) {
+        container.innerHTML = `
+          <div class="search-no-results">
+            No topics found for "${query}"
+          </div>
+        `;
+        container.classList.add('show');
+        return;
+      }
+
+      // Group results by track
+      const grouped = {};
+      results.forEach(item => {
+        if (!grouped[item.track_key]) {
+          grouped[item.track_key] = {
+            name: item.track_name,
+            icon: item.track_icon,
+            items: []
+          };
+        }
+        grouped[item.track_key].items.push(item);
+      });
+
+      // Build HTML
+      let html = '';
+      Object.keys(grouped).forEach(trackKey => {
+        const track = grouped[trackKey];
+        html += `
+          <div class="search-group">
+            <div class="search-group-title">
+              ${track.icon} ${track.name}
+            </div>
+        `;
+        track.items.forEach(item => {
+          const badgeClass = item.depth_target === 'Strong' ? 'badge-strong' :
+                           item.depth_target === 'Working' ? 'badge-working' : 'badge-exposure';
+          html += `
+            <a href="${item.url}" class="search-result-item">
+              <div class="search-result-title">${highlightMatch(item.topic_name, query)}</div>
+              <div class="search-result-meta">
+                <span class="badge ${badgeClass}">${item.depth_target}</span>
+              </div>
+            </a>
+          `;
+        });
+        html += `</div>`;
+      });
+
+      container.innerHTML = html;
+      container.classList.add('show');
+    }
+
+    function highlightMatch(text, query) {
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<strong>$1</strong>');
+    }
+
+    function hideSearchResults() {
+      document.getElementById('search-results').classList.remove('show');
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('search-input');
+      input.value = '';
+      hideSearchResults();
+      document.getElementById('search-clear').classList.remove('show');
+      input.focus();
+    }
+
+    function initSearch() {
+      const searchInput = document.getElementById('search-input');
+      const searchClear = document.getElementById('search-clear');
+
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value;
+        if (query.length > 0) {
+          searchClear.classList.add('show');
+        } else {
+          searchClear.classList.remove('show');
+        }
+        performSearch(query);
+      });
+
+      // Close search results when clicking outside
+      document.addEventListener('click', (e) => {
+        const searchContainer = document.querySelector('.search-container');
+        if (!searchContainer.contains(e.target)) {
+          hideSearchResults();
+        }
+      });
+
+      // Keyboard shortcut: / to focus search
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+        // Escape to close search
+        if (e.key === 'Escape') {
+          clearSearch();
+        }
+      });
+    }
+
+    // ============================================
+    // Dark Mode
+    // ============================================
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem(DARK_MODE_KEY, isDark);
+
+      document.querySelector('.light-icon').style.display = isDark ? 'none' : 'inline';
+      document.querySelector('.dark-icon').style.display = isDark ? 'inline' : 'none';
+    }
+
+    function initDarkMode() {
+      const isDark = localStorage.getItem(DARK_MODE_KEY) === 'true';
+      if (isDark) {
+        document.body.classList.add('dark-mode');
+        document.querySelector('.light-icon').style.display = 'none';
+        document.querySelector('.dark-icon').style.display = 'inline';
+      }
+    }
+
+    // ============================================
+    // Tab Switching
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const targetId = tab.dataset.tab;
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          document.getElementById(targetId).classList.add('active');
+        });
+      });
+
+      // Add code copy buttons
+      addCopyButtons();
+
+      // Initialize dark mode
+      initDarkMode();
+
+      // Initialize search
+      initSearch();
+
+      // Update progress UI
+      updateProgressUI();
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        // Arrow keys for prev/next
+        if (e.key === 'ArrowLeft' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          const prevBtn = document.querySelector('.nav-button.prev');
+          if (prevBtn && !prevBtn.disabled) prevBtn.click();
+        }
+        if (e.key === 'ArrowRight' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          const nextBtn = document.querySelector('.nav-button.next');
+          if (nextBtn && !nextBtn.disabled) nextBtn.click();
+        }
+        // Number keys for tabs
+        if (e.key >= '1' && e.key <= '4') {
+          const tabs = document.querySelectorAll('.tab');
+          const index = parseInt(e.key) - 1;
+          if (tabs[index]) tabs[index].click();
+        }
+      });
+    });
+
+    // ============================================
+    // Code Copy Buttons
+    // ============================================
+    function addCopyButtons() {
+      document.querySelectorAll('pre').forEach((pre, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+
+        const button = document.createElement('button');
+        button.className = 'copy-button';
+        button.textContent = 'Copy';
+        button.onclick = () => copyCode(pre, button);
+        wrapper.appendChild(button);
+      });
+    }
+
+    function copyCode(pre, button) {
+      const code = pre.querySelector('code') || pre;
+      navigator.clipboard.writeText(code.textContent).then(() => {
+        button.textContent = '✓ Copied!';
+        button.classList.add('copied');
+        setTimeout(() => {
+          button.textContent = 'Copy';
+          button.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // ============================================
+    // Quiz Functionality
+    // ============================================
+    function selectChoice(questionId, choiceIndex) {
+      const question = document.querySelector(`[data-question-id="${questionId}"]`);
+      const choices = question.querySelectorAll('.choice');
+      choices.forEach((choice, idx) => {
+        choice.classList.remove('selected');
+        if (idx === choiceIndex) choice.classList.add('selected');
+      });
+    }
+
+    function checkAnswers() {
+      let score = 0;
+      let totalPoints = 0;
+
+      document.querySelectorAll('.question').forEach(question => {
+        const kind = question.dataset.kind;
+        const points = parseInt(question.dataset.points);
+        totalPoints += points;
+
+        if (kind === 'mcq') {
+          const correct = question.dataset.correct;
+          const selected = question.querySelector('.choice.selected');
+
+          if (selected) {
+            const selectedText = selected.textContent.trim();
+            const explanation = question.querySelector('.explanation');
+
+            if (selectedText === correct) {
+              selected.classList.add('correct');
+              score += points;
+            } else {
+              selected.classList.add('incorrect');
+              question.querySelectorAll('.choice').forEach(choice => {
+                if (choice.textContent.trim() === correct) {
+                  choice.classList.add('correct');
+                }
+              });
+            }
+
+            if (explanation) explanation.classList.add('show');
+          }
+        }
+      });
+
+      const scoreDisplay = document.querySelector('.score-display');
+      const passingScore = parseInt(scoreDisplay.dataset.passing || 7);
+      const passed = score >= passingScore;
+
+      scoreDisplay.innerHTML = `
+        <div style="font-size: 24px; font-weight: bold;">${score} / ${totalPoints}</div>
+        <div style="margin-top: 5px;">${passed ? '✅ Passed!' : '❌ Try again'}</div>
+        <div style="font-size: 12px; margin-top: 5px;">Passing: ${passingScore}</div>
+      `;
+      scoreDisplay.classList.add('show');
+    }
+
+    function resetQuiz() {
+      document.querySelectorAll('.choice').forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+      });
+      document.querySelectorAll('.explanation').forEach(exp => exp.classList.remove('show'));
+      document.querySelector('.score-display').classList.remove('show');
+    }
+  </script>
+</body>
+</html>

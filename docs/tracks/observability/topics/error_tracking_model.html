@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rails Seniority Coach</title>
+  <style>
+    :root {
+      --bg-primary: #f5f5f5;
+      --bg-secondary: white;
+      --bg-tertiary: #f9f9f9;
+      --text-primary: #333;
+      --text-secondary: #666;
+      --text-muted: #999;
+      --accent: #CC0000;
+      --border: #e0e0e0;
+      --shadow: rgba(0,0,0,0.1);
+      --code-bg: #f4f4f4;
+      --code-block-bg: #2b2b2b;
+      --code-block-text: #f8f8f2;
+    }
+
+    body.dark-mode {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2d2d2d;
+      --bg-tertiary: #3a3a3a;
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --text-muted: #808080;
+      --border: #404040;
+      --shadow: rgba(0,0,0,0.3);
+      --code-bg: #3a3a3a;
+      --code-block-bg: #1e1e1e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      transition: background 0.3s, color 0.3s;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    /* Header */
+    header {
+      background: var(--accent);
+      color: white;
+      padding: 20px 0;
+      margin-bottom: 30px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { font-size: 28px; }
+    header p { opacity: 0.9; margin-top: 5px; }
+
+    /* Search Box */
+    .search-container {
+      position: relative;
+      flex: 1;
+      max-width: 500px;
+      margin: 0 20px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px 15px 10px 40px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.9);
+      color: #333;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input::placeholder { color: #666; }
+    .search-input:focus {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #666;
+      font-size: 16px;
+      pointer-events: none;
+    }
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 8px;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      box-shadow: 0 4px 16px var(--shadow);
+      max-height: 70vh;
+      overflow-y: auto;
+      display: none;
+      z-index: 1000;
+    }
+    .search-results.show { display: block; }
+    .search-group {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--border);
+    }
+    .search-group:last-child { border-bottom: none; }
+    .search-group-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .search-result-item {
+      padding: 10px 12px;
+      margin: 4px 0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: block;
+    }
+    .search-result-item:hover {
+      background: var(--bg-tertiary);
+    }
+    .search-result-title {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .search-result-meta {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .search-no-results {
+      padding: 30px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .search-clear {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      display: none;
+    }
+    .search-clear.show { display: block; }
+
+    /* Dark mode toggle */
+    .dark-mode-toggle {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .dark-mode-toggle:hover { background: rgba(255,255,255,0.3); }
+
+    /* Navigation */
+    nav {
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    nav a {
+      color: var(--accent);
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    nav a:hover { background: var(--bg-tertiary); }
+
+    /* Progress indicator */
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+
+    /* Cards */
+    .track-grid, .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .track-card, .topic-card {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .track-card:hover, .topic-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .track-card h3, .topic-card h3 { color: var(--accent); margin-bottom: 10px; }
+    .track-card a, .topic-card a { text-decoration: none; color: inherit; }
+
+    /* Completion badge */
+    .completion-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 24px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .completion-badge.completed { opacity: 1; }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 5px;
+    }
+    .badge-strong { background: #4CAF50; color: white; }
+    .badge-working { background: #2196F3; color: white; }
+    .badge-exposure { background: #9E9E9E; color: white; }
+
+    /* Content sections */
+    .content-section {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 30px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+    .content-section h2 {
+      color: var(--accent);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    .content-section h3 {
+      color: var(--text-primary);
+      margin-top: 25px;
+      margin-bottom: 12px;
+    }
+    .content-section ul, .content-section ol {
+      margin-left: 25px;
+      margin-top: 10px;
+    }
+    .content-section li { margin: 8px 0; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 16px;
+      color: var(--text-secondary);
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab:hover { color: var(--accent); }
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Prev/Next navigation */
+    .topic-navigation {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    .nav-button {
+      flex: 1;
+      min-width: 200px;
+      padding: 15px 20px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-button:hover {
+      border-color: var(--accent);
+      transform: translateX(0) translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .nav-button.prev:hover { transform: translateX(-5px) translateY(-2px); }
+    .nav-button.next:hover { transform: translateX(5px) translateY(-2px); }
+    .nav-button .arrow { font-size: 20px; }
+    .nav-button .label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
+    .nav-button .title { font-weight: 600; }
+    .nav-button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* Mark complete button */
+    .complete-button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .complete-button:hover { background: #45a049; transform: scale(1.05); }
+    .complete-button.completed {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 2px solid #4CAF50;
+    }
+
+    /* Quiz styles */
+    .question {
+      background: var(--bg-tertiary);
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 6px;
+      border-left: 4px solid var(--accent);
+    }
+    .question h4 { margin-bottom: 10px; }
+    .choices { margin: 10px 0; }
+    .choice {
+      padding: 12px;
+      margin: 8px 0;
+      cursor: pointer;
+      border-radius: 4px;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      transition: all 0.2s;
+    }
+    .choice:hover { border-color: var(--accent); }
+    .choice.selected { background: #e3f2fd; border-color: #2196F3; }
+    .choice.correct { background: #e8f5e9; border-color: #4CAF50; }
+    .choice.incorrect { background: #ffebee; border-color: #f44336; }
+    .explanation {
+      margin-top: 10px;
+      padding: 10px;
+      background: #fff3cd;
+      color: #856404;
+      border-radius: 4px;
+      display: none;
+    }
+    .explanation.show { display: block; }
+
+    /* References */
+    .reference-list { list-style: none; margin-left: 0; }
+    .reference-list li {
+      padding: 15px;
+      margin: 10px 0;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+    }
+    .reference-list a { color: var(--accent); font-weight: 600; }
+    .reference-list .why { color: var(--text-secondary); font-size: 14px; margin-top: 5px; }
+
+    /* Code styles */
+    code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+    pre {
+      background: var(--code-block-bg);
+      color: var(--code-block-text);
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 15px 0;
+      position: relative;
+    }
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* Copy button for code blocks */
+    .code-block-wrapper {
+      position: relative;
+      margin: 15px 0;
+    }
+    .copy-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+      opacity: 0;
+    }
+    .code-block-wrapper:hover .copy-button { opacity: 1; }
+    .copy-button:hover { background: rgba(255,255,255,0.2); }
+    .copy-button.copied { background: #4CAF50; }
+
+    /* Score display */
+    .score-display {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--accent);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px var(--shadow);
+      display: none;
+      z-index: 1000;
+    }
+    .score-display.show { display: block; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .track-grid, .topic-grid { grid-template-columns: 1fr; }
+      .tabs { overflow-x: auto; }
+      header .container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+      }
+      .search-container {
+        margin: 0;
+        max-width: 100%;
+        order: 1;
+      }
+      header > .container > div:first-child { order: 0; }
+      .dark-mode-toggle {
+        order: 2;
+        align-self: flex-end;
+      }
+      .topic-navigation { flex-direction: column; }
+      .nav-button { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div>
+        <h1>💎 Rails Seniority Coach</h1>
+        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+      </div>
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          class="search-input"
+          id="search-input"
+          placeholder="Search topics..."
+          autocomplete="off"
+        />
+        <button class="search-clear" id="search-clear" onclick="clearSearch()">×</button>
+        <div class="search-results" id="search-results"></div>
+      </div>
+      <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+        <span class="light-icon">🌙</span><span class="dark-icon" style="display:none;">☀️</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    <nav>
+      <a href="/">← All Tracks</a>
+      <div id="progress-summary"></div>
+    </nav>
+    <nav style="margin-bottom: 20px;">
+  <a href="/tracks/observability">← Observability</a>
+</nav>
+
+<!-- Previous/Next Navigation -->
+<div class="topic-navigation">
+  
+    <a href="/tracks/observability/topics/apm_traces" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">APM Basics and Flamegraphs</div>
+      </div>
+    </a>
+  
+
+  
+    <a href="/tracks/observability/topics/metrics_slos" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">Metrics and SLO Thinking</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+<div style="margin-bottom: 30px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+    <div style="flex: 1;">
+      <h1>Error Tracking Mental Model</h1>
+      <div style="margin: 15px 0;">
+        
+        
+          <span class="badge badge-working">Working</span>
+        
+        &nbsp;
+        <span style="color: var(--text-secondary);">
+          📖 9 min read &nbsp; | &nbsp; 💻 16 min exercise
+        </span>
+      </div>
+    </div>
+    <button
+      id="mark-complete-btn"
+      class="complete-button"
+      data-track-key="observability"
+      data-topic-key="error_tracking_model"
+      onclick="markTopicComplete('observability', 'error_tracking_model')">
+      Mark Complete
+    </button>
+  </div>
+
+  
+    <div class="content-section" style="background: #f0f7ff;">
+      <h3 style="color: #2196F3; margin-bottom: 10px;">Learning Objectives</h3>
+      <ul style="margin-left: 20px;">
+        
+          <li>Integrate an error tracking service (Sentry, Rollbar, or Honeybadger)</li>
+        
+          <li>Add context to errors (user info, request params, custom tags)</li>
+        
+          <li>Understand error grouping and fingerprinting</li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-tab="overview-tab">📖 Overview</button>
+  <button class="tab" data-tab="exercise-tab">💻 Exercise</button>
+  <button class="tab" data-tab="checkpoint-tab">✅ Checkpoint</button>
+  <button class="tab" data-tab="references-tab">🔗 References</button>
+</div>
+
+<!-- Overview Tab -->
+<div id="overview-tab" class="tab-content active">
+  <div class="content-section">
+    
+      <h1>Error Tracking Mental Model</h1>
+
+<h2>What It Is</h2>
+
+<p>Error tracking services (Sentry, Rollbar, Honeybadger) capture exceptions from production applications, group similar errors via fingerprinting, and provide context (stack traces, user data, request params). They automatically detect new errors, track resolution status, and integrate with deployment pipelines to correlate errors with code releases. Error tracking converts noisy exception logs into actionable incident reports.</p>
+
+<h2>Why It Matters</h2>
+
+<p>Application logs mix errors with normal requests, making it hard to spot new failures. Error trackers surface critical issues immediately via alerts and group thousands of identical errors into single issues to prevent alert fatigue. Adding context (user<em>id, request</em>id, environment variables) connects errors to specific users or deployments for faster debugging. Release tracking identifies which deploy introduced a regression.</p>
+
+<h2>When to Use</h2>
+
+<ul>
+<li>Monitoring production exceptions without SSH access or log grep</li>
+<li>Tracking error frequency trends and detecting new exception types</li>
+<li>Connecting errors to specific users, tenants, or feature flags</li>
+<li>Identifying which deploy or code change introduced a bug</li>
+<li>Prioritizing fixes based on error volume and affected users</li>
+</ul>
+
+<h2>Three Common Pitfalls</h2>
+
+<ol>
+<li><strong>Tracking too many errors:</strong> Logging validation errors or expected exceptions (404s, authentication failures) creates noise. Use before_send callbacks to filter routine errors and focus on unexpected failures.</li>
+<li><strong>Missing critical context:</strong> Errors without user<em>id, request</em>id, or custom tags are hard to reproduce. Configure context in initializers and controllers to include tenant, feature flags, and experiment variants.</li>
+<li><strong>Alert fatigue:</strong> Sending Slack/email for every error trains teams to ignore alerts. Set thresholds (10 errors in 5 minutes) or alert only on new error types to maintain urgency.</li>
+</ol>
+
+<hr>
+
+<h2>Error Tracking Service Integration</h2>
+
+<p>Install and configure Sentry:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'sentry-ruby'</span>
+<span class="n">gem</span> <span class="s1">'sentry-rails'</span>
+
+<span class="c1"># config/initializers/sentry.rb</span>
+<span class="no">Sentry</span><span class="p">.</span><span class="nf">init</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">dsn</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'SENTRY_DSN'</span><span class="p">]</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">environment</span> <span class="o">=</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">env</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">enabled_environments</span> <span class="o">=</span> <span class="sx">%w[production staging]</span>
+
+  <span class="c1"># Set release version for deploy tracking</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">release</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'GIT_COMMIT_SHA'</span><span class="p">]</span> <span class="o">||</span> <span class="s1">'unknown'</span>
+
+  <span class="c1"># Sample rate: send 10% of events in high-traffic apps</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">traces_sample_rate</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Sentry now captures all unhandled exceptions automatically.</p>
+
+<hr>
+
+<h2>Adding Context to Errors</h2>
+
+<p>Enrich errors with user and request data:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/application_controller.rb</span>
+<span class="k">class</span> <span class="nc">ApplicationController</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">before_action</span> <span class="ss">:set_sentry_context</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">set_sentry_context</span>
+    <span class="no">Sentry</span><span class="p">.</span><span class="nf">set_user</span><span class="p">(</span>
+      <span class="ss">id: </span><span class="n">current_user</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+      <span class="ss">email: </span><span class="n">current_user</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">email</span><span class="p">,</span>
+      <span class="ss">username: </span><span class="n">current_user</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">username</span>
+    <span class="p">)</span>
+
+    <span class="no">Sentry</span><span class="p">.</span><span class="nf">set_tags</span><span class="p">(</span>
+      <span class="ss">tenant_id: </span><span class="n">current_tenant</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+      <span class="ss">feature_flag: </span><span class="n">experiment_variant</span><span class="p">,</span>
+      <span class="ss">locale: </span><span class="no">I18n</span><span class="p">.</span><span class="nf">locale</span>
+    <span class="p">)</span>
+
+    <span class="no">Sentry</span><span class="p">.</span><span class="nf">set_context</span><span class="p">(</span><span class="ss">:request_details</span><span class="p">,</span> <span class="p">{</span>
+      <span class="ss">request_id: </span><span class="n">request</span><span class="p">.</span><span class="nf">request_id</span><span class="p">,</span>
+      <span class="ss">ip: </span><span class="n">request</span><span class="p">.</span><span class="nf">remote_ip</span><span class="p">,</span>
+      <span class="ss">user_agent: </span><span class="n">request</span><span class="p">.</span><span class="nf">user_agent</span>
+    <span class="p">})</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Every error now includes user, tenant, and request metadata for debugging.</p>
+
+<hr>
+
+<h2>Manual Error Reporting</h2>
+
+<p>Capture exceptions in rescue blocks:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">process_payment</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+  <span class="no">PaymentGateway</span><span class="p">.</span><span class="nf">charge</span><span class="p">(</span><span class="n">order</span><span class="p">.</span><span class="nf">total</span><span class="p">)</span>
+<span class="k">rescue</span> <span class="no">PaymentGateway</span><span class="o">::</span><span class="no">NetworkError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+  <span class="no">Sentry</span><span class="p">.</span><span class="nf">capture_exception</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="ss">extra: </span><span class="p">{</span>
+    <span class="ss">order_id: </span><span class="n">order</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+    <span class="ss">amount: </span><span class="n">order</span><span class="p">.</span><span class="nf">total</span><span class="p">,</span>
+    <span class="ss">payment_method: </span><span class="n">order</span><span class="p">.</span><span class="nf">payment_method</span>
+  <span class="p">})</span>
+  <span class="k">raise</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Send custom messages for non-exception issues:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">if</span> <span class="n">inventory</span><span class="p">.</span><span class="nf">stock</span> <span class="o">&lt;</span> <span class="n">order</span><span class="p">.</span><span class="nf">quantity</span>
+  <span class="no">Sentry</span><span class="p">.</span><span class="nf">capture_message</span><span class="p">(</span>
+    <span class="s2">"Insufficient inventory"</span><span class="p">,</span>
+    <span class="ss">level: :warning</span><span class="p">,</span>
+    <span class="ss">extra: </span><span class="p">{</span>
+      <span class="ss">product_id: </span><span class="n">inventory</span><span class="p">.</span><span class="nf">product_id</span><span class="p">,</span>
+      <span class="ss">requested: </span><span class="n">order</span><span class="p">.</span><span class="nf">quantity</span><span class="p">,</span>
+      <span class="ss">available: </span><span class="n">inventory</span><span class="p">.</span><span class="nf">stock</span>
+    <span class="p">}</span>
+  <span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Error Grouping and Fingerprinting</h2>
+
+<p>Sentry groups errors by stack trace similarity. Customize grouping:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Sentry</span><span class="p">.</span><span class="nf">init</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">before_send</span> <span class="o">=</span> <span class="nb">lambda</span> <span class="k">do</span> <span class="o">|</span><span class="n">event</span><span class="p">,</span> <span class="n">hint</span><span class="o">|</span>
+    <span class="c1"># Group all timeouts together regardless of endpoint</span>
+    <span class="k">if</span> <span class="n">hint</span><span class="p">[</span><span class="ss">:exception</span><span class="p">].</span><span class="nf">is_a?</span><span class="p">(</span><span class="no">Timeout</span><span class="o">::</span><span class="no">Error</span><span class="p">)</span>
+      <span class="n">event</span><span class="p">.</span><span class="nf">fingerprint</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'timeout-error'</span><span class="p">]</span>
+    <span class="k">end</span>
+
+    <span class="c1"># Group by custom business logic</span>
+    <span class="k">if</span> <span class="n">hint</span><span class="p">[</span><span class="ss">:exception</span><span class="p">].</span><span class="nf">message</span><span class="p">.</span><span class="nf">include?</span><span class="p">(</span><span class="s1">'Payment failed'</span><span class="p">)</span>
+      <span class="n">event</span><span class="p">.</span><span class="nf">fingerprint</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'payment-failure'</span><span class="p">,</span> <span class="n">event</span><span class="p">.</span><span class="nf">tags</span><span class="p">[</span><span class="ss">:payment_method</span><span class="p">]]</span>
+    <span class="k">end</span>
+
+    <span class="n">event</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Custom fingerprints prevent one issue from creating dozens of separate alerts.</p>
+
+<hr>
+
+<h2>Release Tracking</h2>
+
+<p>Connect errors to deployments:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/initializers/sentry.rb</span>
+<span class="no">Sentry</span><span class="p">.</span><span class="nf">init</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">release</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'HEROKU_SLUG_COMMIT'</span><span class="p">,</span> <span class="s1">'dev'</span><span class="p">)</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">environment</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'RAILS_ENV'</span><span class="p">,</span> <span class="s1">'development'</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>In deployment script:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Notify Sentry of new release</span>
+curl https://sentry.io/api/0/organizations/my-org/releases/ <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"Authorization: Bearer </span><span class="nv">$SENTRY_AUTH_TOKEN</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="nt">-d</span> <span class="s1">'{"version":"'</span><span class="s2">"</span><span class="nv">$GIT_COMMIT</span><span class="s2">"</span><span class="s1">'","projects":["my-app"]}'</span>
+</code></pre></div>
+<p>Sentry dashboard shows which release introduced each error.</p>
+
+<hr>
+
+<h2>Filtering Routine Errors</h2>
+
+<p>Reduce noise by skipping expected errors:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Sentry</span><span class="p">.</span><span class="nf">init</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">before_send</span> <span class="o">=</span> <span class="nb">lambda</span> <span class="k">do</span> <span class="o">|</span><span class="n">event</span><span class="p">,</span> <span class="n">hint</span><span class="o">|</span>
+    <span class="n">exception</span> <span class="o">=</span> <span class="n">hint</span><span class="p">[</span><span class="ss">:exception</span><span class="p">]</span>
+
+    <span class="c1"># Skip validation errors</span>
+    <span class="k">return</span> <span class="kp">nil</span> <span class="k">if</span> <span class="n">exception</span><span class="p">.</span><span class="nf">is_a?</span><span class="p">(</span><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">RecordInvalid</span><span class="p">)</span>
+
+    <span class="c1"># Skip common HTTP errors</span>
+    <span class="k">return</span> <span class="kp">nil</span> <span class="k">if</span> <span class="n">exception</span><span class="p">.</span><span class="nf">is_a?</span><span class="p">(</span><span class="no">ActionController</span><span class="o">::</span><span class="no">RoutingError</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kp">nil</span> <span class="k">if</span> <span class="n">event</span><span class="p">.</span><span class="nf">request</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">path</span> <span class="o">==</span> <span class="s1">'/health'</span>
+
+    <span class="n">event</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Breadcrumbs help debug but increase data sent</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">breadcrumbs_logger</span> <span class="o">=</span> <span class="p">[</span><span class="ss">:active_support_logger</span><span class="p">]</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Trade-offs Box</h2>
+
+<ul>
+<li><strong>Advantage:</strong> Error trackers group thousands of identical errors into single issues and alert on new exception types immediately.</li>
+<li><strong>Cost:</strong> Adds third-party dependency; high-traffic apps may need sampling to stay within plan limits.</li>
+<li><strong>When to skip:</strong> For internal tools with &lt;100 users, exception logging to files may suffice; error trackers shine at scale (1000+ daily active users).</li>
+</ul>
+
+<hr>
+
+<h2>Debugging Checklist</h2>
+
+<p>When errors aren&#39;t appearing in tracker:</p>
+
+<ol>
+<li>Verify DSN configured: <code>Sentry.configuration.dsn.present?</code></li>
+<li>Check environment enabled: <code>Sentry.configuration.enabled_environments</code></li>
+<li>Test manually: <code>Sentry.capture_message(&#39;test&#39;)</code> in console</li>
+<li>Review before_send filters: Ensure they don&#39;t return nil</li>
+<li>Check internet connectivity: Sentry requires outbound HTTPS</li>
+<li>Inspect event sampling: <code>traces_sample_rate</code> may drop events</li>
+<li>Verify exception not rescued globally: Check ApplicationController</li>
+<li>Review rate limits: Sentry may throttle high-volume apps</li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>Error trackers (Sentry, Rollbar, Honeybadger) capture exceptions with context instead of mixing them into logs</li>
+<li>Add user<em>id, tenant</em>id, and request<em>id via before</em>action for debugging context</li>
+<li>Fingerprinting groups similar errors to prevent duplicate alerts</li>
+<li>Release tracking connects errors to specific deploys via git commit SHA</li>
+<li>Filter routine errors (validations, 404s) with before_send callbacks to prevent alert fatigue</li>
+</ul>
+
+    
+  </div>
+</div>
+
+<!-- Exercise Tab -->
+<div id="exercise-tab" class="tab-content">
+  <div class="content-section">
+    
+      <h1>Exercise: Error Tracking Mental Model</h1>
+
+<h2>Objective</h2>
+
+<p>Integrate Sentry for error tracking, add custom context (user<em>id, request</em>id), and configure filtering to reduce noise.</p>
+
+<h2>Task</h2>
+
+<p>In a Rails application:</p>
+
+<ol>
+<li>Install and configure Sentry with a DSN</li>
+<li>Add user context and custom tags to every request</li>
+<li>Create a test endpoint that raises an exception</li>
+<li>Configure filtering to skip validation errors</li>
+<li>Verify errors appear in Sentry dashboard with full context</li>
+</ol>
+
+<h2>Acceptance Criteria</h2>
+
+<ul>
+<li>[ ] Sentry gem installed and initialized with DSN</li>
+<li>[ ] Errors include user<em>id, email, and request</em>id in context</li>
+<li>[ ] Custom tags added: tenant_id and environment</li>
+<li>[ ] before_send callback filters ActiveRecord::RecordInvalid errors</li>
+<li>[ ] Test exception appears in Sentry with all context fields</li>
+<li>[ ] Validation errors do NOT appear in Sentry</li>
+</ul>
+
+<h2>Verification Steps</h2>
+
+<h3>Step 1: Sign Up for Sentry</h3>
+
+<ol>
+<li>Go to <a href="https://sentry.io" target="_blank">https://sentry.io</a> and create free account</li>
+<li>Create a new project (select &quot;Rails&quot;)</li>
+<li>Copy the DSN (looks like: <code>https://abc123@o123.ingest.sentry.io/456</code>)</li>
+</ol>
+
+<h3>Step 2: Install Sentry</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Add to Gemfile</span>
+bundle add sentry-ruby
+bundle add sentry-rails
+
+bundle <span class="nb">install</span>
+</code></pre></div>
+<h3>Step 3: Configure Sentry</h3>
+
+<p>Create <code>config/initializers/sentry.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Sentry</span><span class="p">.</span><span class="nf">init</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">dsn</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'SENTRY_DSN'</span><span class="p">]</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">breadcrumbs_logger</span> <span class="o">=</span> <span class="p">[</span><span class="ss">:active_support_logger</span><span class="p">,</span> <span class="ss">:http_logger</span><span class="p">]</span>
+
+  <span class="c1"># Only enable in production/staging (or development for testing)</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">enabled_environments</span> <span class="o">=</span> <span class="sx">%w[production staging development]</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">environment</span> <span class="o">=</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">env</span>
+
+  <span class="c1"># Filter sensitive data</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">send_default_pii</span> <span class="o">=</span> <span class="kp">false</span>
+
+  <span class="c1"># Filter routine errors</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">before_send</span> <span class="o">=</span> <span class="nb">lambda</span> <span class="k">do</span> <span class="o">|</span><span class="n">event</span><span class="p">,</span> <span class="n">hint</span><span class="o">|</span>
+    <span class="n">exception</span> <span class="o">=</span> <span class="n">hint</span><span class="p">[</span><span class="ss">:exception</span><span class="p">]</span>
+
+    <span class="c1"># Skip validation errors</span>
+    <span class="k">if</span> <span class="n">exception</span><span class="p">.</span><span class="nf">is_a?</span><span class="p">(</span><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">RecordInvalid</span><span class="p">)</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Sentry: Skipping RecordInvalid error"</span>
+      <span class="k">return</span> <span class="kp">nil</span>
+    <span class="k">end</span>
+
+    <span class="n">event</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Set environment variable:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># In .env or terminal</span>
+<span class="nb">export </span><span class="nv">SENTRY_DSN</span><span class="o">=</span><span class="s2">"https://your-dsn-here@sentry.io/project-id"</span>
+</code></pre></div>
+<h3>Step 4: Add Context in ApplicationController</h3>
+
+<p>Edit <code>app/controllers/application_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ApplicationController</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">before_action</span> <span class="ss">:set_sentry_context</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">set_sentry_context</span>
+    <span class="no">Sentry</span><span class="p">.</span><span class="nf">set_user</span><span class="p">(</span>
+      <span class="ss">id: </span><span class="n">current_user</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+      <span class="ss">email: </span><span class="n">current_user</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">email</span>
+    <span class="p">)</span>
+
+    <span class="no">Sentry</span><span class="p">.</span><span class="nf">set_tags</span><span class="p">(</span>
+      <span class="ss">tenant_id: </span><span class="n">current_tenant</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+      <span class="ss">locale: </span><span class="no">I18n</span><span class="p">.</span><span class="nf">locale</span>
+    <span class="p">)</span>
+
+    <span class="no">Sentry</span><span class="p">.</span><span class="nf">set_context</span><span class="p">(</span><span class="ss">:request_details</span><span class="p">,</span> <span class="p">{</span>
+      <span class="ss">request_id: </span><span class="n">request</span><span class="p">.</span><span class="nf">request_id</span><span class="p">,</span>
+      <span class="ss">ip: </span><span class="n">request</span><span class="p">.</span><span class="nf">remote_ip</span><span class="p">,</span>
+      <span class="ss">path: </span><span class="n">request</span><span class="p">.</span><span class="nf">path</span>
+    <span class="p">})</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Stub methods for testing</span>
+  <span class="k">def</span> <span class="nf">current_user</span>
+    <span class="no">OpenStruct</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">id: </span><span class="mi">123</span><span class="p">,</span> <span class="ss">email: </span><span class="s1">'test@example.com'</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">current_tenant</span>
+    <span class="no">OpenStruct</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">id: </span><span class="s1">'tenant-abc'</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 5: Create Test Controller</h3>
+
+<p>Add route to <code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">get</span> <span class="s1">'/error_test'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'errors#test_error'</span>
+  <span class="n">post</span> <span class="s1">'/validation_test'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'errors#test_validation'</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Create <code>app/controllers/errors_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ErrorsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="n">skip_before_action</span> <span class="ss">:verify_authenticity_token</span>
+
+  <span class="k">def</span> <span class="nf">test_error</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"About to raise test error"</span>
+
+    <span class="c1"># Add custom context for this specific error</span>
+    <span class="no">Sentry</span><span class="p">.</span><span class="nf">set_context</span><span class="p">(</span><span class="ss">:custom_data</span><span class="p">,</span> <span class="p">{</span>
+      <span class="ss">test_type: </span><span class="s1">'manual_trigger'</span><span class="p">,</span>
+      <span class="ss">timestamp: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">iso8601</span>
+    <span class="p">})</span>
+
+    <span class="k">raise</span> <span class="no">StandardError</span><span class="p">,</span> <span class="s2">"This is a test error from </span><span class="si">#{</span><span class="n">current_user</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">email</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">test_validation</span>
+    <span class="c1"># This should NOT appear in Sentry due to before_send filter</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">new</span>
+    <span class="n">user</span><span class="p">.</span><span class="nf">save!</span> <span class="c1"># Will raise ActiveRecord::RecordInvalid if validations fail</span>
+  <span class="k">rescue</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">RecordInvalid</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">error: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span> <span class="p">},</span> <span class="ss">status: :unprocessable_entity</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 6: Create User Model with Validation</h3>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate model User email:string
+bin/rails db:migrate
+</code></pre></div>
+<p>Edit <code>app/models/user.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">validates</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 7: Test Error Tracking</h3>
+
+<p>Start Rails server:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails server
+</code></pre></div>
+<p>Trigger test error:</p>
+<div class="highlight"><pre class="highlight shell"><code>curl http://localhost:3000/error_test
+</code></pre></div>
+<p>You should see error in terminal and Sentry dashboard.</p>
+
+<p>Test validation error (should NOT appear in Sentry):</p>
+<div class="highlight"><pre class="highlight shell"><code>curl <span class="nt">-X</span> POST http://localhost:3000/validation_test
+</code></pre></div>
+<p>Check Rails logs for &quot;Sentry: Skipping RecordInvalid error&quot; message.</p>
+
+<h3>Step 8: Verify in Sentry Dashboard</h3>
+
+<ol>
+<li>Log into Sentry dashboard</li>
+<li>Navigate to your project</li>
+<li>Check Issues tab - should see &quot;This is a test error from <a href="mailto:test@example.com" target="_blank">test@example.com</a>&quot;</li>
+<li>Click the issue and verify:
+
+<ul>
+<li>User email: <a href="mailto:test@example.com" target="_blank">test@example.com</a></li>
+<li>User ID: 123</li>
+<li>Tags: tenant_id = tenant-abc</li>
+<li>Context: request_id, ip, path</li>
+<li>Custom data: test_type, timestamp</li>
+</ul></li>
+<li>Confirm validation error does NOT appear</li>
+</ol>
+
+<h3>Step 9: Test Manual Exception Capture</h3>
+
+<p>In Rails console:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Test basic capture</span>
+<span class="no">Sentry</span><span class="p">.</span><span class="nf">capture_message</span><span class="p">(</span><span class="s2">"Test message from console"</span><span class="p">)</span>
+
+<span class="c1"># Test with extra context</span>
+<span class="k">begin</span>
+  <span class="mi">1</span> <span class="o">/</span> <span class="mi">0</span>
+<span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+  <span class="no">Sentry</span><span class="p">.</span><span class="nf">capture_exception</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="ss">extra: </span><span class="p">{</span>
+    <span class="ss">calculation: </span><span class="s1">'division'</span><span class="p">,</span>
+    <span class="ss">dividend: </span><span class="mi">1</span><span class="p">,</span>
+    <span class="ss">divisor: </span><span class="mi">0</span>
+  <span class="p">})</span>
+<span class="k">end</span>
+
+<span class="c1"># Verify DSN configured</span>
+<span class="no">Sentry</span><span class="p">.</span><span class="nf">configuration</span><span class="p">.</span><span class="nf">dsn</span>
+<span class="c1"># =&gt; Should show your DSN</span>
+
+<span class="c1"># Check environment</span>
+<span class="no">Sentry</span><span class="p">.</span><span class="nf">configuration</span><span class="p">.</span><span class="nf">environment</span>
+<span class="c1"># =&gt; "development"</span>
+</code></pre></div>
+<h2>Stretch (Optional)</h2>
+
+<ol>
+<li>Add breadcrumbs for debugging:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Sentry</span><span class="p">.</span><span class="nf">add_breadcrumb</span><span class="p">(</span>
+  <span class="no">Sentry</span><span class="o">::</span><span class="no">Breadcrumb</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span>
+    <span class="ss">category: </span><span class="s1">'auth'</span><span class="p">,</span>
+    <span class="ss">message: </span><span class="s1">'User logged in'</span><span class="p">,</span>
+    <span class="ss">level: </span><span class="s1">'info'</span>
+  <span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<ol>
+<li>Configure custom fingerprinting:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span><span class="p">.</span><span class="nf">before_send</span> <span class="o">=</span> <span class="nb">lambda</span> <span class="k">do</span> <span class="o">|</span><span class="n">event</span><span class="p">,</span> <span class="n">hint</span><span class="o">|</span>
+  <span class="k">if</span> <span class="n">hint</span><span class="p">[</span><span class="ss">:exception</span><span class="p">].</span><span class="nf">is_a?</span><span class="p">(</span><span class="no">Timeout</span><span class="o">::</span><span class="no">Error</span><span class="p">)</span>
+    <span class="n">event</span><span class="p">.</span><span class="nf">fingerprint</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'timeout'</span><span class="p">]</span>
+  <span class="k">end</span>
+  <span class="n">event</span>
+<span class="k">end</span>
+</code></pre></div>
+<ol>
+<li>Set up release tracking with git:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code>git rev-parse HEAD <span class="o">&gt;</span> REVISION
+</code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span><span class="p">.</span><span class="nf">release</span> <span class="o">=</span> <span class="no">File</span><span class="p">.</span><span class="nf">read</span><span class="p">(</span><span class="s1">'REVISION'</span><span class="p">).</span><span class="nf">strip</span> <span class="k">rescue</span> <span class="s1">'unknown'</span>
+</code></pre></div>
+<h2>Time Estimate</h2>
+
+<p>16 minutes</p>
+
+    
+  </div>
+</div>
+
+<!-- Checkpoint Tab -->
+<div id="checkpoint-tab" class="tab-content">
+  <div class="content-section">
+    
+      
+      <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
+        <p><strong>Passing Score:</strong> 6 points</p>
+        <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
+      </div>
+
+      
+        <div class="question"
+             data-question-id="0"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Error trackers group similar errors and alert on new issues">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the main benefit of error tracking services over application logs?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  Error trackers are cheaper than log storage
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  Error trackers group similar errors and alert on new issues
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  Error trackers automatically fix production bugs
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  Error trackers don't require internet connectivity
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Grouping reduces noise and alerts surface critical new failures immediately.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="1"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">How do you add user_id and email to every Sentry error in Rails?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Call Sentry.set_user(id: user.id, email: user.email) in a before_action.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="2"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="How similar errors are grouped together">
+          <h4>Question 3 (1 points)</h4>
+          <p style="margin: 10px 0;">What does error fingerprinting control?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  Which errors get sent to Sentry
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  How similar errors are grouped together
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  Error severity levels
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  Which users see the error
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Fingerprinting determines whether errors become separate issues or group into one.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="3"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 4 (2 points)</h4>
+          <p style="margin: 10px 0;">Write code to prevent ActiveRecord::RecordInvalid errors from being sent to Sentry.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">config.before_send = ->(event, hint) { hint[:exception].is_a?(ActiveRecord::RecordInvalid) ? nil : event }</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="4"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="To identify which deploy introduced a new error">
+          <h4>Question 5 (1 points)</h4>
+          <p style="margin: 10px 0;">Why track releases in Sentry?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  To count total deploys per month
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  To identify which deploy introduced a new error
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  To automatically roll back bad deploys
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  To limit errors sent per release
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Release tracking correlates errors with specific git commits or deploy versions.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="5"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Expected errors like validations and 404s">
+          <h4>Question 6 (1 points)</h4>
+          <p style="margin: 10px 0;">When should you filter errors from being sent to Sentry?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  All errors should be sent for completeness
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  Only critical errors above level 5
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  Expected errors like validations and 404s
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  Errors from authenticated users only
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Filtering routine errors reduces noise and prevents alert fatigue.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="short"
+             data-points="1"
+             >
+          <h4>Question 7 (1 points)</h4>
+          <p style="margin: 10px 0;">What Sentry configuration value must be set to enable error tracking?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">config.dsn (Data Source Name) from your Sentry project.</p>
+            </div>
+          
+        </div>
+      
+
+      <div style="margin-top: 30px; display: flex; gap: 10px;">
+        <button onclick="checkAnswers()" style="padding: 12px 24px; background: #CC0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600;">
+          Check Answers
+        </button>
+        <button onclick="resetQuiz()" style="padding: 12px 24px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+          Reset
+        </button>
+      </div>
+
+      <div class="score-display" data-passing="6"></div>
+    
+  </div>
+</div>
+
+<!-- References Tab -->
+<div id="references-tab" class="tab-content">
+  <div class="content-section">
+    
+      <p style="margin-bottom: 20px; color: var(--text-secondary);">
+        Curated sources to deepen your understanding. All references point to official documentation,
+        canonical books, or reputable technical content.
+      </p>
+      <ul class="reference-list">
+        
+          <li>
+            <a href="https://docs.sentry.io/platforms/ruby/guides/rails/" target="_blank">Sentry Rails Documentation</a>
+            <div class="why">Official guide for installing, configuring, and using Sentry in Rails applications.</div>
+          </li>
+        
+          <li>
+            <a href="https://docs.rollbar.com/docs/ruby" target="_blank">Rollbar Ruby Documentation</a>
+            <div class="why">Alternative error tracking service with similar features and configuration patterns.</div>
+          </li>
+        
+          <li>
+            <a href="https://docs.honeybadger.io/lib/ruby/" target="_blank">Honeybadger Ruby Setup</a>
+            <div class="why">Third major error tracker for Rails; includes uptime monitoring and performance tracking.</div>
+          </li>
+        
+          <li>
+            <a href="https://docs.sentry.io/platforms/ruby/enriching-events/context/" target="_blank">Sentry — Managing Event Context</a>
+            <div class="why">Deep dive into adding tags, user data, and custom context to error events.</div>
+          </li>
+        
+          <li>
+            <a href="https://docs.sentry.io/platforms/ruby/configuration/filtering/" target="_blank">Sentry — Filtering Events</a>
+            <div class="why">Patterns for before_send callbacks to skip routine errors and reduce noise.</div>
+          </li>
+        
+          <li>
+            <a href="https://docs.sentry.io/product/data-management-settings/event-grouping/" target="_blank">Error Grouping and Fingerprinting</a>
+            <div class="why">Explains how Sentry groups errors and how to customize fingerprinting logic.</div>
+          </li>
+        
+          <li>
+            <a href="https://docs.sentry.io/product/releases/" target="_blank">Release Tracking Best Practices</a>
+            <div class="why">Guide to connecting deploys with errors via git commits or version tags.</div>
+          </li>
+        
+      </ul>
+    
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="topic-navigation">
+  
+    <a href="/tracks/observability/topics/apm_traces" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">APM Basics and Flamegraphs</div>
+      </div>
+    </a>
+  
+
+  
+    <a href="/tracks/observability/topics/metrics_slos" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">Metrics and SLO Thinking</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+  </div>
+
+  <script>
+    // ============================================
+    // Search Index
+    // ============================================
+    const SEARCH_INDEX = [{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"ar_relations","topic_name":"Active Record Relations & Query Interface","depth_target":"Strong","objectives":"Compose complex queries using relations and scopes Explain lazy loading and when queries execute Chain methods without triggering N+1 queries","url":"/tracks/rails_internals/topics/ar_relations.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"config_initializers","topic_name":"Configuration & Initializers","depth_target":"Strong","objectives":"Configure Rails apps using environment-specific settings Write initializers that load in correct order Manage secrets and credentials securely","url":"/tracks/rails_internals/topics/config_initializers.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"request_lifecycle","topic_name":"Request Lifecycle & Middleware","depth_target":"Strong","objectives":"Trace a Rails request from Rack through middleware to controller Identify where params are parsed and filters applied Profile a request and explain the hottest frames","url":"/tracks/rails_internals/topics/request_lifecycle.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"routing_middleware","topic_name":"Routing & Middleware Patterns","depth_target":"Strong","objectives":"Design RESTful routes with constraints and namespaces Write custom middleware for cross-cutting concerns Debug routing issues using rails routes and route helpers","url":"/tracks/rails_internals/topics/routing_middleware.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"validations_callbacks","topic_name":"Validations, Callbacks & Concerns","depth_target":"Strong","objectives":"Write custom validations and understand when they run Identify callback dangers and when to avoid them Extract shared logic using concerns","url":"/tracks/rails_internals/topics/validations_callbacks.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"autoloading_boot","topic_name":"Zeitwerk/Autoloading & Boot Sequence","depth_target":"Strong","objectives":"Explain how Zeitwerk maps file paths to constants Debug \"uninitialized constant\" and circular dependency errors Optimize boot time by controlling eager loading","url":"/tracks/rails_internals/topics/autoloading_boot.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"ctes_windows","topic_name":"CTEs and Window Functions","depth_target":"Strong","objectives":"Write Common Table Expressions (WITH) to simplify complex queries Use window functions (ROW_NUMBER, RANK, LAG, LEAD) for analytics Decide when to use CTEs vs subqueries for readability and performance","url":"/tracks/sql_postgres/topics/ctes_windows.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"indexing","topic_name":"Database Indexing (B-tree, Partial, Composite)","depth_target":"Strong","objectives":"Choose appropriate index types (B-tree, partial, composite, GIN/GiST) for query patterns Identify when indexes improve or harm performance Use EXPLAIN to verify index usage and measure query costs","url":"/tracks/sql_postgres/topics/indexing.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"modeling_constraints","topic_name":"Modeling & Constraints (FKs, Uniques, Check)","depth_target":"Strong","objectives":"Design schemas with foreign keys, unique constraints, and check constraints Write migrations that enforce data integrity at the database level Debug constraint violations and fix schema issues","url":"/tracks/sql_postgres/topics/modeling_constraints.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"explain_analyze","topic_name":"Reading Query Plans (EXPLAIN ANALYZE)","depth_target":"Strong","objectives":"Read EXPLAIN ANALYZE output to identify sequential scans, index scans, and nested loops Identify query bottlenecks (costly sorts, large row estimates, missing indexes) Use pg_stat_statements to find slowest queries in production","url":"/tracks/sql_postgres/topics/explain_analyze.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"transactions_locks","topic_name":"Transactions, Isolation, and Locks","depth_target":"Strong","objectives":"Explain ACID properties and how Postgres enforces them Choose appropriate isolation levels for concurrent operations Debug deadlocks and lock contention using pg_locks and pg_stat_activity","url":"/tracks/sql_postgres/topics/transactions_locks.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"zero_downtime_migrations","topic_name":"Zero-Downtime Migrations","depth_target":"Strong","objectives":"Write migrations that don't lock tables or cause downtime Add columns with defaults, indexes, and constraints safely Backfill data in batches to avoid long-running transactions","url":"/tracks/sql_postgres/topics/zero_downtime_migrations.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"sidekiq_basics","topic_name":"ActiveJob vs Sidekiq Fundamentals","depth_target":"Strong","objectives":"Compare ActiveJob abstraction with direct Sidekiq usage Configure Redis connection and worker concurrency Route jobs to specific queues and set priorities","url":"/tracks/background_jobs/topics/sidekiq_basics.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"idempotency_retries","topic_name":"Idempotency Patterns & Retries","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate job effects Configure retry strategies with exponential backoff Handle dead jobs in the dead letter queue","url":"/tracks/background_jobs/topics/idempotency_retries.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"job_instrumentation","topic_name":"Job Instrumentation & Backoff","depth_target":"Strong","objectives":"Log job execution with structured context Track success/failure metrics for monitoring Implement custom exponential backoff strategies Use Sidekiq lifecycle hooks for instrumentation","url":"/tracks/background_jobs/topics/job_instrumentation.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"scheduling","topic_name":"Job Scheduling & Deduplication","depth_target":"Strong","objectives":"Schedule recurring jobs with cron syntax using sidekiq-cron Prevent duplicate jobs with sidekiq-unique-jobs Use at/in syntax for delayed one-time jobs Pass job context safely without ActiveRecord objects","url":"/tracks/background_jobs/topics/scheduling.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"cache_keys_invalidations","topic_name":"Cache Keys & Invalidation Strategies","depth_target":"Strong","objectives":"Design cache keys that auto-expire on record changes Implement Russian-doll caching pattern Prevent cache stampede with locks Choose between manual and automatic invalidation","url":"/tracks/caching_performance/topics/cache_keys_invalidations.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"eager_preload","topic_name":"Eager Loading vs Preloading Strategies","depth_target":"Strong","objectives":"Distinguish between includes, preload, eager_load, and joins Choose the correct loading strategy based on query needs Optimize nested associations without over-fetching","url":"/tracks/caching_performance/topics/eager_preload.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"fragment_caching","topic_name":"Fragment & Low-Level Caching","depth_target":"Strong","objectives":"Implement view fragment caching with cache keys Use low-level caching for expensive computations Configure cache stores (memory, Redis, Memcached) Measure cache hit rates and performance gains","url":"/tracks/caching_performance/topics/fragment_caching.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"memory_gc_basics","topic_name":"Memory & Garbage Collection Awareness","depth_target":"Strong","objectives":"Track Ruby object allocation and memory usage Read and interpret GC statistics Identify memory bloat and leaks Use memory_profiler gem to profile endpoints","url":"/tracks/caching_performance/topics/memory_gc_basics.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"n_plus_one","topic_name":"N+1 Query Detection & Resolution","depth_target":"Strong","objectives":"Identify N+1 query patterns in logs and using Bullet gem Choose between includes, preload, eager_load, and joins Measure query count before and after optimization","url":"/tracks/caching_performance/topics/n_plus_one.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"apm_traces","topic_name":"APM Basics and Flamegraphs","depth_target":"Working","objectives":"Read APM flamegraphs to identify slow segments Use APM to detect N+1 queries and slow database calls Set up rack-mini-profiler for local performance analysis","url":"/tracks/observability/topics/apm_traces.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"error_tracking_model","topic_name":"Error Tracking Mental Model","depth_target":"Working","objectives":"Integrate an error tracking service (Sentry, Rollbar, or Honeybadger) Add context to errors (user info, request params, custom tags) Understand error grouping and fingerprinting","url":"/tracks/observability/topics/error_tracking_model.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"metrics_slos","topic_name":"Metrics and SLO Thinking","depth_target":"Working","objectives":"Understand RED metrics (Rate, Errors, Duration) for web services Distinguish between SLI, SLO, and SLA Set realistic SLO targets (99% vs 99.9% trade-offs)","url":"/tracks/observability/topics/metrics_slos.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"structured_logging","topic_name":"Structured Logging with Lograge","depth_target":"Strong","objectives":"Configure lograge for JSON logging in production Add custom fields like request_id and user_id to log entries Filter sensitive data from logs (passwords, tokens)","url":"/tracks/observability/topics/structured_logging.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"error_shapes","topic_name":"API Error Shapes & Standards","depth_target":"Strong","objectives":"Design consistent error response structures across API endpoints Choose appropriate HTTP status codes for different error types Distinguish user-facing from developer-facing error messages","url":"/tracks/api_security/topics/error_shapes.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"versioning","topic_name":"API Versioning Strategies","depth_target":"Strong","objectives":"Compare header-based vs path-based API versioning Implement deprecation warnings with Sunset headers Maintain backward compatibility across API versions","url":"/tracks/api_security/topics/versioning.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"authn_authz","topic_name":"Authentication & Authorization with Pundit","depth_target":"Strong","objectives":"Implement token-based authentication for API endpoints Define authorization policies using Pundit Test authorization logic in controllers and request specs","url":"/tracks/api_security/topics/authn_authz.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"csrf_cors","topic_name":"CSRF, CORS & Input Validation","depth_target":"Strong","objectives":"Configure CORS headers for cross-origin API requests Implement CSRF protection for session-based APIs Validate and sanitize inputs to prevent injection attacks","url":"/tracks/api_security/topics/csrf_cors.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"idempotency_rate_limits","topic_name":"Idempotency Keys & Rate Limiting","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate operations Configure rate limiting using rack-attack and Redis Return appropriate headers (Retry-After, X-RateLimit)","url":"/tracks/api_security/topics/idempotency_rate_limits.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"pagination_filtering","topic_name":"Pagination, Filtering & Sorting","depth_target":"Strong","objectives":"Implement cursor and offset pagination with performance trade-offs Add filtering and sorting via query parameters Return pagination metadata for client navigation","url":"/tracks/api_security/topics/pagination_filtering.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"rest_design","topic_name":"REST Design Patterns","depth_target":"Strong","objectives":"Design RESTful routes using resources and verbs correctly Choose appropriate HTTP status codes for API responses Structure JSON responses with consistent conventions","url":"/tracks/api_security/topics/rest_design.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"forms_progressive","topic_name":"Forms & progressive enhancement","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/forms_progressive.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"hotwire_frames_streams","topic_name":"Hotwire: Frames & Streams","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/hotwire_frames_streams.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"react_working_fundamentals","topic_name":"React: Working fundamentals","depth_target":"working","objectives":"","url":"/tracks/frontend_integration/topics/react_working_fundamentals.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"stimulus_patterns","topic_name":"Stimulus patterns & best practices","depth_target":"strong","objectives":"","url":"/tracks/frontend_integration/topics/stimulus_patterns.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"adrs","topic_name":"ADRs & Lightweight Documentation","depth_target":"Strong","objectives":"Write Architecture Decision Records for major changes Store ADRs in version control alongside code Use MADR template for consistency","url":"/tracks/architecture_design/topics/adrs.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"feature_flags_rollouts","topic_name":"Feature Flags & Safe Rollouts","depth_target":"Strong","objectives":"Implement feature flags with Flipper or Unleash Design rollout strategies by percentage or user segment Monitor flagged features and clean up old flags","url":"/tracks/architecture_design/topics/feature_flags_rollouts.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"layering_services","topic_name":"Layering & Service Objects","depth_target":"Strong","objectives":"Extract complex logic from models into service objects Choose between service, form, and policy objects Apply presenters and decorators for view logic","url":"/tracks/architecture_design/topics/layering_services.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"testing_strategy","topic_name":"Testing Strategy (Unit/Request/System)","depth_target":"Strong","objectives":"Balance unit, request, and system tests using the test pyramid Use factories and fixtures appropriately Stub HTTP calls with VCR and WebMock","url":"/tracks/architecture_design/topics/testing_strategy.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"microservices_when_not","topic_name":"When NOT to Microservice","depth_target":"Working","objectives":"Recognize when monoliths outperform microservices Understand modular monolith as an alternative Identify signs that microservices add complexity without benefit","url":"/tracks/architecture_design/topics/microservices_when_not.html"}];
+
+    // ============================================
+    // Progress Tracking (localStorage)
+    // ============================================
+    const STORAGE_KEY = 'rails_coach_progress';
+    const DARK_MODE_KEY = 'rails_coach_dark_mode';
+
+    function getProgress() {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : {};
+    }
+
+    function saveProgress(progress) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      updateProgressUI();
+    }
+
+    function isTopicComplete(trackKey, topicKey) {
+      const progress = getProgress();
+      return progress[`${trackKey}/${topicKey}`] === true;
+    }
+
+    function toggleTopicComplete(trackKey, topicKey) {
+      const progress = getProgress();
+      const key = `${trackKey}/${topicKey}`;
+      progress[key] = !progress[key];
+      saveProgress(progress);
+      return progress[key];
+    }
+
+    function getTrackProgress(trackKey, totalTopics) {
+      const progress = getProgress();
+      const completed = Object.keys(progress).filter(key =>
+        key.startsWith(trackKey + '/') && progress[key]
+      ).length;
+      return { completed, total: totalTopics };
+    }
+
+    function updateProgressUI() {
+      // Update completion badges on cards
+      document.querySelectorAll('[data-topic-key]').forEach(card => {
+        const trackKey = card.dataset.trackKey;
+        const topicKey = card.dataset.topicKey;
+        const badge = card.querySelector('.completion-badge');
+        if (badge && isTopicComplete(trackKey, topicKey)) {
+          badge.classList.add('completed');
+        }
+      });
+
+      // Update mark complete button
+      const completeBtn = document.getElementById('mark-complete-btn');
+      if (completeBtn) {
+        const trackKey = completeBtn.dataset.trackKey;
+        const topicKey = completeBtn.dataset.topicKey;
+        const completed = isTopicComplete(trackKey, topicKey);
+        completeBtn.classList.toggle('completed', completed);
+        completeBtn.innerHTML = completed ? '✓ Completed' : 'Mark Complete';
+      }
+
+      // Update progress summary
+      const summary = document.getElementById('progress-summary');
+      if (summary) {
+        const progress = getProgress();
+        const total = Object.keys(progress).filter(k => progress[k]).length;
+        if (total > 0) {
+          summary.innerHTML = `<span style="color: var(--text-secondary);">Progress: ${total}/41 topics</span>`;
+        }
+      }
+    }
+
+    function markTopicComplete(trackKey, topicKey) {
+      const completed = toggleTopicComplete(trackKey, topicKey);
+      updateProgressUI();
+
+      // Show celebration if first time completing
+      if (completed) {
+        showNotification('✓ Topic marked complete!');
+      }
+    }
+
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+      }, 2000);
+    }
+
+    // ============================================
+    // Search Functionality
+    // ============================================
+    function performSearch(query) {
+      if (!query || query.trim().length < 2) {
+        hideSearchResults();
+        return;
+      }
+
+      const normalizedQuery = query.toLowerCase().trim();
+      const results = SEARCH_INDEX.filter(item => {
+        return item.topic_name.toLowerCase().includes(normalizedQuery) ||
+               item.track_name.toLowerCase().includes(normalizedQuery) ||
+               item.objectives.toLowerCase().includes(normalizedQuery) ||
+               item.depth_target.toLowerCase().includes(normalizedQuery);
+      });
+
+      displaySearchResults(results, query);
+    }
+
+    function displaySearchResults(results, query) {
+      const container = document.getElementById('search-results');
+
+      if (results.length === 0) {
+        container.innerHTML = `
+          <div class="search-no-results">
+            No topics found for "${query}"
+          </div>
+        `;
+        container.classList.add('show');
+        return;
+      }
+
+      // Group results by track
+      const grouped = {};
+      results.forEach(item => {
+        if (!grouped[item.track_key]) {
+          grouped[item.track_key] = {
+            name: item.track_name,
+            icon: item.track_icon,
+            items: []
+          };
+        }
+        grouped[item.track_key].items.push(item);
+      });
+
+      // Build HTML
+      let html = '';
+      Object.keys(grouped).forEach(trackKey => {
+        const track = grouped[trackKey];
+        html += `
+          <div class="search-group">
+            <div class="search-group-title">
+              ${track.icon} ${track.name}
+            </div>
+        `;
+        track.items.forEach(item => {
+          const badgeClass = item.depth_target === 'Strong' ? 'badge-strong' :
+                           item.depth_target === 'Working' ? 'badge-working' : 'badge-exposure';
+          html += `
+            <a href="${item.url}" class="search-result-item">
+              <div class="search-result-title">${highlightMatch(item.topic_name, query)}</div>
+              <div class="search-result-meta">
+                <span class="badge ${badgeClass}">${item.depth_target}</span>
+              </div>
+            </a>
+          `;
+        });
+        html += `</div>`;
+      });
+
+      container.innerHTML = html;
+      container.classList.add('show');
+    }
+
+    function highlightMatch(text, query) {
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.replace(regex, '<strong>$1</strong>');
+    }
+
+    function hideSearchResults() {
+      document.getElementById('search-results').classList.remove('show');
+    }
+
+    function clearSearch() {
+      const input = document.getElementById('search-input');
+      input.value = '';
+      hideSearchResults();
+      document.getElementById('search-clear').classList.remove('show');
+      input.focus();
+    }
+
+    function initSearch() {
+      const searchInput = document.getElementById('search-input');
+      const searchClear = document.getElementById('search-clear');
+
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value;
+        if (query.length > 0) {
+          searchClear.classList.add('show');
+        } else {
+          searchClear.classList.remove('show');
+        }
+        performSearch(query);
+      });
+
+      // Close search results when clicking outside
+      document.addEventListener('click', (e) => {
+        const searchContainer = document.querySelector('.search-container');
+        if (!searchContainer.contains(e.target)) {
+          hideSearchResults();
+        }
+      });
+
+      // Keyboard shortcut: / to focus search
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+        // Escape to close search
+        if (e.key === 'Escape') {
+          clearSearch();
+        }
+      });
+    }
+
+    // ============================================
+    // Dark Mode
+    // ============================================
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem(DARK_MODE_KEY, isDark);
+
+      document.querySelector('.light-icon').style.display = isDark ? 'none' : 'inline';
+      document.querySelector('.dark-icon').style.display = isDark ? 'inline' : 'none';
+    }
+
+    function initDarkMode() {
+      const isDark = localStorage.getItem(DARK_MODE_KEY) === 'true';
+      if (isDark) {
+        document.body.classList.add('dark-mode');
+        document.querySelector('.light-icon').style.display = 'none';
+        document.querySelector('.dark-icon').style.display = 'inline';
+      }
+    }
+
+    // ============================================
+    // Tab Switching
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const targetId = tab.dataset.tab;
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          document.getElementById(targetId).classList.add('active');
+        });
+      });
+
+      // Add code copy buttons
+      addCopyButtons();
+
+      // Initialize dark mode
+      initDarkMode();
+
+      // Initialize search
+      initSearch();
+
+      // Update progress UI
+      updateProgressUI();
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        // Arrow keys for prev/next
+        if (e.key === 'ArrowLeft' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          const prevBtn = document.querySelector('.nav-button.prev');
+          if (prevBtn && !prevBtn.disabled) prevBtn.click();
+        }
+        if (e.key === 'ArrowRight' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          const nextBtn = document.querySelector('.nav-button.next');
+          if (nextBtn && !nextBtn.disabled) nextBtn.click();
+        }
+        // Number keys for tabs
+        if (e.key >= '1' && e.key <= '4') {
+          const tabs = document.querySelectorAll('.tab');
+          const index = parseInt(e.key) - 1;
+          if (tabs[index]) tabs[index].click();
+        }
+      });
+    });
+
+    // ============================================
+    // Code Copy Buttons
+    // ============================================
+    function addCopyButtons() {
+      document.querySelectorAll('pre').forEach((pre, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(pre);
+
+        const button = document.createElement('button');
+        button.className = 'copy-button';
+        button.textContent = 'Copy';
+        button.onclick = () => copyCode(pre, button);
+        wrapper.appendChild(button);
+      });
+    }
+
+    function copyCode(pre, button) {
+      const code = pre.querySelector('code') || pre;
+      navigator.clipboard.writeText(code.textContent).then(() => {
+        button.textContent = '✓ Copied!';
+        button.classList.add('copied');
+        setTimeout(() => {
+          button.textContent = 'Copy';
+          button.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // ============================================
+    // Quiz Functionality
+    // ============================================
+    function selectChoice(questionId, choiceIndex) {
+      const question = document.querySelector(`[data-question-id="${questionId}"]`);
+      const choices = question.querySelectorAll('.choice');
+      choices.forEach((choice, idx) => {
+        choice.classList.remove('selected');
+        if (idx === choiceIndex) choice.classList.add('selected');
+      });
+    }
+
+    function checkAnswers() {
+      let score = 0;
+      let totalPoints = 0;
+
+      document.querySelectorAll('.question').forEach(question => {
+        const kind = question.dataset.kind;
+        const points = parseInt(question.dataset.points);
+        totalPoints += points;
+
+        if (kind === 'mcq') {
+          const correct = question.dataset.correct;
+          const selected = question.querySelector('.choice.selected');
+
+          if (selected) {
+            const selectedText = selected.textContent.trim();
+            const explanation = question.querySelector('.explanation');
+
+            if (selectedText === correct) {
+              selected.classList.add('correct');
+              score += points;
+            } else {
+              selected.classList.add('incorrect');
+              question.querySelectorAll('.choice').forEach(choice => {
+                if (choice.textContent.trim() === correct) {
+                  choice.classList.add('correct');
+                }
+              });
+            }
+
+            if (explanation) explanation.classList.add('show');
+          }
+        }
+      });
+
+      const scoreDisplay = document.querySelector('.score-display');
+      const passingScore = parseInt(scoreDisplay.dataset.passing || 7);
+      const passed = score >= passingScore;
+
+      scoreDisplay.innerHTML = `
+        <div style="font-size: 24px; font-weight: bold;">${score} / ${totalPoints}</div>
+        <div style="margin-top: 5px;">${passed ? '✅ Passed!' : '❌ Try again'}</div>
+        <div style="font-size: 12px; margin-top: 5px;">Passing: ${passingScore}</div>
+      `;
+      scoreDisplay.classList.add('show');
+    }
+
+    function resetQuiz() {
+      document.querySelectorAll('.choice').forEach(choice => {
+        choice.classList.remove('selected', 'correct', 'incorrect');
+      });
+      document.querySelectorAll('.explanation').forEach(exp => exp.classList.remove('show'));
+      document.querySelector('.score-display').classList.remove('show');
+    }
+  </script>
+</body>
+</html>
