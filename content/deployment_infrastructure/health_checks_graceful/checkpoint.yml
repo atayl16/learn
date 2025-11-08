@@ -1,65 +1,113 @@
 ---
 checkpoint:
-  topic_key: health_checks_graceful
-  title: Health Checks & Graceful Shutdowns Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 2
+      prompt: "What is the key difference between readiness and liveness probes in Kubernetes?"
+      choices:
+        - "Readiness probes check if the app is ready for traffic and remove it from load balancer if it fails; liveness probes detect deadlocks and restart the pod if it fails"
+        - "Liveness probes check database connections; readiness probes only check if the process is running"
+        - "Readiness probes run more frequently than liveness probes"
+        - "Liveness probes are optional; readiness probes are required for all deployments"
+      correct: "Readiness probes check if the app is ready for traffic and remove it from load balancer if it fails; liveness probes detect deadlocks and restart the pod if it fails"
+      why: "Readiness failures stop traffic without restarting the pod—useful during boot or dependency outages. Liveness failures restart the pod—useful for deadlocks. Using liveness for startup checks causes restart loops."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why should health check endpoints avoid expensive operations like querying large datasets or calling external APIs?"
+      choices:
+        - "Health checks run every 5-10 seconds; expensive operations add latency and can overload your own system"
+        - "Kubernetes limits health check response time to 100ms"
+        - "Expensive operations prevent proper error handling"
+        - "Health checks cannot access databases or external services"
+      correct: "Health checks run every 5-10 seconds; expensive operations add latency and can overload your own system"
+      why: "Health probes execute continuously (every few seconds). If each check queries multiple tables or external APIs, you're creating a self-inflicted DoS attack. Keep checks lightweight—verify connectivity, not full functionality."
+
+    - kind: mcq
+      points: 2
+      prompt: "What happens when a Rails application receives a SIGTERM signal in production?"
+      choices:
+        - "Puma immediately stops accepting connections and waits for in-flight requests to complete before exiting"
+        - "The application crashes immediately without cleanup"
+        - "SIGTERM is ignored unless explicitly handled in application code"
+        - "Rails automatically sends a 503 response to all pending requests"
+      correct: "Puma immediately stops accepting connections and waits for in-flight requests to complete before exiting"
+      why: "Puma (Rails' default server) handles SIGTERM gracefully by default: stops accepting new connections, waits for active requests to finish (up to worker_timeout), then exits cleanly. This prevents dropped requests during deployments."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the purpose of Rails 7.1's built-in /up endpoint?"
+      choices:
+        - "It provides a lightweight liveness check that returns 200 OK without checking dependencies"
+        - "It automatically checks database, Redis, and all external service health"
+        - "It triggers asset precompilation when the app starts"
+        - "It displays detailed performance metrics for monitoring"
+      correct: "It provides a lightweight liveness check that returns 200 OK without checking dependencies"
+      why: "Rails 7.1's /up endpoint (Rails::HealthController) is intentionally simple—it just returns 200 if the app is running. For readiness checks that verify dependencies, create a custom health controller."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why is a Kubernetes preStop hook important for zero-downtime deployments?"
+      choices:
+        - "It delays SIGTERM to allow the load balancer time to remove the pod from rotation, preventing new traffic during shutdown"
+        - "It automatically backs up the database before pod termination"
+        - "It speeds up pod startup by preloading assets"
+        - "It's required for health checks to function properly"
+      correct: "It delays SIGTERM to allow the load balancer time to remove the pod from rotation, preventing new traffic during shutdown"
+      why: "When a pod shuts down, Kubernetes removes it from service endpoints, but load balancers need time to propagate this change. A preStop hook (sleep 15) ensures no new traffic arrives before SIGTERM starts draining connections."
+
+    - kind: mcq
+      points: 2
+      prompt: "What happens if a pod doesn't exit within terminationGracePeriodSeconds?"
+      choices:
+        - "Kubernetes sends SIGKILL to force-terminate the pod, potentially causing dropped requests or data corruption"
+        - "Kubernetes automatically extends the grace period until all requests complete"
+        - "The pod continues running indefinitely until manually stopped"
+        - "Kubernetes marks the deployment as failed and rolls back"
+      correct: "Kubernetes sends SIGKILL to force-terminate the pod, potentially causing dropped requests or data corruption"
+      why: "If a pod doesn't exit gracefully within the grace period (default 30s), Kubernetes sends SIGKILL—an unblockable signal that immediately kills the process. This can drop requests, orphan jobs, or corrupt data. Always ensure worker_timeout < terminationGracePeriodSeconds."
+
+    - kind: mcq
+      points: 1
+      prompt: "What should a custom health check endpoint return when dependencies are unavailable?"
+      choices:
+        - "HTTP 503 Service Unavailable with error details in JSON"
+        - "HTTP 200 OK to prevent pod restart"
+        - "HTTP 500 Internal Server Error"
+        - "HTTP 404 Not Found"
+      correct: "HTTP 503 Service Unavailable with error details in JSON"
+      why: "503 Service Unavailable signals that the service is temporarily unable to handle requests (e.g., database down). Orchestrators use this to remove the pod from load balancers without restarting it. 200 would incorrectly signal 'ready for traffic.'"
+
+    - kind: mcq
+      points: 2
+      prompt: "How should background workers (like Sidekiq) handle graceful shutdown?"
+      choices:
+        - "Stop fetching new jobs, wait for active jobs to finish (up to timeout), then re-queue unfinished work"
+        - "Immediately terminate all running jobs and exit"
+        - "Continue processing jobs until all queues are empty"
+        - "Ignore SIGTERM and rely on SIGKILL for shutdown"
+      correct: "Stop fetching new jobs, wait for active jobs to finish (up to timeout), then re-queue unfinished work"
+      why: "Sidekiq's graceful shutdown: stops fetching new jobs from Redis, waits up to :timeout for active jobs to complete, then re-queues unfinished jobs. This prevents job loss during deployments. Set timeout < terminationGracePeriodSeconds."
+
+    - kind: mcq
+      points: 1
+      prompt: "Why should liveness probe failureThreshold be set conservatively (5+)?"
+      choices:
+        - "To tolerate transient failures and avoid restart loops caused by temporary spikes or network blips"
+        - "To ensure faster pod recovery during outages"
+        - "Kubernetes requires a minimum of 5 failures"
+        - "To reduce monitoring noise from health check failures"
+      correct: "To tolerate transient failures and avoid restart loops caused by temporary spikes or network blips"
+      why: "A low failureThreshold (e.g., 1-2) causes pods to restart on transient failures (brief CPU spike, network glitch). Conservative values (5+) tolerate temporary issues while still detecting real deadlocks. Readiness can use lower thresholds since it doesn't restart pods."
+
+    - kind: mcq
+      points: 2
+      prompt: "In a Kubernetes rolling update, what is the purpose of maxUnavailable: 0 and maxSurge: 1?"
+      choices:
+        - "Always maintain full capacity (never fewer than replica count) by starting new pods before terminating old ones"
+        - "Minimize resource usage by updating pods one at a time"
+        - "Speed up deployments by updating all pods simultaneously"
+        - "Prevent database connection exhaustion during updates"
+      correct: "Always maintain full capacity (never fewer than replica count) by starting new pods before terminating old ones"
+      why: "maxUnavailable: 0 ensures you never have fewer than the desired replica count. maxSurge: 1 allows one extra pod during rollout. This guarantees zero downtime—new pods are ready before old ones terminate, maintaining capacity throughout the update."

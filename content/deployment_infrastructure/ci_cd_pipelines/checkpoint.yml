@@ -1,65 +1,113 @@
 ---
 checkpoint:
-  topic_key: ci_cd_pipelines
-  title: CI/CD Pipelines Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary purpose of using `bundler-cache: true` in the ruby/setup-ruby GitHub Action?"
+      choices:
+        - "It caches the entire Ruby installation to speed up future workflow runs"
+        - "It automatically caches gems based on Gemfile.lock, reducing bundle install time from minutes to seconds"
+        - "It enables automatic deployment when dependencies change"
+        - "It compresses the bundle directory to save disk space"
+      correct: "It automatically caches gems based on Gemfile.lock, reducing bundle install time from minutes to seconds"
+      why: "The bundler-cache option automatically manages gem caching using Gemfile.lock as the cache key. When dependencies haven't changed, it restores cached gems instead of reinstalling them, typically reducing install time from 3-5 minutes to 10-30 seconds."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why should you use the `services:` section in GitHub Actions for database containers instead of installing Postgres directly on the runner?"
+      choices:
+        - "Services run faster than native installations"
+        - "Services provide isolated, reproducible environments with health checks and run in parallel with setup steps"
+        - "Services are required by GitHub Actions; you cannot install databases directly"
+        - "Services automatically migrate your database schema"
+      correct: "Services provide isolated, reproducible environments with health checks and run in parallel with setup steps"
+      why: "Service containers run in Docker with defined health checks, ensuring the database is ready before tests run. They provide clean, isolated environments for each workflow run and can start in parallel with other setup steps, improving performance."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the correct way to access a GitHub Secret named DEPLOY_KEY in a workflow step?"
+      choices:
+        - "env: DEPLOY_KEY=$DEPLOY_KEY"
+        - "env: DEPLOY_KEY=${{ secrets.DEPLOY_KEY }}"
+        - "secrets: DEPLOY_KEY=true"
+        - "uses: secrets/DEPLOY_KEY@v1"
+      correct: "env: DEPLOY_KEY=${{ secrets.DEPLOY_KEY }}"
+      why: "GitHub Secrets are accessed using the ${{ secrets.SECRET_NAME }} syntax and exposed as environment variables. GitHub automatically redacts secret values in logs for security."
+
+    - kind: mcq
+      points: 1
+      prompt: "What does the `on: pull_request` trigger do in a GitHub Actions workflow?"
+      choices:
+        - "Runs the workflow when a pull request is merged to main"
+        - "Runs the workflow when a pull request is opened, synchronized (new commits pushed), or reopened"
+        - "Runs the workflow only when a pull request is approved"
+        - "Runs the workflow when pull request comments are added"
+      correct: "Runs the workflow when a pull request is opened, synchronized (new commits pushed), or reopened"
+      why: "The pull_request trigger activates on PR open, synchronize (new commits), and reopen events by default. This ensures CI runs on every code change in a PR, catching issues before merge."
+
+    - kind: mcq
+      points: 2
+      prompt: "How do matrix builds improve CI pipeline efficiency?"
+      choices:
+        - "They reduce the total number of tests that need to run"
+        - "They run the same job in parallel with different configurations (e.g., Ruby 3.1, 3.2, 3.3), testing compatibility faster"
+        - "They automatically fix failing tests"
+        - "They cache results across different Ruby versions"
+      correct: "They run the same job in parallel with different configurations (e.g., Ruby 3.1, 3.2, 3.3), testing compatibility faster"
+      why: "Matrix builds create multiple parallel jobs from a single job definition with different variable values. This allows testing across Ruby versions, Rails versions, or database types simultaneously instead of sequentially, reducing total feedback time."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the security risk of running `echo ${{ secrets.API_KEY }}` in a workflow step?"
+      choices:
+        - "There is no risk; GitHub automatically redacts secret values in all logs"
+        - "While GitHub redacts the exact secret value, derived values or partial echoes might leak information"
+        - "The secret becomes permanently exposed in the repository history"
+        - "Secrets can only be used in deploy jobs, not test jobs"
+      correct: "While GitHub redacts the exact secret value, derived values or partial echoes might leak information"
+      why: "GitHub redacts exact matches of secret values in logs, but echoing secrets can still leak information through substring matches, base64 encoding, or other transformations. Never intentionally log secrets or use them in commands that produce visible output."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why should you run `rails db:schema:load` instead of `rails db:migrate` in CI environments?"
+      choices:
+        - "Migrations don't work in Docker containers"
+        - "schema:load is faster because it loads the schema definition directly instead of running all migrations sequentially"
+        - "migrate requires production credentials"
+        - "schema:load automatically seeds the database"
+      correct: "schema:load is faster because it loads the schema definition directly instead of running all migrations sequentially"
+      why: "In CI, you start with a fresh database each run. schema:load reads db/schema.rb and creates the schema directly, taking seconds. Running all migrations sequentially can take minutes on projects with hundreds of migrations."
+
+    - kind: mcq
+      points: 1
+      prompt: "What does the `if: always()` condition do in a workflow step?"
+      choices:
+        - "Runs the step on every commit, regardless of branch"
+        - "Runs the step even if previous steps failed, useful for uploading test artifacts"
+        - "Runs the step only on the main branch"
+        - "Forces the step to retry until it succeeds"
+      correct: "Runs the step even if previous steps failed, useful for uploading test artifacts"
+      why: "By default, steps are skipped if previous steps fail. if: always() ensures the step runs regardless of previous step status, which is critical for uploading test results or logs from failed test runs."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the purpose of health checks in service containers?"
+      choices:
+        - "They monitor service performance and send alerts"
+        - "They ensure the service is ready (e.g., Postgres accepting connections) before running dependent steps like database setup"
+        - "They automatically restart services that crash"
+        - "They optimize service memory usage"
+      correct: "They ensure the service is ready (e.g., Postgres accepting connections) before running dependent steps like database setup"
+      why: "Health checks (--health-cmd pg_isready) probe the service until it's operational. Without health checks, subsequent steps might try to connect to Postgres before it's ready, causing connection errors and test failures."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which workflow trigger is best for deploying to production on version releases?"
+      choices:
+        - "on: push: branches: [main]"
+        - "on: push: tags: ['v*']"
+        - "on: pull_request: types: [closed]"
+        - "on: schedule: cron: '0 0 * * *'"
+      correct: "on: push: tags: ['v*']"
+      why: "Triggering on tag pushes matching 'v*' (e.g., v1.2.3) allows explicit, versioned production releases. This gives teams control over when production deployments occur, separating them from regular main branch merges that might deploy to staging."

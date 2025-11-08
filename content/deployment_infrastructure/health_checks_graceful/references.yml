@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Kubernetes Liveness, Readiness, and Startup Probes"
+    url: "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/"
+    why: "Official Kubernetes documentation explaining probe types, configuration parameters, and best practices for health checks."
+
+  - title: "Rails 7.1 Health Check Endpoint"
+    url: "https://guides.rubyonrails.org/configuring.html#config-health-endpoint"
+    why: "Official Rails guide covering the built-in /up endpoint (Rails::HealthController) introduced in Rails 7.1."
+
+  - title: "Puma Graceful Shutdown Configuration"
+    url: "https://github.com/puma/puma/blob/master/docs/signals.md"
+    why: "Documentation on Puma's signal handling, worker lifecycle hooks, and graceful shutdown configuration for production deployments."
+
+  - title: "Zero Downtime Deployments with Kubernetes"
+    url: "https://learnk8s.io/graceful-shutdown"
+    why: "Comprehensive guide to achieving zero-downtime deployments using readiness probes, preStop hooks, and connection draining strategies."
+
+  - title: "Sidekiq Signals and Graceful Shutdown"
+    url: "https://github.com/sidekiq/sidekiq/wiki/Signals"
+    why: "Documentation on how Sidekiq handles SIGTERM, SIGINT, and graceful shutdown to prevent job loss during deployments."
+
+  - title: "Container Termination Lifecycle (Google Cloud)"
+    url: "https://cloud.google.com/blog/products/containers-kubernetes/kubernetes-best-practices-terminating-with-grace"
+    why: "Best practices for handling pod termination, understanding terminationGracePeriodSeconds, and implementing preStop hooks."
+
+  - title: "Health Check Patterns (AWS Load Balancer)"
+    url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html"
+    why: "AWS documentation on configuring health checks for Application Load Balancers, including interval, timeout, and threshold settings."

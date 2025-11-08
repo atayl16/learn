@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Rails Asset Pipeline Guide (Official)"
+    url: "https://guides.rubyonrails.org/asset_pipeline.html"
+    why: "Official Rails documentation on asset pipeline fundamentals, fingerprinting, precompilation, and configuration options for both Sprockets and Propshaft."
+
+  - title: "Propshaft - The Modern Asset Pipeline"
+    url: "https://github.com/rails/propshaft"
+    why: "Official Propshaft repository with documentation on Rails 7+ asset pipeline, configuration examples, and migration guides from Sprockets."
+
+  - title: "AWS CloudFront Documentation - Getting Started"
+    url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/GettingStarted.html"
+    why: "Comprehensive guide to setting up CloudFront distributions, configuring cache behaviors, and integrating S3 as an origin for static assets."
+
+  - title: "Cloudflare CDN - Caching Best Practices"
+    url: "https://developers.cloudflare.com/cache/best-practices/"
+    why: "Best practices for CDN caching strategies, cache headers (Cache-Control, ETag), TTL configuration, and edge caching optimization."
+
+  - title: "MDN Web Docs - HTTP Caching"
+    url: "https://developer.mozilla.org/en-US/Web-Services/HTTP/Caching"
+    why: "Detailed explanation of HTTP caching mechanisms, Cache-Control directives (immutable, max-age), ETag validation, and browser caching behavior."
+
+  - title: "Asset Sync Gem for Rails"
+    url: "https://github.com/AssetSync/asset_sync"
+    why: "Gem for automatically syncing compiled Rails assets to S3 after precompilation, with configuration examples and deployment workflows."
+
+  - title: "High Performance Browser Networking (Book Chapter)"
+    url: "https://hpbn.co/http-caching/"
+    why: "In-depth coverage of caching strategies, CDN architecture, edge caching, cache invalidation patterns, and performance optimization techniques."

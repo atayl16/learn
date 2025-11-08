@@ -1,65 +1,113 @@
 ---
 checkpoint:
-  topic_key: asset_pipeline_cdn
-  title: Asset Pipeline & CDN Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary purpose of asset fingerprinting in Rails?"
+      choices:
+        - "To compress assets for faster downloads"
+        - "To append a content hash to filenames, enabling cache invalidation when assets change"
+        - "To encrypt assets for security purposes"
+        - "To organize assets into logical directories"
+      correct: "To append a content hash to filenames, enabling cache invalidation when assets change"
+      why: "Fingerprinting generates a unique hash based on file content (e.g., application-9f8e7d6c.css). When content changes, the filename changes, forcing browsers to download the new version instead of using a stale cached copy. This solves the cache invalidation problem without manual purges."
+
+    - kind: mcq
+      points: 2
+      prompt: "How does Propshaft differ from Sprockets in Rails 7+?"
+      choices:
+        - "Propshaft is slower but more feature-rich than Sprockets"
+        - "Propshaft handles JavaScript bundling internally while Sprockets requires external tools"
+        - "Propshaft is simpler, delegates JS/CSS preprocessing to external tools (esbuild/Vite), and focuses only on asset serving with fingerprints"
+        - "Propshaft and Sprockets are identical; Propshaft is just a rename"
+      correct: "Propshaft is simpler, delegates JS/CSS preprocessing to external tools (esbuild/Vite), and focuses only on asset serving with fingerprints"
+      why: "Propshaft eliminates Sprockets' directive system (//= require) and preprocessing complexity. It expects precompiled CSS/JS from external tools and focuses on fingerprinting and serving. This makes it faster and easier to configure for modern Rails apps."
+
+    - kind: mcq
+      points: 2
+      prompt: "What Cache-Control header should be set for fingerprinted assets?"
+      choices:
+        - "Cache-Control: no-cache, no-store"
+        - "Cache-Control: public, max-age=3600"
+        - "Cache-Control: public, max-age=31536000, immutable"
+        - "Cache-Control: private, must-revalidate"
+      correct: "Cache-Control: public, max-age=31536000, immutable"
+      why: "Fingerprinted assets never change (new content = new filename). Setting max-age to 1 year (31536000 seconds) with 'immutable' tells browsers and CDNs to cache aggressively without revalidation. This maximizes cache hit rates and reduces origin requests."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why should HTML pages have different cache headers than fingerprinted assets?"
+      choices:
+        - "HTML is smaller than assets and doesn't need caching"
+        - "HTML references fingerprinted asset URLs; if HTML is cached too long, it will serve old asset references after deployments"
+        - "Browsers automatically cache HTML regardless of headers"
+        - "CDNs cannot cache HTML pages"
+      correct: "HTML references fingerprinted asset URLs; if HTML is cached too long, it will serve old asset references after deployments"
+      why: "HTML contains references to fingerprinted assets. After a deploy, new HTML references new fingerprints (application-newHash.css). If HTML is cached for 1 year, users see old HTML with old asset references. HTML should have short TTLs (no-cache or max-age=300) while fingerprinted assets cache forever."
+
+    - kind: mcq
+      points: 1
+      prompt: "What does the .manifest.json file contain?"
+      choices:
+        - "A list of all Rails routes and their asset dependencies"
+        - "Mappings from logical asset paths (application.css) to fingerprinted paths (application-9f8e7d6c.css)"
+        - "Configuration settings for the asset pipeline"
+        - "A backup of all compiled assets"
+      correct: "Mappings from logical asset paths (application.css) to fingerprinted paths (application-9f8e7d6c.css)"
+      why: "Rails helpers like asset_path() and stylesheet_link_tag() consult .manifest.json to resolve logical names to fingerprinted files. For example, asset_path('application.css') looks up 'application.css' in the manifest and returns '/assets/application-9f8e7d6c.css'."
+
+    - kind: mcq
+      points: 2
+      prompt: "When should rails assets:precompile be run?"
+      choices:
+        - "On every server restart in production"
+        - "During the deployment process (CI/CD or Docker build), before deploying the application"
+        - "Only when assets change, manually triggered by developers"
+        - "Automatically on first request in production"
+      correct: "During the deployment process (CI/CD or Docker build), before deploying the application"
+      why: "Precompilation is expensive (runs esbuild, Tailwind, generates fingerprints). Running it during deployment ensures compiled assets are ready before the app starts. In Docker, precompile in the builder stage. Never compile on-the-fly in production (config.assets.compile = false)."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the benefit of using a CDN like CloudFront or Cloudflare for serving assets?"
+      choices:
+        - "CDNs compress assets more efficiently than Rails"
+        - "CDNs cache assets at edge locations globally, reducing latency and offloading requests from origin servers"
+        - "CDNs automatically optimize asset code (minify CSS/JS)"
+        - "CDNs are required for asset fingerprinting to work"
+      correct: "CDNs cache assets at edge locations globally, reducing latency and offloading requests from origin servers"
+      why: "CDNs have edge servers worldwide. When a user in Tokyo requests an asset, it's served from a nearby edge cache (~20ms) instead of traveling to your origin server in Virginia (~200ms). This reduces latency by 60-80% and can offload 95%+ of asset requests from your app servers."
+
+    - kind: mcq
+      points: 1
+      prompt: "What does the x-cache: Hit from cloudfront header indicate?"
+      choices:
+        - "The request bypassed the CDN and went directly to the origin server"
+        - "The CDN served the asset from its cache without contacting the origin server"
+        - "The asset failed to upload to the CDN"
+        - "The CDN rejected the request due to invalid headers"
+      correct: "The CDN served the asset from its cache without contacting the origin server"
+      why: "x-cache: Hit means the asset was found in CloudFront's edge cache. x-cache: Miss means CloudFront fetched it from the origin (S3). High cache hit rates (>95%) indicate your caching strategy is working correctly."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why should you upload the full public/assets directory to S3 on every deploy instead of only changed files?"
+      choices:
+        - "S3 doesn't support incremental uploads"
+        - "Rails requires all assets to be present, and uploading only changed files can leave gaps if old assets are deleted"
+        - "Full uploads are faster than incremental uploads"
+        - "S3 automatically deduplicates identical files"
+      correct: "Rails requires all assets to be present, and uploading only changed files can leave gaps if old assets are deleted"
+      why: "If you delete an asset locally or rename it, uploading only 'changed' files won't remove the old version from S3, wasting space. Worse, if an asset is removed but .manifest.json still references it, you'll get 404s. Using aws s3 sync with --delete ensures S3 mirrors public/assets exactly."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the correct approach to handle asset precompilation in a multi-stage Dockerfile?"
+      choices:
+        - "Precompile assets in the final runtime stage using CMD rails assets:precompile"
+        - "Precompile assets in the builder stage, then COPY public/assets/ to the final stage"
+        - "Skip precompilation in Docker; compile assets on the host before building"
+        - "Use a separate Docker container just for asset compilation"
+      correct: "Precompile assets in the builder stage, then COPY public/assets/ to the final stage"
+      why: "Asset precompilation requires Node.js, Yarn, and build tools (large dependencies). In a multi-stage build, the builder stage has these tools, compiles assets, then the final stage COPY only the compiled output. This keeps the runtime image small and avoids recompiling on every container start."

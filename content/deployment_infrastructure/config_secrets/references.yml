@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Rails Guides — Securing Rails Applications (Credentials Section)"
+    url: "https://guides.rubyonrails.org/security.html#custom-credentials"
+    why: "Official Rails documentation on encrypted credentials, master keys, and per-environment credential files."
+
+  - title: "The Twelve-Factor App — Config"
+    url: "https://12factor.net/config"
+    why: "Foundational methodology for separating config from code using environment variables, essential for understanding when to use ENV vs credentials."
+
+  - title: "Rails Credentials Deep Dive (GoRails)"
+    url: "https://gorails.com/episodes/rails-5-2-credentials"
+    why: "Comprehensive video and written guide on using Rails credentials, editing encrypted files, and deployment best practices."
+
+  - title: "AWS Secrets Manager — Secret Rotation"
+    url: "https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html"
+    why: "Best practices for automated secret rotation with zero downtime, applicable to Rails credential rotation strategies."
+
+  - title: "DHH on Rails Credentials (Rails 5.2 Release Notes)"
+    url: "https://weblog.rubyonrails.org/2017/11/27/Rails-5-2-Active-Storage-Redis-Cache-Store-HTTP2-Early-Hints-Credentials/"
+    why: "Original announcement and rationale for Rails credentials system, explaining the security model and design decisions."
+
+  - title: "Managing Secrets in Rails Applications (Evil Martians)"
+    url: "https://evilmartians.com/chronicles/rails-encrypted-credentials-on-rails-5-2"
+    why: "Production-focused guide covering credential management, deployment workflows, and common pitfalls when working with encrypted credentials."
+
+  - title: "OWASP — Secrets Management Cheat Sheet"
+    url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html"
+    why: "Industry best practices for storing, accessing, and rotating secrets securely, with threat models and compliance considerations."

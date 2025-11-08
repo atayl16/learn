@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "GitHub Actions Documentation"
+    url: "https://docs.github.com/en/actions"
+    why: "Official comprehensive guide covering workflow syntax, triggers, jobs, steps, secrets, and GitHub Actions marketplace. Essential for understanding YAML configuration and GitHub Actions concepts."
+
+  - title: "ruby/setup-ruby Action"
+    url: "https://github.com/ruby/setup-ruby"
+    why: "Official Ruby setup action with built-in bundler caching. Explains bundler-cache option, version matrix configuration, and best practices for Ruby CI workflows."
+
+  - title: "Testing Rails Applications with GitHub Actions"
+    url: "https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-ruby"
+    why: "GitHub's official guide for setting up Rails CI pipelines, including service containers for Postgres, Redis caching strategies, and common Rails-specific configurations."
+
+  - title: "GitHub Actions: Using Service Containers"
+    url: "https://docs.github.com/en/actions/using-containerized-services/about-service-containers"
+    why: "In-depth explanation of service containers, health checks, networking, and how to configure databases and dependencies for CI jobs."
+
+  - title: "Caching Dependencies in GitHub Actions"
+    url: "https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows"
+    why: "Comprehensive guide to cache actions, cache keys, restore keys, and strategies for optimizing build times by caching gems, node modules, and build artifacts."
+
+  - title: "Encrypted Secrets in GitHub Actions"
+    url: "https://docs.github.com/en/actions/security-guides/encrypted-secrets"
+    why: "Security best practices for managing secrets, environment-specific secrets, secret redaction in logs, and using secrets safely in workflows."
+
+  - title: "Evil Martians: Rails Testing Best Practices"
+    url: "https://evilmartians.com/chronicles/system-of-a-test-setting-up-end-to-end-rails-testing"
+    why: "Production-tested Rails CI strategies including parallel testing, test organization, and real-world optimization techniques from a leading Rails consultancy."

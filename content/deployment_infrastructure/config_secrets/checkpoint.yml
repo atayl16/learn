@@ -1,65 +1,113 @@
 ---
 checkpoint:
-  topic_key: config_secrets
-  title: Config & Secrets Management Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 2
+      prompt: "How does Rails.application.credentials encrypt secrets?"
+      choices:
+        - "Uses asymmetric encryption with public/private key pairs stored in git"
+        - "Encrypts credentials.yml.enc with a 32-byte master key stored outside version control"
+        - "Relies on database-level encryption to secure all secrets"
+        - "Uses bcrypt to hash credentials before storing them in YAML files"
+      correct: "Encrypts credentials.yml.enc with a 32-byte master key stored outside version control"
+      why: "Rails credentials use symmetric encryption (AES-GCM) with a master key. The encrypted file (credentials.yml.enc) is safe to commit; the master key is .gitignored and distributed separately. This allows secrets to live in version control without exposing plaintext."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary danger of committing config/master.key to version control?"
+      choices:
+        - "It causes Rails to fail to boot because the key is no longer secret"
+        - "Anyone with git access can decrypt all secrets, exposing API keys, database passwords, and other credentials"
+        - "The master key becomes corrupted when stored in git, making credentials unreadable"
+        - "Rails will refuse to load credentials if the master key is in version control"
+      correct: "Anyone with git access can decrypt all secrets, exposing API keys, database passwords, and other credentials"
+      why: "The master key decrypts all secrets in credentials.yml.enc. If committed to git, anyone who clones the repository can decrypt every credential. This is why master.key must be in .gitignore and distributed via secure channels (1Password, Vault, secure env vars)."
+
+    - kind: mcq
+      points: 2
+      prompt: "According to 12-factor app principles, when should you use ENV variables vs Rails credentials?"
+      choices:
+        - "Use ENV for all configuration; Rails credentials should be avoided in production"
+        - "Use credentials for secrets (API keys, passwords), ENV for deployment-specific infrastructure config (database host, Redis URL)"
+        - "Use ENV for development only; credentials for everything in production"
+        - "Use credentials for all configuration to avoid ENV variable sprawl"
+      correct: "Use credentials for secrets (API keys, passwords), ENV for deployment-specific infrastructure config (database host, Redis URL)"
+      why: "12-factor apps separate config from code. Credentials store secrets shared across environments (API keys). ENV variables handle infrastructure that varies per deploy (hostnames, ports). This keeps secrets encrypted and configs flexible."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the correct zero-downtime approach to rotating a database password?"
+      choices:
+        - "Update the password in credentials, deploy immediately, then update the database"
+        - "Add new password as password_v2, deploy with dual support, update database, remove old password in second deploy"
+        - "Stop all app instances, rotate password, restart all instances simultaneously"
+        - "Use a database proxy to handle password rotation transparently"
+      correct: "Add new password as password_v2, deploy with dual support, update database, remove old password in second deploy"
+      why: "Zero-downtime rotation requires multi-phase deployment: (1) add new secret alongside old, (2) deploy app that accepts both, (3) update database to new password, (4) remove old secret in next deploy. This ensures running instances never lose database access."
+
+    - kind: mcq
+      points: 2
+      prompt: "How do per-environment credentials (Rails 6+) work?"
+      choices:
+        - "They automatically generate different secrets for each environment at boot time"
+        - "Rails loads config/credentials/{environment}.yml.enc based on RAILS_ENV, using environment-specific master keys"
+        - "They store all environment secrets in one file with YAML anchors for different environments"
+        - "Per-environment credentials require a separate database table for each environment"
+      correct: "Rails loads config/credentials/{environment}.yml.enc based on RAILS_ENV, using environment-specific master keys"
+      why: "Rails 6+ supports environment-specific credentials: config/credentials/production.yml.enc with config/credentials/production.key. This separates staging and production secrets into isolated files, reducing risk of leaking production credentials."
+
+    - kind: mcq
+      points: 2
+      prompt: "Where should you store the RAILS_MASTER_KEY in production deployments?"
+      choices:
+        - "In config/master.key committed to a private git repository"
+        - "As an environment variable set by deployment platform (Heroku config, AWS Secrets Manager, Kubernetes secrets)"
+        - "Hardcoded in config/environments/production.rb for security"
+        - "In a shared .env file committed to git alongside encrypted credentials"
+      correct: "As an environment variable set by deployment platform (Heroku config, AWS Secrets Manager, Kubernetes secrets)"
+      why: "Production master keys must never touch version control. Set RAILS_MASTER_KEY as an environment variable using your platform's secret management (Heroku config vars, AWS Secrets Manager, Kubernetes secrets, Docker secrets). Rails automatically uses this env var to decrypt credentials."
+
+    - kind: mcq
+      points: 1
+      prompt: "What command creates or edits per-environment credentials?"
+      choices:
+        - "bin/rails credentials:edit --environment production"
+        - "RAILS_ENV=production bin/rails credentials:new"
+        - "bin/rails secrets:edit production"
+        - "EDITOR=vim rails credentials production"
+      correct: "bin/rails credentials:edit --environment production"
+      why: "bin/rails credentials:edit --environment production creates config/credentials/production.yml.enc and config/credentials/production.key if they don't exist, or opens them for editing. The --environment flag specifies which environment's credentials to manage."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the risk of ENV variable sprawl (50+ environment variables)?"
+      choices:
+        - "ENV variables consume too much memory and slow down application boot"
+        - "Managing dozens of ENV vars across multiple environments becomes error-prone and unmaintainable"
+        - "Rails will refuse to boot with more than 30 environment variables"
+        - "ENV variables are automatically committed to git when there are too many"
+      correct: "Managing dozens of ENV vars across multiple environments becomes error-prone and unmaintainable"
+      why: "Too many ENV variables become difficult to track and deploy correctly. Use credentials for shared secrets (API keys), reserve ENV for truly environment-specific config (database URLs, feature flags). This reduces deployment complexity and errors."
+
+    - kind: mcq
+      points: 1
+      prompt: "How can you verify that master keys are properly excluded from version control?"
+      choices:
+        - "Run git check-ignore -v config/credentials/production.key and verify .gitignore includes it"
+        - "Check that git status shows master.key files as untracked"
+        - "Search git history with git log -p | grep -E '[a-f0-9]{32}' to ensure no 32-char hex keys appear"
+        - "All of the above"
+      correct: "All of the above"
+      why: "Verify master key security with multiple checks: (1) git check-ignore confirms .gitignore rules, (2) git status shows keys as untracked, (3) git log search confirms no keys in history. Always audit before committing credentials to catch accidental leaks."
+
+    - kind: mcq
+      points: 2
+      prompt: "What happens if you rotate a secret without implementing dual-password support first?"
+      choices:
+        - "Rails automatically falls back to the old password until all instances are restarted"
+        - "Running application instances immediately lose access to the service (database, API), causing downtime"
+        - "The rotation is queued and applied during the next deployment window"
+        - "Rails credentials automatically synchronize the change across all instances"
+      correct: "Running application instances immediately lose access to the service (database, API), causing downtime"
+      why: "If you change a password in credentials and deploy without dual support, old instances still running with the old code will fail when the service (database, API) stops accepting the old password. Always add new secrets alongside old ones first, then remove after all instances are updated."

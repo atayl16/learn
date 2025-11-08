@@ -1,65 +1,113 @@
 ---
 checkpoint:
-  topic_key: deployment_strategies
-  title: Deployment Strategies Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary advantage of blue-green deployment over rolling deployment?"
+      choices:
+        - "Blue-green costs less because it uses a single environment"
+        - "Instant rollback by switching load balancer back to the previous environment with no gradual rollout needed"
+        - "Blue-green allows both versions to run simultaneously, reducing infrastructure requirements"
+        - "Rolling deployments cannot achieve zero-downtime, only blue-green can"
+      correct: "Instant rollback by switching load balancer back to the previous environment with no gradual rollout needed"
+      why: "Blue-green maintains two complete environments. If the new (green) version has issues, you simply switch the load balancer back to blue instantly. Rolling deployments must reverse the entire update process, which is slower and more complex."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why must database migrations be backward compatible in zero-downtime deployments?"
+      choices:
+        - "Backward compatibility ensures faster database queries"
+        - "During deployment, old code and new code may run simultaneously; both must work with the current schema"
+        - "Rails requires all migrations to be reversible for proper version control"
+        - "Backward compatible migrations reduce the size of database backups"
+      correct: "During deployment, old code and new code may run simultaneously; both must work with the current schema"
+      why: "In rolling deployments or during blue-green transitions, you have mixed versions running. If new code expects a column that doesn't exist yet, or old code fails when a column is removed, the deployment breaks. Migrations must be compatible with both versions."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the purpose of a canary release?"
+      choices:
+        - "Deploy to all servers at once to maximize deployment speed"
+        - "Gradually roll out changes to a small percentage of users/servers first, monitor metrics, then increase traffic if healthy"
+        - "Run two complete production environments simultaneously for redundancy"
+        - "Automatically rollback deployments when any error occurs"
+      correct: "Gradually roll out changes to a small percentage of users/servers first, monitor metrics, then increase traffic if healthy"
+      why: "Canary releases minimize risk by exposing only a subset of users to new code initially. If error rates spike or performance degrades, you can halt the rollout before impacting all users. This provides real production feedback with limited blast radius."
+
+    - kind: mcq
+      points: 1
+      prompt: "In a blue-green deployment, when should database migrations be run?"
+      choices:
+        - "Before deploying to either environment, ensuring both blue and green can handle the new schema"
+        - "After switching all traffic to the green environment"
+        - "During the Docker image build process"
+        - "Only after the green environment has been running for 24 hours"
+      correct: "Before deploying to either environment, ensuring both blue and green can handle the new schema"
+      why: "Migrations must run before code deployment so both environments work with the updated schema. If you migrate after switching to green, blue won't be compatible for rollback. Run migrations as a separate step before deploying new code."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the difference between a liveness probe and a readiness probe in deployment health checks?"
+      choices:
+        - "Liveness checks if the process is alive; readiness checks if the application can handle traffic"
+        - "Liveness is for databases; readiness is for application servers"
+        - "They are the same thing with different names"
+        - "Readiness kills unhealthy containers; liveness restarts them"
+      correct: "Liveness checks if the process is alive; readiness checks if the application can handle traffic"
+      why: "Liveness probes detect if a container is frozen or deadlocked and should be restarted. Readiness probes determine if an instance is ready to receive traffic (database connected, caches warmed). A failing liveness probe triggers a restart; a failing readiness probe stops routing traffic but keeps the container running."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the main trade-off of blue-green deployments compared to rolling deployments?"
+      choices:
+        - "Blue-green provides faster deployments but requires downtime"
+        - "Blue-green requires 2x infrastructure during cutover but enables instant rollback; rolling uses 1x infrastructure but slower rollback"
+        - "Rolling deployments require manual intervention; blue-green is fully automated"
+        - "Blue-green cannot handle database migrations; rolling deployments can"
+      correct: "Blue-green requires 2x infrastructure during cutover but enables instant rollback; rolling uses 1x infrastructure but slower rollback"
+      why: "Blue-green's main trade-off is cost vs. safety. You pay for two full environments temporarily but gain instant rollback capability and full production testing before cutover. Rolling deployments are more cost-efficient (gradual instance replacement) but rollback requires reversing the entire update process."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is a common pitfall when implementing health checks for load balancers?"
+      choices:
+        - "Health checks that return 200 OK before the application is fully initialized, causing traffic to hit broken instances"
+        - "Running health checks too infrequently (every 60 seconds or more)"
+        - "Including database queries in liveness probes"
+        - "Using HTTP instead of HTTPS for health check endpoints"
+      correct: "Health checks that return 200 OK before the application is fully initialized, causing traffic to hit broken instances"
+      why: "Shallow health checks that only verify 'process is running' are dangerous. If a Rails app returns 200 before database connections are ready or caches are warmed, the load balancer routes traffic to a broken instance. Deep health checks must verify all critical dependencies before returning healthy status."
+
+    - kind: mcq
+      points: 2
+      prompt: "How should you handle a breaking database migration (removing a column) in a zero-downtime deployment?"
+      choices:
+        - "Deploy code and migration simultaneously; rely on fast deployment to minimize issues"
+        - "Use a three-phase deployment: (1) add new column, deploy dual-write code; (2) backfill data; (3) remove old column, deploy new code"
+        - "Run the migration after all servers have been updated to new code"
+        - "Use feature flags to hide the breaking change until all users are migrated"
+      correct: "Use a three-phase deployment: (1) add new column, deploy dual-write code; (2) backfill data; (3) remove old column, deploy new code"
+      why: "Breaking changes require multiple deployments. Phase 1: add the new column (compatible with old code) and deploy code that writes to both old and new columns. Phase 2: backfill existing data. Phase 3: remove the old column and deploy code that only uses the new column. This ensures old and new code versions always have compatible data."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the purpose of graceful shutdown in deployment strategies?"
+      choices:
+        - "To immediately terminate all connections when deploying new code"
+        - "To finish processing in-flight requests before terminating the process, preventing errors for active users"
+        - "To automatically rollback deployments when errors are detected"
+        - "To warm up caches before accepting production traffic"
+      correct: "To finish processing in-flight requests before terminating the process, preventing errors for active users"
+      why: "Graceful shutdown ensures zero-downtime. When a process receives SIGTERM, it stops accepting new requests but finishes processing current requests before exiting. Without graceful shutdown, active requests fail mid-processing, causing 502/503 errors for users. Puma and most application servers support graceful shutdown natively."
+
+    - kind: mcq
+      points: 1
+      prompt: "When should you choose canary deployment over blue-green deployment?"
+      choices:
+        - "When infrastructure budget is unlimited and instant rollback is critical"
+        - "When you want to test high-risk changes with real traffic on a small subset before full rollout"
+        - "When zero-downtime is not required"
+        - "When you need to run migrations that break backward compatibility"
+      correct: "When you want to test high-risk changes with real traffic on a small subset before full rollout"
+      why: "Canary deployments excel at risk mitigation for uncertain changes. By routing 5-10% of traffic to new code first, you detect issues with real production load but limit the blast radius. Blue-green is better for instant rollback; canary is better for gradual validation and reducing risk of changes with unknown production behavior."

@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Martin Fowler - BlueGreenDeployment"
+    url: "https://martinfowler.com/bliki/BlueGreenDeployment.html"
+    why: "Authoritative explanation of blue-green deployment pattern, trade-offs, and implementation considerations from software architecture expert Martin Fowler."
+
+  - title: "Kubernetes Rolling Updates and Rollbacks"
+    url: "https://kubernetes.io/docs/tutorials/kubernetes-basics/update/update-intro/"
+    why: "Official Kubernetes documentation on rolling updates, including maxSurge, maxUnavailable parameters, and rollback strategies for container orchestration."
+
+  - title: "Flipper - Feature Flags for Ruby"
+    url: "https://github.com/flippercloud/flipper"
+    why: "Most popular Rails feature flag library for implementing canary releases, gradual rollouts, and decoupling deployment from feature releases."
+
+  - title: "Zero Downtime Deployments with Rails"
+    url: "https://www.honeybadger.io/blog/zero-downtime-rails-deployments/"
+    why: "Practical guide to achieving zero-downtime Rails deployments, covering database migrations, asset compilation, and graceful shutdown patterns."
+
+  - title: "AWS Blue/Green Deployments"
+    url: "https://docs.aws.amazon.com/whitepapers/latest/blue-green-deployments/welcome.html"
+    why: "AWS whitepaper on blue-green deployment patterns for various infrastructure setups including load balancers, DNS, and Auto Scaling groups."
+
+  - title: "Implementing Canary Releases on Kubernetes"
+    url: "https://blog.getambassador.io/cloud-native-patterns-canary-release-1cb8f82d371a"
+    why: "Detailed guide to implementing canary releases using Kubernetes and service mesh, with traffic splitting and progressive rollout strategies."
+
+  - title: "Rails Database Migrations Without Downtime"
+    url: "https://github.com/ankane/strong_migrations"
+    why: "Strong Migrations gem and guide for catching unsafe Rails migrations that cause downtime, with patterns for zero-downtime schema changes."
