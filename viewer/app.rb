@@ -73,6 +73,35 @@ class RailsSeniorityCoach < Sinatra::Base
     }
   end
 
+  # Build search index for client-side search
+  def build_search_index
+    tracks = load_tracks
+    index = []
+
+    tracks.each do |track|
+      topics = load_track_topics(track['key'])
+      topics.each do |topic|
+        index << {
+          track_key: track['key'],
+          track_name: track['name'],
+          track_icon: track['icon'],
+          topic_key: topic['key'],
+          topic_name: topic['name'],
+          depth_target: topic['depth_target'],
+          objectives: topic['objectives']&.join(' ') || '',
+          url: "/tracks/#{track['key']}/topics/#{topic['key']}"
+        }
+      end
+    end
+
+    index
+  end
+
+  # Make search index available to all views
+  before do
+    @search_index = build_search_index
+  end
+
   # Routes
   get '/' do
     @tracks = load_tracks

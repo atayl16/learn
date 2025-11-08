@@ -8,3 +8,5 @@ gem "puma"
 gem "redcarpet"  # Markdown rendering
 gem "rouge"      # Syntax highlighting
 gem "yaml"
+
+gem "rackup", "~> 2.2"
