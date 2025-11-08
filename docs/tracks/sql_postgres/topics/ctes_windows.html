@@ -282,6 +282,24 @@
     }
     .content-section li { margin: 8px 0; }
 
+    /* Learning objectives section */
+    .objectives-section {
+      background: var(--bg-tertiary);
+      border-left: 4px solid #2196F3;
+    }
+    .objectives-section h3 {
+      color: #2196F3;
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+    body.dark-mode .objectives-section {
+      background: rgba(33, 150, 243, 0.1);
+      border-left-color: #64B5F6;
+    }
+    body.dark-mode .objectives-section h3 {
+      color: #64B5F6;
+    }
+
     /* Tabs */
     .tabs {
       display: flex;
@@ -581,8 +599,8 @@
   </div>
 
   
-    <div class="content-section" style="background: #f0f7ff;">
-      <h3 style="color: #2196F3; margin-bottom: 10px;">Learning Objectives</h3>
+    <div class="content-section objectives-section">
+      <h3>Learning Objectives</h3>
       <ul style="margin-left: 20px;">
         
           <li>Write Common Table Expressions (WITH) to simplify complex queries</li>
