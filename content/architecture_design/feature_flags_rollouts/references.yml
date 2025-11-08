@@ -1,0 +1,28 @@
+references:
+  - title: "Flipper Gem"
+    url: "https://github.com/jnunemaker/flipper"
+    why: "Ruby feature flag library with adapters for Redis, Postgres, and memory."
+
+  - title: "Unleash Documentation"
+    url: "https://docs.getunleash.io/"
+    why: "Open-source feature flag platform with admin UI and advanced rollout strategies."
+
+  - title: "Feature Toggles (Martin Fowler)"
+    url: "https://martinfowler.com/articles/feature-toggles.html"
+    why: "Comprehensive guide to feature flag patterns, lifecycle, and pitfalls."
+
+  - title: "Flipper UI Gem"
+    url: "https://github.com/jnunemaker/flipper/tree/master/docs/ui"
+    why: "Admin interface for managing Flipper flags without console access."
+
+  - title: "Feature Flags in Production (LaunchDarkly Blog)"
+    url: "https://launchdarkly.com/blog/feature-flag-best-practices/"
+    why: "Best practices for naming, monitoring, and cleaning up flags."
+
+  - title: "Continuous Delivery (Jez Humble, David Farley)"
+    url: "https://continuousdelivery.com/"
+    why: "Covers deployment pipelines, feature flags, and decoupling release from deploy."
+
+  - title: "Feature Flag Driven Development (Charity Majors)"
+    url: "https://charity.wtf/2020/06/08/feature-flag-driven-development/"
+    why: "How Honeycomb uses flags for every change, enabling rapid rollback and A/B testing."

@@ -1,0 +1,28 @@
+references:
+  - title: "Use The Index, Luke"
+    url: "https://use-the-index-luke.com/"
+    why: "Comprehensive guide to SQL indexing across databases, including Postgres B-tree, composite, and partial indexes."
+
+  - title: "PostgreSQL Documentation — Indexes"
+    url: "https://www.postgresql.org/docs/current/indexes.html"
+    why: "Official Postgres docs covering all index types, when to use them, and performance considerations."
+
+  - title: "PostgreSQL Documentation — Index Types"
+    url: "https://www.postgresql.org/docs/current/indexes-types.html"
+    why: "Details on B-tree, Hash, GiST, SP-GiST, GIN, and BRIN index types."
+
+  - title: "Rails Guides — Active Record Migrations (Indexes)"
+    url: "https://guides.rubyonrails.org/active_record_migrations.html#creating-standalone-migrations"
+    why: "How to add, remove, and configure indexes in Rails migrations."
+
+  - title: "Thoughtbot — Advanced Postgres Performance Tips"
+    url: "https://thoughtbot.com/blog/advanced-postgres-performance-tips"
+    why: "Practical indexing strategies for Rails applications, including partial and covering indexes."
+
+  - title: "pgMustard — Understanding EXPLAIN"
+    url: "https://www.pgmustard.com/docs/explain"
+    why: "Visual guide to reading EXPLAIN output and identifying index usage."
+
+  - title: "Postgres Wiki — Index Maintenance"
+    url: "https://wiki.postgresql.org/wiki/Index_Maintenance"
+    why: "How to monitor, reindex, and manage bloated indexes in production."

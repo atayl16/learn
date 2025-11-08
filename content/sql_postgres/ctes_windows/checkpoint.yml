@@ -1,0 +1,67 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 1
+      prompt: "What is a Common Table Expression (CTE)?"
+      choices:
+        - "A permanent view stored in the database"
+        - "A temporary named result set defined with WITH"
+        - "A type of index"
+        - "A database constraint"
+      correct: "A temporary named result set defined with WITH"
+      why: "CTEs are defined using WITH and exist only for the duration of the query."
+
+    - kind: mcq
+      points: 2
+      prompt: "What does PARTITION BY do in a window function?"
+      choices:
+        - "Divides the result set into groups for the window function to operate on"
+        - "Orders the rows"
+        - "Filters the rows"
+        - "Creates an index"
+      correct: "Divides the result set into groups for the window function to operate on"
+      why: "PARTITION BY splits data into groups; window functions compute values within each partition."
+
+    - kind: short
+      points: 2
+      prompt: "Explain the difference between ROW_NUMBER() and RANK() when handling ties."
+      sample_answer: "ROW_NUMBER assigns unique sequential numbers (1, 2, 3, 4) even for ties. RANK assigns the same number to ties but leaves gaps (1, 2, 2, 4). DENSE_RANK has no gaps (1, 2, 2, 3)."
+
+    - kind: mcq
+      points: 1
+      prompt: "What does the LAG() window function do?"
+      choices:
+        - "Returns the next row's value"
+        - "Returns the previous row's value"
+        - "Calculates a running total"
+        - "Ranks rows"
+      correct: "Returns the previous row's value"
+      why: "LAG accesses the previous row within the partition; LEAD accesses the next row."
+
+    - kind: mcq
+      points: 1
+      prompt: "When should you use a CTE vs a subquery?"
+      choices:
+        - "CTEs are always faster"
+        - "Use CTEs for readability when breaking complex queries into steps"
+        - "Subqueries cannot be used in Postgres"
+        - "CTEs are required for window functions"
+      correct: "Use CTEs for readability when breaking complex queries into steps"
+      why: "CTEs improve readability by naming intermediate results; performance is similar to subqueries in Postgres 12+."
+
+    - kind: short
+      points: 2
+      prompt: "Write a query using ROW_NUMBER() to find the top 2 products by sales in each category."
+      sample_answer: "WITH ranked AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY category ORDER BY sales DESC) AS rank FROM products) SELECT * FROM ranked WHERE rank <= 2;"
+
+    - kind: mcq
+      points: 1
+      prompt: "What is a recursive CTE used for?"
+      choices:
+        - "Optimizing indexes"
+        - "Querying hierarchical data like org charts or category trees"
+        - "Creating materialized views"
+        - "Enforcing constraints"
+      correct: "Querying hierarchical data like org charts or category trees"
+      why: "Recursive CTEs traverse parent-child relationships, useful for tree structures."

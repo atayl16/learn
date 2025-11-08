@@ -1,0 +1,14 @@
+topic:
+  key: adrs
+  name: ADRs & Lightweight Documentation
+  track_key: architecture_design
+  depth_target: Strong
+  prerequisites: ["git_basics", "architecture_basics"]
+  objectives:
+    - Write Architecture Decision Records for major changes
+    - Store ADRs in version control alongside code
+    - Use MADR template for consistency
+  key_terms: ["ADR", "Architecture Decision Record", "MADR", "decision log", "lightweight docs"]
+  est_minutes_read: 9
+  est_minutes_exercise: 18
+  tags: ["documentation", "architecture", "decisions", "adr"]

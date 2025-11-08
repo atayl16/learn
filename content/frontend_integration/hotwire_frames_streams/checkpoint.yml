@@ -1,0 +1,61 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 1
+      prompt: "What happens if a Turbo Frame response has an id that doesn't match the requesting frame?"
+      choices:
+        - "The entire page reloads to display the response"
+        - "Turbo throws a JavaScript error in the console"
+        - "The response is ignored and the frame content stays unchanged"
+        - "The response replaces the <body> element"
+      correct: "The response is ignored and the frame content stays unchanged"
+      why: "Turbo silently ignores frame responses with mismatched IDs, which is a common debugging pitfall."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which Turbo Stream action would you use to add a new item at the beginning of a list?"
+      choices:
+        - "append"
+        - "prepend"
+        - "replace"
+        - "update"
+      correct: "prepend"
+      why: "prepend inserts content at the start of the target element, while append adds to the end."
+
+    - kind: short
+      points: 2
+      prompt: "Explain the difference between turbo_stream.replace and turbo_stream.update."
+      sample_answer: "replace swaps the entire target element including its outer tag, while update only changes the inner HTML content, keeping the target element itself intact."
+
+    - kind: mcq
+      points: 1
+      prompt: "When using broadcast_append_to in a model callback, what must match in the view?"
+      choices:
+        - "The model class name"
+        - "The turbo_stream_from channel name"
+        - "The DOM element's CSS class"
+        - "The partial template name"
+      correct: "The turbo_stream_from channel name"
+      why: "The subscription in turbo_stream_from must match the channel name in broadcast_append_to for updates to arrive."
+
+    - kind: short
+      points: 2
+      prompt: "You have a link inside a Turbo Frame that should navigate the full page, not just the frame. What attribute do you add?"
+      sample_answer: "data-turbo-frame=\"_top\" on the link to break out of the frame scope and navigate the whole page."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the primary benefit of using src attribute on a Turbo Frame?"
+      choices:
+        - "It enables real-time WebSocket updates"
+        - "It lazy-loads content, deferring expensive rendering until needed"
+        - "It caches the frame content in localStorage"
+        - "It validates the HTML before inserting it into the DOM"
+      correct: "It lazy-loads content, deferring expensive rendering until needed"
+      why: "The src attribute tells Turbo to fetch frame content asynchronously, improving initial page load time."
+
+    - kind: short
+      points: 2
+      prompt: "Name two scenarios where Hotwire's server-driven approach is less suitable than a React SPA."
+      sample_answer: "Offline-first apps requiring local data storage and sync, and highly interactive UIs like collaborative drawing tools or real-time drag-and-drop interfaces where server latency would degrade UX."

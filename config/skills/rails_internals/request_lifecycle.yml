@@ -1,0 +1,14 @@
+topic:
+  key: request_lifecycle
+  name: Request Lifecycle & Middleware
+  track_key: rails_internals
+  depth_target: Strong
+  prerequisites: ["ruby_basics", "http_basics"]
+  objectives:
+    - Trace a Rails request from Rack through middleware to controller
+    - Identify where params are parsed and filters applied
+    - Profile a request and explain the hottest frames
+  key_terms: ["Rack", "middleware", "params parser", "before_action", "request-response cycle"]
+  est_minutes_read: 10
+  est_minutes_exercise: 20
+  tags: ["rails", "internals", "performance", "middleware"]

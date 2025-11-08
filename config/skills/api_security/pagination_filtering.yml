@@ -1,0 +1,14 @@
+topic:
+  key: pagination_filtering
+  name: Pagination, Filtering & Sorting
+  track_key: api_security
+  depth_target: Strong
+  prerequisites: ["rest_design", "indexing"]
+  objectives:
+    - Implement cursor and offset pagination with performance trade-offs
+    - Add filtering and sorting via query parameters
+    - Return pagination metadata for client navigation
+  key_terms: ["cursor pagination", "offset pagination", "query params", "sorting", "indexes"]
+  est_minutes_read: 10
+  est_minutes_exercise: 22
+  tags: ["api", "pagination", "performance", "indexing"]

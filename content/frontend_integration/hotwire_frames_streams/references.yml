@@ -1,0 +1,28 @@
+references:
+  - title: "Turbo Handbook"
+    url: "https://turbo.hotwired.dev/handbook/introduction"
+    why: "Official documentation covering Frames, Streams, Drive, and Native with detailed examples."
+
+  - title: "Turbo Rails Integration"
+    url: "https://github.com/hotwired/turbo-rails"
+    why: "Rails gem documentation with helpers for stream responses and broadcasting via ActionCable."
+
+  - title: "Hotwire: HTML Over The Wire"
+    url: "https://hotwired.dev/"
+    why: "Overview of the Hotwire philosophy and how Turbo, Stimulus, and Strada work together."
+
+  - title: "RailsConf 2021 — Hotwire: HTML Over The Wire (DHH)"
+    url: "https://www.youtube.com/watch?v=eKY-QES1XQQ"
+    why: "Introduction to Hotwire's design philosophy and practical demos of Frames and Streams."
+
+  - title: "Evil Martians — Hotwire: Reactive Rails with No JavaScript"
+    url: "https://evilmartians.com/chronicles/hotwire-reactive-rails-with-no-javascript"
+    why: "Real-world patterns for building reactive UIs without heavy frontend frameworks."
+
+  - title: "Turbo Frames Deep Dive (GoRails)"
+    url: "https://gorails.com/episodes/hotwire-turbo-frames"
+    why: "Video walkthrough of frame navigation, lazy loading, and common pitfalls with code examples."
+
+  - title: "ActionCable Overview"
+    url: "https://guides.rubyonrails.org/action_cable_overview.html"
+    why: "Rails guide to WebSocket integration, essential for understanding Turbo Stream broadcasting."

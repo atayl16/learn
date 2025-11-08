@@ -1,0 +1,45 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "Where should you store API keys and secrets in a Rails 7 app?"
+      choices:
+        - "Hardcoded in config/application.rb"
+        - "In .env files committed to git"
+        - "In config/credentials.yml.enc with master.key gitignored"
+        - "In public files"
+      correct: "In config/credentials.yml.enc with master.key gitignored"
+      why: "Credentials are encrypted and safe to commit; master.key stays out of version control."
+
+    - kind: mcq
+      points: 2
+      prompt: "When do initializers in config/initializers/ run?"
+      choices:
+        - "Before Rails frameworks load"
+        - "After frameworks load, before app starts"
+        - "On every request"
+        - "Only in production"
+      correct: "After frameworks load, before app starts"
+      why: "Initializers run during boot, after frameworks but before the app is ready to serve requests."
+
+    - kind: short
+      points: 3
+      prompt: "How would you access a credential stored as aws.access_key_id in credentials.yml.enc?"
+      sample_answer: "Rails.application.credentials.aws[:access_key_id] or Rails.application.credentials.dig(:aws, :access_key_id)"
+
+    - kind: mcq
+      points: 1
+      prompt: "What file controls app-wide Rails configuration?"
+      choices:
+        - "config/routes.rb"
+        - "config/application.rb"
+        - "config/boot.rb"
+        - "Gemfile"
+      correct: "config/application.rb"
+      why: "config/application.rb sets app-wide defaults; environments override per env."
+
+    - kind: short
+      points: 2
+      prompt: "Why do initializers load alphabetically and how would you control order?"
+      sample_answer: "Alphabetical load can break dependencies. Control with prefixes: 01_redis.rb, 02_sidekiq.rb."

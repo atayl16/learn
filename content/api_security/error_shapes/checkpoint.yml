@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "Why should you avoid returning 200 OK with {success: false} for errors?"
+      choices:
+        - "It makes JSON parsing harder"
+        - "HTTP status codes convey error states; 200 means success, breaking semantics"
+        - "It increases payload size"
+        - "It prevents caching"
+      correct: "HTTP status codes convey error states; 200 means success, breaking semantics"
+      why: "Proxies, browsers, and HTTP clients rely on status codes to detect failures; 200 breaks this contract."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary purpose of including field names in validation error responses?"
+      choices:
+        - "To reduce payload size"
+        - "To enable clients to map errors to specific form inputs"
+        - "To comply with GDPR"
+        - "To prevent SQL injection"
+      correct: "To enable clients to map errors to specific form inputs"
+      why: "Field names like 'email' let clients highlight the exact input that failed validation."
+
+    - kind: short
+      points: 2
+      prompt: "Why should stack traces be logged but not returned to API clients in production?"
+      sample_answer: "Stack traces reveal internal paths, gems, and code structure, aiding attackers; log them server-side for debugging."
+
+    - kind: mcq
+      points: 1
+      prompt: "What HTTP status code should be returned for a validation failure?"
+      choices:
+        - "400 Bad Request"
+        - "401 Unauthorized"
+        - "404 Not Found"
+        - "422 Unprocessable Entity"
+      correct: "422 Unprocessable Entity"
+      why: "422 indicates the request was well-formed but validation rules failed; 400 is for malformed syntax."
+
+    - kind: short
+      points: 2
+      prompt: "What are the two key benefits of generating unique error IDs for 500 responses?"
+      sample_answer: "Users can report IDs to support for debugging; support can search logs to find the exact exception and stack trace."
+
+    - kind: mcq
+      points: 1
+      prompt: "In RFC 7807, what does the 'type' field represent?"
+      choices:
+        - "The HTTP status code"
+        - "A URI identifying the error category"
+        - "The field that failed validation"
+        - "The error message in the user's language"
+      correct: "A URI identifying the error category"
+      why: "The 'type' field is a URI (like https://api.example.com/errors/invalid-email) identifying the error type."

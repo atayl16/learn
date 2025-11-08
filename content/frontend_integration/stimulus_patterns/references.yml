@@ -1,0 +1,28 @@
+references:
+  - title: "Stimulus Handbook"
+    url: "https://stimulus.hotwired.dev/handbook/introduction"
+    why: "Official documentation covering controllers, targets, actions, values, and lifecycle hooks with examples."
+
+  - title: "Stimulus Reference"
+    url: "https://stimulus.hotwired.dev/reference/controllers"
+    why: "Complete API reference for controller properties, methods, and static declarations."
+
+  - title: "Hotwire: Stimulus"
+    url: "https://hotwired.dev/"
+    why: "Overview of how Stimulus fits into the Hotwire ecosystem alongside Turbo."
+
+  - title: "Stimulus Best Practices (Evil Martians)"
+    url: "https://evilmartians.com/chronicles/stimulus-best-practices"
+    why: "Patterns for organizing controllers, avoiding common pitfalls, and composing behaviors."
+
+  - title: "Better Stimulus (thoughtbot)"
+    url: "https://thoughtbot.com/blog/better-stimulus"
+    why: "Guidance on refactoring jQuery code to Stimulus and managing controller lifecycle."
+
+  - title: "Stimulus Components Library"
+    url: "https://www.stimulus-components.com/"
+    why: "Open-source collection of reusable Stimulus controllers for common UI patterns."
+
+  - title: "RailsConf 2020 — Stimulus in Practice"
+    url: "https://www.youtube.com/watch?v=Kz_LBNvCvm0"
+    why: "Real-world examples of building interactive Rails UIs with Stimulus controllers."

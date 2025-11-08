@@ -1,0 +1,14 @@
+topic:
+  key: transactions_locks
+  name: Transactions, Isolation, and Locks
+  track_key: sql_postgres
+  depth_target: Strong
+  prerequisites: ["modeling_constraints", "ar_relations"]
+  objectives:
+    - Explain ACID properties and how Postgres enforces them
+    - Choose appropriate isolation levels for concurrent operations
+    - Debug deadlocks and lock contention using pg_locks and pg_stat_activity
+  key_terms: ["ACID", "transaction", "isolation_level", "read_committed", "serializable", "deadlock", "row_lock", "table_lock", "advisory_lock", "select_for_update"]
+  est_minutes_read: 12
+  est_minutes_exercise: 24
+  tags: ["sql", "postgres", "transactions", "locks", "concurrency"]

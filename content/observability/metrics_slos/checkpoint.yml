@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 6
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What are the three RED metrics?"
+      choices:
+        - "Requests, Errors, Database"
+        - "Rate, Errors, Duration"
+        - "Response, Efficiency, Downtime"
+        - "Reliability, Errors, Deployment"
+      correct: "Rate, Errors, Duration"
+      why: "RED = Rate (requests/sec), Errors (error percentage), Duration (latency)."
+
+    - kind: short
+      points: 2
+      prompt: "What is the difference between an SLO and an SLA?"
+      sample_answer: "SLO is an internal target; SLA is an external commitment with penalties for violations."
+
+    - kind: mcq
+      points: 1
+      prompt: "How much downtime per month does a 99.9% uptime SLO allow?"
+      choices:
+        - "4 minutes"
+        - "43 minutes"
+        - "7 hours"
+        - "No downtime"
+      correct: "43 minutes"
+      why: "99.9% allows 0.1% downtime: 30 days × 24 hours × 60 min × 0.001 ≈ 43 minutes."
+
+    - kind: short
+      points: 2
+      prompt: "What is an error budget and how is it used?"
+      sample_answer: "Allowed failures based on SLO. Budget remaining → ship features; budget exhausted → focus on reliability."
+
+    - kind: mcq
+      points: 1
+      prompt: "Why alert on sustained SLO violations instead of single errors?"
+      choices:
+        - "Single errors don't matter"
+        - "Sustained violations indicate real user impact; single errors create noise"
+        - "It's cheaper to monitor less frequently"
+        - "Single errors can't be tracked"
+      correct: "Sustained violations indicate real user impact; single errors create noise"
+      why: "Alerting on every error causes fatigue; time windows filter transient blips."
+
+    - kind: mcq
+      points: 2
+      prompt: "What percentile should you monitor to catch worst-case latency?"
+      choices:
+        - "P50 (median)"
+        - "P75"
+        - "P95 or P99"
+        - "Average"
+      correct: "P95 or P99"
+      why: "P95/P99 reveals tail latency affecting real users; averages hide worst cases."

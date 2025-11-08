@@ -1,0 +1,14 @@
+topic:
+  key: sidekiq_basics
+  name: ActiveJob vs Sidekiq Fundamentals
+  track_key: background_jobs
+  depth_target: Strong
+  prerequisites: ["rails_basics", "redis_basics"]
+  objectives:
+    - Compare ActiveJob abstraction with direct Sidekiq usage
+    - Configure Redis connection and worker concurrency
+    - Route jobs to specific queues and set priorities
+  key_terms: ["ActiveJob", "Sidekiq", "Redis", "queue", "worker", "concurrency"]
+  est_minutes_read: 10
+  est_minutes_exercise: 18
+  tags: ["rails", "background_jobs", "sidekiq", "redis", "async"]

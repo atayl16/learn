@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What is the main advantage of JSON-formatted logs over plain text logs?"
+      choices:
+        - "JSON logs are smaller and faster to write to disk"
+        - "JSON provides queryable key-value fields without regex parsing"
+        - "JSON logs are easier to read manually in text editors"
+        - "JSON automatically encrypts sensitive data"
+      correct: "JSON provides queryable key-value fields without regex parsing"
+      why: "Structured JSON fields enable fast filtering and searching in log aggregation tools."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why should you pass record IDs instead of ActiveRecord objects to append_info_to_payload?"
+      choices:
+        - "Objects cannot be serialized to JSON"
+        - "IDs are required by lograge gem"
+        - "Objects create circular references in logs"
+        - "Only primitive types should be logged"
+      correct: "Objects cannot be serialized to JSON"
+      why: "ActiveRecord objects contain complex internal state; extract simple values like IDs instead."
+
+    - kind: short
+      points: 2
+      prompt: "How do you configure lograge to include user_id in every log entry?"
+      sample_answer: "Add user_id to custom_options lambda and set payload[:user_id] in append_info_to_payload."
+
+    - kind: mcq
+      points: 1
+      prompt: "What does config.filter_parameters do?"
+      choices:
+        - "Removes matching requests from logs entirely"
+        - "Replaces matching parameter values with [FILTERED]"
+        - "Encrypts parameter values in logs"
+        - "Sends matching params to separate security log"
+      correct: "Replaces matching parameter values with [FILTERED]"
+      why: "Filtered parameters appear as [FILTERED] to prevent sensitive data exposure in logs."
+
+    - kind: short
+      points: 2
+      prompt: "Write the config line to format lograge output as JSON."
+      sample_answer: "config.lograge.formatter = Lograge::Formatters::Json.new"
+
+    - kind: mcq
+      points: 1
+      prompt: "Why is request_id important in distributed systems?"
+      choices:
+        - "It improves request performance"
+        - "It correlates logs across multiple services for a single request"
+        - "It prevents duplicate requests"
+        - "It enables caching"
+      correct: "It correlates logs across multiple services for a single request"
+      why: "Request ID tracks a single user request through controllers, jobs, and external services."

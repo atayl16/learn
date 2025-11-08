@@ -1,0 +1,14 @@
+topic:
+  key: csrf_cors
+  name: CSRF, CORS & Input Validation
+  track_key: api_security
+  depth_target: Strong
+  prerequisites: ["rest_design", "authn_authz"]
+  objectives:
+    - Configure CORS headers for cross-origin API requests
+    - Implement CSRF protection for session-based APIs
+    - Validate and sanitize inputs to prevent injection attacks
+  key_terms: ["CSRF", "CORS", "preflight", "OPTIONS", "strong params", "XSS", "SQL injection", "input validation"]
+  est_minutes_read: 11
+  est_minutes_exercise: 23
+  tags: ["security", "cors", "csrf", "validation", "xss"]

@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What does the test pyramid recommend for test distribution?"
+      choices:
+        - "Equal numbers of unit, request, and system tests"
+        - "70% system tests for full coverage, 30% unit tests"
+        - "70% unit tests (fast), 20% request tests, 10% system tests"
+        - "Only system tests to ensure end-to-end workflows"
+      correct: "70% unit tests (fast), 20% request tests, 10% system tests"
+      why: "The pyramid prioritizes fast unit tests over slow system tests while covering integration."
+
+    - kind: mcq
+      points: 1
+      prompt: "When should you use VCR instead of WebMock?"
+      choices:
+        - "When you want to record real API responses and replay them"
+        - "When testing error scenarios like timeouts"
+        - "When stubbing internal method calls"
+        - "When testing without network access"
+      correct: "When you want to record real API responses and replay them"
+      why: "VCR records and replays; WebMock stubs without recording, giving control over responses."
+
+    - kind: short
+      points: 2
+      prompt: "Why are system tests slower than unit tests?"
+      sample_answer: "System tests boot a full browser, load JavaScript, and interact with real DOM elements, making them 10-100x slower than unit tests that run in memory."
+
+    - kind: mcq
+      points: 2
+      prompt: "What's the difference between FactoryBot and fixtures?"
+      choices:
+        - "Factories are deprecated, fixtures are modern"
+        - "Factories generate customizable data per test; fixtures load static YAML once"
+        - "Fixtures are faster in all scenarios"
+        - "No difference, both load database records"
+      correct: "Factories generate customizable data per test; fixtures load static YAML once"
+      why: "Factories allow customization per test; fixtures are faster for shared reference data."
+
+    - kind: short
+      points: 2
+      prompt: "What does SimpleCov measure, and what doesn't it measure?"
+      sample_answer: "SimpleCov measures line coverage (which lines executed) but doesn't measure test quality, edge cases, or whether assertions are meaningful."
+
+    - kind: mcq
+      points: 1
+      prompt: "Why should you avoid stubbing private methods in tests?"
+      choices:
+        - "Private methods can't be stubbed in Ruby"
+        - "Stubbing couples tests to implementation and breaks on refactors"
+        - "It always makes tests slower"
+        - "It prevents SimpleCov from running"
+      correct: "Stubbing couples tests to implementation and breaks on refactors"
+      why: "Tests should call public interfaces; stubbing internals makes tests brittle."

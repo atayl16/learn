@@ -1,0 +1,14 @@
+topic:
+  key: config_initializers
+  name: Configuration & Initializers
+  track_key: rails_internals
+  depth_target: Strong
+  prerequisites: ["autoloading_boot"]
+  objectives:
+    - Configure Rails apps using environment-specific settings
+    - Write initializers that load in correct order
+    - Manage secrets and credentials securely
+  key_terms: ["config", "initializers", "environment", "credentials", "application.rb"]
+  est_minutes_read: 10
+  est_minutes_exercise: 15
+  tags: ["rails", "configuration", "initializers", "secrets"]

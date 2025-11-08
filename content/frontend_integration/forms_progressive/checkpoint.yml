@@ -1,0 +1,61 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 1
+      prompt: "What is the main benefit of progressive enhancement for forms?"
+      choices:
+        - "It reduces server load by handling validation client-side"
+        - "It ensures forms work even when JavaScript fails or is disabled"
+        - "It eliminates the need for server-side validation"
+        - "It makes forms load faster on all devices"
+      correct: "It ensures forms work even when JavaScript fails or is disabled"
+      why: "Progressive enhancement prioritizes baseline functionality that works without JavaScript, then adds enhancements."
+
+    - kind: short
+      points: 2
+      prompt: "You're adding inline validation to a form. Why should you call a server endpoint instead of duplicating validation logic in JavaScript?"
+      sample_answer: "Duplicating logic creates maintenance burden and drift between client and server rules. Server validation is the source of truth, so fetching it ensures consistency and avoids bugs when rules change."
+
+    - kind: mcq
+      points: 1
+      prompt: "When implementing optimistic UI updates, what must you do if the server request fails?"
+      choices:
+        - "Reload the page to reset the state"
+        - "Revert the UI to its previous state and notify the user"
+        - "Retry the request automatically up to 3 times"
+        - "Leave the optimistic update in place and log the error"
+      correct: "Revert the UI to its previous state and notify the user"
+      why: "Optimistic updates must roll back on failure to avoid misleading the user with incorrect state."
+
+    - kind: short
+      points: 2
+      prompt: "How does Turbo handle form submissions differently from traditional full-page POSTs, and what happens if Turbo fails to load?"
+      sample_answer: "Turbo intercepts form submissions and sends them via AJAX, updating the page without a reload. If Turbo doesn't load, forms degrade gracefully to standard HTTP POST behavior with full-page navigation."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which ARIA attribute should you add to error messages to ensure screen readers announce them?"
+      choices:
+        - "aria-hidden='false'"
+        - "aria-live='polite'"
+        - "aria-describedby='error'"
+        - "aria-required='true'"
+      correct: "aria-live='polite'"
+      why: "aria-live='polite' announces dynamic content changes to screen readers without interrupting the user."
+
+    - kind: short
+      points: 2
+      prompt: "Your form has validation errors after submission. What two steps improve accessibility for users with screen readers?"
+      sample_answer: "Add role='alert' or aria-live='polite' to error message containers so they are announced, and focus the first invalid field so the user knows where to correct input."
+
+    - kind: mcq
+      points: 1
+      prompt: "What HTTP status code should Rails return when a form fails validation?"
+      choices:
+        - "200 OK"
+        - "400 Bad Request"
+        - "422 Unprocessable Entity"
+        - "500 Internal Server Error"
+      correct: "422 Unprocessable Entity"
+      why: "422 indicates the request was understood but contains semantic errors, which is correct for validation failures."

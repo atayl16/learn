@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "Why is cursor pagination preferred over offset pagination for real-time feeds?"
+      choices:
+        - "It's easier to implement"
+        - "It provides total page counts"
+        - "It prevents data skipping when new records are inserted"
+        - "It's faster for all dataset sizes"
+      correct: "It prevents data skipping when new records are inserted"
+      why: "Cursor pagination uses WHERE id > cursor, so new insertions don't shift results like OFFSET does."
+
+    - kind: mcq
+      points: 2
+      prompt: "What performance issue arises from filtering without a database index?"
+      choices:
+        - "Results are returned in random order"
+        - "The query performs a full table scan"
+        - "Pagination stops working"
+        - "The API returns 500 errors"
+      correct: "The query performs a full table scan"
+      why: "Without an index on the filtered column, the database must scan every row to find matches."
+
+    - kind: short
+      points: 2
+      prompt: "Why should you avoid returning total_count for every paginated request on large tables?"
+      sample_answer: "COUNT(*) queries are expensive on large tables and can cause timeouts; cache counts or omit them for cursor pagination."
+
+    - kind: mcq
+      points: 1
+      prompt: "What does the query param ?sort=-created_at conventionally mean?"
+      choices:
+        - "Sort by created_at ascending"
+        - "Sort by created_at descending"
+        - "Exclude created_at from results"
+        - "Filter out records with null created_at"
+      correct: "Sort by created_at descending"
+      why: "The minus prefix indicates descending order, a common REST API convention."
+
+    - kind: short
+      points: 2
+      prompt: "How do you ensure user-supplied filter params don't cause SQL injection?"
+      sample_answer: "Whitelist allowed filter columns, use parameterized queries or ActiveRecord scopes, and validate inputs."
+
+    - kind: mcq
+      points: 1
+      prompt: "In cursor pagination, what should the meta field include instead of total_pages?"
+      choices:
+        - "current_page"
+        - "total_count"
+        - "next_cursor"
+        - "offset"
+      correct: "next_cursor"
+      why: "Cursor pagination doesn't use page numbers; it provides next_cursor to fetch the following page."

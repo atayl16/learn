@@ -1,0 +1,14 @@
+topic:
+  key: modeling_constraints
+  name: Modeling & Constraints (FKs, Uniques, Check)
+  track_key: sql_postgres
+  depth_target: Strong
+  prerequisites: ["sql_basics", "ar_relations"]
+  objectives:
+    - Design schemas with foreign keys, unique constraints, and check constraints
+    - Write migrations that enforce data integrity at the database level
+    - Debug constraint violations and fix schema issues
+  key_terms: ["foreign_key", "unique_constraint", "check_constraint", "NOT NULL", "referential_integrity"]
+  est_minutes_read: 11
+  est_minutes_exercise: 20
+  tags: ["sql", "postgres", "constraints", "schema"]

@@ -1,0 +1,15 @@
+topic:
+  key: job_instrumentation
+  name: Job Instrumentation & Backoff
+  track_key: background_jobs
+  depth_target: Strong
+  prerequisites: ["sidekiq_basics", "idempotency_retries"]
+  objectives:
+    - Log job execution with structured context
+    - Track success/failure metrics for monitoring
+    - Implement custom exponential backoff strategies
+    - Use Sidekiq lifecycle hooks for instrumentation
+  key_terms: ["instrumentation", "metrics", "backoff", "lifecycle hooks", "monitoring", "observability"]
+  est_minutes_read: 10
+  est_minutes_exercise: 25
+  tags: ["rails", "background_jobs", "sidekiq", "monitoring", "observability"]

@@ -1,0 +1,61 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What is the purpose of CORS (Cross-Origin Resource Sharing)?"
+      choices:
+        - "To prevent SQL injection"
+        - "To control which domains can call your API from browsers"
+        - "To encrypt API requests"
+        - "To validate user input"
+      correct: "To control which domains can call your API from browsers"
+      why: "CORS headers tell browsers which origins are allowed to make cross-origin requests to your API."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why should token-based APIs disable CSRF protection?"
+      choices:
+        - "CSRF tokens are incompatible with JSON"
+        - "Attackers can't steal tokens from cookies; tokens are sent in headers"
+        - "Token-based APIs don't support POST requests"
+        - "CSRF protection slows down token validation"
+      correct: "Attackers can't steal tokens from cookies; tokens are sent in headers"
+      why: "CSRF exploits cookies sent automatically by browsers; token-based auth uses Authorization headers, not cookies."
+
+    - kind: short
+      points: 2
+      prompt: "Why is Access-Control-Allow-Origin: * dangerous when credentials are enabled?"
+      sample_answer: "It allows any site to call your API with user credentials, bypassing origin restrictions and enabling CSRF-like attacks."
+
+    - kind: mcq
+      points: 1
+      prompt: "What Rails feature prevents mass assignment vulnerabilities?"
+      choices:
+        - "Active Record validations"
+        - "CSRF tokens"
+        - "Strong parameters"
+        - "CORS headers"
+      correct: "Strong parameters"
+      why: "Strong params whitelist allowed fields, preventing attackers from passing fields like {admin: true}."
+
+    - kind: short
+      points: 2
+      prompt: "How do parameterized queries prevent SQL injection?"
+      sample_answer: "They separate SQL structure from user input, escaping special characters so input is treated as data, not code."
+
+    - kind: mcq
+      points: 1
+      prompt: "What HTTP method triggers a CORS preflight request?"
+      choices:
+        - "GET"
+        - "POST with custom headers"
+        - "HEAD"
+        - "OPTIONS"
+      correct: "POST with custom headers"
+      why: "Browsers send OPTIONS preflight for non-simple requests (POST/PUT/DELETE with custom headers like Authorization)."
+
+    - kind: short
+      points: 2
+      prompt: "Name two OWASP Top 10 vulnerabilities that input validation and sanitization address."
+      sample_answer: "SQL injection (A03: Injection) and cross-site scripting/XSS (A07: Identification and Authentication Failures)."

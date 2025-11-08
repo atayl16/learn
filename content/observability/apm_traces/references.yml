@@ -1,0 +1,28 @@
+references:
+  - title: "Skylight Documentation — Getting Started"
+    url: "https://www.skylight.io/support/getting-started"
+    why: "Official guide for installing and using Skylight APM in Rails applications."
+
+  - title: "Scout APM — Rails Performance Monitoring"
+    url: "https://scoutapm.com/docs/ruby/rails"
+    why: "Alternative APM focused on Rails with memory profiling and N+1 detection."
+
+  - title: "rack-mini-profiler GitHub"
+    url: "https://github.com/MiniProfiler/rack-mini-profiler"
+    why: "Open-source local profiler for development; includes flamegraphs and SQL analysis."
+
+  - title: "New Relic — Understanding Traces"
+    url: "https://docs.newrelic.com/docs/apm/transactions/transaction-traces/"
+    why: "Deep dive into reading transaction traces and identifying bottlenecks."
+
+  - title: "Brendan Gregg — Flame Graphs"
+    url: "https://www.brendangregg.com/flamegraphs.html"
+    why: "Inventor of flamegraphs explains how to read and interpret them."
+
+  - title: "Rails Guides — Active Record Query Interface"
+    url: "https://guides.rubyonrails.org/active_record_querying.html#eager-loading-associations"
+    why: "Canonical reference for includes, preload, eager_load to fix N+1 queries."
+
+  - title: "RailsConf 2019 — The Technical and Organizational Sides of Fixing Performance (Nate Berkopec)"
+    url: "https://www.youtube.com/watch?v=ktZLpjCanvg"
+    why: "Practical strategies for using APM to identify and prioritize performance fixes."

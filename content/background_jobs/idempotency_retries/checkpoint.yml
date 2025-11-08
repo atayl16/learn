@@ -1,0 +1,50 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "Why should background jobs be idempotent?"
+      choices:
+        - "To make them run faster"
+        - "To prevent duplicate effects when jobs retry after failures"
+        - "To reduce Redis memory usage"
+        - "To enable parallel processing"
+      correct: "To prevent duplicate effects when jobs retry after failures"
+      why: "Jobs may run multiple times due to retries; idempotency prevents duplicate charges, emails, or data corruption."
+
+    - kind: short
+      points: 2
+      prompt: "What are two ways to implement idempotency in background jobs?"
+      sample_answer: "Use Redis keys to track processed jobs, or database unique constraints to prevent duplicate records."
+
+    - kind: mcq
+      points: 2
+      prompt: "What happens to a Sidekiq job that fails after the maximum retry attempts?"
+      choices:
+        - "It is deleted permanently"
+        - "It retries indefinitely"
+        - "It moves to the dead letter queue (DLQ)"
+        - "It triggers an exception in the Rails app"
+      correct: "It moves to the dead letter queue (DLQ)"
+      why: "After max retries, jobs move to the DLQ for manual inspection and recovery."
+
+    - kind: short
+      points: 2
+      prompt: "How do you configure a Sidekiq worker to retry only 3 times?"
+      sample_answer: "Add sidekiq_options retry: 3 to the worker class."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the default retry behavior in Sidekiq?"
+      choices:
+        - "No retries, jobs fail immediately"
+        - "Retry 5 times with fixed 60-second delays"
+        - "Retry up to 25 times with exponential backoff"
+        - "Retry indefinitely until success"
+      correct: "Retry up to 25 times with exponential backoff"
+      why: "Sidekiq defaults to 25 retry attempts with increasing delays between attempts."
+
+    - kind: short
+      points: 1
+      prompt: "What callback can you use to execute code when a job exhausts all retries?"
+      sample_answer: "sidekiq_retries_exhausted"

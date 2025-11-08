@@ -1,0 +1,14 @@
+topic:
+  key: microservices_when_not
+  name: When NOT to Microservice
+  track_key: architecture_design
+  depth_target: Working
+  prerequisites: ["architecture_basics", "api_design"]
+  objectives:
+    - Recognize when monoliths outperform microservices
+    - Understand modular monolith as an alternative
+    - Identify signs that microservices add complexity without benefit
+  key_terms: ["monolith first", "modular monolith", "microservices", "distributed transactions", "message queue"]
+  est_minutes_read: 9
+  est_minutes_exercise: 18
+  tags: ["architecture", "microservices", "monolith", "trade-offs"]

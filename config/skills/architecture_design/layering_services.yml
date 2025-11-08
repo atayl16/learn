@@ -1,0 +1,14 @@
+topic:
+  key: layering_services
+  name: Layering & Service Objects
+  track_key: architecture_design
+  depth_target: Strong
+  prerequisites: ["ar_relations", "mvc_basics"]
+  objectives:
+    - Extract complex logic from models into service objects
+    - Choose between service, form, and policy objects
+    - Apply presenters and decorators for view logic
+  key_terms: ["service object", "interactor", "form object", "policy object", "presenter", "decorator"]
+  est_minutes_read: 10
+  est_minutes_exercise: 20
+  tags: ["architecture", "design", "services", "patterns"]

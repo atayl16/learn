@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "Which HTTP verb is idempotent and safe for reading resources?"
+      choices:
+        - "POST"
+        - "GET"
+        - "PATCH"
+        - "DELETE"
+      correct: "GET"
+      why: "GET is both safe (no side effects) and idempotent (repeatable without change)."
+
+    - kind: mcq
+      points: 2
+      prompt: "What status code should a successful POST request that creates a resource return?"
+      choices:
+        - "200 OK"
+        - "201 Created"
+        - "204 No Content"
+        - "202 Accepted"
+      correct: "201 Created"
+      why: "201 Created indicates successful resource creation and should include a Location header."
+
+    - kind: short
+      points: 2
+      prompt: "Why should you avoid nesting resources more than two levels deep?"
+      sample_answer: "Deep nesting creates brittle URLs and tight coupling; use query params or shallow routes instead."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which URL follows REST conventions for listing users?"
+      choices:
+        - "/api/get_users"
+        - "/api/users/list"
+        - "/api/users"
+        - "/api/fetch_all_users"
+      correct: "/api/users"
+      why: "REST uses nouns (users) not verbs (get, list); the HTTP verb (GET) conveys the action."
+
+    - kind: short
+      points: 2
+      prompt: "What are two benefits of using OpenAPI/Swagger specs for API documentation?"
+      sample_answer: "Auto-generated interactive docs and client SDK generation; keeps docs in sync with code when generated from tests."
+
+    - kind: mcq
+      points: 1
+      prompt: "When should you return a 422 Unprocessable Entity status?"
+      choices:
+        - "When a resource is not found"
+        - "When authentication fails"
+        - "When validation fails on a well-formed request"
+        - "When the server encounters an internal error"
+      correct: "When validation fails on a well-formed request"
+      why: "422 indicates the request was understood but validation rules failed; 400 is for malformed syntax."

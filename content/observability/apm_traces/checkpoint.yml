@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 6
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What does a wide horizontal bar in an APM flamegraph indicate?"
+      choices:
+        - "A frequently called method"
+        - "A method that consumed significant time"
+        - "A method with many parameters"
+        - "An error in the code"
+      correct: "A method that consumed significant time"
+      why: "Bar width represents duration; wider bars show where time is spent."
+
+    - kind: short
+      points: 2
+      prompt: "How does an N+1 query appear in an APM trace?"
+      sample_answer: "Multiple identical SQL queries in sequence, one for each record in a loop."
+
+    - kind: mcq
+      points: 1
+      prompt: "What Rails method fixes N+1 queries caused by associations?"
+      choices:
+        - "preload"
+        - "includes"
+        - "eager_load"
+        - "All of the above"
+      correct: "All of the above"
+      why: "All three methods eager-load associations, though includes is most common."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why check P95/P99 percentiles instead of average response time?"
+      choices:
+        - "Percentiles are easier to calculate"
+        - "Averages hide worst-case performance affecting real users"
+        - "Percentiles cost less to monitor"
+        - "Averages only work in production"
+      correct: "Averages hide worst-case performance affecting real users"
+      why: "A 100ms average may hide 5% of requests taking 2+ seconds."
+
+    - kind: short
+      points: 2
+      prompt: "What gem enables local performance profiling in Rails development?"
+      sample_answer: "rack-mini-profiler"
+
+    - kind: mcq
+      points: 1
+      prompt: "What is a segment or span in APM terminology?"
+      choices:
+        - "A user session"
+        - "An individual operation like a SQL query or HTTP request"
+        - "A full request trace"
+        - "A database table"
+      correct: "An individual operation like a SQL query or HTTP request"
+      why: "Segments/spans represent operations within a trace, like queries or API calls."

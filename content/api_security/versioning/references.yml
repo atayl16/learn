@@ -1,0 +1,28 @@
+references:
+  - title: "Stripe API Versioning"
+    url: "https://stripe.com/docs/api/versioning"
+    why: "Industry example of version management with pinned versions per API key and deprecation timelines."
+
+  - title: "RFC 8594 — Sunset HTTP Header"
+    url: "https://datatracker.ietf.org/doc/html/rfc8594"
+    why: "Standard defining the Sunset header for signaling endpoint deprecation dates."
+
+  - title: "Heroku API Design Guide — Versioning"
+    url: "https://geemus.gitbooks.io/http-api-design/content/en/foundations/require-versioning-in-the-accepts-header.html"
+    why: "Best practices for header-based versioning using Accept headers."
+
+  - title: "Rails Routing from the Outside In — Namespaces"
+    url: "https://guides.rubyonrails.org/routing.html#controller-namespaces-and-routing"
+    why: "How to use namespace and scope to organize versioned controllers in Rails."
+
+  - title: "Semantic Versioning"
+    url: "https://semver.org/"
+    why: "Versioning convention (MAJOR.MINOR.PATCH) applicable to APIs for signaling breaking changes."
+
+  - title: "Rails API Versioning Strategies (thoughtbot)"
+    url: "https://thoughtbot.com/blog/versioning-your-api"
+    why: "Comparison of path, header, and content negotiation versioning approaches."
+
+  - title: "GitHub API — Versioning"
+    url: "https://docs.github.com/en/rest/overview/api-versions"
+    why: "Example of header-based versioning with X-GitHub-Api-Version header."

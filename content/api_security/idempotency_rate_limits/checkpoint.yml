@@ -1,0 +1,61 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary purpose of idempotency keys in API design?"
+      choices:
+        - "To authenticate users"
+        - "To prevent duplicate operations when clients retry requests"
+        - "To encrypt request payloads"
+        - "To track API usage metrics"
+      correct: "To prevent duplicate operations when clients retry requests"
+      why: "Idempotency keys cache results so retrying with the same key returns the original response without re-executing."
+
+    - kind: mcq
+      points: 2
+      prompt: "What HTTP status code should be returned when a rate limit is exceeded?"
+      choices:
+        - "403 Forbidden"
+        - "422 Unprocessable Entity"
+        - "429 Too Many Requests"
+        - "503 Service Unavailable"
+      correct: "429 Too Many Requests"
+      why: "429 specifically indicates rate limiting; Retry-After header tells clients when to retry."
+
+    - kind: short
+      points: 2
+      prompt: "Why should idempotency key cache entries expire after a fixed period (e.g., 24 hours)?"
+      sample_answer: "To prevent unbounded cache growth; clients should generate new keys for requests older than the expiration window."
+
+    - kind: mcq
+      points: 1
+      prompt: "Where should rate limiting state (request counts) be stored for scalability?"
+      choices:
+        - "In memory on each application server"
+        - "In the application database"
+        - "In Redis or a shared cache"
+        - "In a text file"
+      correct: "In Redis or a shared cache"
+      why: "Redis provides fast, shared state across servers with TTL support for time-based windows."
+
+    - kind: short
+      points: 2
+      prompt: "What header should be returned with a 429 response to inform clients when they can retry?"
+      sample_answer: "Retry-After header indicating seconds until the rate limit resets."
+
+    - kind: mcq
+      points: 1
+      prompt: "Why is per-user rate limiting preferable to global rate limiting?"
+      choices:
+        - "It's easier to implement"
+        - "It prevents one abusive user from affecting all users"
+        - "It requires less memory"
+        - "It doesn't require Redis"
+      correct: "It prevents one abusive user from affecting all users"
+      why: "Per-user limits isolate abuse; global limits punish all users when one exceeds the threshold."
+
+    - kind: short
+      points: 2
+      prompt: "Name two X-RateLimit headers that should be included in API responses and their purposes."
+      sample_answer: "X-RateLimit-Limit (total quota) and X-RateLimit-Remaining (requests left in current window)."

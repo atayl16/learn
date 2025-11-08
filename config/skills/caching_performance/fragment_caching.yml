@@ -1,0 +1,15 @@
+topic:
+  key: fragment_caching
+  name: Fragment & Low-Level Caching
+  track_key: caching_performance
+  depth_target: Strong
+  prerequisites: ["request_lifecycle", "cache_keys_invalidations"]
+  objectives:
+    - Implement view fragment caching with cache keys
+    - Use low-level caching for expensive computations
+    - Configure cache stores (memory, Redis, Memcached)
+    - Measure cache hit rates and performance gains
+  key_terms: ["fragment caching", "Rails.cache.fetch", "cache store", "cache key", "hit rate"]
+  est_minutes_read: 9
+  est_minutes_exercise: 22
+  tags: ["rails", "caching", "performance", "redis", "views"]

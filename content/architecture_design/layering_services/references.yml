@@ -1,0 +1,28 @@
+references:
+  - title: "Interactor Gem"
+    url: "https://github.com/collectiveidea/interactor"
+    why: "Standard service object pattern with context and failure handling."
+
+  - title: "dry-validation Documentation"
+    url: "https://dry-rb.org/gems/dry-validation/"
+    why: "Comprehensive form validation outside ActiveRecord with composable rules."
+
+  - title: "Pundit Gem"
+    url: "https://github.com/varvet/pundit"
+    why: "Authorization via policy objects following naming conventions."
+
+  - title: "Draper Gem"
+    url: "https://github.com/drapergem/draper"
+    why: "Presenters and decorators for view logic without polluting models."
+
+  - title: "Practical Object-Oriented Design in Ruby (Sandi Metz)"
+    url: "https://www.poodr.com/"
+    why: "Foundational principles for single responsibility and dependency management."
+
+  - title: "7 Patterns to Refactor Fat ActiveRecord Models (CodeClimate)"
+    url: "https://codeclimate.com/blog/7-ways-to-decompose-fat-activerecord-models"
+    why: "Covers service objects, form objects, and policy objects with trade-offs."
+
+  - title: "Eastward Ho! A Clear Path Through Ruby With OO (Jim Weirich)"
+    url: "https://www.youtube.com/watch?v=kXcrClJcfm8"
+    why: "Classic RubyConf talk on object composition and avoiding procedural code."

@@ -1,0 +1,28 @@
+references:
+  - title: "Rails Guides — Active Record Query Interface"
+    url: "https://guides.rubyonrails.org/active_record_querying.html#eager-loading-associations"
+    why: "Official guide covering includes, preload, eager_load, and joins with examples."
+
+  - title: "Bullet Gem"
+    url: "https://github.com/flyerhzm/bullet"
+    why: "Detects N+1 queries and unused eager loading during development and tests."
+
+  - title: "APM Tools — New Relic N+1 Detection"
+    url: "https://docs.newrelic.com/docs/apm/agents/ruby-agent/features/activerecord-instrumentation/"
+    why: "Production monitoring showing N+1 patterns in live traffic."
+
+  - title: "The Complete Guide to Rails Performance (Book by Nate Berkopec)"
+    url: "https://www.railsspeed.com/"
+    why: "Chapter on N+1 queries with benchmarks and optimization strategies."
+
+  - title: "RailsConf 2017 — Fast by Default (DHH)"
+    url: "https://www.youtube.com/watch?v=zKyv-IGvgGE"
+    why: "Discusses Rails performance, including N+1 detection and query optimization."
+
+  - title: "Thoughtbot — Joins vs Preload vs Includes vs Eager Load"
+    url: "https://thoughtbot.com/blog/joins-vs-preload-vs-includes-vs-eager-load"
+    why: "Clear comparison of the four methods with use cases for each."
+
+  - title: "Postgres EXPLAIN — Understanding Query Plans"
+    url: "https://www.postgresql.org/docs/current/using-explain.html"
+    why: "How to analyze eager loading performance by reading query plans."

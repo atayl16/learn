@@ -1,0 +1,14 @@
+topic:
+  key: testing_strategy
+  name: Testing Strategy (Unit/Request/System)
+  track_key: architecture_design
+  depth_target: Strong
+  prerequisites: ["rspec_basics", "rails_testing"]
+  objectives:
+    - Balance unit, request, and system tests using the test pyramid
+    - Use factories and fixtures appropriately
+    - Stub HTTP calls with VCR and WebMock
+  key_terms: ["test pyramid", "FactoryBot", "VCR", "WebMock", "Capybara", "SimpleCov"]
+  est_minutes_read: 11
+  est_minutes_exercise: 22
+  tags: ["testing", "rspec", "quality", "strategy"]

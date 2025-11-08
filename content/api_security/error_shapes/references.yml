@@ -1,0 +1,28 @@
+references:
+  - title: "RFC 7807 — Problem Details for HTTP APIs"
+    url: "https://datatracker.ietf.org/doc/html/rfc7807"
+    why: "Official standard defining a consistent JSON structure for HTTP API errors."
+
+  - title: "JSON:API — Error Objects"
+    url: "https://jsonapi.org/format/#error-objects"
+    why: "Specification for error format including status, code, title, detail, and source pointer."
+
+  - title: "Rails Guides — Active Record Validations"
+    url: "https://guides.rubyonrails.org/active_record_validations.html#working-with-validation-errors"
+    why: "How to access and iterate over ActiveRecord validation errors."
+
+  - title: "HTTP Status Codes"
+    url: "https://httpstatuses.com/"
+    why: "Quick reference for all HTTP status codes and appropriate use cases."
+
+  - title: "OWASP — Error Handling"
+    url: "https://cheatsheetseries.owasp.org/cheatsheets/Error_Handling_Cheat_Sheet.html"
+    why: "Security best practices for error messages, avoiding information disclosure."
+
+  - title: "Better Errors Gem"
+    url: "https://github.com/BetterErrors/better_errors"
+    why: "Development tool for enhanced error pages; shows why not to expose this in production."
+
+  - title: "Rescue From in Rails"
+    url: "https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from"
+    why: "Rails API for handling exceptions in controllers with consistent error responses."

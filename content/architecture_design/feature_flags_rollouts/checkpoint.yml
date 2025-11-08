@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What is the main benefit of feature flags over traditional deployment?"
+      choices:
+        - "They make code faster"
+        - "They decouple deployment from release, enabling gradual rollouts and instant rollback"
+        - "They eliminate the need for testing"
+        - "They reduce server costs"
+      correct: "They decouple deployment from release, enabling gradual rollouts and instant rollback"
+      why: "Flags let you deploy code but control when and to whom features are enabled."
+
+    - kind: mcq
+      points: 1
+      prompt: "How does Flipper.enable_percentage_of_actors work?"
+      choices:
+        - "Randomly enables for different users on each request"
+        - "Enables deterministically for the same percentage of users each time"
+        - "Enables for the first N% of signups"
+        - "Only works with admin users"
+      correct: "Enables deterministically for the same percentage of users each time"
+      why: "Percentage rollout is stable: the same user sees the same state across requests."
+
+    - kind: short
+      points: 2
+      prompt: "Why should you monitor flagged features separately?"
+      sample_answer: "Separate metrics for flag-on vs flag-off users detect regressions in the new branch before full rollout, allowing instant rollback."
+
+    - kind: mcq
+      points: 2
+      prompt: "When should you clean up a feature flag?"
+      choices:
+        - "Immediately after enabling it for the first user"
+        - "After full rollout when the feature is stable and the old code is deleted"
+        - "Never; flags should stay forever for safety"
+        - "Only if the feature fails"
+      correct: "After full rollout when the feature is stable and the old code is deleted"
+      why: "Dead flags accumulate complexity; remove them once the feature is fully launched."
+
+    - kind: short
+      points: 2
+      prompt: "How do you test both branches of a feature flag in RSpec?"
+      sample_answer: "Use Flipper.enable and Flipper.disable in separate test contexts to cover both flag-on and flag-off branches."
+
+    - kind: mcq
+      points: 1
+      prompt: "What's the risk of over-flagging trivial changes?"
+      choices:
+        - "Flags become free and have no cost"
+        - "It increases branching complexity and test burden"
+        - "It makes deployments faster"
+        - "It eliminates the need for code review"
+      correct: "It increases branching complexity and test burden"
+      why: "Flags add conditional logic; reserve them for risky or large features."

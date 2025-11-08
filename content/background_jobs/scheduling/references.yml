@@ -1,0 +1,28 @@
+references:
+  - title: "sidekiq-cron Documentation"
+    url: "https://github.com/sidekiq-cron/sidekiq-cron"
+    why: "Official guide to cron-style recurring job scheduling in Sidekiq."
+
+  - title: "sidekiq-unique-jobs Documentation"
+    url: "https://github.com/mhenrixon/sidekiq-unique-jobs"
+    why: "Complete reference for lock strategies, conflict resolution, and deduplication patterns."
+
+  - title: "Sidekiq Wiki — Scheduled Jobs"
+    url: "https://github.com/mperham/sidekiq/wiki/Scheduled-Jobs"
+    why: "How Sidekiq's built-in scheduled set works for delayed one-time jobs."
+
+  - title: "Cron Expression Reference"
+    url: "https://crontab.guru/"
+    why: "Interactive tool to understand and test cron syntax patterns."
+
+  - title: "Rails Guides — Active Job Basics (Scheduled Jobs)"
+    url: "https://guides.rubyonrails.org/active_job_basics.html#enqueue-the-job"
+    why: "ActiveJob's set(wait:) and set(wait_until:) syntax for delayed jobs."
+
+  - title: "Redis Sorted Sets"
+    url: "https://redis.io/docs/data-types/sorted-sets/"
+    why: "How Sidekiq uses sorted sets to store scheduled jobs by execution timestamp."
+
+  - title: "Time Zones in Rails"
+    url: "https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html"
+    why: "Managing timezone-aware scheduling with ActiveSupport::TimeZone."

@@ -1,0 +1,28 @@
+references:
+  - title: "Google SRE Book — Service Level Objectives"
+    url: "https://sre.google/sre-book/service-level-objectives/"
+    why: "Canonical reference for defining SLIs, SLOs, SLAs, and error budgets."
+
+  - title: "The Four Golden Signals (Google SRE)"
+    url: "https://sre.google/sre-book/monitoring-distributed-systems/"
+    why: "Explains latency, traffic, errors, and saturation as core monitoring metrics."
+
+  - title: "statsd-instrument GitHub"
+    url: "https://github.com/Shopify/statsd-instrument"
+    why: "Official documentation for instrumenting Rails apps with StatsD metrics."
+
+  - title: "Prometheus Documentation — Best Practices"
+    url: "https://prometheus.io/docs/practices/naming/"
+    why: "Metric naming conventions and patterns for time-series monitoring."
+
+  - title: "Grafana Dashboards for Rails"
+    url: "https://grafana.com/grafana/dashboards/"
+    why: "Pre-built dashboard templates for visualizing RED metrics and SLOs."
+
+  - title: "Implementing Service Level Objectives (Alex Hidalgo)"
+    url: "https://www.alex-hidalgo.com/the-slo-book"
+    why: "Practical guide to setting and managing SLOs in production systems."
+
+  - title: "Site Reliability Engineering (O'Reilly Book)"
+    url: "https://sre.google/books/"
+    why: "Foundational book covering SLOs, error budgets, monitoring, and on-call practices."

@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What is the main difference between ActiveJob and Sidekiq?"
+      choices:
+        - "ActiveJob is faster than Sidekiq"
+        - "ActiveJob is an abstraction layer, Sidekiq is a queue backend implementation"
+        - "Sidekiq requires PostgreSQL, ActiveJob uses Redis"
+        - "ActiveJob supports retries, Sidekiq does not"
+      correct: "ActiveJob is an abstraction layer, Sidekiq is a queue backend implementation"
+      why: "ActiveJob provides a common interface across multiple queue backends including Sidekiq."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why should you pass record IDs instead of ActiveRecord objects to jobs?"
+      choices:
+        - "IDs are smaller and faster to serialize"
+        - "Objects serialize their state; changes after enqueueing won't be reflected"
+        - "ActiveRecord objects cannot be serialized to Redis"
+        - "Sidekiq requires integer arguments only"
+      correct: "Objects serialize their state; changes after enqueueing won't be reflected"
+      why: "Serialized objects contain stale data; fetching by ID ensures fresh records."
+
+    - kind: short
+      points: 2
+      prompt: "How do you configure a Sidekiq worker to use a specific queue with custom retry count?"
+      sample_answer: "Use sidekiq_options queue: :my_queue, retry: 5 in the worker class."
+
+    - kind: mcq
+      points: 1
+      prompt: "What does the -c flag control when starting Sidekiq?"
+      choices:
+        - "Number of CPU cores to use"
+        - "Number of concurrent worker threads"
+        - "Number of queues to process"
+        - "Connection pool size for Redis"
+      correct: "Number of concurrent worker threads"
+      why: "The -c flag sets thread concurrency; more threads = more memory but higher throughput."
+
+    - kind: short
+      points: 2
+      prompt: "What command would you run to process the 'critical' queue 3x more than 'default'?"
+      sample_answer: "bundle exec sidekiq -q critical,3 -q default,1"
+
+    - kind: mcq
+      points: 1
+      prompt: "Where does Sidekiq store queued jobs?"
+      choices:
+        - "PostgreSQL database"
+        - "Redis in-memory store"
+        - "Local filesystem"
+        - "Sidekiq server memory"
+      correct: "Redis in-memory store"
+      why: "Sidekiq uses Redis for fast queue storage and job data persistence."

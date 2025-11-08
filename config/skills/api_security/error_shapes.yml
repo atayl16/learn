@@ -1,0 +1,14 @@
+topic:
+  key: error_shapes
+  name: API Error Shapes & Standards
+  track_key: api_security
+  depth_target: Strong
+  prerequisites: ["rest_design"]
+  objectives:
+    - Design consistent error response structures across API endpoints
+    - Choose appropriate HTTP status codes for different error types
+    - Distinguish user-facing from developer-facing error messages
+  key_terms: ["error shapes", "RFC 7807", "JSON:API errors", "validation errors", "error IDs"]
+  est_minutes_read: 9
+  est_minutes_exercise: 20
+  tags: ["api", "errors", "standards", "debugging"]

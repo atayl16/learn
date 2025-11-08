@@ -1,0 +1,14 @@
+topic:
+  key: feature_flags_rollouts
+  name: Feature Flags & Safe Rollouts
+  track_key: architecture_design
+  depth_target: Strong
+  prerequisites: ["deployment_basics", "monitoring"]
+  objectives:
+    - Implement feature flags with Flipper or Unleash
+    - Design rollout strategies by percentage or user segment
+    - Monitor flagged features and clean up old flags
+  key_terms: ["feature flag", "Flipper", "Unleash", "rollout", "circuit breaker", "flag cleanup"]
+  est_minutes_read: 10
+  est_minutes_exercise: 20
+  tags: ["deployment", "feature-flags", "rollout", "risk"]

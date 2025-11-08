@@ -1,0 +1,14 @@
+topic:
+  key: authn_authz
+  name: Authentication & Authorization with Pundit
+  track_key: api_security
+  depth_target: Strong
+  prerequisites: ["rest_design", "rails_basics"]
+  objectives:
+    - Implement token-based authentication for API endpoints
+    - Define authorization policies using Pundit
+    - Test authorization logic in controllers and request specs
+  key_terms: ["authentication", "authorization", "Pundit", "JWT", "policies", "scopes", "IDOR"]
+  est_minutes_read: 11
+  est_minutes_exercise: 24
+  tags: ["security", "authentication", "authorization", "pundit"]

@@ -1,0 +1,28 @@
+references:
+  - title: "RSpec Documentation"
+    url: "https://rspec.info/"
+    why: "Official RSpec docs covering unit, request, and system tests."
+
+  - title: "FactoryBot Getting Started"
+    url: "https://github.com/thoughtbot/factory_bot/blob/master/GETTING_STARTED.md"
+    why: "Guide to defining factories, traits, and strategies for test data."
+
+  - title: "VCR Documentation"
+    url: "https://github.com/vcr/vcr"
+    why: "Records and replays HTTP interactions for deterministic tests."
+
+  - title: "WebMock GitHub"
+    url: "https://github.com/bblimke/webmock"
+    why: "Stubs HTTP requests without recording, useful for error scenarios."
+
+  - title: "Capybara Documentation"
+    url: "https://github.com/teamcapybara/capybara"
+    why: "System testing DSL for interacting with web pages via browser drivers."
+
+  - title: "SimpleCov GitHub"
+    url: "https://github.com/simplecov-ruby/simplecov"
+    why: "Code coverage measurement for Ruby, integrates with RSpec."
+
+  - title: "Effective Testing with RSpec 3 (Myron Marston, Ian Dees)"
+    url: "https://pragprog.com/titles/rspec3/effective-testing-with-rspec-3/"
+    why: "Pragmatic guide to test structure, mocking, and strategy."

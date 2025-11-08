@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "When should you extract a service object instead of keeping logic in a model?"
+      choices:
+        - "Every time you create a new ActiveRecord model"
+        - "When orchestrating multi-step operations across models or external APIs"
+        - "Only when the model has more than 100 lines"
+        - "Never; callbacks handle all business logic"
+      correct: "When orchestrating multi-step operations across models or external APIs"
+      why: "Service objects isolate complex workflows; simple CRUD belongs in models."
+
+    - kind: mcq
+      points: 1
+      prompt: "What does Interactor's context.fail! do?"
+      choices:
+        - "Raises an exception that crashes the application"
+        - "Stops execution and marks the result as failure with an error message"
+        - "Logs a warning but continues processing"
+        - "Rolls back the database transaction"
+      correct: "Stops execution and marks the result as failure with an error message"
+      why: "context.fail! halts the interactor and sets failure state without raising exceptions."
+
+    - kind: short
+      points: 2
+      prompt: "Why use a form object instead of ActiveRecord validations?"
+      sample_answer: "Form objects validate input without creating database records, handle nested attributes, and separate business validation from persistence constraints."
+
+    - kind: mcq
+      points: 2
+      prompt: "What's the primary purpose of a policy object?"
+      choices:
+        - "Validate user input before saving"
+        - "Encapsulate authorization logic for reuse across contexts"
+        - "Format data for views"
+        - "Orchestrate multi-step workflows"
+      correct: "Encapsulate authorization logic for reuse across contexts"
+      why: "Policies centralize authorization, making it testable and reusable in controllers, jobs, and services."
+
+    - kind: short
+      points: 2
+      prompt: "How does Draper prevent view logic from leaking into models?"
+      sample_answer: "Draper decorators wrap models at the controller boundary and add view-specific methods, keeping presentation logic separate from domain models."
+
+    - kind: mcq
+      points: 1
+      prompt: "What's a sign you're over-layering your application?"
+      choices:
+        - "Every model has a corresponding service object"
+        - "Simple CRUD operations require navigating through service, form, and policy layers"
+        - "You have more than 10 service objects"
+        - "Controllers are under 20 lines"
+      correct: "Simple CRUD operations require navigating through service, form, and policy layers"
+      why: "Layering adds value for complexity and reuse; applying it to simple CRUD creates unnecessary indirection."

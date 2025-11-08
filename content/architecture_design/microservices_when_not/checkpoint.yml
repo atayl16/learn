@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 6
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What is the monolith-first principle?"
+      choices:
+        - "Always use a monolith; microservices are never appropriate"
+        - "Start with a monolith and extract services only when organizational or scaling needs justify distributed costs"
+        - "Build microservices first, then combine them into a monolith"
+        - "Monoliths are outdated; all new apps should be microservices"
+      correct: "Start with a monolith and extract services only when organizational or scaling needs justify distributed costs"
+      why: "Monoliths are simpler; microservices solve specific problems that emerge at scale."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is a modular monolith?"
+      choices:
+        - "A monolith split into microservices"
+        - "Code structured into isolated modules within one application and database"
+        - "Multiple monoliths sharing a database"
+        - "A deprecated architecture pattern"
+      correct: "Code structured into isolated modules within one application and database"
+      why: "Modular monoliths provide domain boundaries without distributed system complexity."
+
+    - kind: short
+      points: 2
+      prompt: "Name two problems microservices solve and two problems they introduce."
+      sample_answer: "Solve: team independence, independent scaling. Introduce: distributed transactions, debugging complexity across services."
+
+    - kind: mcq
+      points: 2
+      prompt: "When do microservices hurt more than they help?"
+      choices:
+        - "When teams need independent deploys"
+        - "When services share data or require distributed transactions"
+        - "When using Rails instead of Go"
+        - "When team size exceeds 50 engineers"
+      correct: "When services share data or require distributed transactions"
+      why: "Shared data or cross-service transactions add complexity that monoliths handle with database transactions."
+
+    - kind: short
+      points: 2
+      prompt: "What is a 'distributed monolith' and why is it a problem?"
+      sample_answer: "Services that share a database or must deploy together, combining microservice complexity with monolith coupling."
+
+    - kind: mcq
+      points: 1
+      prompt: "What's a sign you prematurely extracted microservices?"
+      choices:
+        - "Team size exceeds 20 engineers"
+        - "Deploying requires coordinating multiple service releases"
+        - "App uses a relational database"
+        - "Code is written in Ruby"
+      correct: "Deploying requires coordinating multiple service releases"
+      why: "Coordinated deploys indicate services aren't independent, negating microservice benefits."

@@ -1,0 +1,14 @@
+topic:
+  key: apm_traces
+  name: APM Basics and Flamegraphs
+  track_key: observability
+  depth_target: Working
+  prerequisites: ["rails_basics", "sql_basics"]
+  objectives:
+    - Read APM flamegraphs to identify slow segments
+    - Use APM to detect N+1 queries and slow database calls
+    - Set up rack-mini-profiler for local performance analysis
+  key_terms: ["APM", "flamegraph", "traces", "segments", "spans", "N+1 detection", "rack-mini-profiler"]
+  est_minutes_read: 9
+  est_minutes_exercise: 17
+  tags: ["rails", "observability", "apm", "performance", "profiling"]

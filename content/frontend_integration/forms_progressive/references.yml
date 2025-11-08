@@ -1,0 +1,28 @@
+references:
+  - title: "Progressive Enhancement (MDN)"
+    url: "https://developer.mozilla.org/en-US/docs/Glossary/Progressive_Enhancement"
+    why: "Foundation of the progressive enhancement philosophy and how it applies to modern web development."
+
+  - title: "Turbo Handbook — Forms"
+    url: "https://turbo.hotwired.dev/handbook/forms"
+    why: "Official guide to Turbo's form interception, validation handling, and graceful degradation."
+
+  - title: "ARIA Live Regions (MDN)"
+    url: "https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Live_Regions"
+    why: "How to announce dynamic content changes to screen readers using ARIA attributes."
+
+  - title: "WebAIM — Creating Accessible Forms"
+    url: "https://webaim.org/techniques/forms/"
+    why: "Comprehensive guide to form accessibility including labels, error messages, and keyboard navigation."
+
+  - title: "Resilient Web Design (Jeremy Keith)"
+    url: "https://resilientwebdesign.com/"
+    why: "Foundational text on progressive enhancement and building robust web experiences."
+
+  - title: "Form Validation UX in HTML and CSS (Smashing Magazine)"
+    url: "https://www.smashingmagazine.com/2023/02/guide-accessible-form-validation/"
+    why: "Modern patterns for accessible inline validation and error handling."
+
+  - title: "Rails Guides — Form Helpers"
+    url: "https://guides.rubyonrails.org/form_helpers.html"
+    why: "Rails form_with, form_for, and error handling patterns for server-side rendering."

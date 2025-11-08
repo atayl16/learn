@@ -1,0 +1,7 @@
+skill:
+  key: react_working_fundamentals
+  track_key: frontend_integration
+  title: "React: Working fundamentals"
+  depth_target: working
+  estimated_minutes: 45
+  description: "Integrate React with Rails for complex UIs. Use hooks, manage state, fetch data with React Query, and connect to Rails APIs or render with react-rails gem."

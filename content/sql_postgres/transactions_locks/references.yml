@@ -1,0 +1,28 @@
+references:
+  - title: "PostgreSQL Documentation — Transactions"
+    url: "https://www.postgresql.org/docs/current/tutorial-transactions.html"
+    why: "Official tutorial on transaction basics, ACID properties, and commit/rollback."
+
+  - title: "PostgreSQL Documentation — Transaction Isolation"
+    url: "https://www.postgresql.org/docs/current/transaction-iso.html"
+    why: "Detailed explanation of isolation levels and concurrency control in Postgres."
+
+  - title: "PostgreSQL Documentation — Explicit Locking"
+    url: "https://www.postgresql.org/docs/current/explicit-locking.html"
+    why: "Covers row locks, table locks, and advisory locks with SQL examples."
+
+  - title: "Rails API — ActiveRecord Transactions"
+    url: "https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html"
+    why: "Rails API documentation for transaction blocks, rollbacks, and isolation levels."
+
+  - title: "Rails API — Locking"
+    url: "https://api.rubyonrails.org/classes/ActiveRecord/Locking/Pessimistic.html"
+    why: "How to use pessimistic locking with lock and SELECT FOR UPDATE in Rails."
+
+  - title: "Postgres Wiki — Lock Monitoring"
+    url: "https://wiki.postgresql.org/wiki/Lock_Monitoring"
+    why: "Queries for identifying blocked queries, blocking PIDs, and deadlocks."
+
+  - title: "thoughtbot — Advisory Locks in Rails"
+    url: "https://thoughtbot.com/blog/advisory-locks-in-postgres"
+    why: "Practical examples of using pg_advisory_lock in Rails applications."

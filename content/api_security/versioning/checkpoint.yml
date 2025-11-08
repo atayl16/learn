@@ -1,0 +1,61 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary advantage of path-based versioning (/api/v1) over header-based versioning?"
+      choices:
+        - "It's more secure"
+        - "It's visible in URLs and logs, easier to debug"
+        - "It requires less code"
+        - "It supports more versions"
+      correct: "It's visible in URLs and logs, easier to debug"
+      why: "Path versioning shows the version explicitly in URLs; header versioning requires inspecting headers."
+
+    - kind: mcq
+      points: 2
+      prompt: "Which change requires a new API version?"
+      choices:
+        - "Adding a new optional field to a response"
+        - "Removing a field from a response"
+        - "Fixing a bug in validation logic"
+        - "Adding a new endpoint"
+      correct: "Removing a field from a response"
+      why: "Removing fields breaks clients expecting them; adding optional fields is backward-compatible."
+
+    - kind: short
+      points: 2
+      prompt: "What is the purpose of the Sunset HTTP header?"
+      sample_answer: "To signal when an API endpoint will be deprecated or removed, giving clients time to migrate."
+
+    - kind: mcq
+      points: 1
+      prompt: "Why should you avoid duplicating all code across API versions?"
+      choices:
+        - "It increases security risks"
+        - "It creates maintenance debt and inconsistencies"
+        - "It slows down API responses"
+        - "It violates REST principles"
+      correct: "It creates maintenance debt and inconsistencies"
+      why: "Duplicating code means bug fixes must be applied to both versions; shared logic reduces this overhead."
+
+    - kind: short
+      points: 2
+      prompt: "Give two examples of backward-compatible API changes that don't require versioning."
+      sample_answer: "Adding optional fields to responses; adding new endpoints; relaxing validation rules."
+
+    - kind: mcq
+      points: 1
+      prompt: "How long should you typically give clients to migrate before shutting down a deprecated API version?"
+      choices:
+        - "1 week"
+        - "1 month"
+        - "6-12 months"
+        - "5 years"
+      correct: "6-12 months"
+      why: "6-12 months gives clients time to update, test, and deploy; shorter timelines risk breaking critical integrations."
+
+    - kind: short
+      points: 2
+      prompt: "How can you share common logic between v1 and v2 controllers while still allowing version-specific behavior?"
+      sample_answer: "Inherit from a shared base controller or use serializers/presenters to customize response fields per version."

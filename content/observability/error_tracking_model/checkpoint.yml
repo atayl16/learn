@@ -1,0 +1,61 @@
+checkpoint:
+  passing_score: 6
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What is the main benefit of error tracking services over application logs?"
+      choices:
+        - "Error trackers are cheaper than log storage"
+        - "Error trackers group similar errors and alert on new issues"
+        - "Error trackers automatically fix production bugs"
+        - "Error trackers don't require internet connectivity"
+      correct: "Error trackers group similar errors and alert on new issues"
+      why: "Grouping reduces noise and alerts surface critical new failures immediately."
+
+    - kind: short
+      points: 2
+      prompt: "How do you add user_id and email to every Sentry error in Rails?"
+      sample_answer: "Call Sentry.set_user(id: user.id, email: user.email) in a before_action."
+
+    - kind: mcq
+      points: 1
+      prompt: "What does error fingerprinting control?"
+      choices:
+        - "Which errors get sent to Sentry"
+        - "How similar errors are grouped together"
+        - "Error severity levels"
+        - "Which users see the error"
+      correct: "How similar errors are grouped together"
+      why: "Fingerprinting determines whether errors become separate issues or group into one."
+
+    - kind: short
+      points: 2
+      prompt: "Write code to prevent ActiveRecord::RecordInvalid errors from being sent to Sentry."
+      sample_answer: "config.before_send = ->(event, hint) { hint[:exception].is_a?(ActiveRecord::RecordInvalid) ? nil : event }"
+
+    - kind: mcq
+      points: 1
+      prompt: "Why track releases in Sentry?"
+      choices:
+        - "To count total deploys per month"
+        - "To identify which deploy introduced a new error"
+        - "To automatically roll back bad deploys"
+        - "To limit errors sent per release"
+      correct: "To identify which deploy introduced a new error"
+      why: "Release tracking correlates errors with specific git commits or deploy versions."
+
+    - kind: mcq
+      points: 1
+      prompt: "When should you filter errors from being sent to Sentry?"
+      choices:
+        - "All errors should be sent for completeness"
+        - "Only critical errors above level 5"
+        - "Expected errors like validations and 404s"
+        - "Errors from authenticated users only"
+      correct: "Expected errors like validations and 404s"
+      why: "Filtering routine errors reduces noise and prevents alert fatigue."
+
+    - kind: short
+      points: 1
+      prompt: "What Sentry configuration value must be set to enable error tracking?"
+      sample_answer: "config.dsn (Data Source Name) from your Sentry project."

@@ -1,0 +1,28 @@
+references:
+  - title: "REST API Tutorial — What is REST?"
+    url: "https://restfulapi.net/"
+    why: "Comprehensive guide to REST principles, resource modeling, and HTTP semantics."
+
+  - title: "Rails Routing from the Outside In"
+    url: "https://guides.rubyonrails.org/routing.html"
+    why: "Canonical reference for defining RESTful routes with resources and nested resources."
+
+  - title: "JSON:API Specification"
+    url: "https://jsonapi.org/"
+    why: "Standard format for JSON APIs covering structure, pagination, includes, and errors."
+
+  - title: "OpenAPI Specification"
+    url: "https://swagger.io/specification/"
+    why: "Industry standard for documenting REST APIs with machine-readable schemas."
+
+  - title: "HTTP Status Codes"
+    url: "https://httpstatuses.com/"
+    why: "Quick reference for all standard HTTP status codes and when to use them."
+
+  - title: "rswag Gem"
+    url: "https://github.com/rswag/rswag"
+    why: "Generate OpenAPI docs and Swagger UI directly from RSpec request specs."
+
+  - title: "Fielding's Dissertation — REST"
+    url: "https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm"
+    why: "Original definition of REST by Roy Fielding, covering constraints and HATEOAS."

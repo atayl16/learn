@@ -1,0 +1,28 @@
+references:
+  - title: "Stripe — Idempotent Requests"
+    url: "https://stripe.com/docs/api/idempotent_requests"
+    why: "Industry example of idempotency key implementation for payment APIs."
+
+  - title: "rack-attack Gem"
+    url: "https://github.com/rack/rack-attack"
+    why: "Rack middleware for throttling and blocking abusive requests with Redis backend."
+
+  - title: "Redis Documentation — SETEX"
+    url: "https://redis.io/commands/setex/"
+    why: "Command for setting keys with automatic expiration, essential for caching idempotency results."
+
+  - title: "RFC 6585 — 429 Too Many Requests"
+    url: "https://datatracker.ietf.org/doc/html/rfc6585#section-4"
+    why: "Standard defining the 429 status code and Retry-After header for rate limiting."
+
+  - title: "Token Bucket Algorithm"
+    url: "https://en.wikipedia.org/wiki/Token_bucket"
+    why: "Rate limiting algorithm that allows bursts while maintaining average throughput."
+
+  - title: "Rails Guides — Caching with Redis"
+    url: "https://guides.rubyonrails.org/caching_with_rails.html#activesupport-cache-rediscachestore"
+    why: "How to configure Rails to use Redis for caching and session storage."
+
+  - title: "GitHub API — Rate Limiting"
+    url: "https://docs.github.com/en/rest/overview/resources-in-the-rest-api#rate-limiting"
+    why: "Example of well-designed rate limiting with clear headers and documentation."

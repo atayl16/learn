@@ -1,0 +1,50 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "Why should you pass record IDs instead of ActiveRecord objects to background jobs?"
+      choices:
+        - "IDs are faster to serialize"
+        - "Objects capture stale data; IDs fetch fresh records at execution time"
+        - "Sidekiq does not support object serialization"
+        - "Redis cannot store Ruby objects"
+      correct: "Objects capture stale data; IDs fetch fresh records at execution time"
+      why: "Serialized objects contain state from enqueue time; passing IDs ensures jobs fetch current data."
+
+    - kind: short
+      points: 2
+      prompt: "What gem would you use to schedule recurring jobs in Sidekiq, and how would you configure a job to run daily at 2 AM UTC?"
+      sample_answer: "Use sidekiq-cron gem. Configure with cron: '0 2 * * *' in the schedule hash."
+
+    - kind: mcq
+      points: 2
+      prompt: "What does the 'until_executed' lock strategy in sidekiq-unique-jobs do?"
+      choices:
+        - "Prevents job enqueueing while one is running"
+        - "Prevents duplicate jobs from enqueueing until the current one completes successfully"
+        - "Allows only one job per user per day"
+        - "Deletes the job after execution"
+      correct: "Prevents duplicate jobs from enqueueing until the current one completes successfully"
+      why: "until_executed maintains the lock from enqueue through successful completion."
+
+    - kind: short
+      points: 2
+      prompt: "How do you schedule a one-time job to run 24 hours from now using ActiveJob syntax?"
+      sample_answer: "MyJob.set(wait: 24.hours).perform_later(arg1, arg2)"
+
+    - kind: mcq
+      points: 1
+      prompt: "What does the cron pattern '*/15 * * * *' mean?"
+      choices:
+        - "Every 15 days"
+        - "Every 15 minutes"
+        - "At 15 minutes past every hour"
+        - "Every hour for 15 days"
+      correct: "Every 15 minutes"
+      why: "The */15 in the minute field means every 15 minutes."
+
+    - kind: short
+      points: 1
+      prompt: "Where are scheduled (delayed) jobs stored before execution?"
+      sample_answer: "In Redis, in the Sidekiq scheduled set (sorted set by execution time)."

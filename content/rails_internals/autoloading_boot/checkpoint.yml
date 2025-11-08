@@ -1,0 +1,45 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What constant should the file app/services/user_profile.rb define?"
+      choices:
+        - "UserProfiles"
+        - "UserProfile"
+        - "User::Profile"
+        - "user_profile"
+      correct: "UserProfile"
+      why: "Zeitwerk converts snake_case file names to CamelCase constants."
+
+    - kind: mcq
+      points: 2
+      prompt: "When does eager loading happen in a typical Rails app?"
+      choices:
+        - "In development on every request"
+        - "In production at boot time"
+        - "Only when running tests"
+        - "Never, Rails always autoloads"
+      correct: "In production at boot time"
+      why: "Production sets config.eager_load = true to catch errors early and be thread-safe."
+
+    - kind: short
+      points: 3
+      prompt: "Explain why circular dependencies cause autoload errors and how to fix them."
+      sample_answer: "Class A loads Class B which loads Class A, causing infinite loop. Fix: use string class names or dependency injection."
+
+    - kind: mcq
+      points: 1
+      prompt: "What command checks if all files follow Zeitwerk naming conventions?"
+      choices:
+        - "bin/rails autoload:check"
+        - "bin/rails zeitwerk:check"
+        - "bin/rails loader:verify"
+        - "bundle exec zeitwerk"
+      correct: "bin/rails zeitwerk:check"
+      why: "This command eager-loads all files and reports naming mismatches."
+
+    - kind: short
+      points: 2
+      prompt: "How would you measure your Rails app's boot time?"
+      sample_answer: "Run `time bin/rails runner 'puts \"Booted\"'` and check the real time."

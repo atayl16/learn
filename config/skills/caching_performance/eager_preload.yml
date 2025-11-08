@@ -1,0 +1,14 @@
+topic:
+  key: eager_preload
+  name: Eager Loading vs Preloading Strategies
+  track_key: caching_performance
+  depth_target: Strong
+  prerequisites: ["n_plus_one", "ar_relations"]
+  objectives:
+    - Distinguish between includes, preload, eager_load, and joins
+    - Choose the correct loading strategy based on query needs
+    - Optimize nested associations without over-fetching
+  key_terms: ["includes", "preload", "eager_load", "joins", "LEFT JOIN", "separate queries"]
+  est_minutes_read: 9
+  est_minutes_exercise: 20
+  tags: ["rails", "active_record", "performance", "optimization"]

@@ -1,0 +1,28 @@
+references:
+  - title: "Architecture Decision Records (Michael Nygard)"
+    url: "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions"
+    why: "Original ADR article defining format and purpose."
+
+  - title: "MADR - Markdown Any Decision Records"
+    url: "https://adr.github.io/madr/"
+    why: "Lightweight template with context, decision, alternatives, and consequences sections."
+
+  - title: "ADR Tools"
+    url: "https://github.com/npryce/adr-tools"
+    why: "Command-line tools for creating, linking, and managing ADRs."
+
+  - title: "Architectural Decision Records (ThoughtWorks Tech Radar)"
+    url: "https://www.thoughtworks.com/radar/techniques/lightweight-architecture-decision-records"
+    why: "ThoughtWorks recommendation and best practices for ADRs."
+
+  - title: "ADR GitHub Organization"
+    url: "https://adr.github.io/"
+    why: "Collection of ADR templates, tools, and examples from the community."
+
+  - title: "Documenting Architecture Decisions (Spotify Engineering)"
+    url: "https://engineering.atspotify.com/2020/04/when-should-i-write-an-architecture-decision-record/"
+    why: "How Spotify decides when to write ADRs and keeps them lightweight."
+
+  - title: "Software Architecture in Practice (Len Bass, Paul Clements)"
+    url: "https://www.oreilly.com/library/view/software-architecture-in/9780132942799/"
+    why: "Covers architecture documentation strategies including ADRs."

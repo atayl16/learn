@@ -1,0 +1,14 @@
+topic:
+  key: rest_design
+  name: REST Design Patterns
+  track_key: api_security
+  depth_target: Strong
+  prerequisites: ["rails_basics", "http_basics"]
+  objectives:
+    - Design RESTful routes using resources and verbs correctly
+    - Choose appropriate HTTP status codes for API responses
+    - Structure JSON responses with consistent conventions
+  key_terms: ["REST", "resources", "HTTP verbs", "status codes", "HATEOAS", "JSON:API"]
+  est_minutes_read: 10
+  est_minutes_exercise: 20
+  tags: ["api", "rest", "design", "http"]

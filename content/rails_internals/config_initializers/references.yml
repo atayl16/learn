@@ -1,0 +1,24 @@
+references:
+  - title: "Rails Guides — Configuring Rails Applications"
+    url: "https://guides.rubyonrails.org/configuring.html"
+    why: "Complete reference for all configuration options and initializers."
+
+  - title: "Rails Guides — Security (Credentials section)"
+    url: "https://guides.rubyonrails.org/security.html#custom-credentials"
+    why: "How to use encrypted credentials for storing secrets."
+
+  - title: "Rails API — Rails::Application::Configuration"
+    url: "https://api.rubyonrails.org/classes/Rails/Application/Configuration.html"
+    why: "Full list of configuration methods and options."
+
+  - title: "The Twelve-Factor App"
+    url: "https://12factor.net/config"
+    why: "Industry standard for config management; Rails credentials follow these principles."
+
+  - title: "dotenv-rails Gem"
+    url: "https://github.com/bkeepers/dotenv"
+    why: "Manage environment variables via .env files for dev/test."
+
+  - title: "Managing Rails Secrets (Thoughtbot)"
+    url: "https://thoughtbot.com/blog/encrypted-secrets-on-rails-5-2"
+    why: "Practical guide to migrating from secrets.yml to credentials."

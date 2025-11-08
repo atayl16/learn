@@ -1,0 +1,14 @@
+topic:
+  key: indexing
+  name: Database Indexing (B-tree, Partial, Composite)
+  track_key: sql_postgres
+  depth_target: Strong
+  prerequisites: ["modeling_constraints", "ar_relations"]
+  objectives:
+    - Choose appropriate index types (B-tree, partial, composite, GIN/GiST) for query patterns
+    - Identify when indexes improve or harm performance
+    - Use EXPLAIN to verify index usage and measure query costs
+  key_terms: ["btree", "partial_index", "composite_index", "gin_index", "gist_index", "index_scan", "seq_scan", "covering_index"]
+  est_minutes_read: 12
+  est_minutes_exercise: 22
+  tags: ["sql", "postgres", "indexing", "performance"]

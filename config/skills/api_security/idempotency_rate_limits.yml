@@ -1,0 +1,14 @@
+topic:
+  key: idempotency_rate_limits
+  name: Idempotency Keys & Rate Limiting
+  track_key: api_security
+  depth_target: Strong
+  prerequisites: ["rest_design", "redis_basics"]
+  objectives:
+    - Implement idempotency keys to prevent duplicate operations
+    - Configure rate limiting using rack-attack and Redis
+    - Return appropriate headers (Retry-After, X-RateLimit)
+  key_terms: ["idempotency", "Idempotency-Key", "rate limiting", "rack-attack", "token bucket", "429 Too Many Requests"]
+  est_minutes_read: 10
+  est_minutes_exercise: 22
+  tags: ["api", "security", "redis", "reliability"]

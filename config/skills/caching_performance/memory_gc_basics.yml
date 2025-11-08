@@ -1,0 +1,15 @@
+topic:
+  key: memory_gc_basics
+  name: Memory & Garbage Collection Awareness
+  track_key: caching_performance
+  depth_target: Strong
+  prerequisites: ["ar_relations", "eager_preload"]
+  objectives:
+    - Track Ruby object allocation and memory usage
+    - Read and interpret GC statistics
+    - Identify memory bloat and leaks
+    - Use memory_profiler gem to profile endpoints
+  key_terms: ["GC.stat", "ObjectSpace", "memory bloat", "memory_profiler", "allocated objects"]
+  est_minutes_read: 9
+  est_minutes_exercise: 20
+  tags: ["ruby", "performance", "memory", "garbage collection", "profiling"]

@@ -1,0 +1,14 @@
+topic:
+  key: versioning
+  name: API Versioning Strategies
+  track_key: api_security
+  depth_target: Strong
+  prerequisites: ["rest_design"]
+  objectives:
+    - Compare header-based vs path-based API versioning
+    - Implement deprecation warnings with Sunset headers
+    - Maintain backward compatibility across API versions
+  key_terms: ["versioning", "header versioning", "path versioning", "Sunset header", "deprecation", "backward compatibility"]
+  est_minutes_read: 9
+  est_minutes_exercise: 20
+  tags: ["api", "versioning", "compatibility", "deprecation"]

@@ -1,0 +1,14 @@
+topic:
+  key: ar_relations
+  name: Active Record Relations & Query Interface
+  track_key: rails_internals
+  depth_target: Strong
+  prerequisites: ["ruby_basics", "sql_basics"]
+  objectives:
+    - Compose complex queries using relations and scopes
+    - Explain lazy loading and when queries execute
+    - Chain methods without triggering N+1 queries
+  key_terms: ["ActiveRecord::Relation", "scope", "lazy loading", "where", "joins", "includes"]
+  est_minutes_read: 12
+  est_minutes_exercise: 20
+  tags: ["rails", "activerecord", "sql", "queries"]

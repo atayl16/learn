@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What does includes do when you add a WHERE clause on an associated table?"
+      choices:
+        - "Raises an error"
+        - "Ignores the WHERE clause"
+        - "Switches from separate queries to a LEFT JOIN"
+        - "Uses an INNER JOIN instead of LEFT JOIN"
+      correct: "Switches from separate queries to a LEFT JOIN"
+      why: "includes auto-detects association conditions and changes strategy to eager_load."
+
+    - kind: mcq
+      points: 2
+      prompt: "Which method would you use to filter posts by author attributes WITHOUT loading the author data?"
+      choices:
+        - "includes"
+        - "preload"
+        - "eager_load"
+        - "joins"
+      correct: "joins"
+      why: "joins adds INNER JOIN for filtering but doesn't load association data."
+
+    - kind: short
+      points: 2
+      prompt: "What is the key difference between preload and eager_load?"
+      sample_answer: "preload uses separate queries; eager_load forces a LEFT JOIN. Use preload to avoid JOINs, eager_load to filter on associations."
+
+    - kind: mcq
+      points: 1
+      prompt: "How many queries does Post.includes(author: :company) execute?"
+      choices:
+        - "1 query with nested JOINs"
+        - "2 queries (posts, then authors+companies)"
+        - "3 queries (posts, authors, companies)"
+        - "N+1 queries"
+      correct: "3 queries (posts, authors, companies)"
+      why: "includes loads nested associations with separate queries for each level."
+
+    - kind: short
+      points: 2
+      prompt: "Write code to load posts with verified authors using a forced LEFT JOIN."
+      sample_answer: "Post.eager_load(:author).where(users: { verified: true })"
+
+    - kind: mcq
+      points: 1
+      prompt: "What happens if you access post.author after Post.joins(:author)?"
+      choices:
+        - "The author is already loaded"
+        - "An N+1 query is triggered"
+        - "Rails raises an error"
+        - "It returns nil"
+      correct: "An N+1 query is triggered"
+      why: "joins doesn't load associations, so accessing them triggers additional queries."

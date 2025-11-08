@@ -1,0 +1,14 @@
+topic:
+  key: ctes_windows
+  name: CTEs and Window Functions
+  track_key: sql_postgres
+  depth_target: Strong
+  prerequisites: ["ar_relations", "indexing"]
+  objectives:
+    - Write Common Table Expressions (WITH) to simplify complex queries
+    - Use window functions (ROW_NUMBER, RANK, LAG, LEAD) for analytics
+    - Decide when to use CTEs vs subqueries for readability and performance
+  key_terms: ["cte", "common_table_expression", "with_clause", "window_function", "row_number", "rank", "lag", "lead", "partition_by", "over"]
+  est_minutes_read: 12
+  est_minutes_exercise: 22
+  tags: ["sql", "postgres", "cte", "window-functions", "analytics"]

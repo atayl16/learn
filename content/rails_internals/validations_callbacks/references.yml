@@ -1,0 +1,24 @@
+references:
+  - title: "Rails Guides — Active Record Validations"
+    url: "https://guides.rubyonrails.org/active_record_validations.html"
+    why: "Complete reference for built-in and custom validations."
+
+  - title: "Rails Guides — Active Record Callbacks"
+    url: "https://guides.rubyonrails.org/active_record_callbacks.html"
+    why: "Full callback lifecycle, order, and best practices."
+
+  - title: "Rails API — ActiveSupport::Concern"
+    url: "https://api.rubyonrails.org/classes/ActiveSupport/Concern.html"
+    why: "Official docs on using concerns for shared model logic."
+
+  - title: "7 Patterns to Refactor Fat ActiveRecord Models (Bryan Helmkamp)"
+    url: "https://codeclimate.com/blog/7-ways-to-decompose-fat-activerecord-models"
+    why: "Explains when to extract concerns, service objects, and decorators."
+
+  - title: "RailsConf 2017 — In Relentless Pursuit of REST (Derek Prior)"
+    url: "https://www.youtube.com/watch?v=HctYHe-YjnE"
+    why: "Advocates for service objects over heavy callbacks for complex workflows."
+
+  - title: "Callbacks are Code Smell (Thoughtbot)"
+    url: "https://thoughtbot.com/blog/activerecord-callbacks-are-a-code-smell"
+    why: "Case against overusing callbacks; when to use service objects instead."

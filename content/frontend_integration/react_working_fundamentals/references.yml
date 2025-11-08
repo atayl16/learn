@@ -1,0 +1,28 @@
+references:
+  - title: "React Documentation"
+    url: "https://react.dev/"
+    why: "Official React docs with interactive tutorials covering components, hooks, and modern patterns."
+
+  - title: "React Hooks Reference"
+    url: "https://react.dev/reference/react/hooks"
+    why: "Complete reference for useState, useEffect, useContext, and other built-in hooks."
+
+  - title: "TanStack Query (React Query)"
+    url: "https://tanstack.com/query/latest"
+    why: "Official docs for React Query covering data fetching, caching, and server state synchronization."
+
+  - title: "react-rails gem"
+    url: "https://github.com/reactjs/react-rails"
+    why: "Rails integration for server-rendering React components and managing JavaScript build pipeline."
+
+  - title: "Overreacted — A Complete Guide to useEffect (Dan Abramov)"
+    url: "https://overreacted.io/a-complete-guide-to-useeffect/"
+    why: "Deep dive into useEffect mental model, dependency arrays, and common pitfalls."
+
+  - title: "React DevTools"
+    url: "https://react.dev/learn/react-developer-tools"
+    why: "Browser extension for inspecting component hierarchy, state, and props in real time."
+
+  - title: "Rails API Mode"
+    url: "https://guides.rubyonrails.org/api_app.html"
+    why: "Rails guide to building JSON APIs for decoupled frontend frameworks like React."

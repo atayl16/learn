@@ -1,0 +1,14 @@
+topic:
+  key: idempotency_retries
+  name: Idempotency Patterns & Retries
+  track_key: background_jobs
+  depth_target: Strong
+  prerequisites: ["sidekiq_basics"]
+  objectives:
+    - Implement idempotency keys to prevent duplicate job effects
+    - Configure retry strategies with exponential backoff
+    - Handle dead jobs in the dead letter queue
+  key_terms: ["idempotency", "idempotency key", "retry", "exponential backoff", "dead letter queue", "DLQ"]
+  est_minutes_read: 10
+  est_minutes_exercise: 20
+  tags: ["rails", "background_jobs", "sidekiq", "reliability", "retries"]

@@ -1,0 +1,7 @@
+skill:
+  key: hotwire_frames_streams
+  track_key: frontend_integration
+  title: "Hotwire: Frames & Streams"
+  depth_target: strong
+  estimated_minutes: 45
+  description: "Build reactive UIs with Turbo Frames and Streams. Master lazy loading, scoped navigation, real-time broadcasts, and form submissions without writing JavaScript."

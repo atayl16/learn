@@ -1,0 +1,28 @@
+references:
+  - title: "PostgreSQL Documentation — WITH Queries (CTEs)"
+    url: "https://www.postgresql.org/docs/current/queries-with.html"
+    why: "Official Postgres documentation on Common Table Expressions and recursive queries."
+
+  - title: "PostgreSQL Documentation — Window Functions"
+    url: "https://www.postgresql.org/docs/current/tutorial-window.html"
+    why: "Tutorial covering ROW_NUMBER, RANK, LAG, LEAD, and PARTITION BY with examples."
+
+  - title: "PostgreSQL Documentation — Window Function Reference"
+    url: "https://www.postgresql.org/docs/current/functions-window.html"
+    why: "Complete reference for all window functions and frame clauses (ROWS, RANGE)."
+
+  - title: "Modern SQL — Window Functions"
+    url: "https://modern-sql.com/feature/over"
+    why: "Cross-database guide to window functions with practical examples."
+
+  - title: "Use The Index, Luke — Querying Trees"
+    url: "https://use-the-index-luke.com/sql/where-clause/searching-for-ranges/recursive-queries"
+    why: "Recursive CTE patterns for hierarchical data with performance tips."
+
+  - title: "Thoughtbot — Advanced Postgres Queries"
+    url: "https://thoughtbot.com/blog/advanced-postgres-performance-tips"
+    why: "Real-world examples of CTEs and window functions in Rails applications."
+
+  - title: "PostgreSQL Wiki — Window Functions"
+    url: "https://wiki.postgresql.org/wiki/Window_Functions"
+    why: "Community examples and common use cases for analytics queries."

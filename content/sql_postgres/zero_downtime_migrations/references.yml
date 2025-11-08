@@ -1,0 +1,28 @@
+references:
+  - title: "strong_migrations Gem"
+    url: "https://github.com/ankane/strong_migrations"
+    why: "Gem that detects unsafe migrations and suggests zero-downtime alternatives."
+
+  - title: "PostgreSQL Documentation — CREATE INDEX CONCURRENTLY"
+    url: "https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY"
+    why: "Official documentation on concurrent index creation and limitations."
+
+  - title: "Rails Guides — Active Record Migrations"
+    url: "https://guides.rubyonrails.org/active_record_migrations.html"
+    why: "Canonical Rails migration reference, including batching and disable_ddl_transaction."
+
+  - title: "GoCardless — Zero Downtime Postgres Migrations"
+    url: "https://gocardless.com/blog/zero-downtime-postgres-migrations-the-hard-parts/"
+    why: "Real-world strategies for safe schema changes in production Postgres databases."
+
+  - title: "Braintree — Safe Operations for High-Volume PostgreSQL"
+    url: "https://www.braintreepayments.com/blog/safe-operations-for-high-volume-postgresql/"
+    why: "Production-tested patterns for adding columns, indexes, and constraints without downtime."
+
+  - title: "PostgreSQL Release Notes — Postgres 11 Improvements"
+    url: "https://www.postgresql.org/docs/11/release-11.html"
+    why: "Details on Postgres 11's optimization for adding columns with defaults."
+
+  - title: "Evil Martians — Zero Downtime Rails Migrations"
+    url: "https://evilmartians.com/chronicles/zero-downtime-migrations-locks-and-their-solution"
+    why: "Comprehensive guide to lock types, backfilling strategies, and avoiding downtime."

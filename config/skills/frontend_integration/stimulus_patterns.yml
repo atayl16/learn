@@ -1,0 +1,7 @@
+skill:
+  key: stimulus_patterns
+  track_key: frontend_integration
+  title: "Stimulus patterns & best practices"
+  depth_target: strong
+  estimated_minutes: 45
+  description: "Write maintainable JavaScript with Stimulus controllers. Learn lifecycle hooks, targets, values, outlets, and composition patterns for scalable frontend code."

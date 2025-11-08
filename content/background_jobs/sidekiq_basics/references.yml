@@ -1,0 +1,28 @@
+references:
+  - title: "Sidekiq Wiki — Getting Started"
+    url: "https://github.com/mperham/sidekiq/wiki/Getting-Started"
+    why: "Official guide covering installation, configuration, and basic usage patterns."
+
+  - title: "Rails Guides — Active Job Basics"
+    url: "https://guides.rubyonrails.org/active_job_basics.html"
+    why: "Canonical reference for ActiveJob API, queue configuration, and adapter setup."
+
+  - title: "Sidekiq Wiki — Advanced Options"
+    url: "https://github.com/mperham/sidekiq/wiki/Advanced-Options"
+    why: "Details on queue priorities, concurrency tuning, and Redis configuration."
+
+  - title: "Redis Documentation — Memory Optimization"
+    url: "https://redis.io/docs/management/optimization/memory-optimization/"
+    why: "Guide to Redis memory usage, eviction policies, and maxmemory configuration."
+
+  - title: "RailsConf 2017 — Sidekiq Best Practices (Mike Perham)"
+    url: "https://www.youtube.com/watch?v=GBEDvF1_8B8"
+    why: "Creator of Sidekiq covers production patterns, pitfalls, and scaling strategies."
+
+  - title: "Sidekiq in Practice (eBook by Mike Perham)"
+    url: "https://nateberkopec.com/blog/2015/09/30/sidekiq-in-practice.html"
+    why: "Real-world patterns for job design, error handling, and monitoring Sidekiq."
+
+  - title: "Redis Documentation — Persistence"
+    url: "https://redis.io/docs/management/persistence/"
+    why: "Explains RDB and AOF persistence modes critical for job queue durability."

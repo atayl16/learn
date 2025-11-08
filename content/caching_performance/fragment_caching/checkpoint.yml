@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What does fragment caching in Rails store?"
+      choices:
+        - "Database query results"
+        - "Rendered HTML from view partials"
+        - "Ruby objects in memory"
+        - "HTTP response headers"
+      correct: "Rendered HTML from view partials"
+      why: "Fragment caching stores rendered view output to skip template rendering on subsequent requests."
+
+    - kind: mcq
+      points: 2
+      prompt: "Which cache store persists data across server restarts and supports multiple servers?"
+      choices:
+        - ":memory_store"
+        - ":null_store"
+        - ":redis_cache_store"
+        - ":file_store"
+      correct: ":redis_cache_store"
+      why: "Redis persists to disk and can be shared across multiple app servers."
+
+    - kind: short
+      points: 2
+      prompt: "Write code to cache an expensive calculation that expires after 1 hour."
+      sample_answer: "Rails.cache.fetch('calc_key', expires_in: 1.hour) { expensive_calculation }"
+
+    - kind: mcq
+      points: 1
+      prompt: "What happens when you wrap a partial with <% cache post do %>?"
+      choices:
+        - "The cache key is 'post'"
+        - "The cache key includes post.cache_key_with_version (id + updated_at)"
+        - "The cache never expires"
+        - "Rails raises an error"
+      correct: "The cache key includes post.cache_key_with_version (id + updated_at)"
+      why: "Rails auto-generates cache keys using cache_key_with_version which includes updated_at for auto-invalidation."
+
+    - kind: short
+      points: 2
+      prompt: "Why should you scope user-specific cached content by user ID?"
+      sample_answer: "To prevent serving one user's cached data to another user, avoiding security issues and incorrect content display."
+
+    - kind: mcq
+      points: 1
+      prompt: "When should you skip fragment caching?"
+      choices:
+        - "When rendering time is under 10ms"
+        - "When using Redis"
+        - "When data changes frequently"
+        - "Both A and C"
+      correct: "Both A and C"
+      why: "Skip caching for fast renders where cache overhead exceeds savings, and for real-time data that changes constantly."

@@ -1,0 +1,28 @@
+references:
+  - title: "Sidekiq Wiki — Error Handling"
+    url: "https://github.com/mperham/sidekiq/wiki/Error-Handling"
+    why: "Official guide to retry configuration, backoff strategies, and death handlers."
+
+  - title: "Sidekiq Wiki — FAQ (Idempotency)"
+    url: "https://github.com/mperham/sidekiq/wiki/FAQ#how-do-i-make-my-jobs-idempotent"
+    why: "Explains why idempotency matters and common implementation patterns."
+
+  - title: "Stripe API — Idempotent Requests"
+    url: "https://stripe.com/docs/api/idempotent_requests"
+    why: "Real-world example of idempotency keys in payment processing."
+
+  - title: "Rails Guides — Active Job Exceptions"
+    url: "https://guides.rubyonrails.org/active_job_basics.html#exceptions"
+    why: "ActiveJob's retry_on and discard_on for declarative retry policies."
+
+  - title: "Redis Documentation — SETEX Command"
+    url: "https://redis.io/commands/setex/"
+    why: "How to store idempotency keys with expiration in Redis."
+
+  - title: "PostgreSQL Unique Constraints"
+    url: "https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-UNIQUE-CONSTRAINTS"
+    why: "Database-level uniqueness guarantees for idempotent operations."
+
+  - title: "Circuit Breaker Pattern (Martin Fowler)"
+    url: "https://martinfowler.com/bliki/CircuitBreaker.html"
+    why: "Pattern to prevent cascading failures by stopping retries temporarily."

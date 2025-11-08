@@ -1,0 +1,45 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "When should you use after_commit instead of after_save?"
+      choices:
+        - "Never, they're identical"
+        - "When sending emails or calling external APIs"
+        - "When updating the same model"
+        - "When running validations"
+      correct: "When sending emails or calling external APIs"
+      why: "after_commit runs outside the transaction, preventing side effects if the transaction rolls back."
+
+    - kind: mcq
+      points: 2
+      prompt: "Which method skips validations?"
+      choices:
+        - "save!"
+        - "update!"
+        - "update_attribute"
+        - "create!"
+      correct: "update_attribute"
+      why: "update_attribute and update_column skip validations. Prefer update! to enforce them."
+
+    - kind: short
+      points: 3
+      prompt: "Write a custom validation that ensures an email field ends with '@company.com'."
+      sample_answer: "validate :company_email_domain\n\ndef company_email_domain\n  errors.add(:email, 'must be @company.com') unless email&.end_with?('@company.com')\nend"
+
+    - kind: mcq
+      points: 1
+      prompt: "What does ActiveSupport::Concern provide for modules?"
+      choices:
+        - "Faster execution"
+        - "Cleaner syntax for included blocks and dependencies"
+        - "Automatic database migrations"
+        - "Built-in caching"
+      correct: "Cleaner syntax for included blocks and dependencies"
+      why: "Concern simplifies module inclusion with 'included do' blocks and handles dependencies."
+
+    - kind: short
+      points: 2
+      prompt: "Why is callback hell problematic and how do you avoid it?"
+      sample_answer: "Hidden side effects across models make debugging hard. Fix: use explicit service objects for complex workflows."

@@ -1,0 +1,28 @@
+references:
+  - title: "Monolith First (Martin Fowler)"
+    url: "https://martinfowler.com/bliki/MonolithFirst.html"
+    why: "Fowler's argument for starting with monoliths and extracting services later."
+
+  - title: "Modular Monoliths (Simon Brown)"
+    url: "https://www.youtube.com/watch?v=5OjqD-ow8GE"
+    why: "How to structure monoliths into modules with clear boundaries."
+
+  - title: "Microservices Prerequisites (Martin Fowler)"
+    url: "https://martinfowler.com/bliki/MicroservicePrerequisites.html"
+    why: "Organizational and technical capabilities needed before adopting microservices."
+
+  - title: "Building Microservices (Sam Newman)"
+    url: "https://samnewman.io/books/building_microservices/"
+    why: "Comprehensive guide covering when microservices help and when they hurt."
+
+  - title: "Shopify's Modular Monolith"
+    url: "https://shopify.engineering/deconstructing-monolith-designing-software-maximizes-developer-productivity"
+    why: "How Shopify structures Rails monoliths into domains to support 1000+ engineers."
+
+  - title: "The Majestic Monolith (DHH)"
+    url: "https://m.signalvnoise.com/the-majestic-monolith/"
+    why: "Basecamp's defense of monoliths for most teams and why they work at scale."
+
+  - title: "Kafka Documentation"
+    url: "https://kafka.apache.org/documentation/"
+    why: "Event streaming platform commonly used for microservice communication (exposure only)."

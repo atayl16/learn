@@ -1,0 +1,28 @@
+references:
+  - title: "Rails Guides — Active Record Query Interface (Eager Loading)"
+    url: "https://guides.rubyonrails.org/active_record_querying.html#eager-loading-associations"
+    why: "Canonical reference for includes, preload, eager_load, and joins with examples."
+
+  - title: "Thoughtbot — Joins vs Preload vs Includes vs Eager Load"
+    url: "https://thoughtbot.com/blog/joins-vs-preload-vs-includes-vs-eager-load"
+    why: "Clear side-by-side comparison with SQL output for each method."
+
+  - title: "Bullet Gem"
+    url: "https://github.com/flyerhzm/bullet"
+    why: "Detects unused eager loading and suggests optimal loading strategy."
+
+  - title: "Memory Profiler Gem"
+    url: "https://github.com/SamSaffron/memory_profiler"
+    why: "Measures memory impact of eager loading strategies on large datasets."
+
+  - title: "The Complete Guide to Rails Performance (Book by Nate Berkopec)"
+    url: "https://www.railsspeed.com/"
+    why: "Benchmark data comparing JOIN vs separate query performance."
+
+  - title: "Rails API — ActiveRecord::QueryMethods"
+    url: "https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html"
+    why: "Technical reference for includes, preload, eager_load, joins methods."
+
+  - title: "PostgreSQL: JOIN vs Separate Queries Performance"
+    url: "https://use-the-index-luke.com/sql/join"
+    why: "Database perspective on when JOINs outperform multiple queries."

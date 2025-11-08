@@ -1,0 +1,14 @@
+topic:
+  key: error_tracking_model
+  name: Error Tracking Mental Model
+  track_key: observability
+  depth_target: Working
+  prerequisites: ["rails_basics", "exception_handling"]
+  objectives:
+    - Integrate an error tracking service (Sentry, Rollbar, or Honeybadger)
+    - Add context to errors (user info, request params, custom tags)
+    - Understand error grouping and fingerprinting
+  key_terms: ["error tracking", "Sentry", "Rollbar", "Honeybadger", "fingerprinting", "context", "release tracking"]
+  est_minutes_read: 9
+  est_minutes_exercise: 16
+  tags: ["rails", "observability", "error_tracking", "sentry", "rollbar"]

@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What characterizes an N+1 query problem?"
+      choices:
+        - "One query that takes N+1 seconds to execute"
+        - "One query to fetch N records, then N additional queries for associations"
+        - "N queries that each return 1 record"
+        - "A query that joins N+1 tables"
+      correct: "One query to fetch N records, then N additional queries for associations"
+      why: "N+1 means 1 initial query plus N follow-up queries for each record's associations."
+
+    - kind: mcq
+      points: 2
+      prompt: "Which method should you use to eager load associations while also filtering on associated table columns?"
+      choices:
+        - "includes"
+        - "preload"
+        - "eager_load"
+        - "joins"
+      correct: "eager_load"
+      why: "eager_load forces a LEFT JOIN, allowing WHERE clauses on associated tables."
+
+    - kind: short
+      points: 2
+      prompt: "What tool can automatically detect N+1 queries during development?"
+      sample_answer: "Bullet gem detects N+1 queries and alerts in logs, browser, and console."
+
+    - kind: mcq
+      points: 1
+      prompt: "How many queries does Post.includes(:author) execute?"
+      choices:
+        - "1 query with a JOIN"
+        - "2 separate queries (posts, then authors)"
+        - "N+1 queries"
+        - "3 queries"
+      correct: "2 separate queries (posts, then authors)"
+      why: "includes typically uses preloading with separate queries unless conditions force a JOIN."
+
+    - kind: short
+      points: 2
+      prompt: "Write the code to eager load posts with their authors AND each author's company."
+      sample_answer: "Post.includes(author: :company) or Post.includes(user: :company)"
+
+    - kind: mcq
+      points: 1
+      prompt: "When is it acceptable to skip eager loading despite an N+1 pattern?"
+      choices:
+        - "Never, N+1 is always bad"
+        - "When N is very small (e.g., < 5 records)"
+        - "When the database is slow"
+        - "When using Postgres"
+      correct: "When N is very small (e.g., < 5 records)"
+      why: "For tiny collections, the overhead of eager loading may exceed the cost of a few extra queries."

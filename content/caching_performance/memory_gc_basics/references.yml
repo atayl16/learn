@@ -1,0 +1,28 @@
+references:
+  - title: "Memory Profiler Gem"
+    url: "https://github.com/SamSaffron/memory_profiler"
+    why: "Profile memory allocations by location, gem, and retained objects."
+
+  - title: "Ruby GC Module Documentation"
+    url: "https://ruby-doc.org/core/GC.html"
+    why: "Official docs for GC.stat, GC.start, and garbage collection tuning."
+
+  - title: "The Complete Guide to Rails Performance (Book by Nate Berkopec)"
+    url: "https://www.railsspeed.com/"
+    why: "Comprehensive chapter on Ruby memory management and GC tuning."
+
+  - title: "ObjectSpace Documentation"
+    url: "https://ruby-doc.org/core/ObjectSpace.html"
+    why: "Track object allocations by source file and line using trace_object_allocations."
+
+  - title: "Derailed Benchmarks Gem"
+    url: "https://github.com/schneems/derailed_benchmarks"
+    why: "Automated tools for finding memory leaks and profiling boot time."
+
+  - title: "Ruby Garbage Collection Deep Dive (Heroku)"
+    url: "https://blog.heroku.com/incremental-gc"
+    why: "Explains Ruby's generational GC and how to tune RUBY_GC environment variables."
+
+  - title: "Rails Guides — Active Record Batching"
+    url: "https://guides.rubyonrails.org/active_record_querying.html#retrieving-multiple-objects-in-batches"
+    why: "Official guide on find_each and find_in_batches for memory-efficient iteration."

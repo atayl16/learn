@@ -1,0 +1,7 @@
+skill:
+  key: forms_progressive
+  track_key: frontend_integration
+  title: "Forms & progressive enhancement"
+  depth_target: strong
+  estimated_minutes: 45
+  description: "Build forms that work without JavaScript and enhance with it. Implement inline validation, optimistic updates, and graceful error handling using Turbo and Stimulus."

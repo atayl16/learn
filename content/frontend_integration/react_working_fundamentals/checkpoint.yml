@@ -1,0 +1,61 @@
+checkpoint:
+  passing_score: 6
+  questions:
+    - kind: mcq
+      points: 1
+      prompt: "What is the purpose of the dependency array in useEffect?"
+      choices:
+        - "It defines which state variables trigger the effect to re-run"
+        - "It prevents the component from re-rendering"
+        - "It specifies which props to pass to child components"
+        - "It determines the order effects run in"
+      correct: "It defines which state variables trigger the effect to re-run"
+      why: "The dependency array tells React which values to watch; the effect re-runs when any dependency changes."
+
+    - kind: short
+      points: 2
+      prompt: "You fetch data in useEffect and get a warning about state updates on unmounted components. How do you fix this?"
+      sample_answer: "Add a cleanup function that aborts the fetch using AbortController or sets a flag to prevent calling setState if the component unmounts before the request completes."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is a controlled input in React?"
+      choices:
+        - "An input that validates on every keystroke"
+        - "An input whose value is managed by React state"
+        - "An input that disables itself after submission"
+        - "An input that syncs with localStorage"
+      correct: "An input whose value is managed by React state"
+      why: "Controlled inputs set their value from state and update state via onChange, making React the source of truth."
+
+    - kind: short
+      points: 2
+      prompt: "When integrating React with Rails, what must you include in POST requests to avoid CSRF token errors?"
+      sample_answer: "Include the CSRF token from the meta tag in the request headers as 'X-CSRF-Token' to pass Rails' forgery protection."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which library simplifies data fetching in React by handling caching and background refetching?"
+      choices:
+        - "Redux"
+        - "React Router"
+        - "React Query (TanStack Query)"
+        - "Axios"
+      correct: "React Query (TanStack Query)"
+      why: "React Query provides hooks for fetching, caching, and synchronizing server state with minimal boilerplate."
+
+    - kind: short
+      points: 2
+      prompt: "Name two scenarios where using React makes more sense than Hotwire for a Rails app."
+      sample_answer: "Complex dashboards with heavy client-side filtering and calculations across large datasets, and real-time collaborative interfaces like shared document editing where local state management is critical."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is prop drilling and why is it a problem?"
+      choices:
+        - "Passing props through multiple component layers makes code fragile and hard to refactor"
+        - "Updating props causes infinite re-render loops"
+        - "Props lose type safety after three layers"
+        - "React automatically optimizes prop drilling"
+      correct: "Passing props through multiple component layers makes code fragile and hard to refactor"
+      why: "Prop drilling requires intermediate components to pass props they don't use, increasing coupling and making changes difficult."

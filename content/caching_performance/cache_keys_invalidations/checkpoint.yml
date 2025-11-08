@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What does belongs_to :post, touch: true do when a comment is updated?"
+      choices:
+        - "Deletes the post from cache"
+        - "Updates the post's updated_at timestamp"
+        - "Raises an error"
+        - "Creates a new post record"
+      correct: "Updates the post's updated_at timestamp"
+      why: "touch: true updates parent's updated_at, changing its cache_key_with_version and invalidating cache."
+
+    - kind: mcq
+      points: 2
+      prompt: "In Russian-doll caching, what happens when you update one nested comment?"
+      choices:
+        - "All caches expire"
+        - "Only the comment cache expires"
+        - "Comment, parent post, and outer collection caches expire"
+        - "No caches expire"
+      correct: "Comment, parent post, and outer collection caches expire"
+      why: "touch: true cascades updated_at changes up the nesting hierarchy, expiring all affected layers."
+
+    - kind: short
+      points: 2
+      prompt: "What is a cache stampede and how does race_condition_ttl prevent it?"
+      sample_answer: "Cache stampede is when many concurrent requests regenerate expired cache simultaneously. race_condition_ttl serves stale data during regeneration, so only one process rebuilds cache."
+
+    - kind: mcq
+      points: 1
+      prompt: "What does post.cache_key_with_version include?"
+      choices:
+        - "Only the post ID"
+        - "Model name, ID, and updated_at timestamp"
+        - "Model name and created_at"
+        - "Just the updated_at timestamp"
+      correct: "Model name, ID, and updated_at timestamp"
+      why: "cache_key_with_version returns 'posts/123-20250108120000' for automatic invalidation."
+
+    - kind: short
+      points: 2
+      prompt: "Write code to manually delete all caches matching a pattern."
+      sample_answer: "Rails.cache.delete_matched('user_*/dashboard')"
+
+    - kind: mcq
+      points: 1
+      prompt: "When should you use manual cache invalidation instead of automatic?"
+      choices:
+        - "Always, it's more reliable"
+        - "For complex business logic or batch operations"
+        - "Never, automatic is always better"
+        - "Only in test environment"
+      correct: "For complex business logic or batch operations"
+      why: "Manual invalidation is needed when touch: true can't capture complex dependencies or bulk updates."

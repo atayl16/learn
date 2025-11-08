@@ -1,0 +1,28 @@
+references:
+  - title: "Rails Guides — Caching with Rails"
+    url: "https://guides.rubyonrails.org/caching_with_rails.html"
+    why: "Official guide covering fragment, low-level, and SQL caching with cache store configuration."
+
+  - title: "Redis Documentation"
+    url: "https://redis.io/docs/"
+    why: "Official Redis docs for understanding cache store operations and eviction policies."
+
+  - title: "Memcached Documentation"
+    url: "https://memcached.org/"
+    why: "Alternative cache store with simple key-value operations and high throughput."
+
+  - title: "The Complete Guide to Rails Performance (Book by Nate Berkopec)"
+    url: "https://www.railsspeed.com/"
+    why: "Chapter on caching strategies with benchmarks and hit rate optimization."
+
+  - title: "Rack Mini Profiler"
+    url: "https://github.com/MiniProfiler/rack-mini-profiler"
+    why: "Shows cache hits/misses and rendering time in development."
+
+  - title: "Dalli Gem (Memcached Client)"
+    url: "https://github.com/petergoldstein/dalli"
+    why: "Ruby client for Memcached cache store."
+
+  - title: "Evil Martians — Caching Best Practices"
+    url: "https://evilmartians.com/chronicles/how-to-setup-caching-in-rails"
+    why: "Practical guide to fragment and low-level caching patterns in production."

@@ -1,0 +1,61 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What is the difference between authentication and authorization?"
+      choices:
+        - "Authentication is for APIs, authorization is for web apps"
+        - "Authentication verifies identity, authorization enforces permissions"
+        - "Authentication uses JWT, authorization uses cookies"
+        - "They are the same thing"
+      correct: "Authentication verifies identity, authorization enforces permissions"
+      why: "AuthN answers 'who are you?' (via tokens/passwords); AuthZ answers 'what can you do?' (via policies/roles)."
+
+    - kind: mcq
+      points: 2
+      prompt: "What vulnerability does calling authorize @post prevent?"
+      choices:
+        - "SQL injection"
+        - "Cross-site scripting (XSS)"
+        - "Insecure Direct Object Reference (IDOR)"
+        - "Cross-site request forgery (CSRF)"
+      correct: "Insecure Direct Object Reference (IDOR)"
+      why: "IDOR lets users access others' resources by changing IDs; authorize checks ownership or permissions."
+
+    - kind: short
+      points: 2
+      prompt: "Why should index actions use policy_scope(Model) instead of Model.all?"
+      sample_answer: "Model.all returns all records including private or others' data; policy_scope filters by ownership and visibility rules."
+
+    - kind: mcq
+      points: 1
+      prompt: "Where should Pundit authorization logic be defined?"
+      choices:
+        - "In the controller action"
+        - "In a before_action callback"
+        - "In a policy class (e.g., PostPolicy)"
+        - "In the model"
+      correct: "In a policy class (e.g., PostPolicy)"
+      why: "Pundit policies centralize authorization rules, making them testable and reusable."
+
+    - kind: short
+      points: 2
+      prompt: "How should you handle Pundit::NotAuthorizedError in an API controller?"
+      sample_answer: "Rescue the exception and render a 403 Forbidden response with an error message."
+
+    - kind: mcq
+      points: 1
+      prompt: "What HTTP header do API clients typically use to send JWT tokens?"
+      choices:
+        - "X-API-Key"
+        - "Authorization"
+        - "X-Auth-Token"
+        - "Bearer-Token"
+      correct: "Authorization"
+      why: "JWT tokens are sent as 'Authorization: Bearer <token>' following OAuth 2.0 conventions."
+
+    - kind: short
+      points: 2
+      prompt: "Why is it important to test policies with different user roles (guest, member, admin)?"
+      sample_answer: "To ensure authorization logic correctly permits or denies actions for each role, preventing privilege escalation bugs."

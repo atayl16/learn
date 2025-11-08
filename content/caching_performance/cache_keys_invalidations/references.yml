@@ -1,0 +1,28 @@
+references:
+  - title: "Rails Guides — Caching with Rails (Cache Keys)"
+    url: "https://guides.rubyonrails.org/caching_with_rails.html#cache-keys"
+    why: "Official guide on cache_key_with_version and automatic invalidation."
+
+  - title: "Rails API — ActiveRecord::Integration"
+    url: "https://api.rubyonrails.org/classes/ActiveRecord/Integration.html"
+    why: "Technical reference for cache_key and cache_key_with_version methods."
+
+  - title: "Redlock Gem (Distributed Locks)"
+    url: "https://github.com/leandromoreira/redlock-rb"
+    why: "Implements distributed locking for cache stampede prevention across servers."
+
+  - title: "DHH on Key-Based Cache Expiration"
+    url: "https://signalvnoise.com/posts/3113-how-key-based-cache-expiration-works"
+    why: "Explains the philosophy behind cache_key versioning instead of manual expiration."
+
+  - title: "The Complete Guide to Rails Performance (Book by Nate Berkopec)"
+    url: "https://www.railsspeed.com/"
+    why: "Chapter on cache invalidation patterns and Russian-doll caching benchmarks."
+
+  - title: "Evil Martians — Advanced Caching Patterns"
+    url: "https://evilmartians.com/chronicles/how-to-setup-caching-in-rails"
+    why: "Covers touch: true, Russian-doll caching, and cache stampede mitigation."
+
+  - title: "Rails API — ActiveSupport::Cache"
+    url: "https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html"
+    why: "Low-level API for race_condition_ttl and cache store options."

@@ -1,0 +1,56 @@
+tracks:
+  - key: rails_internals
+    name: "Ruby & Rails Core"
+    description: "Master Rails request lifecycle, autoloading, Active Record, and configuration patterns."
+    depth_target: Strong
+    color: "#CC0000"
+    icon: "💎"
+
+  - key: sql_postgres
+    name: "SQL & PostgreSQL"
+    description: "Design schemas, optimize queries, tune indexes, and handle migrations safely."
+    depth_target: Strong
+    color: "#336791"
+    icon: "🐘"
+
+  - key: background_jobs
+    name: "Background Jobs & Redis"
+    description: "Build reliable async processing with Sidekiq, idempotency, and instrumentation."
+    depth_target: Strong
+    color: "#DC382D"
+    icon: "⚙️"
+
+  - key: caching_performance
+    name: "Caching & Performance"
+    description: "Eliminate N+1 queries, implement caching strategies, and optimize memory usage."
+    depth_target: Strong
+    color: "#FFA500"
+    icon: "⚡"
+
+  - key: observability
+    name: "Observability"
+    description: "Debug production apps with structured logging, APM traces, and metrics."
+    depth_target: Working→Strong
+    color: "#7C4DFF"
+    icon: "🔍"
+
+  - key: api_security
+    name: "API Design & Security"
+    description: "Design REST APIs with auth, rate limiting, versioning, and secure patterns."
+    depth_target: Strong
+    color: "#2E7D32"
+    icon: "🔐"
+
+  - key: frontend_integration
+    name: "Frontend Integration"
+    description: "Build interactive UIs with Hotwire/Stimulus and integrate React components."
+    depth_target: "Strong (Hotwire) / Working (React)"
+    color: "#1976D2"
+    icon: "🎨"
+
+  - key: architecture_design
+    name: "Architecture & Design"
+    description: "Layer systems, write tests, use feature flags, document decisions, and avoid microservices pitfalls."
+    depth_target: Strong
+    color: "#455A64"
+    icon: "🏛️"

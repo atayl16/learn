@@ -1,0 +1,28 @@
+references:
+  - title: "Rails Guides — Active Record Migrations"
+    url: "https://guides.rubyonrails.org/active_record_migrations.html"
+    why: "Canonical reference for creating foreign keys, indexes, and constraints in Rails migrations."
+
+  - title: "PostgreSQL Documentation — Constraints"
+    url: "https://www.postgresql.org/docs/current/ddl-constraints.html"
+    why: "Official Postgres docs covering NOT NULL, unique, check, foreign key, and exclusion constraints."
+
+  - title: "PostgreSQL Documentation — Foreign Keys"
+    url: "https://www.postgresql.org/docs/current/tutorial-fk.html"
+    why: "Tutorial on referential integrity and ON DELETE/UPDATE options."
+
+  - title: "Rails API — add_foreign_key"
+    url: "https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_foreign_key"
+    why: "API documentation for adding foreign keys with on_delete and on_update options."
+
+  - title: "thoughtbot — Database Constraints in Rails"
+    url: "https://thoughtbot.com/blog/referential-integrity-with-foreign-keys"
+    why: "Practical guide on when and how to use foreign keys in Rails applications."
+
+  - title: "Rails 6.1 Release Notes — Check Constraints"
+    url: "https://edgeguides.rubyonrails.org/6_1_release_notes.html"
+    why: "Explains new check constraint support added in Rails 6.1."
+
+  - title: "PostgreSQL Documentation — Exclusion Constraints"
+    url: "https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-EXCLUSION"
+    why: "Advanced constraint type for preventing overlapping ranges using GiST indexes."

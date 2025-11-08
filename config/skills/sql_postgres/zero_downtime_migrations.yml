@@ -1,0 +1,14 @@
+topic:
+  key: zero_downtime_migrations
+  name: Zero-Downtime Migrations
+  track_key: sql_postgres
+  depth_target: Strong
+  prerequisites: ["modeling_constraints", "indexing"]
+  objectives:
+    - Write migrations that don't lock tables or cause downtime
+    - Add columns with defaults, indexes, and constraints safely
+    - Backfill data in batches to avoid long-running transactions
+  key_terms: ["zero_downtime", "lock_timeout", "add_column_with_default", "add_index_concurrently", "backfill", "batch_update", "strong_migrations"]
+  est_minutes_read: 11
+  est_minutes_exercise: 25
+  tags: ["sql", "postgres", "migrations", "zero-downtime", "deployment"]

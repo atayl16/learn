@@ -1,0 +1,28 @@
+references:
+  - title: "Pundit Gem"
+    url: "https://github.com/varvet/pundit"
+    why: "Minimal authorization library for Rails using plain Ruby policy classes."
+
+  - title: "JWT Gem"
+    url: "https://github.com/jwt/ruby-jwt"
+    why: "Ruby implementation of JSON Web Tokens for stateless authentication."
+
+  - title: "OWASP — Broken Access Control"
+    url: "https://owasp.org/Top10/A01_2021-Broken_Access_Control/"
+    why: "Top security risk; explains IDOR, privilege escalation, and missing authorization."
+
+  - title: "Rails Security Guide — Sessions"
+    url: "https://guides.rubyonrails.org/security.html#sessions"
+    why: "How Rails handles sessions and tokens; security best practices."
+
+  - title: "OAuth 2.0 — Bearer Token Usage"
+    url: "https://datatracker.ietf.org/doc/html/rfc6750"
+    why: "Standard for sending access tokens in Authorization headers."
+
+  - title: "Pundit Matchers"
+    url: "https://github.com/pundit-community/pundit-matchers"
+    why: "RSpec matchers for testing Pundit policies with permit_action syntax."
+
+  - title: "RailsConf 2017 — Authorization in Rails (Adam Niedzielski)"
+    url: "https://www.youtube.com/watch?v=NVwx0DARDis"
+    why: "Deep dive into authorization patterns, including Pundit and custom solutions."

@@ -1,0 +1,24 @@
+references:
+  - title: "Rails Guides — Rails on Rack"
+    url: "https://guides.rubyonrails.org/rails_on_rack.html"
+    why: "Canonical guide to Rack interface, middleware stack, and custom middleware."
+
+  - title: "Rails Guides — Action Controller Overview"
+    url: "https://guides.rubyonrails.org/action_controller_overview.html"
+    why: "Explains controller lifecycle, filters, and request/response flow."
+
+  - title: "Rack Specification"
+    url: "https://github.com/rack/rack/blob/main/SPEC.rdoc"
+    why: "Low-level spec defining the call(env) interface Rails builds on."
+
+  - title: "Rack Mini Profiler"
+    url: "https://github.com/MiniProfiler/rack-mini-profiler"
+    why: "Performance profiling tool showing middleware, SQL, and view timing."
+
+  - title: "RailsConf 2018 — Understanding Rails from the Inside Out (Blake Williams)"
+    url: "https://www.youtube.com/watch?v=voB5WNq7gvY"
+    why: "Deep dive into Rails internals including request lifecycle and middleware."
+
+  - title: "Rebuilding Rails (Book by Noah Gibbs)"
+    url: "https://rebuilding-rails.com/"
+    why: "Teaches Rails internals by building a Rack-based framework from scratch."

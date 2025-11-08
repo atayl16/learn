@@ -1,0 +1,45 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What's the difference between 'namespace :admin' and 'scope module: :admin'?"
+      choices:
+        - "No difference"
+        - "namespace adds /admin to URL and routes to Admin::Controller; scope module only affects controller"
+        - "scope is deprecated"
+        - "namespace is faster"
+      correct: "namespace adds /admin to URL and routes to Admin::Controller; scope module only affects controller"
+      why: "namespace affects both URL and controller; scope module only affects controller routing."
+
+    - kind: mcq
+      points: 2
+      prompt: "When do middleware run in the request lifecycle?"
+      choices:
+        - "After the controller action"
+        - "Before routing, wrapping the entire request/response"
+        - "Only during development"
+        - "During view rendering"
+      correct: "Before routing, wrapping the entire request/response"
+      why: "Middleware wrap the app and process requests before routing and controllers."
+
+    - kind: short
+      points: 3
+      prompt: "Write a route constraint that only matches requests with .json format."
+      sample_answer: "resources :posts, constraints: { format: 'json' }"
+
+    - kind: mcq
+      points: 1
+      prompt: "What command lists all routes in a Rails app?"
+      choices:
+        - "bin/rails list"
+        - "bin/rails routes"
+        - "rake routes:show"
+        - "rails r"
+      correct: "bin/rails routes"
+      why: "bin/rails routes displays all defined routes with HTTP verbs, paths, and controllers."
+
+    - kind: short
+      points: 2
+      prompt: "How would you limit a resource to only show index and show actions?"
+      sample_answer: "resources :posts, only: [:index, :show]"

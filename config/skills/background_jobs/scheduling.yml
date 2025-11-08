@@ -1,0 +1,15 @@
+topic:
+  key: scheduling
+  name: Job Scheduling & Deduplication
+  track_key: background_jobs
+  depth_target: Strong
+  prerequisites: ["sidekiq_basics"]
+  objectives:
+    - Schedule recurring jobs with cron syntax using sidekiq-cron
+    - Prevent duplicate jobs with sidekiq-unique-jobs
+    - Use at/in syntax for delayed one-time jobs
+    - Pass job context safely without ActiveRecord objects
+  key_terms: ["cron", "scheduled jobs", "unique jobs", "deduplication", "delayed jobs", "job arguments"]
+  est_minutes_read: 10
+  est_minutes_exercise: 22
+  tags: ["rails", "background_jobs", "sidekiq", "scheduling", "cron"]

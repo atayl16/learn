@@ -1,0 +1,14 @@
+topic:
+  key: autoloading_boot
+  name: Zeitwerk/Autoloading & Boot Sequence
+  track_key: rails_internals
+  depth_target: Strong
+  prerequisites: ["ruby_basics", "request_lifecycle"]
+  objectives:
+    - Explain how Zeitwerk maps file paths to constants
+    - Debug "uninitialized constant" and circular dependency errors
+    - Optimize boot time by controlling eager loading
+  key_terms: ["Zeitwerk", "autoload", "eager_load", "const_missing", "boot sequence"]
+  est_minutes_read: 12
+  est_minutes_exercise: 18
+  tags: ["rails", "internals", "zeitwerk", "autoloading"]

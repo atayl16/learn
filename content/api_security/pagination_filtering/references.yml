@@ -1,0 +1,28 @@
+references:
+  - title: "Use The Index, Luke — Pagination"
+    url: "https://use-the-index-luke.com/sql/partial-results/fetch-next-page"
+    why: "Explains keyset (cursor) pagination vs offset and index requirements for performance."
+
+  - title: "Pagy Gem"
+    url: "https://github.com/ddnexus/pagy"
+    why: "Fast, lightweight pagination gem supporting offset, cursor, and countless modes."
+
+  - title: "Kaminari Gem"
+    url: "https://github.com/kaminari/kaminari"
+    why: "Popular Rails pagination gem with helpers for views and APIs."
+
+  - title: "Ransack Gem"
+    url: "https://github.com/activerecord-hackery/ransack"
+    why: "Flexible search and filtering gem; must be carefully scoped to prevent security issues."
+
+  - title: "JSON:API — Pagination"
+    url: "https://jsonapi.org/format/#fetching-pagination"
+    why: "Standard pagination conventions including links and meta fields for REST APIs."
+
+  - title: "Rails Guides — Active Record Query Interface"
+    url: "https://guides.rubyonrails.org/active_record_querying.html#limit-and-offset"
+    why: "Canonical reference for limit, offset, order, and where clauses in Rails."
+
+  - title: "Postgres Documentation — LIMIT and OFFSET"
+    url: "https://www.postgresql.org/docs/current/queries-limit.html"
+    why: "Official Postgres docs explaining LIMIT/OFFSET performance characteristics."

@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What does GC.stat(:heap_live_slots) represent?"
+      choices:
+        - "Total memory used by the app"
+        - "Number of currently active objects in memory"
+        - "Number of times GC has run"
+        - "Memory allocated since boot"
+      correct: "Number of currently active objects in memory"
+      why: "heap_live_slots counts objects currently alive and not yet garbage collected."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why is User.all.each problematic for large datasets?"
+      choices:
+        - "It's slower than find_each"
+        - "It loads all records into memory at once"
+        - "It doesn't work with Rails"
+        - "It causes database locks"
+      correct: "It loads all records into memory at once"
+      why: "User.all.to_a allocates objects for every record, causing memory bloat. Use find_each to batch."
+
+    - kind: short
+      points: 2
+      prompt: "What gem would you use to profile which code allocates the most memory?"
+      sample_answer: "memory_profiler gem profiles memory allocations and shows hotspots by file and line."
+
+    - kind: mcq
+      points: 1
+      prompt: "In a memory_profiler report, what does 'retained' mean?"
+      choices:
+        - "Objects allocated during profiling"
+        - "Objects still in memory after GC (potential leaks)"
+        - "Memory used by the database"
+        - "Objects created by ActiveRecord"
+      correct: "Objects still in memory after GC (potential leaks)"
+      why: "Retained objects survive GC, indicating they're still referenced and may leak if count grows."
+
+    - kind: short
+      points: 2
+      prompt: "Write code to batch process 10,000 users in chunks of 500."
+      sample_answer: "User.find_each(batch_size: 500) { |user| process(user) }"
+
+    - kind: mcq
+      points: 1
+      prompt: "What is a common cause of memory bloat in loops?"
+      choices:
+        - "Using each instead of map"
+        - "String concatenation with +="
+        - "Reading from database"
+        - "Using symbols"
+      correct: "String concatenation with +="
+      why: "result += 'x' creates a new string object on each iteration. Use array append + join instead."

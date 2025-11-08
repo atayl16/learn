@@ -1,0 +1,230 @@
+# Rails Seniority Coach - Coverage Index
+# Tracks all topics with depth targets and completion status
+
+version: 1.0
+last_updated: 2025-11-08
+
+tracks:
+  rails_internals:
+    name: "Ruby & Rails Core"
+    track_depth_target: Strong
+    status: complete
+    topics:
+      - key: request_lifecycle
+        name: "Request Lifecycle & Middleware"
+        depth_target: Strong
+        status: complete
+      - key: autoloading_boot
+        name: "Zeitwerk/Autoloading & Boot Sequence"
+        depth_target: Strong
+        status: complete
+      - key: ar_relations
+        name: "Active Record Relations & Query Interface"
+        depth_target: Strong
+        status: complete
+      - key: validations_callbacks
+        name: "Validations, Callbacks & Concerns"
+        depth_target: Strong
+        status: complete
+      - key: routing_middleware
+        name: "Routing & Middleware Patterns"
+        depth_target: Strong
+        status: complete
+      - key: config_initializers
+        name: "Configuration & Initializers"
+        depth_target: Strong
+        status: complete
+
+  sql_postgres:
+    name: "SQL & PostgreSQL"
+    track_depth_target: Strong
+    status: complete
+    topics:
+      - key: modeling_constraints
+        name: "Modeling & Constraints (FKs, Uniques, Check)"
+        depth_target: Strong
+        status: complete
+      - key: indexing
+        name: "Indexing Strategies"
+        depth_target: Strong
+        status: complete
+      - key: explain_analyze
+        name: "EXPLAIN/ANALYZE & Query Plans"
+        depth_target: Strong
+        status: complete
+      - key: transactions_locks
+        name: "Transactions, Isolation & Locks"
+        depth_target: Strong
+        status: complete
+      - key: zero_downtime_migrations
+        name: "Zero-Downtime Migrations"
+        depth_target: Strong
+        status: complete
+      - key: ctes_windows
+        name: "CTEs & Window Functions"
+        depth_target: Strong
+        status: complete
+
+  background_jobs:
+    name: "Background Jobs & Redis"
+    track_depth_target: Strong
+    status: complete
+    topics:
+      - key: sidekiq_basics
+        name: "ActiveJob vs Sidekiq Fundamentals"
+        depth_target: Strong
+        status: complete
+      - key: idempotency_retries
+        name: "Idempotency Patterns & Retries"
+        depth_target: Strong
+        status: complete
+      - key: scheduling
+        name: "Job Scheduling & Deduplication"
+        depth_target: Strong
+        status: complete
+      - key: job_instrumentation
+        name: "Job Instrumentation & Backoff"
+        depth_target: Strong
+        status: complete
+
+  caching_performance:
+    name: "Caching & Performance"
+    track_depth_target: Strong
+    status: complete
+    topics:
+      - key: n_plus_one
+        name: "N+1 Detection & Resolution"
+        depth_target: Strong
+        status: complete
+      - key: eager_preload
+        name: "Eager Loading vs Preloading"
+        depth_target: Strong
+        status: complete
+      - key: fragment_caching
+        name: "Fragment & Low-Level Caching"
+        depth_target: Strong
+        status: complete
+      - key: cache_keys_invalidations
+        name: "Cache Keys & Invalidation Strategies"
+        depth_target: Strong
+        status: complete
+      - key: memory_gc_basics
+        name: "Memory & GC Awareness"
+        depth_target: Strong
+        status: complete
+
+  observability:
+    name: "Observability"
+    track_depth_target: Working→Strong
+    status: complete
+    topics:
+      - key: structured_logging
+        name: "Structured Logging with Lograge"
+        depth_target: Strong
+        status: complete
+      - key: error_tracking_model
+        name: "Error Tracking Mental Model"
+        depth_target: Working
+        status: complete
+      - key: apm_traces
+        name: "APM Basics & Flamegraphs"
+        depth_target: Working
+        status: complete
+      - key: metrics_slos
+        name: "Metrics & SLO Thinking"
+        depth_target: Working
+        status: complete
+
+  api_security:
+    name: "API Design & Security"
+    track_depth_target: Strong
+    status: complete
+    topics:
+      - key: rest_design
+        name: "REST Design Patterns"
+        depth_target: Strong
+        status: complete
+      - key: pagination_filtering
+        name: "Pagination, Filtering & Sorting"
+        depth_target: Strong
+        status: complete
+      - key: error_shapes
+        name: "API Error Shapes & Standards"
+        depth_target: Strong
+        status: complete
+      - key: authn_authz
+        name: "AuthN/AuthZ with Pundit"
+        depth_target: Strong
+        status: complete
+      - key: idempotency_rate_limits
+        name: "Idempotency Keys & Rate Limiting"
+        depth_target: Strong
+        status: complete
+      - key: versioning
+        name: "API Versioning Strategies"
+        depth_target: Strong
+        status: complete
+      - key: csrf_cors
+        name: "CSRF, CORS & Input Validation"
+        depth_target: Strong
+        status: complete
+
+  frontend_integration:
+    name: "Frontend Integration (Hotwire + React)"
+    track_depth_target: "Strong (Hotwire) / Working (React)"
+    status: complete
+    topics:
+      - key: hotwire_frames_streams
+        name: "Hotwire: Frames & Streams"
+        depth_target: Strong
+        status: complete
+      - key: stimulus_patterns
+        name: "Stimulus Patterns & Best Practices"
+        depth_target: Strong
+        status: complete
+      - key: forms_progressive
+        name: "Forms & Progressive Enhancement"
+        depth_target: Strong
+        status: complete
+      - key: react_working_fundamentals
+        name: "React: Working Fundamentals"
+        depth_target: Working
+        status: complete
+
+  architecture_design:
+    name: "Architecture & Design"
+    track_depth_target: Strong
+    status: complete
+    topics:
+      - key: layering_services
+        name: "Layering & Boundaries"
+        depth_target: Strong
+        status: complete
+      - key: testing_strategy
+        name: "Testing Strategy (Unit/Request/System)"
+        depth_target: Strong
+        status: complete
+      - key: feature_flags_rollouts
+        name: "Feature Flags & Safe Rollouts"
+        depth_target: Strong
+        status: complete
+      - key: adrs
+        name: "ADRs & Lightweight Documentation"
+        depth_target: Strong
+        status: complete
+      - key: microservices_when_not
+        name: "When NOT to Microservice"
+        depth_target: Working
+        status: complete
+
+# Summary Statistics
+summary:
+  total_tracks: 8
+  total_topics: 41
+  strong_depth_topics: 35
+  working_depth_topics: 6
+  exposure_depth_topics: 0
+  estimated_hours_total: 45-75
+  estimated_weeks_12week_plan: 12
+  estimated_weeks_6week_fast: 6
+  estimated_weeks_weekend: 10

@@ -1,0 +1,67 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 1
+      prompt: "What is the default index type in Postgres when you run `add_index :users, :email`?"
+      choices:
+        - "GIN"
+        - "GiST"
+        - "B-tree"
+        - "Hash"
+      correct: "B-tree"
+      why: "B-tree is the default index type in Postgres, suitable for equality and range queries."
+
+    - kind: mcq
+      points: 2
+      prompt: "You have a composite index on (user_id, created_at). Which query will use this index?"
+      choices:
+        - "WHERE created_at > '2024-01-01'"
+        - "WHERE user_id = 5 ORDER BY created_at DESC"
+        - "WHERE created_at > '2024-01-01' AND user_id = 5"
+        - "ORDER BY created_at DESC"
+      correct: "WHERE user_id = 5 ORDER BY created_at DESC"
+      why: "Composite indexes require queries to filter/sort by leftmost columns first; this query filters user_id then sorts created_at."
+
+    - kind: short
+      points: 2
+      prompt: "When should you use a partial index instead of a regular index? Give one example."
+      sample_answer: "Use partial indexes when querying a specific subset frequently, like `WHERE deleted_at IS NULL` for soft-deleted records. Partial indexes are smaller and faster than full indexes."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which index type would you use for querying JSONB columns with containment operators (@>)?"
+      choices:
+        - "B-tree"
+        - "GIN"
+        - "GiST"
+        - "Hash"
+      correct: "GIN"
+      why: "GIN indexes support JSONB containment queries efficiently."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is a key downside of having too many indexes on a table?"
+      choices:
+        - "Queries become slower"
+        - "Writes (INSERT/UPDATE/DELETE) become slower"
+        - "Tables use more memory"
+        - "Postgres limits tables to 10 indexes"
+      correct: "Writes (INSERT/UPDATE/DELETE) become slower"
+      why: "Each index must be updated on every write, adding overhead proportional to the number of indexes."
+
+    - kind: short
+      points: 2
+      prompt: "How do you verify whether Postgres is using your index for a specific query?"
+      sample_answer: "Run EXPLAIN ANALYZE before the query and check for 'Index Scan' or 'Index Only Scan' in the output. If you see 'Seq Scan', the index isn't being used."
+
+    - kind: mcq
+      points: 1
+      prompt: "When is a sequential scan faster than an index scan?"
+      choices:
+        - "Never; indexes are always faster"
+        - "When querying small tables or selecting large percentages of rows"
+        - "Only for text columns"
+        - "When the index is partial"
+      correct: "When querying small tables or selecting large percentages of rows"
+      why: "Sequential scans read data linearly; for small tables or queries returning >10-15% of rows, this is faster than random index lookups."

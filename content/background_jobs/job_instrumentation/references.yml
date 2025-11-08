@@ -1,0 +1,28 @@
+references:
+  - title: "Sidekiq Wiki — Middleware"
+    url: "https://github.com/mperham/sidekiq/wiki/Middleware"
+    why: "Official guide to server and client middleware for instrumentation."
+
+  - title: "Sidekiq Wiki — Error Handling (Retry Callbacks)"
+    url: "https://github.com/mperham/sidekiq/wiki/Error-Handling#retry-callbacks"
+    why: "Details on sidekiq_retry_in and sidekiq_retries_exhausted hooks."
+
+  - title: "Rails Guides — Active Support Instrumentation"
+    url: "https://guides.rubyonrails.org/active_support_instrumentation.html"
+    why: "How Rails instruments code with ActiveSupport::Notifications for metrics."
+
+  - title: "Datadog StatsD Documentation"
+    url: "https://docs.datadoghq.com/developers/dogstatsd/"
+    why: "Reference for sending metrics (increment, histogram, gauge) from Ruby."
+
+  - title: "Exponential Backoff and Jitter (AWS Architecture Blog)"
+    url: "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/"
+    why: "Explains why exponential backoff with jitter prevents retry storms."
+
+  - title: "Logging Best Practices (12 Factor App)"
+    url: "https://12factor.net/logs"
+    why: "Treats logs as event streams; structured logging enables aggregation and search."
+
+  - title: "Prometheus Ruby Client"
+    url: "https://github.com/prometheus/client_ruby"
+    why: "Alternative to StatsD for exposing metrics to Prometheus monitoring."

@@ -1,0 +1,67 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 1
+      prompt: "What is the key difference between EXPLAIN and EXPLAIN ANALYZE?"
+      choices:
+        - "EXPLAIN shows actual time; ANALYZE shows estimates"
+        - "EXPLAIN only estimates; ANALYZE executes the query and shows actual time"
+        - "They are identical"
+        - "ANALYZE only works on SELECT queries"
+      correct: "EXPLAIN only estimates; ANALYZE executes the query and shows actual time"
+      why: "EXPLAIN shows query planner estimates without running; ANALYZE executes and measures actual performance."
+
+    - kind: mcq
+      points: 2
+      prompt: "You see 'Seq Scan on users (cost=0.00..15000.00 rows=100000)' in EXPLAIN output. What does this indicate?"
+      choices:
+        - "Postgres is using an index efficiently"
+        - "Postgres is scanning the entire users table row-by-row"
+        - "The query will fail"
+        - "Postgres is using a bitmap scan"
+      correct: "Postgres is scanning the entire users table row-by-row"
+      why: "Seq Scan means sequential scan, reading all rows without using an index."
+
+    - kind: short
+      points: 2
+      prompt: "What does it mean when EXPLAIN shows 'rows=100' but ANALYZE shows 'actual rows=10000'? How do you fix it?"
+      sample_answer: "The query planner's row estimates are wrong, leading to suboptimal plans. Fix by running ANALYZE table_name to update table statistics."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which scan type is fastest when querying a single row by indexed column?"
+      choices:
+        - "Seq Scan"
+        - "Bitmap Index Scan"
+        - "Index Scan"
+        - "Hash Join"
+      correct: "Index Scan"
+      why: "Index Scan efficiently locates and retrieves a single row using the index."
+
+    - kind: mcq
+      points: 1
+      prompt: "What does 'Sort Method: external merge Disk: 50000kB' indicate?"
+      choices:
+        - "Sorting completed successfully in memory"
+        - "Sorting spilled to disk because work_mem was too small"
+        - "The query failed"
+        - "An index was used for sorting"
+      correct: "Sorting spilled to disk because work_mem was too small"
+      why: "External merge disk sorts indicate work_mem was insufficient, causing slower disk-based sorting."
+
+    - kind: short
+      points: 2
+      prompt: "What is pg_stat_statements and how does it help with query performance?"
+      sample_answer: "pg_stat_statements is a Postgres extension that tracks execution statistics for all queries. It shows total/mean execution time and call counts, helping identify the slowest queries in production."
+
+    - kind: mcq
+      points: 1
+      prompt: "When should you avoid using EXPLAIN ANALYZE?"
+      choices:
+        - "On SELECT queries with large result sets"
+        - "On production data"
+        - "On INSERT/UPDATE/DELETE queries that would modify production data"
+        - "On queries with joins"
+      correct: "On INSERT/UPDATE/DELETE queries that would modify production data"
+      why: "EXPLAIN ANALYZE actually executes the query, so it will modify data for write operations."

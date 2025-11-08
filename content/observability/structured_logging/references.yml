@@ -1,0 +1,28 @@
+references:
+  - title: "Lograge GitHub Repository"
+    url: "https://github.com/roidrage/lograge"
+    why: "Official documentation for installation, configuration, and custom formatters."
+
+  - title: "Rails Guides — Debugging Rails Applications"
+    url: "https://guides.rubyonrails.org/debugging_rails_applications.html#logging"
+    why: "Canonical reference for Rails logging, log levels, and tagged logging."
+
+  - title: "The Twelve-Factor App — Logs"
+    url: "https://12factor.net/logs"
+    why: "Foundational principle: treat logs as event streams, write to stdout for aggregation."
+
+  - title: "AWS CloudWatch Logs Documentation"
+    url: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/"
+    why: "Guide to shipping and querying structured logs in AWS environments."
+
+  - title: "Datadog Logging Best Practices"
+    url: "https://www.datadoghq.com/blog/log-collection-best-practices/"
+    why: "Production patterns for log aggregation, filtering, and retention policies."
+
+  - title: "Evil Martians — Structured Logging in Ruby"
+    url: "https://evilmartians.com/chronicles/better-logs-with-ruby-and-lograge"
+    why: "Practical guide to migrating Rails apps from default logs to structured JSON logging."
+
+  - title: "OWASP Logging Cheat Sheet"
+    url: "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html"
+    why: "Security guidelines for what to log, what to filter, and log retention policies."

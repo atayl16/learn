@@ -1,0 +1,14 @@
+topic:
+  key: explain_analyze
+  name: Reading Query Plans (EXPLAIN ANALYZE)
+  track_key: sql_postgres
+  depth_target: Strong
+  prerequisites: ["indexing", "ar_relations"]
+  objectives:
+    - Read EXPLAIN ANALYZE output to identify sequential scans, index scans, and nested loops
+    - Identify query bottlenecks (costly sorts, large row estimates, missing indexes)
+    - Use pg_stat_statements to find slowest queries in production
+  key_terms: ["explain", "explain_analyze", "seq_scan", "index_scan", "nested_loop", "hash_join", "cost", "rows", "pg_stat_statements"]
+  est_minutes_read: 11
+  est_minutes_exercise: 20
+  tags: ["sql", "postgres", "performance", "explain"]

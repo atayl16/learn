@@ -1,0 +1,14 @@
+topic:
+  key: metrics_slos
+  name: Metrics and SLO Thinking
+  track_key: observability
+  depth_target: Working
+  prerequisites: ["rails_basics", "production_basics"]
+  objectives:
+    - Understand RED metrics (Rate, Errors, Duration) for web services
+    - Distinguish between SLI, SLO, and SLA
+    - Set realistic SLO targets (99% vs 99.9% trade-offs)
+  key_terms: ["RED metrics", "SLI", "SLO", "SLA", "error budget", "alerting", "dashboard"]
+  est_minutes_read: 8
+  est_minutes_exercise: 15
+  tags: ["rails", "observability", "metrics", "slo", "monitoring"]

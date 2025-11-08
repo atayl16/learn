@@ -1,0 +1,24 @@
+references:
+  - title: "Rails Guides — Active Record Query Interface"
+    url: "https://guides.rubyonrails.org/active_record_querying.html"
+    why: "Comprehensive reference for where, joins, includes, scopes, and aggregations."
+
+  - title: "Rails Guides — Active Record Associations"
+    url: "https://guides.rubyonrails.org/association_basics.html"
+    why: "Explains has_many, belongs_to, and how associations relate to queries."
+
+  - title: "Bullet Gem"
+    url: "https://github.com/flyerhzm/bullet"
+    why: "Detects N+1 queries and suggests eager loading fixes."
+
+  - title: "Advanced Active Record (Prathamesh Sonpatki)"
+    url: "https://www.youtube.com/watch?v=2MfJ8ZvQqFU"
+    why: "RailsConf talk on query optimization, scopes, and common pitfalls."
+
+  - title: "Rails Anti-Patterns (Thoughtbot)"
+    url: "https://thoughtbot.com/blog/advanced-sql-in-rails"
+    why: "Covers when to drop to SQL and when ActiveRecord is enough."
+
+  - title: "The Art of PostgreSQL (Dimitri Fontaine)"
+    url: "https://theartofpostgresql.com/"
+    why: "Deep dive into SQL including how ORMs generate queries."

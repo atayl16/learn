@@ -1,0 +1,45 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "Which layer parses JSON request bodies into the params hash?"
+      choices:
+        - "Controller before_action"
+        - "ActionDispatch::ParamsParser middleware"
+        - "ActiveRecord::Base"
+        - "ActionView::Renderer"
+      correct: "ActionDispatch::ParamsParser middleware"
+      why: "Params parsing happens in middleware before the controller runs."
+
+    - kind: mcq
+      points: 2
+      prompt: "What happens if a before_action calls redirect_to?"
+      choices:
+        - "The action runs normally and then redirects"
+        - "Subsequent before_actions and the action are skipped"
+        - "Rails raises an exception"
+        - "The redirect is ignored"
+      correct: "Subsequent before_actions and the action are skipped"
+      why: "Rendering or redirecting in a before_action halts the filter chain."
+
+    - kind: short
+      points: 3
+      prompt: "Name two middleware components and their roles in the Rails stack."
+      sample_answer: "ActionDispatch::Session::CookieStore manages sessions; Rack::MethodOverride converts _method param to HTTP verbs."
+
+    - kind: mcq
+      points: 1
+      prompt: "Where in the request lifecycle does routing occur?"
+      choices:
+        - "Before all middleware"
+        - "After middleware, before controller filters"
+        - "Inside the controller action"
+        - "During view rendering"
+      correct: "After middleware, before controller filters"
+      why: "Middleware runs first, then routing matches the path to a controller/action."
+
+    - kind: short
+      points: 2
+      prompt: "How would you profile which middleware is adding latency to requests?"
+      sample_answer: "Use Rack Mini Profiler to see timing breakdown of each middleware layer."

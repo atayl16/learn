@@ -1,0 +1,28 @@
+references:
+  - title: "PostgreSQL Documentation — Using EXPLAIN"
+    url: "https://www.postgresql.org/docs/current/using-explain.html"
+    why: "Official Postgres guide to reading and interpreting EXPLAIN output."
+
+  - title: "PostgreSQL Documentation — pg_stat_statements"
+    url: "https://www.postgresql.org/docs/current/pgstatstatements.html"
+    why: "Official documentation for the pg_stat_statements extension for tracking query performance."
+
+  - title: "EXPLAIN ANALYZE Visualizer (Dalibo)"
+    url: "https://explain.dalibo.com/"
+    why: "Visual tool to understand EXPLAIN ANALYZE output with highlighted bottlenecks."
+
+  - title: "pgMustard — Understanding EXPLAIN"
+    url: "https://www.pgmustard.com/docs/explain"
+    why: "Interactive guide to query plan nodes, scan types, and join strategies."
+
+  - title: "Thoughtbot — Reading Postgres EXPLAIN ANALYZE Query Plans"
+    url: "https://thoughtbot.com/blog/reading-an-explain-analyze-query-plan"
+    why: "Practical examples of identifying bottlenecks in real Rails application queries."
+
+  - title: "Use The Index, Luke — Explain Plan"
+    url: "https://use-the-index-luke.com/sql/explain-plan"
+    why: "Cross-database guide to reading execution plans and understanding optimizer decisions."
+
+  - title: "Cybertec — Explaining the Postgres Query Optimizer"
+    url: "https://www.cybertec-postgresql.com/en/how-to-interpret-postgresql-explain-analyze-output/"
+    why: "Deep dive into query optimizer behavior, cost calculations, and statistics."

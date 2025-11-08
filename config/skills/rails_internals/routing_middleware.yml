@@ -1,0 +1,14 @@
+topic:
+  key: routing_middleware
+  name: Routing & Middleware Patterns
+  track_key: rails_internals
+  depth_target: Strong
+  prerequisites: ["request_lifecycle"]
+  objectives:
+    - Design RESTful routes with constraints and namespaces
+    - Write custom middleware for cross-cutting concerns
+    - Debug routing issues using rails routes and route helpers
+  key_terms: ["routes", "resources", "namespace", "middleware", "constraints", "route helpers"]
+  est_minutes_read: 11
+  est_minutes_exercise: 18
+  tags: ["rails", "routing", "middleware", "REST"]

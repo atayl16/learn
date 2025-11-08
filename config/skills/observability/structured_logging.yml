@@ -1,0 +1,14 @@
+topic:
+  key: structured_logging
+  name: Structured Logging with Lograge
+  track_key: observability
+  depth_target: Strong
+  prerequisites: ["rails_basics", "json_basics"]
+  objectives:
+    - Configure lograge for JSON logging in production
+    - Add custom fields like request_id and user_id to log entries
+    - Filter sensitive data from logs (passwords, tokens)
+  key_terms: ["structured logging", "lograge", "JSON", "log aggregation", "request_id", "log filtering"]
+  est_minutes_read: 10
+  est_minutes_exercise: 18
+  tags: ["rails", "observability", "logging", "lograge", "json"]

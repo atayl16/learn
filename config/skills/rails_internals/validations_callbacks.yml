@@ -1,0 +1,14 @@
+topic:
+  key: validations_callbacks
+  name: Validations, Callbacks & Concerns
+  track_key: rails_internals
+  depth_target: Strong
+  prerequisites: ["ar_relations"]
+  objectives:
+    - Write custom validations and understand when they run
+    - Identify callback dangers and when to avoid them
+    - Extract shared logic using concerns
+  key_terms: ["validations", "callbacks", "before_save", "after_commit", "concerns", "ActiveSupport::Concern"]
+  est_minutes_read: 12
+  est_minutes_exercise: 20
+  tags: ["rails", "activerecord", "validations", "callbacks"]

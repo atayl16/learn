@@ -1,0 +1,61 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 1
+      prompt: "When does Stimulus call the disconnect() method on a controller?"
+      choices:
+        - "When the page fully reloads"
+        - "When the controller's element is removed from the DOM"
+        - "When the user navigates to a different route"
+        - "When an error occurs in the controller"
+      correct: "When the controller's element is removed from the DOM"
+      why: "disconnect() fires when the controller's element leaves the DOM, often during Turbo navigation or dynamic removal."
+
+    - kind: short
+      points: 2
+      prompt: "Why should you clear intervals or event listeners in disconnect()? Give a specific consequence of not doing so."
+      sample_answer: "Failing to clear them causes memory leaks and duplicate event handlers, leading to performance degradation and unexpected behavior when controllers are recreated after Turbo navigation."
+
+    - kind: mcq
+      points: 1
+      prompt: "What happens when you update a Stimulus value in a controller method?"
+      choices:
+        - "The corresponding data attribute in the DOM is updated automatically"
+        - "The controller re-initializes from scratch"
+        - "The value change is logged to the console"
+        - "All other controllers on the page are notified"
+      correct: "The corresponding data attribute in the DOM is updated automatically"
+      why: "Stimulus values sync bidirectionally with data attributes, updating the DOM when the value changes in JavaScript."
+
+    - kind: short
+      points: 2
+      prompt: "You have two controllers on the page: 'filter' and 'results'. The filter controller should notify results when selections change. Name two patterns for making this connection."
+      sample_answer: "Use outlets to reference the results controller directly, or dispatch a custom event from filter that results listens for with data-action at the window level."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the correct syntax for a Stimulus action that calls the 'validate' method on the 'form' controller when the form is submitted?"
+      choices:
+        - "data-action='form#validate'"
+        - "data-action='submit->form#validate'"
+        - "data-controller='form' data-method='validate'"
+        - "data-validate='form->submit'"
+      correct: "data-action='submit->form#validate'"
+      why: "Actions use the syntax event->controller#method to bind DOM events to controller methods."
+
+    - kind: short
+      points: 2
+      prompt: "When should you use a Stimulus value versus a regular class property for state?"
+      sample_answer: "Use values when you need the state to sync with the DOM or trigger a valueChanged callback. Use class properties for internal state that doesn't need to persist in data attributes, like temporary UI state."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which statement about Stimulus targets is correct?"
+      choices:
+        - "Targets must have unique IDs in the HTML"
+        - "You can have multiple elements with the same target name in a controller's scope"
+        - "Targets automatically update when their content changes"
+        - "Each target can only be used by one controller"
+      correct: "You can have multiple elements with the same target name in a controller's scope"
+      why: "Stimulus allows multiple targets with the same name, providing access via targetTargets (array) and hasTargetTarget."

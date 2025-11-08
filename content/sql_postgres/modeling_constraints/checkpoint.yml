@@ -1,0 +1,67 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 1
+      prompt: "What happens when you try to delete a user who has orders if the foreign key has no ON DELETE clause?"
+      choices:
+        - "The user and all orders are deleted"
+        - "The user is deleted and orders.user_id is set to NULL"
+        - "The database raises an error and prevents the deletion"
+        - "The user is deleted and orders remain unchanged"
+      correct: "The database raises an error and prevents the deletion"
+      why: "Default FK behavior is RESTRICT, which prevents deletion of parent rows with existing children."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which constraint type would you use to ensure a product's SKU is unique across all products?"
+      choices:
+        - "Foreign key constraint"
+        - "Check constraint"
+        - "Unique constraint or unique index"
+        - "NOT NULL constraint"
+      correct: "Unique constraint or unique index"
+      why: "Unique constraints prevent duplicate values in a column or set of columns."
+
+    - kind: mcq
+      points: 2
+      prompt: "When should you add a check constraint for `price > 0` instead of only a Rails validation?"
+      choices:
+        - "Never; Rails validations are sufficient"
+        - "Only in production environments"
+        - "Always; database constraints enforce integrity when validations are bypassed"
+        - "Only for high-traffic tables"
+      correct: "Always; database constraints enforce integrity when validations are bypassed"
+      why: "Database constraints protect against bulk imports, console edits, and bugs that bypass Rails validations."
+
+    - kind: short
+      points: 2
+      prompt: "Name two scenarios where application-level validations can be bypassed but database constraints will still catch invalid data."
+      sample_answer: "Bulk SQL imports using COPY or raw SQL, and direct database updates via rails console using update_column or update_all."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the difference between `t.references :user, foreign_key: true` and `t.references :user`?"
+      choices:
+        - "No difference; both create foreign keys"
+        - "First creates FK constraint; second only creates user_id column with index"
+        - "First creates user_id; second creates a polymorphic association"
+        - "Second is deprecated syntax"
+      correct: "First creates FK constraint; second only creates user_id column with index"
+      why: "The foreign_key: true option explicitly adds a foreign key constraint; without it, you only get the column."
+
+    - kind: short
+      points: 2
+      prompt: "You have an existing users table with some NULL emails. What two-step process makes the email column NOT NULL safely?"
+      sample_answer: "First, update all NULL emails to valid values or empty strings. Second, run change_column_null :users, :email, false."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which ON DELETE option would you use for line_items.order_id if you want line items deleted when their order is deleted?"
+      choices:
+        - "ON DELETE RESTRICT"
+        - "ON DELETE CASCADE"
+        - "ON DELETE SET NULL"
+        - "ON DELETE NO ACTION"
+      correct: "ON DELETE CASCADE"
+      why: "CASCADE automatically deletes child rows when the parent is deleted."

@@ -1,0 +1,28 @@
+references:
+  - title: "Sentry Rails Documentation"
+    url: "https://docs.sentry.io/platforms/ruby/guides/rails/"
+    why: "Official guide for installing, configuring, and using Sentry in Rails applications."
+
+  - title: "Rollbar Ruby Documentation"
+    url: "https://docs.rollbar.com/docs/ruby"
+    why: "Alternative error tracking service with similar features and configuration patterns."
+
+  - title: "Honeybadger Ruby Setup"
+    url: "https://docs.honeybadger.io/lib/ruby/"
+    why: "Third major error tracker for Rails; includes uptime monitoring and performance tracking."
+
+  - title: "Sentry — Managing Event Context"
+    url: "https://docs.sentry.io/platforms/ruby/enriching-events/context/"
+    why: "Deep dive into adding tags, user data, and custom context to error events."
+
+  - title: "Sentry — Filtering Events"
+    url: "https://docs.sentry.io/platforms/ruby/configuration/filtering/"
+    why: "Patterns for before_send callbacks to skip routine errors and reduce noise."
+
+  - title: "Error Grouping and Fingerprinting"
+    url: "https://docs.sentry.io/product/data-management-settings/event-grouping/"
+    why: "Explains how Sentry groups errors and how to customize fingerprinting logic."
+
+  - title: "Release Tracking Best Practices"
+    url: "https://docs.sentry.io/product/releases/"
+    why: "Guide to connecting deploys with errors via git commits or version tags."

@@ -1,0 +1,56 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary purpose of an ADR?"
+      choices:
+        - "Document all code changes for auditing"
+        - "Preserve the context and reasoning behind significant technical decisions"
+        - "Replace all other documentation"
+        - "Generate API documentation automatically"
+      correct: "Preserve the context and reasoning behind significant technical decisions"
+      why: "ADRs capture the 'why' behind architecture choices, preventing relitigating and onboarding new engineers."
+
+    - kind: mcq
+      points: 1
+      prompt: "Where should ADRs be stored?"
+      choices:
+        - "In a wiki or Confluence"
+        - "In docs/adr/ as numbered markdown files in version control"
+        - "In Slack threads"
+        - "In issue tracker comments"
+      correct: "In docs/adr/ as numbered markdown files in version control"
+      why: "Version control keeps ADRs alongside code, ensuring they're versioned and searchable."
+
+    - kind: short
+      points: 2
+      prompt: "What should you do when reversing a decision documented in an ADR?"
+      sample_answer: "Mark the old ADR as superseded, write a new ADR explaining why the decision changed, and link between them. Never delete the old ADR."
+
+    - kind: mcq
+      points: 2
+      prompt: "What makes MADR a lightweight template?"
+      choices:
+        - "It requires no writing, only checkboxes"
+        - "It focuses on context, decision, alternatives, and consequences in 1-2 pages"
+        - "It auto-generates from code"
+        - "It's optional for all decisions"
+      correct: "It focuses on context, decision, alternatives, and consequences in 1-2 pages"
+      why: "MADR's concise structure makes ADRs quick to write without heavy process."
+
+    - kind: short
+      points: 2
+      prompt: "Why document alternatives that were rejected?"
+      sample_answer: "Documenting rejected alternatives prevents future debates and shows that options were considered, helping new engineers understand trade-offs."
+
+    - kind: mcq
+      points: 1
+      prompt: "When should you skip writing an ADR?"
+      choices:
+        - "For all database schema changes"
+        - "For reversible, low-impact decisions like CSS framework choice"
+        - "Never; all decisions need ADRs"
+        - "Only if the decision is unanimous"
+      correct: "For reversible, low-impact decisions like CSS framework choice"
+      why: "ADRs are for architecture-impacting decisions; trivial or easily reversible choices don't need them."

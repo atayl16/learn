@@ -1,0 +1,67 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "Why is `add_column :users, :role, :string, default: 'user'` unsafe in Postgres 10 and earlier?"
+      choices:
+        - "It doesn't create an index"
+        - "It rewrites the entire table, holding an exclusive lock"
+        - "It violates foreign key constraints"
+        - "It's only unsafe in production"
+      correct: "It rewrites the entire table, holding an exclusive lock"
+      why: "Postgres 10 and earlier rewrite the table when adding a column with a default, blocking all queries."
+
+    - kind: mcq
+      points: 1
+      prompt: "What does `algorithm: :concurrently` do when creating an index?"
+      choices:
+        - "Creates the index faster"
+        - "Allows writes to continue during index creation"
+        - "Creates a partial index"
+        - "Skips validation"
+      correct: "Allows writes to continue during index creation"
+      why: "CONCURRENTLY avoids blocking writes, making index creation safe for production tables."
+
+    - kind: short
+      points: 2
+      prompt: "Describe the safe three-step process for adding a column with a default value and NOT NULL constraint."
+      sample_answer: "1. Add column without default or NOT NULL. 2. Backfill data in batches. 3. Set default and add NOT NULL constraint."
+
+    - kind: mcq
+      points: 1
+      prompt: "Why should you use `disable_ddl_transaction!` when creating an index concurrently?"
+      choices:
+        - "It makes the migration faster"
+        - "CREATE INDEX CONCURRENTLY cannot run inside a transaction"
+        - "It prevents rollback"
+        - "It's required for all indexes"
+      correct: "CREATE INDEX CONCURRENTLY cannot run inside a transaction"
+      why: "Concurrent index creation requires multiple transactions, so it must run outside Rails' default transaction wrapper."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the safe batch size for backfilling millions of rows?"
+      choices:
+        - "All rows at once"
+        - "1,000 to 10,000 rows per batch"
+        - "100 rows per batch"
+        - "1 row at a time"
+      correct: "1,000 to 10,000 rows per batch"
+      why: "This batch size balances speed with avoiding long-running transactions and reducing lock contention."
+
+    - kind: short
+      points: 2
+      prompt: "What is the purpose of the strong_migrations gem?"
+      sample_answer: "strong_migrations detects unsafe migration patterns before deployment and suggests safer alternatives to avoid downtime."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is a lock timeout and why set one in migrations?"
+      choices:
+        - "It limits migration execution time"
+        - "It prevents migrations from waiting indefinitely for table locks"
+        - "It automatically rolls back failed migrations"
+        - "It speeds up index creation"
+      correct: "It prevents migrations from waiting indefinitely for table locks"
+      why: "Setting lock_timeout causes migrations to fail fast instead of blocking production traffic indefinitely."

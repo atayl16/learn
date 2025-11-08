@@ -1,0 +1,24 @@
+references:
+  - title: "Rails Guides — Routing from the Outside In"
+    url: "https://guides.rubyonrails.org/routing.html"
+    why: "Complete guide to RESTful routing, namespaces, constraints, and route helpers."
+
+  - title: "Rails Guides — Rails on Rack"
+    url: "https://guides.rubyonrails.org/rails_on_rack.html"
+    why: "How to write custom middleware and configure the middleware stack."
+
+  - title: "Rack Middleware Documentation"
+    url: "https://github.com/rack/rack/wiki/List-of-Middleware"
+    why: "List of common Rack middleware and patterns."
+
+  - title: "RailsConf 2014 — Rack: A Framework to Roll Your Own (Benjamin Smith)"
+    url: "https://www.youtube.com/watch?v=iJ-ZsWtHTIg"
+    why: "Deep dive into Rack and how to build custom middleware."
+
+  - title: "RESTful Web APIs (O'Reilly)"
+    url: "https://www.oreilly.com/library/view/restful-web-apis/9781449359713/"
+    why: "Foundational book on REST principles that inform Rails routing conventions."
+
+  - title: "Rails Routing Tricks (Justin Weiss)"
+    url: "https://www.justinweiss.com/articles/a-routing-trick-for-namespaced-controllers/"
+    why: "Practical patterns for organizing routes in large Rails apps."

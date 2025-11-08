@@ -1,0 +1,67 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 1
+      prompt: "Which ACID property ensures that all operations in a transaction succeed or none do?"
+      choices:
+        - "Consistency"
+        - "Isolation"
+        - "Atomicity"
+        - "Durability"
+      correct: "Atomicity"
+      why: "Atomicity means transactions are all-or-nothing; partial execution is not allowed."
+
+    - kind: mcq
+      points: 2
+      prompt: "What happens when you run `Product.lock.find(1)` inside a transaction?"
+      choices:
+        - "It performs a regular SELECT query"
+        - "It executes SELECT FOR UPDATE, locking the row until transaction ends"
+        - "It locks the entire products table"
+        - "It raises an error"
+      correct: "It executes SELECT FOR UPDATE, locking the row until transaction ends"
+      why: "The lock method adds FOR UPDATE, preventing other transactions from modifying the row until commit."
+
+    - kind: short
+      points: 2
+      prompt: "Explain what causes a deadlock and give one strategy to prevent it."
+      sample_answer: "Deadlocks occur when two transactions wait for each other's locks. Prevent by locking resources in consistent order (e.g., always lock rows in ascending ID order)."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which isolation level provides a consistent snapshot throughout the transaction?"
+      choices:
+        - "READ UNCOMMITTED"
+        - "READ COMMITTED"
+        - "REPEATABLE READ"
+        - "SERIALIZABLE"
+      correct: "REPEATABLE READ"
+      why: "REPEATABLE READ ensures queries within the transaction see the same data snapshot, ignoring commits from other transactions."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the default isolation level in Rails and Postgres?"
+      choices:
+        - "READ UNCOMMITTED"
+        - "READ COMMITTED"
+        - "REPEATABLE READ"
+        - "SERIALIZABLE"
+      correct: "READ COMMITTED"
+      why: "READ COMMITTED is the default for most databases, including Postgres, balancing consistency and performance."
+
+    - kind: short
+      points: 2
+      prompt: "When should you use SELECT FOR UPDATE instead of a regular SELECT inside a transaction?"
+      sample_answer: "Use SELECT FOR UPDATE for read-modify-write operations to prevent lost updates. Example: reading inventory count, checking availability, then decrementing."
+
+    - kind: mcq
+      points: 1
+      prompt: "What are advisory locks in Postgres?"
+      choices:
+        - "Locks automatically created by foreign keys"
+        - "Application-level cooperative locks using pg_advisory_lock"
+        - "Locks applied to entire tables"
+        - "Locks that prevent deadlocks"
+      correct: "Application-level cooperative locks using pg_advisory_lock"
+      why: "Advisory locks are purely cooperative and used for coordinating application-level resources like background jobs."

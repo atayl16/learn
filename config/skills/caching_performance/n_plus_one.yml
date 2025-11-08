@@ -1,0 +1,14 @@
+topic:
+  key: n_plus_one
+  name: N+1 Query Detection & Resolution
+  track_key: caching_performance
+  depth_target: Strong
+  prerequisites: ["ar_relations", "indexing"]
+  objectives:
+    - Identify N+1 query patterns in logs and using Bullet gem
+    - Choose between includes, preload, eager_load, and joins
+    - Measure query count before and after optimization
+  key_terms: ["N+1 queries", "eager loading", "Bullet gem", "includes", "preload"]
+  est_minutes_read: 8
+  est_minutes_exercise: 18
+  tags: ["rails", "performance", "active_record", "optimization"]

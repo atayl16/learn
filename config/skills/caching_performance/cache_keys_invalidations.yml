@@ -1,0 +1,15 @@
+topic:
+  key: cache_keys_invalidations
+  name: Cache Keys & Invalidation Strategies
+  track_key: caching_performance
+  depth_target: Strong
+  prerequisites: ["fragment_caching", "validations_callbacks"]
+  objectives:
+    - Design cache keys that auto-expire on record changes
+    - Implement Russian-doll caching pattern
+    - Prevent cache stampede with locks
+    - Choose between manual and automatic invalidation
+  key_terms: ["cache_key_with_version", "touch: true", "Russian-doll caching", "cache stampede", "invalidation"]
+  est_minutes_read: 9
+  est_minutes_exercise: 25
+  tags: ["rails", "caching", "performance", "cache invalidation"]

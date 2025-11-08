@@ -1,0 +1,28 @@
+references:
+  - title: "Rails Security Guide — CSRF"
+    url: "https://guides.rubyonrails.org/security.html#cross-site-request-forgery-csrf"
+    why: "Canonical guide to CSRF protection in Rails with token verification."
+
+  - title: "MDN — CORS"
+    url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS"
+    why: "Comprehensive explanation of CORS, preflight requests, and headers."
+
+  - title: "rack-cors Gem"
+    url: "https://github.com/cyu/rack-cors"
+    why: "Rack middleware for configuring CORS headers in Rails APIs."
+
+  - title: "Rails Guides — Strong Parameters"
+    url: "https://guides.rubyonrails.org/action_controller_overview.html#strong-parameters"
+    why: "How to whitelist permitted params and prevent mass assignment."
+
+  - title: "OWASP — SQL Injection Prevention"
+    url: "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"
+    why: "Best practices for parameterized queries and input validation."
+
+  - title: "OWASP Top 10"
+    url: "https://owasp.org/www-project-top-ten/"
+    why: "Top security risks including broken access control, injection, and XSS."
+
+  - title: "Rails Security Guide — SQL Injection"
+    url: "https://guides.rubyonrails.org/security.html#sql-injection"
+    why: "How Rails protects against SQL injection and when manual escaping is needed."

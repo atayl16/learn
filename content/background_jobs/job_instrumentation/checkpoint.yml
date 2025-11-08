@@ -1,0 +1,50 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary purpose of job instrumentation?"
+      choices:
+        - "To make jobs run faster"
+        - "To capture execution data for monitoring, debugging, and alerting"
+        - "To automatically retry failed jobs"
+        - "To reduce Redis memory usage"
+      correct: "To capture execution data for monitoring, debugging, and alerting"
+      why: "Instrumentation logs execution context and metrics to track job health and debug failures."
+
+    - kind: short
+      points: 2
+      prompt: "How do you implement custom retry backoff in Sidekiq that waits longer for rate limit errors than timeout errors?"
+      sample_answer: "Use sidekiq_retry_in callback to return different delays based on exception class, e.g., longer delays for RateLimitError."
+
+    - kind: mcq
+      points: 2
+      prompt: "Where should you add instrumentation logic that runs for every job in all queues?"
+      choices:
+        - "In each individual worker class"
+        - "In a Sidekiq server middleware"
+        - "In the Sidekiq configuration file"
+        - "In an after_action filter"
+      correct: "In a Sidekiq server middleware"
+      why: "Middleware wraps every job execution, providing centralized instrumentation."
+
+    - kind: short
+      points: 2
+      prompt: "What is queue latency and why does it matter?"
+      sample_answer: "Queue latency measures time from job enqueue to execution. High latency indicates queue backlog or insufficient worker capacity."
+
+    - kind: mcq
+      points: 1
+      prompt: "What callback runs when a job exhausts all retry attempts?"
+      choices:
+        - "sidekiq_retry_in"
+        - "sidekiq_retries_exhausted"
+        - "after_perform"
+        - "on_failure"
+      correct: "sidekiq_retries_exhausted"
+      why: "This callback executes when max retries are reached, useful for alerting."
+
+    - kind: short
+      points: 1
+      prompt: "Why should you avoid logging sensitive data in job arguments?"
+      sample_answer: "Job arguments appear in logs and Sidekiq web UI, potentially exposing credentials, PII, or payment details."

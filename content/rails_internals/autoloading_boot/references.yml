@@ -1,0 +1,24 @@
+references:
+  - title: "Rails Guides — Autoloading and Reloading Constants"
+    url: "https://guides.rubyonrails.org/autoloading_and_reloading_constants.html"
+    why: "Canonical guide to Zeitwerk, autoload paths, and naming conventions."
+
+  - title: "Zeitwerk README"
+    url: "https://github.com/fxn/zeitwerk"
+    why: "Official Zeitwerk docs with examples and edge cases."
+
+  - title: "Rails Guides — Configuring Rails Applications"
+    url: "https://guides.rubyonrails.org/configuring.html"
+    why: "Covers eager_load, autoload_paths, and boot sequence configuration."
+
+  - title: "RailsConf 2019 — Zeitwerk: A New Code Loader for Ruby (Xavier Noria)"
+    url: "https://www.youtube.com/watch?v=rUFJViyXCwo"
+    why: "Creator of Zeitwerk explains design, conventions, and migration from classic loader."
+
+  - title: "Debugging Zeitwerk in Rails 6+ (Justin Weiss)"
+    url: "https://www.justinweiss.com/articles/how-to-debug-zeitwerk-in-rails-6/"
+    why: "Practical guide to fixing common autoload errors."
+
+  - title: "Rails Performance Guide — Boot Time"
+    url: "https://guides.rubyonrails.org/v7.0/performance.html"
+    why: "Tips for measuring and optimizing Rails boot time."
