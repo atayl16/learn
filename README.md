@@ -1,6 +1,6 @@
 # Rails Seniority Coach — Content Library
 
-A comprehensive, content-first learning curriculum that takes mid-level Rails+React developers to senior-level expertise across 8 tracks and 41 topics.
+A comprehensive, content-first learning curriculum that takes mid-level Rails+React developers to senior-level expertise across 12 tracks and 59 topics.
 
 ## Overview
 
@@ -87,18 +87,18 @@ See **[meta/_study_routes.md](meta/_study_routes.md)** for three prebuilt learni
 │   └── _study_routes.md      # Three prebuilt learning paths
 ├── config/
 │   └── skills/
-│       ├── tracks.yml        # Track metadata (8 tracks)
-│       └── {track}/          # Per-track YAML configs (41 topics)
+│       ├── tracks.yml        # Track metadata (12 tracks)
+│       └── {track}/          # Per-track YAML configs (59 topics)
 │           └── {topic}.yml
 └── content/
-    └── {track}/{topic}/      # 41 topics × 4 files = 164 content files
+    └── {track}/{topic}/      # 59 topics × 4 files = 236 content files
         ├── overview.md       # Teaching content (600-900 words)
         ├── exercise.md       # Hands-on task (15-25 min)
         ├── checkpoint.yml    # Quiz (6-10 questions)
         └── references.yml    # Curated sources (6-7 links)
 ```
 
-## Coverage: 8 Tracks, 41 Topics
+## Coverage: 12 Tracks, 59 Topics
 
 ### 1. Rails Internals (6 topics, Strong depth)
 - `request_lifecycle` - Request lifecycle & middleware
@@ -157,13 +157,39 @@ See **[meta/_study_routes.md](meta/_study_routes.md)** for three prebuilt learni
 - `adrs` - ADRs & lightweight documentation (Strong)
 - `microservices_when_not` - When NOT to microservice (Working)
 
+### 9. Deployment & Infrastructure (6 topics, Working→Strong depth)
+- `docker_containerization` - Docker & containerization basics (Strong)
+- `ci_cd_pipelines` - CI/CD pipelines (Strong)
+- `deployment_strategies` - Deployment strategies (Strong)
+- `asset_pipeline_cdn` - Asset pipeline & CDN (Working)
+- `config_secrets` - Config & secrets management (Strong)
+- `health_checks_graceful` - Health checks & graceful shutdowns (Strong)
+
+### 10. Advanced Ruby Internals (4 topics, Working depth)
+- `metaprogramming_patterns` - Metaprogramming patterns (Working)
+- `memory_model` - Ruby memory model & object allocation (Working)
+- `concurrency_primitives` - Concurrency primitives (Ractor, Fiber, Thread) (Working)
+- `dsl_design` - DSL design patterns (Working)
+
+### 11. Code Quality & Refactoring (4 topics, Strong depth)
+- `refactoring_patterns` - Refactoring patterns in Rails (Strong)
+- `legacy_code` - Working with legacy code (Strong)
+- `technical_debt` - Technical debt assessment & management (Strong)
+- `code_review` - Code review techniques (Strong)
+
+### 12. Data & Analytics (4 topics, Working depth)
+- `etl_patterns` - ETL patterns in Rails (Working)
+- `event_tracking` - Event tracking & analytics (Working)
+- `report_generation` - Report generation strategies (Working)
+- `data_warehouses` - Working with data warehouses (Working)
+
 ## Depth Targets
 
 See **[meta/_rubric.md](meta/_rubric.md)** for detailed explanations.
 
 - **Exposure** - Can define the term; knows when it might apply
 - **Working** - Can implement with notes; can debug common issues
-- **Strong** - Can design, debug in prod, and teach others ⭐ (Target for 35/41 topics)
+- **Strong** - Can design, debug in prod, and teach others ⭐ (Target for 48/59 topics)
 - **Expert** - Can choose trade-offs, optimize, extend patterns safely
 
 ## Suggested Weekly Plan (12-Week Standard)
@@ -272,11 +298,11 @@ You've finished when you can:
 
 ## Time Estimates
 
-- **Total topics**: 41
-- **Total estimated hours**: 45-75 hours (reading + exercises + quizzes)
-- **12-week plan**: 3-4 hours/week
-- **6-week fast track**: 6-8 hours/week
-- **Weekends-only**: 4-5 hours/weekend over 20 weeks
+- **Total topics**: 59
+- **Total estimated hours**: 65-105 hours (reading + exercises + quizzes)
+- **16-week plan**: 4-5 hours/week
+- **8-week fast track**: 8-10 hours/week
+- **Weekends-only**: 4-5 hours/weekend over 14 weeks
 
 ## Content Philosophy
 
@@ -292,11 +318,11 @@ See **[meta/_style_guide.md](meta/_style_guide.md)** for full content standards.
 
 ## File Counts
 
-- **8 tracks** (defined in `config/skills/tracks.yml`)
-- **41 topics** (YAML config files in `config/skills/{track}/`)
-- **164 content files** (41 topics × 4 files each)
+- **12 tracks** (defined in `config/skills/tracks.yml`)
+- **59 topics** (YAML config files in `config/skills/{track}/`)
+- **236 content files** (59 topics × 4 files each)
 - **5 meta files** (coverage, style guide, rubric, study routes, tracks)
-- **Total: 218 files**
+- **Total: 306 files**
 
 ## Licensing & Usage
 
@@ -314,7 +340,7 @@ This content is provided as-is for learning purposes. All references point to pu
 
 ---
 
-**Ready to start?** Open **[meta/coverage_index.yml](meta/coverage_index.yml)** to see all 41 topics, then jump into your first overview:
+**Ready to start?** Open **[meta/coverage_index.yml](meta/coverage_index.yml)** to see all 59 topics, then jump into your first overview:
 
 ```bash
 cat content/rails_internals/request_lifecycle/overview.md
