@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Google Engineering Practices — Code Review Guidelines"
+    url: "https://google.github.io/eng-practices/review/"
+    why: "Google's comprehensive guide to code reviews covering reviewer and author responsibilities, what to look for, and how to handle feedback."
+
+  - title: "Conventional Comments"
+    url: "https://conventionalcomments.org/"
+    why: "Specification for structured review comments using labels (blocking, nit, question, praise) to set clear expectations."
+
+  - title: "Thoughtbot — Code Review Best Practices"
+    url: "https://thoughtbot.com/blog/how-to-review-code-thoughtfully"
+    why: "Practical advice on giving constructive feedback, balancing speed with thoroughness, and building healthy review culture in Rails teams."
+
+  - title: "GitHub — About Pull Request Reviews"
+    url: "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/about-pull-request-reviews"
+    why: "Official GitHub documentation on using review features: comments, approvals, request changes, and suggested changes."
+
+  - title: "The Art of Giving and Receiving Code Reviews"
+    url: "https://www.alexandra-hill.com/2018/06/25/the-art-of-giving-and-receiving-code-reviews/"
+    why: "Deep dive into review psychology, empathy in feedback, and how to receive criticism constructively as an author."
+
+  - title: "Rails Security Guide"
+    url: "https://guides.rubyonrails.org/security.html"
+    why: "Essential reading for identifying security vulnerabilities during code review: SQL injection, XSS, CSRF, authentication, and authorization issues."
+
+  - title: "Code Review Checklist — Shopify"
+    url: "https://github.com/thoughtbot/guides/tree/main/code-review"
+    why: "Example checklist from a production Rails team covering testing, performance, security, and deployment safety."

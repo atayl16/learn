@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Ahoy GitHub Repository"
+    url: "https://github.com/ankane/ahoy"
+    why: "Official documentation for installation, event tracking, and GDPR compliance features."
+
+  - title: "Segment Documentation — Ruby Library"
+    url: "https://segment.com/docs/connections/sources/catalog/libraries/server/ruby/"
+    why: "Complete reference for server-side event tracking with Segment API and best practices."
+
+  - title: "Mixpanel — Event Tracking Guide"
+    url: "https://docs.mixpanel.com/docs/tracking/how-tos/events-and-properties"
+    why: "Detailed guide on event schema design, properties, and funnel analysis."
+
+  - title: "GDPR and Analytics: A Practical Guide"
+    url: "https://www.cookiebot.com/en/gdpr-analytics/"
+    why: "Comprehensive overview of consent management, data deletion, and compliance requirements."
+
+  - title: "Amplitude — Product Analytics Best Practices"
+    url: "https://amplitude.com/blog/product-analytics-best-practices"
+    why: "Industry patterns for event taxonomy, naming conventions, and schema governance."
+
+  - title: "Evil Martians — Event Tracking in Rails"
+    url: "https://evilmartians.com/chronicles/tracking-user-activity-with-ahoy-in-rails"
+    why: "Practical guide to implementing first-party analytics with Ahoy gem."
+
+  - title: "GDPR Article 17 — Right to Erasure"
+    url: "https://gdpr-info.eu/art-17-gdpr/"
+    why: "Legal text defining user rights to data deletion and compliance requirements."

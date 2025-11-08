@@ -1,65 +1,94 @@
----
 checkpoint:
-  topic_key: event_tracking
-  title: Event Tracking & Analytics Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 1
+      prompt: "What is the main advantage of server-side event tracking over client-side JavaScript tracking?"
+      choices:
+        - "Server-side tracking is faster to implement"
+        - "Server-side tracking cannot be blocked by ad blockers"
+        - "Server-side tracking captures more user interactions"
+        - "Server-side tracking is cheaper"
+      correct: "Server-side tracking cannot be blocked by ad blockers"
+      why: "Server-side tracking from controllers is reliable and accurate, while client-side JavaScript can be blocked by 20-30% of users."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why is consistent event schema important for analytics?"
+      choices:
+        - "Schemas reduce storage costs"
+        - "Schemas make events faster to process"
+        - "Inconsistent naming breaks queries and creates duplicate events"
+        - "Schemas are required by GDPR"
+      correct: "Inconsistent naming breaks queries and creates duplicate events"
+      why: "Events like 'user_signup' vs 'UserSignedUp' with different properties make analysis impossible without schema consistency."
+
+    - kind: short
+      points: 2
+      prompt: "What three key pieces of information should every event contain?"
+      sample_answer: "Event name, timestamp, and user identifier (user_id or anonymous_id)."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is a conversion funnel used for?"
+      choices:
+        - "Storing events in databases"
+        - "Measuring drop-off rates through multi-step user flows"
+        - "Encrypting user data"
+        - "Sending events to third-party tools"
+      correct: "Measuring drop-off rates through multi-step user flows"
+      why: "Funnels track users through steps (signup → email → completion) to identify where they abandon the process."
+
+    - kind: mcq
+      points: 2
+      prompt: "How does Ahoy ensure GDPR compliance for IP addresses?"
+      choices:
+        - "Ahoy doesn't store IP addresses"
+        - "Ahoy encrypts IP addresses"
+        - "Ahoy masks IPs by setting Ahoy.mask_ips = true"
+        - "Ahoy sends IPs to external servers"
+      correct: "Ahoy masks IPs by setting Ahoy.mask_ips = true"
+      why: "IP masking replaces the last octet with zeros (e.g., 192.168.1.0) to anonymize users while preserving location data."
+
+    - kind: short
+      points: 2
+      prompt: "Write code to track an event only if the user has given analytics consent."
+      sample_answer: "ahoy.track('event_name', properties) if cookies[:analytics_consent] == 'true'"
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the purpose of Segment in event tracking?"
+      choices:
+        - "Segment stores events in PostgreSQL"
+        - "Segment routes events to multiple analytics destinations"
+        - "Segment generates analytics reports"
+        - "Segment blocks tracking cookies"
+      correct: "Segment routes events to multiple analytics destinations"
+      why: "Segment acts as a hub that forwards events to Mixpanel, Amplitude, Google Analytics, and other tools from a single API."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which GDPR requirement does a data deletion endpoint fulfill?"
+      choices:
+        - "Right to be forgotten"
+        - "Cookie consent"
+        - "Data minimization"
+        - "Data portability"
+      correct: "Right to be forgotten"
+      why: "GDPR Article 17 requires providing a way for users to request deletion of their personal data."
+
+    - kind: short
+      points: 2
+      prompt: "How would you query Ahoy to find all users who started signup but did not complete it?"
+      sample_answer: "started_ids = Ahoy::Event.where(name: 'signup_started').pluck(:user_id); completed_ids = Ahoy::Event.where(name: 'signup_completed').pluck(:user_id); started_ids - completed_ids"
+
+    - kind: mcq
+      points: 1
+      prompt: "Why should you avoid storing email addresses directly in event properties?"
+      choices:
+        - "Emails are too large"
+        - "Emails slow down queries"
+        - "Emails are PII that increase GDPR compliance burden"
+        - "Emails cannot be stored in JSON"
+      correct: "Emails are PII that increase GDPR compliance burden"
+      why: "Personal data like emails requires consent, encryption, and deletion handling. Use hashed IDs or domain-only instead."

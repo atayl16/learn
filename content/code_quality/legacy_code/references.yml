@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Working Effectively with Legacy Code (Michael C. Feathers)"
+    url: "https://www.amazon.com/Working-Effectively-Legacy-Michael-Feathers/dp/0131177052"
+    why: "The definitive book on legacy code techniques, covering characterization tests, seams, dependency breaking, and safe refactoring strategies."
+
+  - title: "Strangler Fig Application Pattern (Martin Fowler)"
+    url: "https://martinfowler.com/bliki/StranglerFigApplication.html"
+    why: "Martin Fowler's original description of the Strangler Fig pattern for incrementally replacing legacy systems without big-bang rewrites."
+
+  - title: "Characterization Testing (J.B. Rainsberger)"
+    url: "https://blog.thecodewhisperer.com/permalink/surviving-legacy-code-with-golden-master-and-sampling"
+    why: "Practical guide to writing characterization tests using Golden Master technique to capture complex legacy behavior."
+
+  - title: "Rails Testing Handbook — Legacy Code Chapter"
+    url: "https://semaphoreci.com/community/tutorials/mocking-with-rspec-doubles-and-expectations"
+    why: "Tutorial on using RSpec doubles and stubs to test legacy Rails controllers with hard dependencies."
+
+  - title: "Seams: An Introduction (Michael Feathers)"
+    url: "https://www.informit.com/articles/article.aspx?p=359417&seqNum=2"
+    why: "Excerpt from Working Effectively with Legacy Code explaining seams and how to identify them in production code."
+
+  - title: "Feature Toggles (Pete Hodgson)"
+    url: "https://martinfowler.com/articles/feature-toggles.html"
+    why: "Comprehensive guide to feature flags and toggles, essential for implementing Strangler Fig pattern safely."
+
+  - title: "Refactoring: Ruby Edition (Jay Fields, Martin Fowler)"
+    url: "https://martinfowler.com/books/refactoringRubyEd.html"
+    why: "Ruby-specific refactoring patterns and techniques with examples for safely transforming legacy Rails code."

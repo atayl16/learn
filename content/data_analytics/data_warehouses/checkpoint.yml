@@ -1,65 +1,94 @@
----
 checkpoint:
-  topic_key: data_warehouses
-  title: Working with Data Warehouses Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 1
+      prompt: "What is the primary difference between OLTP and OLAP databases?"
+      choices:
+        - "OLTP is for analytics; OLAP is for transactions"
+        - "OLTP is optimized for fast reads/writes of small datasets; OLAP is optimized for complex aggregations across large datasets"
+        - "OLTP uses SQL; OLAP uses NoSQL"
+        - "OLTP stores current data; OLAP stores only historical data"
+      correct: "OLTP is optimized for fast reads/writes of small datasets; OLAP is optimized for complex aggregations across large datasets"
+      why: "OLTP databases (like Postgres) handle transactional workloads with many small reads/writes. OLAP databases (like BigQuery) handle analytical workloads with complex aggregations across millions of rows."
+
+    - kind: mcq
+      points: 1
+      prompt: "Why should you avoid running warehouse queries synchronously in Rails controllers?"
+      choices:
+        - "Data warehouses don't support real-time queries"
+        - "Warehouse queries take seconds to minutes and would timeout HTTP requests"
+        - "It violates MVC architecture"
+        - "BigQuery charges per request"
+      correct: "Warehouse queries take seconds to minutes and would timeout HTTP requests"
+      why: "Warehouse queries scan large datasets and can take 10+ seconds. Running them in controllers blocks the request/response cycle, causing timeouts and poor user experience."
+
+    - kind: short
+      points: 2
+      prompt: "Explain the difference between full sync and incremental sync. When would you use each strategy?"
+      sample_answer: "Full sync exports the entire table every run; incremental sync exports only new/updated rows since last sync. Use full sync for small tables (<100k rows) or when data changes unpredictably. Use incremental sync for large tables with updated_at timestamps to avoid re-exporting millions of rows."
+
+    - kind: mcq
+      points: 2
+      prompt: "You have a Rails app with 10 million orders. Which sync strategy is most appropriate?"
+      choices:
+        - "Full sync every hour to ensure data accuracy"
+        - "Incremental sync using updated_at timestamps"
+        - "Real-time sync on every order creation"
+        - "Manual exports to CSV files"
+      correct: "Incremental sync using updated_at timestamps"
+      why: "Incremental syncs with updated_at filters export only changed rows, avoiding the bandwidth and processing cost of re-exporting 10 million rows. Full syncs would waste resources; real-time sync adds complexity for minimal benefit."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is a key security concern when syncing production data to a data warehouse?"
+      choices:
+        - "Warehouses are slower than production databases"
+        - "Warehouses often have looser access controls; PII should be masked or redacted"
+        - "Warehouse queries are more expensive"
+        - "Warehouses cannot store encrypted data"
+      correct: "Warehouses often have looser access controls; PII should be masked or redacted"
+      why: "Data warehouses are often accessible to analysts, data scientists, and third-party BI tools. Syncing sensitive PII (emails, addresses) without masking increases risk of data leaks."
+
+    - kind: short
+      points: 2
+      prompt: "What is the recommended pattern for displaying BigQuery results in a Rails dashboard? Why?"
+      sample_answer: "Query BigQuery in a background job and cache results in Redis or Rails.cache for 1+ hours. This avoids blocking HTTP requests with slow warehouse queries. Alternatively, materialize aggregated results into a local Postgres table for instant reads."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which Ruby gem is commonly used to connect Rails to Google BigQuery?"
+      choices:
+        - "pg"
+        - "google-cloud-bigquery"
+        - "bigquery-rails"
+        - "sequel"
+      correct: "google-cloud-bigquery"
+      why: "The google-cloud-bigquery gem provides the official Google Cloud client for Ruby, supporting authentication, queries, and data insertion."
+
+    - kind: mcq
+      points: 1
+      prompt: "When implementing incremental syncs, what column is typically used to identify changed records?"
+      choices:
+        - "id"
+        - "created_at"
+        - "updated_at"
+        - "deleted_at"
+      correct: "updated_at"
+      why: "The updated_at timestamp tracks when each record was last modified, allowing incremental syncs to query WHERE updated_at > last_sync_time to find only changed rows."
+
+    - kind: short
+      points: 2
+      prompt: "Why would you separate transactional data (Postgres) from analytical data (warehouse) instead of running all queries on the production database?"
+      sample_answer: "Analytical queries scan millions of rows and can lock tables, starving application traffic and degrading user experience. Warehouses are optimized for OLAP workloads and scale independently, preventing analytics from impacting production performance."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is Change Data Capture (CDC) in the context of data warehouses?"
+      choices:
+        - "A manual process for exporting CSV files"
+        - "A method for streaming database changes in real-time to the warehouse"
+        - "A backup strategy for disaster recovery"
+        - "A SQL query pattern for aggregating data"
+      correct: "A method for streaming database changes in real-time to the warehouse"
+      why: "CDC tools like Debezium or AWS DMS capture database transaction logs and stream changes to the warehouse in near real-time, enabling low-latency analytics without batch jobs."

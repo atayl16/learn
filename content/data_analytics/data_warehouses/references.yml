@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Google Cloud BigQuery Documentation"
+    url: "https://cloud.google.com/bigquery/docs"
+    why: "Official documentation for BigQuery covering SQL syntax, streaming inserts, batch loading, and Ruby client library usage."
+
+  - title: "Snowflake Documentation — Getting Started with Ruby"
+    url: "https://docs.snowflake.com/en/developer-guide/ruby/ruby-driver"
+    why: "Guide to connecting Ruby applications to Snowflake using the snowflake-connector-ruby gem, including authentication and query examples."
+
+  - title: "BigQuery Streaming API Best Practices"
+    url: "https://cloud.google.com/bigquery/docs/streaming-data-into-bigquery"
+    why: "Best practices for streaming data into BigQuery from Rails, including quotas, error handling, and performance tuning for incremental syncs."
+
+  - title: "Martin Fowler — OLTP vs OLAP"
+    url: "https://martinfowler.com/bliki/OlapVsOltp.html"
+    why: "Clear explanation of OLTP (transactional) vs OLAP (analytical) database architectures and when to use each."
+
+  - title: "Rails Guides — Active Job Basics"
+    url: "https://guides.rubyonrails.org/active_job_basics.html"
+    why: "How to implement background jobs in Rails for data sync tasks, including scheduling, error handling, and retries."
+
+  - title: "Debezium — Change Data Capture for Rails"
+    url: "https://debezium.io/"
+    why: "Open-source CDC platform for streaming database changes to warehouses in real-time, supporting Postgres and MySQL."
+
+  - title: "Thoughtbot — Data Warehousing for Rails Apps"
+    url: "https://thoughtbot.com/blog/analytics-for-rails-apps"
+    why: "Practical guide to setting up analytics pipelines for Rails applications, including data warehouse integrations and sync patterns."

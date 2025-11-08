@@ -1,65 +1,94 @@
----
 checkpoint:
-  topic_key: refactoring_patterns
-  title: Refactoring Patterns in Rails Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary purpose of extracting a service object from a Rails controller?"
+      choices:
+        - "To make the controller faster by moving code to a background job"
+        - "To separate business logic from HTTP concerns and improve testability"
+        - "To reduce the number of database queries"
+        - "To comply with Rails conventions"
+      correct: "To separate business logic from HTTP concerns and improve testability"
+      why: "Service objects extract complex business logic into testable POROs, keeping controllers focused on HTTP concerns (routing, params, rendering) and following the Single Responsibility Principle."
+
+    - kind: mcq
+      points: 2
+      prompt: "When should you refactor code without tests?"
+      choices:
+        - "When the code is simple and you're confident in the changes"
+        - "When tests are too slow to run"
+        - "Never—always write characterization tests first"
+        - "When the deadline is tight"
+      correct: "Never—always write characterization tests first"
+      why: "Refactoring without tests risks breaking functionality silently. Always write characterization tests to capture current behavior before refactoring, even for legacy code."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which SOLID principle states that classes should be open for extension but closed for modification?"
+      choices:
+        - "Single Responsibility Principle"
+        - "Open/Closed Principle"
+        - "Liskov Substitution Principle"
+        - "Dependency Inversion Principle"
+      correct: "Open/Closed Principle"
+      why: "The Open/Closed Principle encourages extending behavior through new classes (e.g., strategy pattern) rather than modifying existing code, reducing the risk of breaking changes."
+
+    - kind: short
+      points: 3
+      prompt: "Write a simple service object skeleton with an initialize method and a call method that returns a success/failure result."
+      sample_answer: "class MyService\n  def initialize(params)\n    @params = params\n  end\n\n  def call\n    # business logic\n    ServiceResult.success(value)\n  rescue => e\n    ServiceResult.failure(e.message)\n  end\nend"
+
+    - kind: mcq
+      points: 2
+      prompt: "What pattern replaces complex if/case statements with object-oriented design?"
+      choices:
+        - "Extract Method"
+        - "Replace Conditional with Polymorphism"
+        - "Extract Service Object"
+        - "Dependency Injection"
+      correct: "Replace Conditional with Polymorphism"
+      why: "Replace Conditional with Polymorphism uses inheritance or strategy pattern to eliminate complex conditionals, making code more extensible and testable."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which is a sign that a controller action needs refactoring?"
+      choices:
+        - "It uses ActiveRecord models"
+        - "It renders a JSON response"
+        - "It exceeds 50 lines and handles multiple responsibilities"
+        - "It uses strong parameters"
+      correct: "It exceeds 50 lines and handles multiple responsibilities"
+      why: "Controllers should be thin, focused on HTTP concerns. Long actions with multiple responsibilities violate Single Responsibility and indicate the need for service objects or other refactoring."
+
+    - kind: short
+      points: 2
+      prompt: "What is a characterization test and why is it useful when refactoring legacy code?"
+      sample_answer: "A characterization test captures the current behavior of code (even if buggy) without knowing internal implementation. It's useful for refactoring legacy code because it acts as a safety net, detecting any changes in behavior during refactoring."
+
+    - kind: mcq
+      points: 2
+      prompt: "In the strategy pattern, where does the conditional logic typically remain?"
+      choices:
+        - "In the controller"
+        - "In each strategy class"
+        - "In a factory or dispatcher that selects the appropriate strategy"
+        - "Conditionals are completely eliminated"
+      correct: "In a factory or dispatcher that selects the appropriate strategy"
+      why: "The strategy pattern consolidates the conditional logic into a single factory/dispatcher (e.g., NotificationStrategy.for(type)), while the actual behavior is distributed across strategy classes."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which SOLID principle states that each class should have only one reason to change?"
+      choices:
+        - "Single Responsibility Principle"
+        - "Open/Closed Principle"
+        - "Interface Segregation Principle"
+        - "Dependency Inversion Principle"
+      correct: "Single Responsibility Principle"
+      why: "The Single Responsibility Principle ensures each class has one well-defined purpose, making code easier to test, understand, and modify."
+
+    - kind: short
+      points: 2
+      prompt: "Name two benefits of using Extract Method refactoring on a long method."
+      sample_answer: "1) Improves readability by giving descriptive names to code chunks. 2) Enables reusability by extracting logic into separate methods that can be called elsewhere. (Also acceptable: improves testability, reduces complexity, makes debugging easier)"

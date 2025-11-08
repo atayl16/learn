@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Martin Fowler - Technical Debt Quadrant"
+    url: "https://martinfowler.com/bliki/TechnicalDebtQuadrant.html"
+    why: "Foundational framework from Martin Fowler explaining the four types of technical debt (reckless/prudent × deliberate/inadvertent) and when debt is strategically acceptable vs. damaging."
+
+  - title: "Ward Cunningham - The WyCash Portfolio Management System"
+    url: "https://www.youtube.com/watch?v=pqeJFYwnkjE"
+    why: "Original 1992 video where Ward Cunningham coined the 'technical debt' metaphor, explaining how shipping quickly with plans to refactor is like financial debt that must be paid back with interest."
+
+  - title: "Adam Tornhill - Your Code as a Crime Scene"
+    url: "https://pragprog.com/titles/atcrime2/your-code-as-a-crime-scene-second-edition/"
+    why: "Book introducing hotspot analysis and churn metrics to identify problematic code. Shows how to use Git history to find files with high change frequency and poor quality for maximum refactoring ROI."
+
+  - title: "Code Climate - Technical Debt Assessment"
+    url: "https://codeclimate.com/blog/technical-debt"
+    why: "Practical guide to measuring technical debt with metrics like maintainability scores, test coverage, and complexity. Explains how to prioritize remediation using impact vs. effort matrices."
+
+  - title: "Steve McConnell - Managing Technical Debt"
+    url: "https://www.construx.com/blog/managing-technical-debt/"
+    why: "Comprehensive article on debt management strategies, capacity allocation models (15-25% for debt reduction), and communicating technical costs to stakeholders in business terms."
+
+  - title: "Rails Best Practices Gem"
+    url: "https://github.com/flyerhzm/rails_best_practices"
+    why: "Static analysis tool for Rails applications that detects code smells, N+1 queries, unused methods, and architectural violations to systematically identify technical debt in Rails codebases."
+
+  - title: "Refactoring: Improving the Design of Existing Code (Martin Fowler)"
+    url: "https://martinfowler.com/books/refactoring.html"
+    why: "Authoritative book on identifying code smells and safely refactoring debt. Essential reading for understanding when and how to pay down technical debt through systematic code improvements."

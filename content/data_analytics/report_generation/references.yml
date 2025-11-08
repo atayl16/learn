@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Rails Guides — Layouts and Rendering (Streaming Section)"
+    url: "https://guides.rubyonrails.org/layouts_and_rendering.html#streaming"
+    why: "Official Rails documentation on streaming responses, including live streaming and how to set response_body with enumerators."
+
+  - title: "caxlsx_rails — Excel Generation for Rails"
+    url: "https://github.com/caxlsx/caxlsx_rails"
+    why: "Popular gem for generating Excel files with formatting, charts, and styles. Includes Rails integration and view templates."
+
+  - title: "Ruby CSV Documentation"
+    url: "https://ruby-doc.org/stdlib-3.1.0/libdoc/csv/rdoc/CSV.html"
+    why: "Canonical Ruby CSV library documentation covering CSV.generate_line, parsing options, and performance considerations."
+
+  - title: "Sidekiq Best Practices — Background Jobs"
+    url: "https://github.com/mperham/sidekiq/wiki/Best-Practices"
+    why: "Official Sidekiq patterns for job design, including file processing, email delivery, and cleanup strategies for report generation."
+
+  - title: "Rails Caching Guide — Low-Level Caching"
+    url: "https://guides.rubyonrails.org/caching_with_rails.html#low-level-caching"
+    why: "Official guide to Rails.cache.fetch with expiration strategies, cache key design, and Redis/Memcached configuration."
+
+  - title: "AWS SDK for Ruby — S3 Presigned URLs"
+    url: "https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Presigner.html"
+    why: "Documentation for generating time-limited S3 download links, essential for serving large reports without database storage."
+
+  - title: "Streaming CSV in Rails (Thoughtbot Blog)"
+    url: "https://thoughtbot.com/blog/a-tour-of-rails-streaming"
+    why: "Practical guide to implementing streaming responses in Rails with memory profiling and performance benchmarks."

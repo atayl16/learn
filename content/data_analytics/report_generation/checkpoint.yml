@@ -1,65 +1,94 @@
----
 checkpoint:
-  topic_key: report_generation
-  title: Report Generation Strategies Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary memory benefit of streaming CSV exports versus loading all records into memory?"
+      choices:
+        - "Streaming uses O(N) memory while loading all uses O(1)"
+        - "Streaming uses O(1) constant memory while loading all uses O(N) memory"
+        - "Streaming is faster but uses the same memory"
+        - "Streaming only works with fewer than 1000 records"
+      correct: "Streaming uses O(1) constant memory while loading all uses O(N) memory"
+      why: "Streaming processes one row at a time, maintaining constant memory usage regardless of dataset size, while loading all records consumes memory proportional to the number of records."
+
+    - kind: mcq
+      points: 2
+      prompt: "At what dataset size should CSV exports be moved to background jobs?"
+      choices:
+        - "Greater than 100 rows"
+        - "Greater than 1,000 rows"
+        - "Greater than 10,000 rows"
+        - "Any size for safety"
+      correct: "Greater than 10,000 rows"
+      why: "Exports taking longer than 5 seconds risk hitting request timeouts. Around 10,000+ rows, exports typically exceed this threshold and should be backgrounded."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which ActiveRecord method should you use to batch process large datasets when streaming CSV?"
+      choices:
+        - "all.each"
+        - "find_each"
+        - "pluck"
+        - "to_a.each"
+      correct: "find_each"
+      why: "find_each batches queries in groups of 1000 (default), preventing memory bloat. Other methods load all records into memory at once."
+
+    - kind: short
+      points: 2
+      prompt: "Write the Ruby code to set HTTP headers for a CSV file download named 'users.csv'."
+      sample_answer: "headers['Content-Type'] = 'text/csv' and headers['Content-Disposition'] = 'attachment; filename=users.csv'"
+
+    - kind: mcq
+      points: 2
+      prompt: "Why should you cache expensive analytical queries that multiple users run repeatedly?"
+      choices:
+        - "To reduce disk space usage"
+        - "To eliminate redundant database queries and improve response time"
+        - "To make the code easier to read"
+        - "Caching is not recommended for reports"
+      correct: "To eliminate redundant database queries and improve response time"
+      why: "When multiple users download the same report, caching stores the query result (e.g., in Redis) so subsequent requests return instantly without re-executing the expensive query."
+
+    - kind: short
+      points: 2
+      prompt: "What Rails method caches a block's result with a key and expiration time?"
+      sample_answer: "Rails.cache.fetch(key, expires_in: 1.hour) { expensive_query }"
+
+    - kind: mcq
+      points: 1
+      prompt: "What is a presigned URL in the context of report generation?"
+      choices:
+        - "A URL that never expires"
+        - "A time-limited download link for S3 objects"
+        - "A URL that requires authentication headers"
+        - "A URL that is signed by the database"
+      correct: "A time-limited download link for S3 objects"
+      why: "Presigned URLs allow temporary access to S3 objects without making them public. They expire after a configured time period (e.g., 7 days)."
+
+    - kind: mcq
+      points: 1
+      prompt: "When generating Excel files with formatting and charts, what is the recommended row limit before moving to background jobs?"
+      choices:
+        - "Greater than 100 rows"
+        - "Greater than 1,000 rows"
+        - "Greater than 5,000 rows"
+        - "Greater than 100,000 rows"
+      correct: "Greater than 5,000 rows"
+      why: "Excel (XLSX) generation has more overhead than CSV due to formatting, styles, and charts. Background processing at 5,000+ rows prevents request timeouts."
+
+    - kind: short
+      points: 2
+      prompt: "What pattern prevents web request timeouts when generating large reports that take 45+ seconds?"
+      sample_answer: "Queue the export as a background job (e.g., Sidekiq) and send an email notification with download link when complete"
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the default batch size for find_each when iterating over records?"
+      choices:
+        - "100 records"
+        - "500 records"
+        - "1000 records"
+        - "5000 records"
+      correct: "1000 records"
+      why: "find_each fetches records in batches of 1000 by default. This can be customized with the batch_size parameter."

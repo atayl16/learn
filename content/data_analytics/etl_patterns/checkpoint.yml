@@ -4,62 +4,96 @@ checkpoint:
   title: ETL Patterns in Rails Quiz
   questions:
   - id: 1
-    question: "[Question 1 to be added]"
+    question: "Why should you use CSV.foreach() instead of CSV.read() for large files?"
     type: multiple_choice
     options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - "CSV.foreach() is faster than CSV.read()"
+    - "CSV.foreach() streams rows one at a time, CSV.read() loads entire file into memory"
+    - "CSV.foreach() validates data, CSV.read() does not"
+    - "CSV.read() is deprecated in Rails 7"
+    correct_answer: 1
+    explanation: "CSV.foreach() streams rows one at a time, preventing memory exhaustion when processing files larger than available RAM. CSV.read() loads the entire file into memory, which can cause out-of-memory errors with large files."
+
   - id: 2
-    question: "[Question 2 to be added]"
+    question: "What is the primary benefit of using upsert_all in ETL pipelines?"
     type: multiple_choice
     options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - "It's faster than insert_all"
+    - "It provides idempotency by updating existing records or inserting new ones"
+    - "It automatically validates all data before insertion"
+    - "It runs in a separate background process"
+    correct_answer: 1
+    explanation: "upsert_all makes ETL pipelines idempotent by updating existing records when a unique constraint match is found, or inserting new records otherwise. This allows you to safely re-run imports without creating duplicates."
+
   - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    question: "How would you make an ETL import job idempotent when processing the same CSV file multiple times?"
+    type: short_answer
+    sample_answer: "Calculate and store a file checksum (MD5 hash), then check if it exists in an ImportLog table before processing. Alternatively, use unique database constraints with upsert operations on a unique identifier like SKU or external_id."
+    explanation: "File checksums allow you to detect if the exact same file has been processed before. Combined with upsert operations and unique constraints, this ensures imports can be safely re-run without duplicating data."
+
   - id: 4
-    question: "[Question 4 to be added]"
+    question: "In an ETL pipeline, which step should validate data quality?"
     type: multiple_choice
     options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - "Extract - validate as you read from source"
+    - "Transform - validate after extracting, before loading"
+    - "Load - let database constraints handle validation"
+    - "Validation is not necessary in ETL"
+    correct_answer: 1
+    explanation: "The Transform step is responsible for validating and cleaning data after extraction but before loading. This catches errors early, allows collecting error details for all invalid rows, and prevents database errors mid-import."
+
   - id: 5
-    question: "[Question 5 to be added]"
+    question: "What's the recommended batch size for insert_all operations?"
     type: multiple_choice
     options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - "Insert one record at a time for safety"
+    - "Insert all records in a single batch"
+    - "500-1000 records per batch"
+    - "Batch size doesn't affect performance"
+    correct_answer: 2
+    explanation: "Batching 500-1000 records provides significant performance benefits (10-100x faster than individual inserts) while avoiding memory spikes and excessively long database transactions that could cause lock contention."
+
   - id: 6
-    question: "[Question 6 to be added]"
+    question: "How should an ETL job handle rows that fail validation without stopping the entire import?"
+    type: short_answer
+    sample_answer: "Collect validation errors in an array or hash, store failed rows in a FailedImport table with error details, continue processing valid rows, then log a summary of successes and failures at the end."
+    explanation: "Resilient ETL jobs separate error handling from data processing, collecting errors without stopping execution. This allows valid data to be imported while preserving failed rows for manual review and retry."
+
+  - id: 7
+    question: "What's the difference between incremental and full refresh in ETL?"
     type: multiple_choice
     options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - "Incremental validates data, full refresh does not"
+    - "Incremental processes only changed records since last run, full refresh replaces all data"
+    - "Incremental uses Sidekiq, full refresh runs synchronously"
+    - "Full refresh is faster than incremental"
+    correct_answer: 1
+    explanation: "Incremental refresh processes only records that changed since the last ETL run (tracked by timestamp or version), making it efficient for large datasets. Full refresh replaces all data, useful for small datasets but risky if the import fails mid-process."
+
+  - id: 8
+    question: "What database feature is required for upsert_all to work correctly?"
+    type: short_answer
+    sample_answer: "A unique index or unique constraint on the column(s) specified in the unique_by parameter, such as: add_index :products, :sku, unique: true"
+    explanation: "upsert_all uses the unique constraint to determine whether to INSERT a new record or UPDATE an existing one. Without this constraint, upsert_all will fail with an error."
+
+  - id: 9
+    question: "Why run ETL imports in Sidekiq instead of processing inline during HTTP requests?"
+    type: multiple_choice
+    options:
+    - "Sidekiq is faster at processing CSV files"
+    - "Sidekiq automatically validates data"
+    - "Large imports can take minutes or hours, causing HTTP timeouts"
+    - "Sidekiq provides better error messages"
+    correct_answer: 2
+    explanation: "Background jobs prevent request timeouts (typically 30-60 seconds) when imports take minutes or hours. This allows users to continue using the application, provides retry mechanisms, and enables email notifications when imports complete."
+
+  - id: 10
+    question: "When should you use a transaction in an ETL load operation?"
+    type: multiple_choice
+    options:
+    - "Always wrap all imports in transactions"
+    - "When you need all-or-nothing behavior like full refresh scenarios"
+    - "Never use transactions in ETL, they're too slow"
+    - "Only for small imports with less than 100 records"
+    correct_answer: 1
+    explanation: "Transactions ensure atomicity for operations requiring all-or-nothing behavior, such as full refresh where you delete_all then insert_all. For incremental imports with thousands of rows, avoid wrapping everything in one transaction to prevent lock contention."

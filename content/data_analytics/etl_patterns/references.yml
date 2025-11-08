@@ -1,26 +1,36 @@
 ---
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
+- title: "Rails Guides — Active Record Basics (insert_all, upsert_all)"
+  url: https://guides.rubyonrails.org/active_record_basics.html#create
   type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
+  notes: Official Rails documentation covering insert_all and upsert_all methods for batch operations, including unique_by and update_only options.
+
+- title: "Ruby CSV Documentation"
+  url: https://ruby-doc.org/stdlib-3.1.0/libdoc/csv/rdoc/CSV.html
+  type: docs
+  notes: Official Ruby CSV library documentation covering CSV.foreach, headers, encoding options, and streaming patterns for large file processing.
+
+- title: "Sidekiq Best Practices for Data Processing"
+  url: https://github.com/mperham/sidekiq/wiki/Best-Practices
   type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
+  notes: Mike Perham's official guide to Sidekiq patterns including job design, error handling, and retry strategies for ETL workloads.
+
+- title: "ETL Best Practices in Ruby (thoughtbot)"
+  url: https://thoughtbot.com/blog/importing-large-datasets-in-rails
   type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  notes: Practical guide covering memory-efficient CSV import, batch processing, validation strategies, and error recovery patterns in Rails applications.
+
+- title: "PostgreSQL UPSERT and ON CONFLICT"
+  url: https://www.postgresql.org/docs/current/sql-insert.html#SQL-ON-CONFLICT
+  type: docs
+  notes: PostgreSQL documentation for INSERT ON CONFLICT (the SQL behind Rails upsert_all), including conflict resolution and partial indexes.
+
+- title: "RailsConf 2019 — Importing Data at Scale (Derek Prior)"
+  url: https://www.youtube.com/watch?v=9Kq2FJHh684
+  type: video
+  notes: Conference talk covering real-world ETL patterns, performance optimization, memory management, and handling millions of records in production Rails apps.
+
+- title: "Data Import Patterns in Rails (Arkency Blog)"
+  url: https://blog.arkency.com/tags/import/
+  type: article
+  notes: Collection of articles on CSV processing, data validation, idempotency patterns, and building resilient ETL pipelines with ActiveJob and Sidekiq.

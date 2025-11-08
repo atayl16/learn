@@ -1,65 +1,94 @@
----
 checkpoint:
-  topic_key: code_review
-  title: Code Review Techniques Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 1
+      prompt: "Which type of issue should warrant a BLOCKING comment in a code review?"
+      choices:
+        - "A variable could be renamed for clarity"
+        - "A method could be extracted into a private method"
+        - "User passwords are compared in plaintext without hashing"
+        - "Code formatting doesn't match team style guide"
+      correct: "User passwords are compared in plaintext without hashing"
+      why: "Security vulnerabilities like plaintext password comparison are critical issues that must be fixed before merging. Style and refactoring suggestions should be non-blocking."
+
+    - kind: mcq
+      points: 1
+      prompt: "What's the most effective way to handle code style issues in reviews?"
+      choices:
+        - "Block every PR until style is perfect"
+        - "Use automated linters and focus reviews on logic"
+        - "Ignore style completely"
+        - "Debate each style choice in review comments"
+      correct: "Use automated linters and focus reviews on logic"
+      why: "Automated linters (RuboCop, StandardRB) enforce style consistently without wasting reviewer time. Reviews should focus on logic, architecture, and correctness."
+
+    - kind: short
+      points: 2
+      prompt: "You see this code in a PR: `orders.each { |o| o.update(status: 'shipped') }`. Write a review comment using the constructive feedback structure (observation, impact, suggestion, label)."
+      sample_answer: "This triggers N individual UPDATE queries (one per order). For 100 orders, this creates 100 database round trips, slowing down the endpoint. Consider using `Order.where(id: order_ids).update_all(status: 'shipped')` for a single query. (blocking if this runs on high-traffic endpoints, nit if it's admin-only with <10 orders)"
+
+    - kind: mcq
+      points: 1
+      prompt: "When should you use pair programming instead of async code review?"
+      choices:
+        - "For all pull requests to ensure quality"
+        - "Never; code review is always better"
+        - "For high-risk changes like data migrations or payment flows"
+        - "Only when the author is a junior developer"
+      correct: "For high-risk changes like data migrations or payment flows"
+      why: "Pair programming is more effective for complex, high-risk changes where real-time collaboration prevents bugs. Save async reviews for standard feature work."
+
+    - kind: mcq
+      points: 2
+      prompt: "A PR removes a database column with `remove_column :products, :description`. What's the correct review feedback?"
+      choices:
+        - "Approve immediately; unused columns should be removed"
+        - "Request changes: use a two-phase deploy (ignore column first, drop in next release)"
+        - "Suggest using a different migration method"
+        - "Add a non-blocking comment about reversibility"
+      correct: "Request changes: use a two-phase deploy (ignore column first, drop in next release)"
+      why: "Dropping columns immediately breaks running app servers during zero-downtime deploys. The correct approach is: (1) ignore the column, (2) deploy, (3) drop the column in the next release."
+
+    - kind: mcq
+      points: 1
+      prompt: "What's the recommended PR size to keep reviews effective?"
+      choices:
+        - "Under 100 lines"
+        - "Under 400 lines"
+        - "Under 1000 lines"
+        - "No limit; larger PRs are fine"
+      correct: "Under 400 lines"
+      why: "PRs over 400 lines take exponentially longer to review and are more likely to have bugs slip through. Breaking changes into smaller PRs improves review quality and speed."
+
+    - kind: short
+      points: 2
+      prompt: "What's the difference between a blocking comment and a non-blocking comment? Give one example of each."
+      sample_answer: "Blocking comments prevent merge until resolved (e.g., 'BLOCKING: This SQL injection vulnerability allows attackers to access any user's data'). Non-blocking comments are suggestions that don't affect correctness (e.g., 'nit: Consider extracting this 20-line method into smaller methods for readability')."
+
+    - kind: mcq
+      points: 1
+      prompt: "How should an author respond to non-blocking review comments?"
+      choices:
+        - "Fix all suggestions before merging"
+        - "Merge immediately without addressing them"
+        - "Acknowledge, fix, or defer to follow-up PR"
+        - "Argue about every suggestion in comments"
+      correct: "Acknowledge, fix, or defer to follow-up PR"
+      why: "Non-blocking comments don't prevent merge. Authors can choose to implement suggestions, acknowledge and defer to later, or explain why they disagree. The key is responding to every comment."
+
+    - kind: mcq
+      points: 1
+      prompt: "What's the recommended response time for initial code review?"
+      choices:
+        - "Within 24 hours"
+        - "Within 4 hours during work hours"
+        - "Within 1 hour"
+        - "By end of week"
+      correct: "Within 4 hours during work hours"
+      why: "A 4-hour response time balances reviewer availability with author productivity. Faster reviews prevent context switching and keep momentum, while allowing reviewers to focus on their own work."
+
+    - kind: short
+      points: 2
+      prompt: "Name three items that should be on every Rails PR review checklist."
+      sample_answer: "1) Tests pass in CI and new code has test coverage, 2) Database migrations are reversible and safe for zero-downtime deploys, 3) No N+1 queries (check for includes/preload on associations). Other valid answers: authorization checks, no sensitive data in logs, error handling for edge cases."

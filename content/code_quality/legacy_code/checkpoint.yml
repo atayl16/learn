@@ -1,65 +1,94 @@
----
 checkpoint:
-  topic_key: legacy_code
-  title: Working with Legacy Code Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 2
+      prompt: "What is a characterization test?"
+      choices:
+        - "A test that verifies code meets its original specification"
+        - "A test that documents what code actually does, not what it should do"
+        - "A test that measures code performance characteristics"
+        - "A test that validates data types and interfaces"
+      correct: "A test that documents what code actually does, not what it should do"
+      why: "Characterization tests lock in current behavior without requiring understanding of the implementation, creating a safety net before refactoring legacy code."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is a 'seam' in legacy code?"
+      choices:
+        - "A bug or defect that needs fixing"
+        - "A place where you can alter behavior without editing code in that location"
+        - "A connection between two microservices"
+        - "A deprecated method that should be removed"
+      correct: "A place where you can alter behavior without editing code in that location"
+      why: "Seams are injection points (like method boundaries or initialization) where you can substitute dependencies for testing without modifying the code being tested."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the main advantage of the Strangler Fig pattern?"
+      choices:
+        - "It allows complete code rewrites without risk"
+        - "It eliminates the need for feature flags"
+        - "It replaces legacy functionality incrementally while keeping production stable"
+        - "It automatically generates tests for legacy code"
+      correct: "It replaces legacy functionality incrementally while keeping production stable"
+      why: "Strangler Fig routes new requests to modern code while legacy handles existing functionality, allowing gradual migration with zero downtime."
+
+    - kind: short
+      points: 2
+      prompt: "Why should you write characterization tests before refactoring legacy code?"
+      sample_answer: "To lock in current behavior so you can detect if refactoring changes functionality. Tests pass = behavior unchanged."
+
+    - kind: mcq
+      points: 2
+      prompt: "What's wrong with passing ActiveRecord objects directly to background jobs in legacy code?"
+      choices:
+        - "Objects are too large to serialize efficiently"
+        - "ActiveRecord objects serialize their current state; changes after enqueueing aren't reflected"
+        - "Background jobs cannot deserialize ActiveRecord objects"
+        - "It violates the single responsibility principle"
+      correct: "ActiveRecord objects serialize their current state; changes after enqueueing aren't reflected"
+      why: "Serialized objects contain stale data. Pass IDs instead and fetch fresh records in the job to ensure you work with current state."
+
+    - kind: short
+      points: 2
+      prompt: "How do you create a seam in a controller method that makes a hard-coded HTTParty call?"
+      sample_answer: "Extract the HTTParty call into a private method, then stub that method in tests. Or inject a client object through dependency injection."
+
+    - kind: mcq
+      points: 1
+      prompt: "When implementing Strangler Fig pattern, what controls routing between legacy and new code?"
+      choices:
+        - "Load balancer configuration"
+        - "Feature flags or gradual rollout percentages"
+        - "Database migration version"
+        - "Environment variables only"
+      correct: "Feature flags or gradual rollout percentages"
+      why: "Feature flags let you route a percentage of traffic to new code, gradually increasing as confidence grows, with instant rollback if issues arise."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the first step when working with untested legacy code?"
+      choices:
+        - "Rewrite the code from scratch"
+        - "Add comments explaining what the code does"
+        - "Write characterization tests capturing current behavior"
+        - "Refactor to improve code style"
+      correct: "Write characterization tests capturing current behavior"
+      why: "Tests first create a safety net to detect behavioral changes. Refactoring without tests means you can't verify you didn't break anything."
+
+    - kind: short
+      points: 2
+      prompt: "What's the difference between 'big-bang rewrite' and 'Strangler Fig' approaches to replacing legacy code?"
+      sample_answer: "Big-bang replaces everything at once (high risk, downtime). Strangler Fig replaces piece by piece in production with feature flags (low risk, gradual)."
+
+    - kind: mcq
+      points: 1
+      prompt: "How do you break hard dependencies on external services in legacy code for testing?"
+      choices:
+        - "Mock the HTTP library globally"
+        - "Add dependency injection with default production values"
+        - "Disable the external service calls in test environment"
+        - "Use VCR to record all HTTP interactions"
+      correct: "Add dependency injection with default production values"
+      why: "Injecting dependencies (e.g., payment_gateway: PaymentGateway.new) lets you pass test doubles while keeping production behavior unchanged with default values."

@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Refactoring: Improving the Design of Existing Code (Martin Fowler)"
+    url: "https://refactoring.com/"
+    why: "The definitive book on refactoring patterns including Extract Method, Replace Conditional with Polymorphism, and many others. Catalog of refactorings with before/after examples."
+
+  - title: "Rails Refactoring Patterns (CodeClimate Blog)"
+    url: "https://codeclimate.com/blog/7-ways-to-decompose-fat-activerecord-models/"
+    why: "Practical guide to decomposing fat Rails models using service objects, value objects, form objects, query objects, and decorators."
+
+  - title: "SOLID Principles in Ruby (Thoughtbot)"
+    url: "https://thoughtbot.com/blog/back-to-basics-solid"
+    why: "Clear explanation of Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, and Dependency Inversion with Ruby examples."
+
+  - title: "Working Effectively with Legacy Code (Michael Feathers)"
+    url: "https://www.goodreads.com/book/show/44919.Working_Effectively_with_Legacy_Code"
+    why: "Essential techniques for refactoring legacy code safely, including characterization tests and the concept of seams for breaking dependencies."
+
+  - title: "Rails Service Objects: A Comprehensive Guide"
+    url: "https://www.toptal.com/ruby-on-rails/rails-service-objects-tutorial"
+    why: "Step-by-step tutorial on extracting service objects from controllers, testing patterns, error handling, and when to use them."
+
+  - title: "Replace Conditional with Polymorphism (Refactoring Guru)"
+    url: "https://refactoring.guru/replace-conditional-with-polymorphism"
+    why: "Visual guide to replacing conditionals with polymorphism, showing code smells, refactoring steps, and benefits with diagrams."
+
+  - title: "RailsConf: Refactoring from Good to Great (Ben Orenstein)"
+    url: "https://www.youtube.com/watch?v=DC-pQPq0acs"
+    why: "Live refactoring session demonstrating Extract Method, Extract Class, and other patterns with real Rails code. Shows thought process and incremental steps."

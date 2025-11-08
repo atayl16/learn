@@ -1,65 +1,113 @@
 ---
 checkpoint:
-  topic_key: technical_debt
-  title: Technical Debt Assessment & Management Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 2
+      prompt: "In the Technical Debt Quadrant, which type of debt is most acceptable?"
+      choices:
+        - "Reckless/Deliberate - shipping without design to meet deadlines"
+        - "Prudent/Deliberate - strategic decision to ship quickly with explicit plan to refactor later"
+        - "Reckless/Inadvertent - lack of knowledge leading to poor architecture"
+        - "Prudent/Inadvertent - learning debt from building with best knowledge at the time"
+      correct: "Prudent/Deliberate - strategic decision to ship quickly with explicit plan to refactor later"
+      why: "Prudent/Deliberate debt is a strategic business decision: ship an MVP to validate market fit, then refactor once you know it's worth investing in. The key is it's deliberate (documented, time-boxed) and prudent (reasonable given business context). This differs from reckless debt, which lacks a payoff plan and creates long-term rot."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary purpose of using an impact vs. effort matrix for technical debt assessment?"
+      choices:
+        - "To document all technical debt in the codebase comprehensively"
+        - "To prioritize debt remediation by ROI, focusing on high-impact, low-effort items first"
+        - "To convince stakeholders that all technical debt must be eliminated"
+        - "To track how much time engineers spend on refactoring vs features"
+      correct: "To prioritize debt remediation by ROI, focusing on high-impact, low-effort items first"
+      why: "The impact vs. effort matrix helps you prioritize which debt to tackle first by calculating ROI (priority = impact/effort). Quick wins (high impact, low effort) deliver immediate value and build credibility. Big bets (high impact, high effort) require careful planning. Low-impact items are skipped regardless of effort. This ensures limited time is spent where it matters most."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is churn analysis and why is it valuable for technical debt assessment?"
+      choices:
+        - "Analyzing customer churn to prioritize features that improve retention"
+        - "Identifying frequently-changed files with quality issues to find high-ROI refactoring targets"
+        - "Measuring how often developers switch between tasks during a sprint"
+        - "Tracking the rate at which technical debt accumulates over time"
+      correct: "Identifying frequently-changed files with quality issues to find high-ROI refactoring targets"
+      why: "Churn analysis identifies hotspots: files changed frequently that also have quality issues (low coverage, high complexity). A 2000-line controller changed 100 times in 6 months with 20% coverage is a velocity killer. Refactoring high-churn hotspots delivers the best ROI because every future change to that file becomes faster. Low-churn code, even if messy, can be left alone."
+
+    - kind: mcq
+      points: 1
+      prompt: "How should you communicate technical debt to non-technical stakeholders?"
+      choices:
+        - "Explain architectural patterns like separation of concerns and SOLID principles"
+        - "Request time for refactoring without specific justification since it's obviously needed"
+        - "Translate debt to business impact: quantify lost revenue, slow features, and show ROI for fixes"
+        - "Focus on code quality metrics like cyclomatic complexity and flog scores"
+      correct: "Translate debt to business impact: quantify lost revenue, slow features, and show ROI for fixes"
+      why: "Stakeholders care about business outcomes, not technical purity. Instead of 'we need to refactor for better separation of concerns,' say 'our checkout code causes 12 bugs/quarter costing $50K revenue. Two weeks refactoring will reduce bugs 75% and double feature velocity.' Quantify the problem, solution cost, and ROI in business terms."
+
+    - kind: mcq
+      points: 2
+      prompt: "What percentage of engineering capacity is typically recommended for technical debt reduction in sustainable development?"
+      choices:
+        - "0-5% - debt should be addressed only when blocking features"
+        - "15-25% - consistent investment prevents velocity decline"
+        - "50% - equal split between features and quality"
+        - "100% for one quarter per year - dedicated refactoring sprints"
+      correct: "15-25% - consistent investment prevents velocity decline"
+      why: "Sustainable teams allocate 15-25% of every sprint to debt reduction. This prevents debt from compounding and maintains long-term velocity. 0% debt time leads to velocity crashes within 6-12 months. 50%+ debt time means the business can't ship features fast enough to compete. Consistent small investments prevent the need for large refactoring projects."
+
+    - kind: mcq
+      points: 2
+      prompt: "When should you choose to ship a feature with technical debt rather than refactoring first?"
+      choices:
+        - "Always ship features first; technical quality can wait until later"
+        - "When the business opportunity is time-sensitive, the debt is isolated and documented, and you have a plan to refactor within 2 sprints"
+        - "Never; all features must be built with perfect architecture and full test coverage"
+        - "Only when stakeholders explicitly demand it and sign off on accepting lower quality"
+      correct: "When the business opportunity is time-sensitive, the debt is isolated and documented, and you have a plan to refactor within 2 sprints"
+      why: "Strategic debt is acceptable when: (1) business opportunity is time-sensitive, (2) you're validating an MVP before investing in quality, (3) debt is isolated and won't cascade, and (4) you have an explicit, time-boxed plan to refactor. This is prudent/deliberate debt. Document it with TODO comments and ticket numbers. Never ship reckless debt or promise cleanup 'someday.'"
+
+    - kind: mcq
+      points: 2
+      prompt: "What is a 'hotspot' in technical debt assessment, and why is it a high priority?"
+      choices:
+        - "Any file with high cyclomatic complexity that should be refactored"
+        - "Code with high change frequency + low quality metrics; fixing it improves every future change"
+        - "Recent code written by junior developers that needs senior review"
+        - "Production incidents that occur frequently and need immediate fixes"
+      correct: "Code with high change frequency + low quality metrics; fixing it improves every future change"
+      why: "A hotspot is high churn (changed frequently) + low quality (untested, complex, fragile). Example: a 2500-line controller changed 127 times in 6 months with 25% coverage. Refactoring hotspots delivers the best ROI because every future feature touching that code becomes faster and safer. A messy file changed once per year isn't worth refactoring."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which type of technical debt represents a learning opportunity where the team built something to the best of their knowledge but later discovered better approaches?"
+      choices:
+        - "Reckless/Deliberate"
+        - "Reckless/Inadvertent"
+        - "Prudent/Deliberate"
+        - "Prudent/Inadvertent"
+      correct: "Prudent/Inadvertent"
+      why: "Prudent/Inadvertent debt happens when you make the best decision given your knowledge at the time, but later learn better patterns. Example: 'We built this before learning about service objects.' This is natural and acceptable. It becomes a refactoring candidate once you've gained the knowledge, not a sign of recklessness. It's different from reckless/inadvertent debt, which comes from not knowing fundamentals."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary goal of technical debt management?"
+      choices:
+        - "Eliminate all technical debt to achieve perfect code quality"
+        - "Document all shortcuts taken during development for future reference"
+        - "Manage debt strategically to maintain sustainable velocity while delivering business value"
+        - "Prevent engineers from writing any code that isn't perfectly architected"
+      correct: "Manage debt strategically to maintain sustainable velocity while delivering business value"
+      why: "The goal is NOT zero debt, which is impossible and unnecessary. It's strategic management: fix debt that blocks velocity NOW, accept debt that doesn't hurt yet, prevent reckless debt, and time-box deliberate debt with payoff plans. Some debt is acceptable if it lets you ship faster and validate business assumptions. The key is intentional decisions, not perfection."
+
+    - kind: mcq
+      points: 1
+      prompt: "In the impact vs. effort matrix, what should you do with items that fall in the 'low impact, high effort' quadrant?"
+      choices:
+        - "Prioritize them first because they're the most challenging work"
+        - "Break them into smaller pieces until they become high impact"
+        - "Skip them entirely; they're time sinks that don't deliver value"
+        - "Schedule them for the next quarter when there's more capacity"
+      correct: "Skip them entirely; they're time sinks that don't deliver value"
+      why: "Low impact, high effort items are time sinks. Examples: refactoring rarely-touched code, renaming variables for consistency in stable code, premature optimization of non-bottlenecks. These waste time on low-value work. Focus on quick wins (high impact, low effort) and big bets (high impact, high effort). Don't let perfectionism drive you to polish code that doesn't matter."
