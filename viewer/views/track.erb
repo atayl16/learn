@@ -20,7 +20,7 @@
   <% @topics.each do |topic| %>
     <div class="topic-card" data-track-key="<%= @track['key'] %>" data-topic-key="<%= topic['key'] %>">
       <div class="completion-badge">✓</div>
-      <a href="/tracks/<%= @track['key'] %>/topics/<%= topic['key'] %>">
+      <a href="topics/<%= topic['key'] %>.html">
         <h3><%= topic['name'] %></h3>
         <p style="color: var(--text-secondary); font-size: 14px; margin: 10px 0;">
           <%= topic['objectives']&.first || 'Learn the fundamentals' %>

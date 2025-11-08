@@ -142,7 +142,7 @@ class StaticSiteBuilder
           topic_name: topic['name'],
           depth_target: topic['depth_target'],
           objectives: topic['objectives']&.join(' ') || '',
-          url: "/tracks/#{track['key']}/topics/#{topic['key']}.html"
+          url: "tracks/#{track['key']}/topics/#{topic['key']}.html"
         }
       end
     end
@@ -204,10 +204,10 @@ class StaticSiteBuilder
     puts "📄 Generating index.html..."
 
     # Render index template
-    content = render_template('index', tracks: tracks)
+    content = render_template('index', tracks: tracks, base_path: '')
 
     # Wrap with layout
-    html = render_with_layout(content, search_index: search_index)
+    html = render_with_layout(content, search_index: search_index, base_path: '')
 
     # Write to file
     File.write(File.join(output_dir, 'index.html'), html)
@@ -223,11 +223,12 @@ class StaticSiteBuilder
     FileUtils.mkdir_p(track_dir)
 
     # Render track template
-    content = render_template('track', track: track, topics: topics)
+    content = render_template('track', track: track, topics: topics, base_path: '../../')
 
     # Wrap with layout
     html = render_with_layout(content,
       search_index: search_index,
+      base_path: '../../',
       params: { track_key: track['key'] }
     )
 
@@ -254,6 +255,7 @@ class StaticSiteBuilder
       content: content_data,
       adjacent: adjacent,
       track: track,
+      base_path: '../../../',
       params: {
         track_key: track['key'],
         topic_key: topic['key']
@@ -263,6 +265,7 @@ class StaticSiteBuilder
     # Wrap with layout
     html = render_with_layout(content_html,
       search_index: search_index,
+      base_path: '../../../',
       params: {
         track_key: track['key'],
         topic_key: topic['key']

@@ -7,7 +7,7 @@
 <div class="track-grid">
   <% @tracks.each do |track| %>
     <div class="track-card">
-      <a href="/tracks/<%= track['key'] %>">
+      <a href="tracks/<%= track['key'] %>/index.html">
         <div style="font-size: 32px; margin-bottom: 10px;"><%= track['icon'] %></div>
         <h3><%= track['name'] %></h3>
         <p style="color: #666; font-size: 14px; margin: 10px 0;"><%= track['description'] %></p>

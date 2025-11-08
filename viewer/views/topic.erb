@@ -1,11 +1,11 @@
 <nav style="margin-bottom: 20px;">
-  <a href="/tracks/<%= params[:track_key] %>">← <%= @track['name'] %></a>
+  <a href="../index.html">← <%= @track['name'] %></a>
 </nav>
 
 <!-- Previous/Next Navigation -->
 <div class="topic-navigation">
   <% if @adjacent[:prev] %>
-    <a href="/tracks/<%= params[:track_key] %>/topics/<%= @adjacent[:prev]['key'] %>" class="nav-button prev">
+    <a href="<%= @adjacent[:prev]['key'] %>.html" class="nav-button prev">
       <span class="arrow">←</span>
       <div>
         <div class="label">Previous</div>
@@ -23,7 +23,7 @@
   <% end %>
 
   <% if @adjacent[:next] %>
-    <a href="/tracks/<%= params[:track_key] %>/topics/<%= @adjacent[:next]['key'] %>" class="nav-button next">
+    <a href="<%= @adjacent[:next]['key'] %>.html" class="nav-button next">
       <div>
         <div class="label">Next</div>
         <div class="title"><%= @adjacent[:next]['name'] %></div>
@@ -194,7 +194,7 @@
 <!-- Bottom Navigation -->
 <div class="topic-navigation">
   <% if @adjacent[:prev] %>
-    <a href="/tracks/<%= params[:track_key] %>/topics/<%= @adjacent[:prev]['key'] %>" class="nav-button prev">
+    <a href="<%= @adjacent[:prev]['key'] %>.html" class="nav-button prev">
       <span class="arrow">←</span>
       <div>
         <div class="label">Previous</div>
@@ -212,7 +212,7 @@
   <% end %>
 
   <% if @adjacent[:next] %>
-    <a href="/tracks/<%= params[:track_key] %>/topics/<%= @adjacent[:next]['key'] %>" class="nav-button next">
+    <a href="<%= @adjacent[:next]['key'] %>.html" class="nav-button next">
       <div>
         <div class="label">Next</div>
         <div class="title"><%= @adjacent[:next]['name'] %></div>
