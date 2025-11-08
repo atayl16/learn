@@ -659,86 +659,79 @@
 
 <p>Ensure referential integrity: child rows must reference valid parent rows.</p>
 
-<p><strong>Migration:</strong><br>
-<code>ruby<br>
-class CreateOrders &lt; ActiveRecord::Migration[7.0]<br>
-  def change<br>
-    create_table :orders do |t|<br>
-      t.references :user, null: false, foreign_key: true<br>
-      t.decimal :total, precision: 10, scale: 2<br>
-      t.timestamps<br>
-    end<br>
-  end<br>
-end<br>
-</code></p>
+<p><strong>Migration:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CreateOrders</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">create_table</span> <span class="ss">:orders</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">references</span> <span class="ss">:user</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span><span class="p">,</span> <span class="ss">foreign_key: </span><span class="kp">true</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">decimal</span> <span class="ss">:total</span><span class="p">,</span> <span class="ss">precision: </span><span class="mi">10</span><span class="p">,</span> <span class="ss">scale: </span><span class="mi">2</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">timestamps</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p><strong>SQL generated:</strong><br>
-<code>sql<br>
-CREATE TABLE orders (<br>
-  id BIGSERIAL PRIMARY KEY,<br>
-  user_id BIGINT NOT NULL,<br>
-  total DECIMAL(10, 2),<br>
-  created_at TIMESTAMP NOT NULL,<br>
-  updated_at TIMESTAMP NOT NULL,<br>
-  CONSTRAINT fk_rails_abc123 FOREIGN KEY (user_id) REFERENCES users(id)<br>
-);<br>
-</code></p>
+</code></pre></div>
+<p><strong>SQL generated:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">orders</span> <span class="p">(</span>
+  <span class="n">id</span> <span class="n">BIGSERIAL</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+  <span class="n">user_id</span> <span class="nb">BIGINT</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="n">total</span> <span class="nb">DECIMAL</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+  <span class="n">created_at</span> <span class="nb">TIMESTAMP</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="n">updated_at</span> <span class="nb">TIMESTAMP</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+  <span class="k">CONSTRAINT</span> <span class="n">fk_rails_abc123</span> <span class="k">FOREIGN</span> <span class="k">KEY</span> <span class="p">(</span><span class="n">user_id</span><span class="p">)</span> <span class="k">REFERENCES</span> <span class="n">users</span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="p">);</span>
 
+</code></pre></div>
 <p><strong>Behavior:</strong><br>
 - Prevents inserting <code>order</code> with non-existent <code>user_id</code><br>
 - Prevents deleting <code>user</code> with existing <code>orders</code> (unless <code>ON DELETE CASCADE</code>)</p>
 
-<p><strong>On delete options:</strong><br>
-```ruby<br>
-t.references :user, foreign_key: { on_delete: :cascade }</p>
+<p><strong>On delete options:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">t</span><span class="p">.</span><span class="nf">references</span> <span class="ss">:user</span><span class="p">,</span> <span class="ss">foreign_key: </span><span class="p">{</span> <span class="ss">on_delete: :cascade</span> <span class="p">}</span>
+<span class="c1"># Deletes orders when user is deleted</span>
 
-<h1>Deletes orders when user is deleted</h1>
+<span class="n">t</span><span class="p">.</span><span class="nf">references</span> <span class="ss">:user</span><span class="p">,</span> <span class="ss">foreign_key: </span><span class="p">{</span> <span class="ss">on_delete: :nullify</span> <span class="p">}</span>
+<span class="c1"># Sets user_id to NULL when user is deleted</span>
 
-<p>t.references :user, foreign_key: { on_delete: :nullify }</p>
+<span class="n">t</span><span class="p">.</span><span class="nf">references</span> <span class="ss">:user</span><span class="p">,</span> <span class="ss">foreign_key: </span><span class="p">{</span> <span class="ss">on_delete: :restrict</span> <span class="p">}</span>
+<span class="c1"># Prevents deleting user with orders (default)</span>
 
-<h1>Sets user_id to NULL when user is deleted</h1>
-
-<p>t.references :user, foreign_key: { on_delete: :restrict }</p>
-
-<h1>Prevents deleting user with orders (default)</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
----
-
-## Unique Constraints
-
-Prevent duplicate values across one or more columns.
-
-**Single column:**
-```ruby
-class AddUniqueIndexToUsersEmail &lt; ActiveRecord::Migration[7.0]
-  def change
-    add_index :users, :email, unique: true
-  end
-end
 </code></pre></div>
-<p><strong>SQL:</strong><br>
-<code>sql<br>
-CREATE UNIQUE INDEX index_users_on_email ON users (email);<br>
-</code></p>
+<hr>
 
-<p><strong>Multi-column (composite unique):</strong><br>
-```ruby<br>
-add_index :enrollments, [:user_id, :course_id], unique: true</p>
+<h2>Unique Constraints</h2>
 
-<h1>Ensures user can enroll in each course only once</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Unique constraint (Rails 6.1+):**
-```ruby
-create_table :products do |t|
-  t.string :sku, null: false
-end
+<p>Prevent duplicate values across one or more columns.</p>
 
-add_index :products, :sku, unique: true, name: 'unique_sku'
+<p><strong>Single column:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">AddUniqueIndexToUsersEmail</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">add_index</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">unique: </span><span class="kp">true</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-# Or with constraint
-execute &lt;&lt;-SQL
+</code></pre></div>
+<p><strong>SQL:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">CREATE</span> <span class="k">UNIQUE</span> <span class="k">INDEX</span> <span class="n">index_users_on_email</span> <span class="k">ON</span> <span class="n">users</span> <span class="p">(</span><span class="n">email</span><span class="p">);</span>
+
+</code></pre></div>
+<p><strong>Multi-column (composite unique):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">add_index</span> <span class="ss">:enrollments</span><span class="p">,</span> <span class="p">[</span><span class="ss">:user_id</span><span class="p">,</span> <span class="ss">:course_id</span><span class="p">],</span> <span class="ss">unique: </span><span class="kp">true</span>
+<span class="c1"># Ensures user can enroll in each course only once</span>
+
+</code></pre></div>
+<p><strong>Unique constraint (Rails 6.1+):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">create_table</span> <span class="ss">:products</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:sku</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+<span class="k">end</span>
+
+<span class="n">add_index</span> <span class="ss">:products</span><span class="p">,</span> <span class="ss">:sku</span><span class="p">,</span> <span class="ss">unique: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">name: </span><span class="s1">'unique_sku'</span>
+
+<span class="c1"># Or with constraint</span>
+<span class="n">execute</span> <span class="o">&lt;&lt;-</span><span class="no">SQL</span><span class="sh">
   ALTER TABLE products ADD CONSTRAINT unique_sku UNIQUE (sku);
-SQL
+</span><span class="no">SQL</span>
+
 </code></pre></div>
 <hr>
 
@@ -746,42 +739,38 @@ SQL
 
 <p>Validate data meets conditions.</p>
 
-<p><strong>Rails 6.1+ syntax:</strong><br>
-```ruby<br>
-class CreateProducts &lt; ActiveRecord::Migration[7.0]<br>
-  def change<br>
-    create_table :products do |t|<br>
-      t.string :name, null: false<br>
-      t.decimal :price, precision: 10, scale: 2<br>
-      t.integer :quantity</p>
-<div class="highlight"><pre class="highlight plaintext"><code>  t.check_constraint "price &gt; 0", name: "price_positive"
-  t.check_constraint "quantity &gt;= 0", name: "quantity_non_negative"
-  t.timestamps
-end
+<p><strong>Rails 6.1+ syntax:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CreateProducts</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">create_table</span> <span class="ss">:products</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">decimal</span> <span class="ss">:price</span><span class="p">,</span> <span class="ss">precision: </span><span class="mi">10</span><span class="p">,</span> <span class="ss">scale: </span><span class="mi">2</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">integer</span> <span class="ss">:quantity</span>
+
+      <span class="n">t</span><span class="p">.</span><span class="nf">check_constraint</span> <span class="s2">"price &gt; 0"</span><span class="p">,</span> <span class="ss">name: </span><span class="s2">"price_positive"</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">check_constraint</span> <span class="s2">"quantity &gt;= 0"</span><span class="p">,</span> <span class="ss">name: </span><span class="s2">"quantity_non_negative"</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">timestamps</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
+<p><strong>SQL:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">products</span> <span class="p">(</span>
+  <span class="p">...</span>
+  <span class="k">CONSTRAINT</span> <span class="n">price_positive</span> <span class="k">CHECK</span> <span class="p">(</span><span class="n">price</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">),</span>
+  <span class="k">CONSTRAINT</span> <span class="n">quantity_non_negative</span> <span class="k">CHECK</span> <span class="p">(</span><span class="n">quantity</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+<span class="p">);</span>
 
-<p><strong>SQL:</strong><br>
-<code>sql<br>
-CREATE TABLE products (<br>
-  ...<br>
-  CONSTRAINT price_positive CHECK (price &gt; 0),<br>
-  CONSTRAINT quantity_non_negative CHECK (quantity &gt;= 0)<br>
-);<br>
-</code></p>
+</code></pre></div>
+<p><strong>Adding constraint to existing table:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">add_check_constraint</span> <span class="ss">:products</span><span class="p">,</span> <span class="s2">"price &gt; 0"</span><span class="p">,</span> <span class="ss">name: </span><span class="s2">"price_positive"</span>
 
-<p><strong>Adding constraint to existing table:</strong><br>
-<code>ruby<br>
-add_check_constraint :products, &quot;price &gt; 0&quot;, name: &quot;price_positive&quot;<br>
-</code></p>
+</code></pre></div>
+<p><strong>Removing:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">remove_check_constraint</span> <span class="ss">:products</span><span class="p">,</span> <span class="ss">name: </span><span class="s2">"price_positive"</span>
 
-<p><strong>Removing:</strong><br>
-<code>ruby<br>
-remove_check_constraint :products, name: &quot;price_positive&quot;<br>
-</code></p>
-
+</code></pre></div>
 <hr>
 
 <h2>NOT NULL Constraints</h2>
@@ -797,99 +786,99 @@ remove_check_constraint :products, name: &quot;price_positive&quot;<br>
     <span class="k">end</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
-<p><strong>Adding to existing column:</strong><br>
-<code>ruby<br>
-change_column_null :users, :email, false<br>
-</code></p>
+<p><strong>Adding to existing column:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">change_column_null</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="kp">false</span>
 
-<p><strong>Safe multi-step process (zero-downtime):</strong><br>
-```ruby</p>
+</code></pre></div>
+<p><strong>Safe multi-step process (zero-downtime):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Step 1: Add default for existing NULLs</span>
+<span class="n">update</span><span class="p">(</span><span class="s2">"UPDATE users SET email = '' WHERE email IS NULL"</span><span class="p">)</span>
 
-<h1>Step 1: Add default for existing NULLs</h1>
+<span class="c1"># Step 2: Add constraint</span>
+<span class="n">change_column_null</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="kp">false</span>
 
-<p>update(&quot;UPDATE users SET email = &#39;&#39; WHERE email IS NULL&quot;)</p>
-
-<h1>Step 2: Add constraint</h1>
-
-<p>change_column_null :users, :email, false<br>
-```</p>
-
+</code></pre></div>
 <hr>
 
 <h2>Exclusion Constraints (Advanced)</h2>
 
 <p>Prevent overlapping ranges (Postgres-specific).</p>
 
-<p><strong>Example: No overlapping reservations</strong><br>
-```ruby<br>
-execute &lt;&lt;-SQL<br>
-  CREATE EXTENSION IF NOT EXISTS btree_gist;</p>
+<p><strong>Example: No overlapping reservations</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">execute</span> <span class="o">&lt;&lt;-</span><span class="no">SQL</span><span class="sh">
+  CREATE EXTENSION IF NOT EXISTS btree_gist;
 
-<p>ALTER TABLE reservations<br>
-  ADD CONSTRAINT no_overlap<br>
-  EXCLUDE USING gist (<br>
-    room_id WITH =,<br>
-    tsrange(start_time, end_time) WITH &amp;&amp;<br>
-  );<br>
-SQL<br>
-```</p>
+  ALTER TABLE reservations
+  ADD CONSTRAINT no_overlap
+  EXCLUDE USING gist (
+    room_id WITH =,
+    tsrange(start_time, end_time) WITH &amp;&amp;
+  );
+</span><span class="no">SQL</span>
 
+</code></pre></div>
 <p>This prevents reservations for the same room during overlapping times.</p>
 
 <hr>
 
 <h2>Constraint Violations</h2>
 
-<p><strong>Handling errors:</strong><br>
-```ruby<br>
-user = User.create(email: existing_email)</p>
+<p><strong>Handling errors:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">email: </span><span class="n">existing_email</span><span class="p">)</span>
+<span class="c1"># ActiveRecord::RecordNotUnique: PG::UniqueViolation: ERROR:  duplicate key value violates unique constraint "index_users_on_email"</span>
 
-<h1>ActiveRecord::RecordNotUnique: PG::UniqueViolation: ERROR:  duplicate key value violates unique constraint &quot;index_users_on_email&quot;</h1>
+<span class="k">begin</span>
+  <span class="no">User</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">email: </span><span class="n">existing_email</span><span class="p">)</span>
+<span class="k">rescue</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">RecordNotUnique</span>
+  <span class="c1"># Handle duplicate</span>
+<span class="k">end</span>
 
-<p>begin<br>
-  User.create!(email: existing_email)<br>
-rescue ActiveRecord::RecordNotUnique<br>
-  # Handle duplicate<br>
-end<br>
-```</p>
-
-<p><strong>Check constraint violation:</strong><br>
-```ruby<br>
-Product.create!(name: &quot;Widget&quot;, price: -10)</p>
-
-<h1>ActiveRecord::StatementInvalid: PG::CheckViolation: ERROR:  new row for relation &quot;products&quot; violates check constraint &quot;price_positive&quot;</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
----
-
-## Trade-offs Box
-- **Advantage:** Database constraints enforce integrity even when application code fails. Protect against bulk imports, console errors, and bugs.
-- **Cost:** Constraints add overhead to writes. Complex check constraints can slow inserts/updates.
-- **When to skip:** Rarely. Only skip FKs if using soft deletes or polymorphic associations without a clear parent.
-
----
-
-## Debugging Checklist
-
-When constraint errors occur:
-
-1. Check error message for constraint name: `violates unique constraint "index_users_on_email"`
-2. Find constraint in schema.rb or `\d table_name` in psql
-3. For unique violations: check for race conditions (use `find_or_create_by` or locks)
-4. For FK violations: verify parent record exists before inserting child
-5. For check violations: inspect data values that failed
-6. List all constraints: `SELECT conname, contype FROM pg_constraint WHERE conrelid = 'table_name'::regclass;`
-7. Disable constraint temporarily (dev only): `SET CONSTRAINTS constraint_name DEFERRED;`
-
----
-
-## One-Minute Recap
-- Foreign keys enforce referential integrity; always add them for associations
-- Unique constraints prevent duplicates; use for business-critical uniqueness (email, SKU)
-- Check constraints validate data ranges (price &gt; 0); add both DB constraint and Rails validation
-- NOT NULL ensures required fields; use for critical columns
-- Constraints protect data integrity when application validations fail
 </code></pre></div>
+<p><strong>Check constraint violation:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Product</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">name: </span><span class="s2">"Widget"</span><span class="p">,</span> <span class="ss">price: </span><span class="o">-</span><span class="mi">10</span><span class="p">)</span>
+<span class="c1"># ActiveRecord::StatementInvalid: PG::CheckViolation: ERROR:  new row for relation "products" violates check constraint "price_positive"</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Trade-offs Box</h2>
+
+<ul>
+<li><strong>Advantage:</strong> Database constraints enforce integrity even when application code fails. Protect against bulk imports, console errors, and bugs.</li>
+<li><strong>Cost:</strong> Constraints add overhead to writes. Complex check constraints can slow inserts/updates.</li>
+<li><strong>When to skip:</strong> Rarely. Only skip FKs if using soft deletes or polymorphic associations without a clear parent.</li>
+</ul>
+
+<hr>
+
+<h2>Debugging Checklist</h2>
+
+<p>When constraint errors occur:</p>
+
+<ol>
+<li>Check error message for constraint name: <code>violates unique constraint &quot;index_users_on_email&quot;</code></li>
+<li>Find constraint in schema.rb or <code>\d table_name</code> in psql</li>
+<li>For unique violations: check for race conditions (use <code>find_or_create_by</code> or locks)</li>
+<li>For FK violations: verify parent record exists before inserting child</li>
+<li>For check violations: inspect data values that failed</li>
+<li>List all constraints: <code>SELECT conname, contype FROM pg_constraint WHERE conrelid = &#39;table_name&#39;::regclass;</code></li>
+<li>Disable constraint temporarily (dev only): <code>SET CONSTRAINTS constraint_name DEFERRED;</code></li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>Foreign keys enforce referential integrity; always add them for associations</li>
+<li>Unique constraints prevent duplicates; use for business-critical uniqueness (email, SKU)</li>
+<li>Check constraints validate data ranges (price &gt; 0); add both DB constraint and Rails validation</li>
+<li>NOT NULL ensures required fields; use for critical columns</li>
+<li>Constraints protect data integrity when application validations fail</li>
+</ul>
+
     
   </div>
 </div>

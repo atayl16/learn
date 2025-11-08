@@ -678,13 +678,13 @@
     <span class="k">raise</span>
   <span class="k">end</span>
 <span class="k">end</span>
-</code></pre></div>
-<p><strong>Log output:</strong><br>
-<code><br>
-[ReportGenerator] [user:123] [type:monthly] Starting report generation<br>
-[ReportGenerator] [user:123] [type:monthly] Report generated successfully: 456<br>
-</code></p>
 
+</code></pre></div>
+<p><strong>Log output:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>[ReportGenerator] [user:123] [type:monthly] Starting report generation
+[ReportGenerator] [user:123] [type:monthly] Report generated successfully: 456
+
+</code></pre></div>
 <p>Search logs: <code>grep &quot;user:123&quot; log/sidekiq.log</code></p>
 
 <hr>
@@ -712,6 +712,7 @@
     <span class="no">StatsD</span><span class="p">.</span><span class="nf">histogram</span><span class="p">(</span><span class="s1">'sidekiq.job.duration'</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="ss">tags: </span><span class="p">[</span><span class="s2">"job:</span><span class="si">#{</span><span class="n">job_name</span><span class="si">}</span><span class="s2">"</span><span class="p">])</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Metrics exposed:<br>
 - <code>sidekiq.job.success</code> (count)<br>
@@ -767,6 +768,7 @@
     <span class="n">chain</span><span class="p">.</span><span class="nf">add</span> <span class="no">JobMetricsMiddleware</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Middleware runs for every job, providing centralized instrumentation.</p>
 
@@ -814,6 +816,7 @@
 
   <span class="k">class</span> <span class="nc">RateLimitError</span> <span class="o">&lt;</span> <span class="no">StandardError</span><span class="p">;</span> <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><strong>Backoff patterns:</strong><br>
 - <strong>Linear:</strong> <code>count * 60</code> (1min, 2min, 3min...)<br>
@@ -847,6 +850,7 @@
     <span class="n">chain</span><span class="p">.</span><span class="nf">add</span> <span class="no">QueueLatencyMiddleware</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Alert when latency exceeds thresholds (queue backlog).</p>
 
@@ -884,6 +888,7 @@
     <span class="c1"># Send email</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Dashboard queries (Datadog example):<br>
 - Success rate: <code>sum(email_worker.success) / (sum(email_worker.success) + sum(email_worker.failure))</code><br>
@@ -969,223 +974,216 @@
 <h2>Verification Steps</h2>
 
 <ol>
-<li>Start Sidekiq and enqueue a successful job:
-<code>ruby
-ApiCallWorker.perform_async(123, &#39;https://api.example.com/data&#39;)
-</code></li>
+<li>Start Sidekiq and enqueue a successful job:</li>
 </ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">ApiCallWorker</span><span class="p">.</span><span class="nf">perform_async</span><span class="p">(</span><span class="mi">123</span><span class="p">,</span> <span class="s1">'https://api.example.com/data'</span><span class="p">)</span>
 
-<p>Check logs for:<br>
-<code><br>
-[ApiCallWorker] [user:123] [jid:abc123] Starting API call<br>
-[ApiCallWorker] [user:123] [jid:abc123] Completed successfully in 1.23s<br>
-Metric: background_job.success job:ApiCallWorker<br>
-</code></p>
+</code></pre></div>
+<p>Check logs for:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>[ApiCallWorker] [user:123] [jid:abc123] Starting API call
+[ApiCallWorker] [user:123] [jid:abc123] Completed successfully in 1.23s
+Metric: background_job.success job:ApiCallWorker
 
+</code></pre></div>
 <ol>
-<li>Simulate timeout error:
-<code>ruby
-ENV[&#39;SIMULATE_TIMEOUT&#39;] = &#39;true&#39;
-ApiCallWorker.perform_async(456, &#39;https://slow-api.example.com&#39;)
-</code></li>
+<li>Simulate timeout error:</li>
 </ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">ENV</span><span class="p">[</span><span class="s1">'SIMULATE_TIMEOUT'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'true'</span>
+<span class="no">ApiCallWorker</span><span class="p">.</span><span class="nf">perform_async</span><span class="p">(</span><span class="mi">456</span><span class="p">,</span> <span class="s1">'https://slow-api.example.com'</span><span class="p">)</span>
 
+</code></pre></div>
 <p>Verify exponential backoff in retry schedule.</p>
 
 <ol>
-<li>Check middleware metrics in logs:
-<code>
-Queue latency: default - 0.05s
-Job duration: ApiCallWorker - 1234ms
-</code></li>
+<li>Check middleware metrics in logs:</li>
 </ol>
+<div class="highlight"><pre class="highlight plaintext"><code>Queue latency: default - 0.05s
+Job duration: ApiCallWorker - 1234ms
 
+</code></pre></div>
 <h2>Setup Code</h2>
 
 <h3>Step 1: Create Metrics Helper</h3>
 
-<p>Create <code>lib/metrics.rb</code>:<br>
-```ruby<br>
-module Metrics<br>
-  def self.increment(metric_name, tags: [])<br>
-    tag_str = tags.join(&#39; &#39;)<br>
-    Rails.logger.info &quot;Metric: #{metric_name} #{tag_str}&quot;</p>
-<div class="highlight"><pre class="highlight plaintext"><code># In production, send to actual metrics service:
-# StatsD.increment(metric_name, tags: tags)
-</code></pre></div>
-<p>end</p>
+<p>Create <code>lib/metrics.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">Metrics</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">increment</span><span class="p">(</span><span class="n">metric_name</span><span class="p">,</span> <span class="ss">tags: </span><span class="p">[])</span>
+    <span class="n">tag_str</span> <span class="o">=</span> <span class="n">tags</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">' '</span><span class="p">)</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Metric: </span><span class="si">#{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2"> </span><span class="si">#{</span><span class="n">tag_str</span><span class="si">}</span><span class="s2">"</span>
 
-<p>def self.histogram(metric_name, value, tags: [])<br>
-    tag_str = tags.join(&#39; &#39;)<br>
-    Rails.logger.info &quot;Metric: #{metric_name}=#{value} #{tag_str}&quot;</p>
-<div class="highlight"><pre class="highlight plaintext"><code># In production:
-# StatsD.histogram(metric_name, value, tags: tags)
-</code></pre></div>
-<p>end</p>
+    <span class="c1"># In production, send to actual metrics service:</span>
+    <span class="c1"># StatsD.increment(metric_name, tags: tags)</span>
+  <span class="k">end</span>
 
-<p>def self.gauge(metric_name, value, tags: [])<br>
-    tag_str = tags.join(&#39; &#39;)<br>
-    Rails.logger.info &quot;Metric: #{metric_name}=#{value} #{tag_str}&quot;</p>
-<div class="highlight"><pre class="highlight plaintext"><code># In production:
-# StatsD.gauge(metric_name, value, tags: tags)
-</code></pre></div>
-<p>end<br>
-end<br>
-```</p>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">histogram</span><span class="p">(</span><span class="n">metric_name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="ss">tags: </span><span class="p">[])</span>
+    <span class="n">tag_str</span> <span class="o">=</span> <span class="n">tags</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">' '</span><span class="p">)</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Metric: </span><span class="si">#{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">=</span><span class="si">#{</span><span class="n">value</span><span class="si">}</span><span class="s2"> </span><span class="si">#{</span><span class="n">tag_str</span><span class="si">}</span><span class="s2">"</span>
 
+    <span class="c1"># In production:</span>
+    <span class="c1"># StatsD.histogram(metric_name, value, tags: tags)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">gauge</span><span class="p">(</span><span class="n">metric_name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="ss">tags: </span><span class="p">[])</span>
+    <span class="n">tag_str</span> <span class="o">=</span> <span class="n">tags</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">' '</span><span class="p">)</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Metric: </span><span class="si">#{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">=</span><span class="si">#{</span><span class="n">value</span><span class="si">}</span><span class="s2"> </span><span class="si">#{</span><span class="n">tag_str</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="c1"># In production:</span>
+    <span class="c1"># StatsD.gauge(metric_name, value, tags: tags)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
 <h3>Step 2: Create Instrumentation Middleware</h3>
 
-<p>Create <code>app/middleware/job_instrumentation_middleware.rb</code>:<br>
-```ruby<br>
-class JobInstrumentationMiddleware<br>
-  def call(worker, job, queue)<br>
-    job_class = job[&#39;class&#39;]<br>
-    job_id = job[&#39;jid&#39;]<br>
-    enqueued_at = job[&#39;enqueued_at&#39;] || job[&#39;created_at&#39;]</p>
-<div class="highlight"><pre class="highlight plaintext"><code># Measure queue latency
-queue_latency = Time.now.to_f - enqueued_at.to_f
-Metrics.histogram('sidekiq.queue.latency', queue_latency, tags: ["queue:#{queue}"])
+<p>Create <code>app/middleware/job_instrumentation_middleware.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">JobInstrumentationMiddleware</span>
+  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">worker</span><span class="p">,</span> <span class="n">job</span><span class="p">,</span> <span class="n">queue</span><span class="p">)</span>
+    <span class="n">job_class</span> <span class="o">=</span> <span class="n">job</span><span class="p">[</span><span class="s1">'class'</span><span class="p">]</span>
+    <span class="n">job_id</span> <span class="o">=</span> <span class="n">job</span><span class="p">[</span><span class="s1">'jid'</span><span class="p">]</span>
+    <span class="n">enqueued_at</span> <span class="o">=</span> <span class="n">job</span><span class="p">[</span><span class="s1">'enqueued_at'</span><span class="p">]</span> <span class="o">||</span> <span class="n">job</span><span class="p">[</span><span class="s1">'created_at'</span><span class="p">]</span>
 
-Rails.logger.info "Queue latency: #{queue} - #{queue_latency.round(2)}s"
+    <span class="c1"># Measure queue latency</span>
+    <span class="n">queue_latency</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="p">.</span><span class="nf">to_f</span> <span class="o">-</span> <span class="n">enqueued_at</span><span class="p">.</span><span class="nf">to_f</span>
+    <span class="no">Metrics</span><span class="p">.</span><span class="nf">histogram</span><span class="p">(</span><span class="s1">'sidekiq.queue.latency'</span><span class="p">,</span> <span class="n">queue_latency</span><span class="p">,</span> <span class="ss">tags: </span><span class="p">[</span><span class="s2">"queue:</span><span class="si">#{</span><span class="n">queue</span><span class="si">}</span><span class="s2">"</span><span class="p">])</span>
 
-start_time = Time.current
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Queue latency: </span><span class="si">#{</span><span class="n">queue</span><span class="si">}</span><span class="s2"> - </span><span class="si">#{</span><span class="n">queue_latency</span><span class="p">.</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">s"</span>
 
-yield  # Execute job
+    <span class="n">start_time</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
 
-# Success path
-duration = (Time.current - start_time) * 1000  # milliseconds
-Rails.logger.info "Job succeeded: #{job_class} [#{job_id}] in #{duration.round(0)}ms"
+    <span class="k">yield</span>  <span class="c1"># Execute job</span>
 
-Metrics.increment('background_job.success', tags: ["job:#{job_class}"])
-Metrics.histogram('background_job.duration', duration, tags: ["job:#{job_class}"])
+    <span class="c1"># Success path</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="p">(</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span>  <span class="c1"># milliseconds</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Job succeeded: </span><span class="si">#{</span><span class="n">job_class</span><span class="si">}</span><span class="s2"> [</span><span class="si">#{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">] in </span><span class="si">#{</span><span class="n">duration</span><span class="p">.</span><span class="nf">round</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="s2">ms"</span>
+
+    <span class="no">Metrics</span><span class="p">.</span><span class="nf">increment</span><span class="p">(</span><span class="s1">'background_job.success'</span><span class="p">,</span> <span class="ss">tags: </span><span class="p">[</span><span class="s2">"job:</span><span class="si">#{</span><span class="n">job_class</span><span class="si">}</span><span class="s2">"</span><span class="p">])</span>
+    <span class="no">Metrics</span><span class="p">.</span><span class="nf">histogram</span><span class="p">(</span><span class="s1">'background_job.duration'</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="ss">tags: </span><span class="p">[</span><span class="s2">"job:</span><span class="si">#{</span><span class="n">job_class</span><span class="si">}</span><span class="s2">"</span><span class="p">])</span>
+
+  <span class="k">rescue</span> <span class="no">StandardError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="p">(</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span>
+    <span class="n">error_class</span> <span class="o">=</span> <span class="n">e</span><span class="p">.</span><span class="nf">class</span><span class="p">.</span><span class="nf">name</span>
+
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span> <span class="s2">"Job failed: </span><span class="si">#{</span><span class="n">job_class</span><span class="si">}</span><span class="s2"> [</span><span class="si">#{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">] after </span><span class="si">#{</span><span class="n">duration</span><span class="p">.</span><span class="nf">round</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="s2">ms - </span><span class="si">#{</span><span class="n">error_class</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="no">Metrics</span><span class="p">.</span><span class="nf">increment</span><span class="p">(</span><span class="s1">'background_job.failure'</span><span class="p">,</span> <span class="ss">tags: </span><span class="p">[</span><span class="s2">"job:</span><span class="si">#{</span><span class="n">job_class</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"error:</span><span class="si">#{</span><span class="n">error_class</span><span class="si">}</span><span class="s2">"</span><span class="p">])</span>
+    <span class="no">Metrics</span><span class="p">.</span><span class="nf">histogram</span><span class="p">(</span><span class="s1">'background_job.duration'</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="ss">tags: </span><span class="p">[</span><span class="s2">"job:</span><span class="si">#{</span><span class="n">job_class</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"status:failure"</span><span class="p">])</span>
+
+    <span class="k">raise</span>  <span class="c1"># Re-raise for retry</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>rescue StandardError =&gt; e<br>
-    duration = (Time.current - start_time) * 1000<br>
-    error_class = e.class.name</p>
-<div class="highlight"><pre class="highlight plaintext"><code>Rails.logger.error "Job failed: #{job_class} [#{job_id}] after #{duration.round(0)}ms - #{error_class}: #{e.message}"
+<p>Configure in <code>config/initializers/sidekiq.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Sidekiq</span><span class="p">.</span><span class="nf">configure_server</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">redis</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">url: </span><span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'REDIS_URL'</span><span class="p">,</span> <span class="s1">'redis://localhost:6379/1'</span><span class="p">)</span> <span class="p">}</span>
 
-Metrics.increment('background_job.failure', tags: ["job:#{job_class}", "error:#{error_class}"])
-Metrics.histogram('background_job.duration', duration, tags: ["job:#{job_class}", "status:failure"])
+  <span class="n">config</span><span class="p">.</span><span class="nf">server_middleware</span> <span class="k">do</span> <span class="o">|</span><span class="n">chain</span><span class="o">|</span>
+    <span class="n">chain</span><span class="p">.</span><span class="nf">add</span> <span class="no">JobInstrumentationMiddleware</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-raise  # Re-raise for retry
+<span class="no">Sidekiq</span><span class="p">.</span><span class="nf">configure_client</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">redis</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">url: </span><span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'REDIS_URL'</span><span class="p">,</span> <span class="s1">'redis://localhost:6379/1'</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
-
-<p>Configure in <code>config/initializers/sidekiq.rb</code>:<br>
-```ruby<br>
-Sidekiq.configure_server do |config|<br>
-  config.redis = { url: ENV.fetch(&#39;REDIS_URL&#39;, &#39;redis://localhost:6379/1&#39;) }</p>
-
-<p>config.server_middleware do |chain|<br>
-    chain.add JobInstrumentationMiddleware<br>
-  end<br>
-end</p>
-
-<p>Sidekiq.configure_client do |config|<br>
-  config.redis = { url: ENV.fetch(&#39;REDIS_URL&#39;, &#39;redis://localhost:6379/1&#39;) }<br>
-end<br>
-```</p>
-
 <h3>Step 3: Create Worker with Custom Backoff</h3>
 
-<p>Create <code>app/workers/api_call_worker.rb</code>:<br>
-```ruby<br>
-class ApiCallWorker<br>
-  include Sidekiq::Worker<br>
-  sidekiq_options queue: :api_calls, retry: 8</p>
+<p>Create <code>app/workers/api_call_worker.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ApiCallWorker</span>
+  <span class="kp">include</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Worker</span>
+  <span class="n">sidekiq_options</span> <span class="ss">queue: :api_calls</span><span class="p">,</span> <span class="ss">retry: </span><span class="mi">8</span>
 
-<p>def perform(user_id, endpoint)<br>
-    Rails.logger.tagged(&#39;ApiCallWorker&#39;, &quot;user:#{user_id}&quot;, &quot;jid:#{jid}&quot;) do<br>
-      Rails.logger.info &quot;Starting API call to #{endpoint}&quot;</p>
-<div class="highlight"><pre class="highlight plaintext"><code>  response = make_api_call(endpoint)
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">)</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">tagged</span><span class="p">(</span><span class="s1">'ApiCallWorker'</span><span class="p">,</span> <span class="s2">"user:</span><span class="si">#{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"jid:</span><span class="si">#{</span><span class="n">jid</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="k">do</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Starting API call to </span><span class="si">#{</span><span class="n">endpoint</span><span class="si">}</span><span class="s2">"</span>
 
-  Rails.logger.info "Completed successfully: #{response.code}"
-end
+      <span class="n">response</span> <span class="o">=</span> <span class="n">make_api_call</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)</span>
+
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Completed successfully: </span><span class="si">#{</span><span class="n">response</span><span class="p">.</span><span class="nf">code</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="n">sidekiq_retry_in</span> <span class="k">do</span> <span class="o">|</span><span class="n">count</span><span class="p">,</span> <span class="n">exception</span><span class="o">|</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">warn</span> <span class="s2">"Retry attempt </span><span class="si">#{</span><span class="n">count</span><span class="si">}</span><span class="s2"> due to </span><span class="si">#{</span><span class="n">exception</span><span class="p">.</span><span class="nf">class</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="k">case</span> <span class="n">exception</span>
+    <span class="k">when</span> <span class="no">Net</span><span class="o">::</span><span class="no">ReadTimeout</span><span class="p">,</span> <span class="no">Net</span><span class="o">::</span><span class="no">OpenTimeout</span><span class="p">,</span> <span class="no">Timeout</span><span class="o">::</span><span class="no">Error</span>
+      <span class="c1"># Exponential backoff: 60s, 240s, 540s, 960s...</span>
+      <span class="n">delay</span> <span class="o">=</span> <span class="p">(</span><span class="n">count</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">60</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Timeout error, retrying in </span><span class="si">#{</span><span class="n">delay</span><span class="si">}</span><span class="s2">s"</span>
+      <span class="n">delay</span>
+
+    <span class="k">when</span> <span class="no">RateLimitError</span>
+      <span class="c1"># Longer backoff for rate limits: 5min, 10min, 20min, 40min...</span>
+      <span class="n">delay</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">count</span><span class="p">)</span> <span class="o">*</span> <span class="mi">5</span><span class="p">.</span><span class="nf">minutes</span><span class="p">.</span><span class="nf">to_i</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Rate limit error, retrying in </span><span class="si">#{</span><span class="n">delay</span><span class="si">}</span><span class="s2">s"</span>
+      <span class="n">delay</span>
+
+    <span class="k">when</span> <span class="no">ApiServerError</span>
+      <span class="c1"># Medium backoff: 2min, 4min, 8min...</span>
+      <span class="n">delay</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">count</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">.</span><span class="nf">minutes</span><span class="p">.</span><span class="nf">to_i</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Server error, retrying in </span><span class="si">#{</span><span class="n">delay</span><span class="si">}</span><span class="s2">s"</span>
+      <span class="n">delay</span>
+
+    <span class="k">else</span>
+      <span class="c1"># Use default Sidekiq backoff</span>
+      <span class="kp">nil</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="n">sidekiq_retries_exhausted</span> <span class="k">do</span> <span class="o">|</span><span class="n">job</span><span class="p">,</span> <span class="n">exception</span><span class="o">|</span>
+    <span class="n">user_id</span> <span class="o">=</span> <span class="n">job</span><span class="p">[</span><span class="s1">'args'</span><span class="p">].</span><span class="nf">first</span>
+    <span class="n">endpoint</span> <span class="o">=</span> <span class="n">job</span><span class="p">[</span><span class="s1">'args'</span><span class="p">].</span><span class="nf">last</span>
+
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span> <span class="s2">"ALERT: ApiCallWorker exhausted retries for user </span><span class="si">#{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">, endpoint </span><span class="si">#{</span><span class="n">endpoint</span><span class="si">}</span><span class="s2">"</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span> <span class="s2">"Final error: </span><span class="si">#{</span><span class="n">exception</span><span class="p">.</span><span class="nf">class</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> - </span><span class="si">#{</span><span class="n">exception</span><span class="p">.</span><span class="nf">message</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="c1"># Increment alert metric</span>
+    <span class="no">Metrics</span><span class="p">.</span><span class="nf">increment</span><span class="p">(</span><span class="s1">'background_job.exhausted'</span><span class="p">,</span> <span class="ss">tags: </span><span class="p">[</span><span class="s2">"job:ApiCallWorker"</span><span class="p">,</span> <span class="s2">"error:</span><span class="si">#{</span><span class="n">exception</span><span class="p">.</span><span class="nf">class</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">"</span><span class="p">])</span>
+
+    <span class="c1"># In production, trigger PagerDuty or Slack alert</span>
+    <span class="c1"># AlertService.notify(</span>
+    <span class="c1">#   title: 'Background job failed permanently',</span>
+    <span class="c1">#   details: { job: job, error: exception.message }</span>
+    <span class="c1"># )</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">make_api_call</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)</span>
+    <span class="c1"># Simulate different error scenarios</span>
+    <span class="k">if</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'SIMULATE_TIMEOUT'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'true'</span>
+      <span class="nb">sleep</span> <span class="mi">2</span>
+      <span class="k">raise</span> <span class="no">Net</span><span class="o">::</span><span class="no">ReadTimeout</span><span class="p">,</span> <span class="s1">'Request timeout after 2s'</span>
+    <span class="k">end</span>
+
+    <span class="k">if</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'SIMULATE_RATE_LIMIT'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'true'</span>
+      <span class="k">raise</span> <span class="no">RateLimitError</span><span class="p">,</span> <span class="s1">'Rate limit exceeded: 429 Too Many Requests'</span>
+    <span class="k">end</span>
+
+    <span class="k">if</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'SIMULATE_SERVER_ERROR'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'true'</span>
+      <span class="k">raise</span> <span class="no">ApiServerError</span><span class="p">,</span> <span class="s1">'500 Internal Server Error'</span>
+    <span class="k">end</span>
+
+    <span class="c1"># Successful response</span>
+    <span class="no">OpenStruct</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">code: </span><span class="mi">200</span><span class="p">,</span> <span class="ss">body: </span><span class="s1">'{"status": "ok"}'</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">class</span> <span class="nc">RateLimitError</span> <span class="o">&lt;</span> <span class="no">StandardError</span><span class="p">;</span> <span class="k">end</span>
+  <span class="k">class</span> <span class="nc">ApiServerError</span> <span class="o">&lt;</span> <span class="no">StandardError</span><span class="p">;</span> <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end</p>
-
-<p>sidekiq_retry_in do |count, exception|<br>
-    Rails.logger.warn &quot;Retry attempt #{count} due to #{exception.class.name}&quot;</p>
-<div class="highlight"><pre class="highlight plaintext"><code>case exception
-when Net::ReadTimeout, Net::OpenTimeout, Timeout::Error
-  # Exponential backoff: 60s, 240s, 540s, 960s...
-  delay = (count ** 2) * 60
-  Rails.logger.info "Timeout error, retrying in #{delay}s"
-  delay
-
-when RateLimitError
-  # Longer backoff for rate limits: 5min, 10min, 20min, 40min...
-  delay = (2 ** count) * 5.minutes.to_i
-  Rails.logger.info "Rate limit error, retrying in #{delay}s"
-  delay
-
-when ApiServerError
-  # Medium backoff: 2min, 4min, 8min...
-  delay = (2 ** count) * 2.minutes.to_i
-  Rails.logger.info "Server error, retrying in #{delay}s"
-  delay
-
-else
-  # Use default Sidekiq backoff
-  nil
-end
-</code></pre></div>
-<p>end</p>
-
-<p>sidekiq_retries_exhausted do |job, exception|<br>
-    user_id = job[&#39;args&#39;].first<br>
-    endpoint = job[&#39;args&#39;].last</p>
-<div class="highlight"><pre class="highlight plaintext"><code>Rails.logger.error "ALERT: ApiCallWorker exhausted retries for user #{user_id}, endpoint #{endpoint}"
-Rails.logger.error "Final error: #{exception.class.name} - #{exception.message}"
-
-# Increment alert metric
-Metrics.increment('background_job.exhausted', tags: ["job:ApiCallWorker", "error:#{exception.class.name}"])
-
-# In production, trigger PagerDuty or Slack alert
-# AlertService.notify(
-#   title: 'Background job failed permanently',
-#   details: { job: job, error: exception.message }
-# )
-</code></pre></div>
-<p>end</p>
-
-<p>private</p>
-
-<p>def make_api_call(endpoint)<br>
-    # Simulate different error scenarios<br>
-    if ENV[&#39;SIMULATE_TIMEOUT&#39;] == &#39;true&#39;<br>
-      sleep 2<br>
-      raise Net::ReadTimeout, &#39;Request timeout after 2s&#39;<br>
-    end</p>
-<div class="highlight"><pre class="highlight plaintext"><code>if ENV['SIMULATE_RATE_LIMIT'] == 'true'
-  raise RateLimitError, 'Rate limit exceeded: 429 Too Many Requests'
-end
-
-if ENV['SIMULATE_SERVER_ERROR'] == 'true'
-  raise ApiServerError, '500 Internal Server Error'
-end
-
-# Successful response
-OpenStruct.new(code: 200, body: '{"status": "ok"}')
-</code></pre></div>
-<p>end</p>
-
-<p>class RateLimitError &lt; StandardError; end<br>
-  class ApiServerError &lt; StandardError; end<br>
-end<br>
-```</p>
-
 <h3>Step 4: Create Model for Context</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails generate model User email:string
 bin/rails db:migrate
-</code></pre></div>
-<p>In Rails console:<br>
-<code>ruby<br>
-User.create!(email: &#39;test@example.com&#39;)<br>
-</code></p>
 
+</code></pre></div>
+<p>In Rails console:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">email: </span><span class="s1">'test@example.com'</span><span class="p">)</span>
+
+</code></pre></div>
 <h3>Step 5: Test Successful Job</h3>
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Clear environment variables</span>
 <span class="no">ENV</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="s1">'SIMULATE_TIMEOUT'</span><span class="p">)</span>
@@ -1195,89 +1193,84 @@ User.create!(email: &#39;test@example.com&#39;)<br>
 <span class="c1"># Enqueue job</span>
 <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">first</span>
 <span class="no">ApiCallWorker</span><span class="p">.</span><span class="nf">perform_async</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="s1">'https://api.example.com/data'</span><span class="p">)</span>
-</code></pre></div>
-<p>Expected log output:<br>
-<code><br>
-Queue latency: api_calls - 0.05s<br>
-[ApiCallWorker] [user:1] [jid:abc123] Starting API call to https://api.example.com/data<br>
-[ApiCallWorker] [user:1] [jid:abc123] Completed successfully: 200<br>
-Job succeeded: ApiCallWorker [abc123] in 45ms<br>
-Metric: background_job.success job:ApiCallWorker<br>
-Metric: background_job.duration=45 job:ApiCallWorker<br>
-</code></p>
 
+</code></pre></div>
+<p>Expected log output:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>Queue latency: api_calls - 0.05s
+[ApiCallWorker] [user:1] [jid:abc123] Starting API call to https://api.example.com/data
+[ApiCallWorker] [user:1] [jid:abc123] Completed successfully: 200
+Job succeeded: ApiCallWorker [abc123] in 45ms
+Metric: background_job.success job:ApiCallWorker
+Metric: background_job.duration=45 job:ApiCallWorker
+
+</code></pre></div>
 <h3>Step 6: Test Timeout Error with Backoff</h3>
 <div class="highlight"><pre class="highlight ruby"><code><span class="no">ENV</span><span class="p">[</span><span class="s1">'SIMULATE_TIMEOUT'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'true'</span>
 <span class="no">ApiCallWorker</span><span class="p">.</span><span class="nf">perform_async</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="s1">'https://slow-api.example.com'</span><span class="p">)</span>
+
 </code></pre></div>
-<p>Watch logs for retry scheduling:<br>
-<code><br>
-Job failed: ApiCallWorker [xyz789] after 2005ms - Net::ReadTimeout: Request timeout<br>
-Retry attempt 0 due to Net::ReadTimeout<br>
-Timeout error, retrying in 60s<br>
-</code></p>
+<p>Watch logs for retry scheduling:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>Job failed: ApiCallWorker [xyz789] after 2005ms - Net::ReadTimeout: Request timeout
+Retry attempt 0 due to Net::ReadTimeout
+Timeout error, retrying in 60s
 
-<p>Check retry set:<br>
-<code>ruby<br>
-retry_job = Sidekiq::RetrySet.new.first<br>
-retry_job[&#39;retry_count&#39;]  # =&gt; 0, 1, 2...<br>
-retry_job[&#39;error_class&#39;]   # =&gt; &quot;Net::ReadTimeout&quot;<br>
-Time.at(retry_job[&#39;at&#39;])   # Next retry time<br>
-</code></p>
+</code></pre></div>
+<p>Check retry set:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">retry_job</span> <span class="o">=</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">RetrySet</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">first</span>
+<span class="n">retry_job</span><span class="p">[</span><span class="s1">'retry_count'</span><span class="p">]</span>  <span class="c1"># =&gt; 0, 1, 2...</span>
+<span class="n">retry_job</span><span class="p">[</span><span class="s1">'error_class'</span><span class="p">]</span>   <span class="c1"># =&gt; "Net::ReadTimeout"</span>
+<span class="no">Time</span><span class="p">.</span><span class="nf">at</span><span class="p">(</span><span class="n">retry_job</span><span class="p">[</span><span class="s1">'at'</span><span class="p">])</span>   <span class="c1"># Next retry time</span>
 
+</code></pre></div>
 <h3>Step 7: Test Rate Limit Error</h3>
 <div class="highlight"><pre class="highlight ruby"><code><span class="no">ENV</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="s1">'SIMULATE_TIMEOUT'</span><span class="p">)</span>
 <span class="no">ENV</span><span class="p">[</span><span class="s1">'SIMULATE_RATE_LIMIT'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'true'</span>
 <span class="no">ApiCallWorker</span><span class="p">.</span><span class="nf">perform_async</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="s1">'https://api.example.com/limited'</span><span class="p">)</span>
-</code></pre></div>
-<p>Verify longer backoff in logs:<br>
-<code><br>
-Retry attempt 0 due to RateLimitError<br>
-Rate limit error, retrying in 300s  # 5 minutes<br>
-</code></p>
 
+</code></pre></div>
+<p>Verify longer backoff in logs:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>Retry attempt 0 due to RateLimitError
+Rate limit error, retrying in 300s  # 5 minutes
+
+</code></pre></div>
 <h3>Step 8: Force Exhaustion (Optional)</h3>
 
-<p>Set low retry count for testing:<br>
-```ruby</p>
+<p>Set low retry count for testing:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Temporarily in worker</span>
+<span class="n">sidekiq_options</span> <span class="ss">retry: </span><span class="mi">2</span>
 
-<h1>Temporarily in worker</h1>
+<span class="no">ENV</span><span class="p">[</span><span class="s1">'SIMULATE_SERVER_ERROR'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'true'</span>
+<span class="no">ApiCallWorker</span><span class="p">.</span><span class="nf">perform_async</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="s1">'https://broken-api.example.com'</span><span class="p">)</span>
 
-<p>sidekiq_options retry: 2</p>
+<span class="c1"># Wait for retries to exhaust, check logs</span>
+<span class="c1"># Should see: ALERT: ApiCallWorker exhausted retries</span>
+<span class="c1"># Metric: background_job.exhausted job:ApiCallWorker error:ApiServerError</span>
 
-<p>ENV[&#39;SIMULATE_SERVER_ERROR&#39;] = &#39;true&#39;<br>
-ApiCallWorker.perform_async(user.id, &#39;<a href="https://broken-api.example.com&#x27;" target="_blank">https://broken-api.example.com&#39;</a>)</p>
+</code></pre></div>
+<h3>Step 9: Monitor Queue Depth</h3>
 
-<h1>Wait for retries to exhaust, check logs</h1>
+<p>Create monitoring task <code>lib/tasks/sidekiq_monitor.rake</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">namespace</span> <span class="ss">:sidekiq</span> <span class="k">do</span>
+  <span class="n">desc</span> <span class="s2">"Report queue statistics"</span>
+  <span class="n">task</span> <span class="ss">stats: :environment</span> <span class="k">do</span>
+    <span class="n">queues</span> <span class="o">=</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Queue</span><span class="p">.</span><span class="nf">all</span>
 
-<h1>Should see: ALERT: ApiCallWorker exhausted retries</h1>
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== Queue Statistics ==="</span>
+    <span class="n">queues</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">queue</span><span class="o">|</span>
+      <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">size</span><span class="si">}</span><span class="s2"> jobs"</span>
+      <span class="no">Metrics</span><span class="p">.</span><span class="nf">gauge</span><span class="p">(</span><span class="s1">'sidekiq.queue.depth'</span><span class="p">,</span> <span class="n">queue</span><span class="p">.</span><span class="nf">size</span><span class="p">,</span> <span class="ss">tags: </span><span class="p">[</span><span class="s2">"queue:</span><span class="si">#{</span><span class="n">queue</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">"</span><span class="p">])</span>
+    <span class="k">end</span>
 
-<h1>Metric: background_job.exhausted job:ApiCallWorker error:ApiServerError</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-### Step 9: Monitor Queue Depth
+    <span class="n">retry_count</span> <span class="o">=</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">RetrySet</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">size</span>
+    <span class="nb">puts</span> <span class="s2">"Retrying: </span><span class="si">#{</span><span class="n">retry_count</span><span class="si">}</span><span class="s2"> jobs"</span>
+    <span class="no">Metrics</span><span class="p">.</span><span class="nf">gauge</span><span class="p">(</span><span class="s1">'sidekiq.retrying'</span><span class="p">,</span> <span class="n">retry_count</span><span class="p">)</span>
 
-Create monitoring task `lib/tasks/sidekiq_monitor.rake`:
-```ruby
-namespace :sidekiq do
-  desc "Report queue statistics"
-  task stats: :environment do
-    queues = Sidekiq::Queue.all
+    <span class="n">dead_count</span> <span class="o">=</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">DeadSet</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">size</span>
+    <span class="nb">puts</span> <span class="s2">"Dead: </span><span class="si">#{</span><span class="n">dead_count</span><span class="si">}</span><span class="s2"> jobs"</span>
+    <span class="no">Metrics</span><span class="p">.</span><span class="nf">gauge</span><span class="p">(</span><span class="s1">'sidekiq.dead'</span><span class="p">,</span> <span class="n">dead_count</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-    puts "\n=== Queue Statistics ==="
-    queues.each do |queue|
-      puts "#{queue.name}: #{queue.size} jobs"
-      Metrics.gauge('sidekiq.queue.depth', queue.size, tags: ["queue:#{queue.name}"])
-    end
-
-    retry_count = Sidekiq::RetrySet.new.size
-    puts "Retrying: #{retry_count} jobs"
-    Metrics.gauge('sidekiq.retrying', retry_count)
-
-    dead_count = Sidekiq::DeadSet.new.size
-    puts "Dead: #{dead_count} jobs"
-    Metrics.gauge('sidekiq.dead', dead_count)
-  end
-end
 </code></pre></div>
 <p>Run: <code>bundle exec rake sidekiq:stats</code></p>
 
@@ -1297,6 +1290,7 @@ end
     <span class="c1"># ... existing code</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <ol>
 <li><p>Implement circuit breaker that stops enqueueing after 10 consecutive failures</p></li>
@@ -1315,6 +1309,7 @@ end
     <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">error_class</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">count</span><span class="si">}</span><span class="s2"> jobs"</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h2>Time Estimate</h2>
 

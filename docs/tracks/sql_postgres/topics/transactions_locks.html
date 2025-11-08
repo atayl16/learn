@@ -658,19 +658,18 @@
 
 <h2>ACID Properties</h2>
 
-<p><strong>Atomicity:</strong> All operations succeed or none do. Rollback on failure.<br>
-```ruby<br>
-ActiveRecord::Base.transaction do<br>
-  account_a.update!(balance: account_a.balance - 100)<br>
-  account_b.update!(balance: account_b.balance + 100)<br>
-end</p>
+<p><strong>Atomicity:</strong> All operations succeed or none do. Rollback on failure.</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">transaction</span> <span class="k">do</span>
+  <span class="n">account_a</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">balance: </span><span class="n">account_a</span><span class="p">.</span><span class="nf">balance</span> <span class="o">-</span> <span class="mi">100</span><span class="p">)</span>
+  <span class="n">account_b</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">balance: </span><span class="n">account_b</span><span class="p">.</span><span class="nf">balance</span> <span class="o">+</span> <span class="mi">100</span><span class="p">)</span>
+<span class="k">end</span>
+<span class="c1"># Both updates succeed or both roll back</span>
 
-<h1>Both updates succeed or both roll back</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Consistency:** Data stays valid. Constraints enforced.
-```ruby
-# Foreign key prevents invalid data
-order.update!(user_id: 99999)  # Raises if user 99999 doesn't exist
+</code></pre></div>
+<p><strong>Consistency:</strong> Data stays valid. Constraints enforced.</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Foreign key prevents invalid data</span>
+<span class="n">order</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">user_id: </span><span class="mi">99999</span><span class="p">)</span>  <span class="c1"># Raises if user 99999 doesn't exist</span>
+
 </code></pre></div>
 <p><strong>Isolation:</strong> Concurrent transactions don&#39;t interfere. Controlled via isolation levels.</p>
 
@@ -680,121 +679,109 @@ order.update!(user_id: 99999)  # Raises if user 99999 doesn't exist
 
 <h2>Transactions in Rails</h2>
 
-<p><strong>Basic transaction:</strong><br>
-<code>ruby<br>
-ActiveRecord::Base.transaction do<br>
-  user.update!(credits: user.credits - 50)<br>
-  purchase.create!(user: user, amount: 50)<br>
-end<br>
-</code></p>
+<p><strong>Basic transaction:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">transaction</span> <span class="k">do</span>
+  <span class="n">user</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">credits: </span><span class="n">user</span><span class="p">.</span><span class="nf">credits</span> <span class="o">-</span> <span class="mi">50</span><span class="p">)</span>
+  <span class="n">purchase</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">user: </span><span class="n">user</span><span class="p">,</span> <span class="ss">amount: </span><span class="mi">50</span><span class="p">)</span>
+<span class="k">end</span>
 
-<p><strong>Rollback on exception:</strong><br>
-<code>ruby<br>
-begin<br>
-  ActiveRecord::Base.transaction do<br>
-    order.update!(status: &#39;paid&#39;)<br>
-    inventory.update!(quantity: inventory.quantity - 1)<br>
-    raise &quot;Payment failed&quot; if payment_service.charge.failed?<br>
-  end<br>
-rescue =&gt; e<br>
-  # Transaction rolled back automatically<br>
-end<br>
-</code></p>
+</code></pre></div>
+<p><strong>Rollback on exception:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">begin</span>
+  <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">transaction</span> <span class="k">do</span>
+    <span class="n">order</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">status: </span><span class="s1">'paid'</span><span class="p">)</span>
+    <span class="n">inventory</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">quantity: </span><span class="n">inventory</span><span class="p">.</span><span class="nf">quantity</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="s2">"Payment failed"</span> <span class="k">if</span> <span class="n">payment_service</span><span class="p">.</span><span class="nf">charge</span><span class="p">.</span><span class="nf">failed?</span>
+  <span class="k">end</span>
+<span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+  <span class="c1"># Transaction rolled back automatically</span>
+<span class="k">end</span>
 
-<p><strong>Manual rollback:</strong><br>
-<code>ruby<br>
-ActiveRecord::Base.transaction do<br>
-  user.save!<br>
-  raise ActiveRecord::Rollback if some_condition<br>
-end<br>
-</code></p>
+</code></pre></div>
+<p><strong>Manual rollback:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">transaction</span> <span class="k">do</span>
+  <span class="n">user</span><span class="p">.</span><span class="nf">save!</span>
+  <span class="k">raise</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Rollback</span> <span class="k">if</span> <span class="n">some_condition</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Isolation Levels</h2>
 
 <p><strong>READ UNCOMMITTED:</strong> Reads uncommitted changes from other transactions. Not supported by Postgres (upgrades to READ COMMITTED).</p>
 
-<p><strong>READ COMMITTED (default):</strong> Reads only committed data. Each statement sees latest committed values.<br>
-```ruby</p>
+<p><strong>READ COMMITTED (default):</strong> Reads only committed data. Each statement sees latest committed values.</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Transaction 1</span>
+<span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># balance = 100</span>
+<span class="nb">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">user</span><span class="p">.</span><span class="nf">reload</span>           <span class="c1"># balance = 200 (if Transaction 2 committed)</span>
 
-<h1>Transaction 1</h1>
-
-<p>user = User.find(1)  # balance = 100<br>
-sleep(5)<br>
-user.reload           # balance = 200 (if Transaction 2 committed)<br>
-```</p>
-
-<p><strong>REPEATABLE READ:</strong> Reads consistent snapshot. Same query returns same results within transaction.<br>
-<code>ruby<br>
-ActiveRecord::Base.transaction(isolation: :repeatable_read) do<br>
-  user = User.find(1)  # balance = 100<br>
-  sleep(5)<br>
-  user.reload           # balance = 100 (ignores other commits)<br>
-end<br>
-</code></p>
-
-<p><strong>SERIALIZABLE:</strong> Strictest isolation. Transactions execute as if run sequentially. Raises serialization error if conflicts detected.<br>
-```ruby<br>
-ActiveRecord::Base.transaction(isolation: :serializable) do<br>
-  product = Product.find(1)<br>
-  product.update!(stock: product.stock - 1) if product.stock &gt; 0<br>
-end</p>
-
-<h1>Raises ActiveRecord::SerializationFailure if concurrent transaction modified stock</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**When to use each:**
-- READ COMMITTED: Default for web requests (fast, low contention)
-- REPEATABLE READ: Reports or analytics needing consistent snapshot
-- SERIALIZABLE: Inventory, financial transactions, or race-critical operations
-
----
-
-## Row Locks (SELECT FOR UPDATE)
-
-Lock rows to prevent concurrent modifications.
-
-**Basic usage:**
-```ruby
-ActiveRecord::Base.transaction do
-  product = Product.lock.find(1)  # SELECT * FROM products WHERE id = 1 FOR UPDATE
-  product.update!(stock: product.stock - 1) if product.stock &gt; 0
-end
 </code></pre></div>
-<p><strong>SQL:</strong><br>
-<code>sql<br>
-BEGIN;<br>
-SELECT * FROM products WHERE id = 1 FOR UPDATE;<br>
-UPDATE products SET stock = stock - 1 WHERE id = 1;<br>
-COMMIT;<br>
-</code></p>
+<p><strong>REPEATABLE READ:</strong> Reads consistent snapshot. Same query returns same results within transaction.</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">transaction</span><span class="p">(</span><span class="ss">isolation: :repeatable_read</span><span class="p">)</span> <span class="k">do</span>
+  <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># balance = 100</span>
+  <span class="nb">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+  <span class="n">user</span><span class="p">.</span><span class="nf">reload</span>           <span class="c1"># balance = 100 (ignores other commits)</span>
+<span class="k">end</span>
 
+</code></pre></div>
+<p><strong>SERIALIZABLE:</strong> Strictest isolation. Transactions execute as if run sequentially. Raises serialization error if conflicts detected.</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">transaction</span><span class="p">(</span><span class="ss">isolation: :serializable</span><span class="p">)</span> <span class="k">do</span>
+  <span class="n">product</span> <span class="o">=</span> <span class="no">Product</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+  <span class="n">product</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">stock: </span><span class="n">product</span><span class="p">.</span><span class="nf">stock</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">product</span><span class="p">.</span><span class="nf">stock</span> <span class="o">&gt;</span> <span class="mi">0</span>
+<span class="k">end</span>
+<span class="c1"># Raises ActiveRecord::SerializationFailure if concurrent transaction modified stock</span>
+
+</code></pre></div>
+<p><strong>When to use each:</strong><br>
+- READ COMMITTED: Default for web requests (fast, low contention)<br>
+- REPEATABLE READ: Reports or analytics needing consistent snapshot<br>
+- SERIALIZABLE: Inventory, financial transactions, or race-critical operations</p>
+
+<hr>
+
+<h2>Row Locks (SELECT FOR UPDATE)</h2>
+
+<p>Lock rows to prevent concurrent modifications.</p>
+
+<p><strong>Basic usage:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">transaction</span> <span class="k">do</span>
+  <span class="n">product</span> <span class="o">=</span> <span class="no">Product</span><span class="p">.</span><span class="nf">lock</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># SELECT * FROM products WHERE id = 1 FOR UPDATE</span>
+  <span class="n">product</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">stock: </span><span class="n">product</span><span class="p">.</span><span class="nf">stock</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">product</span><span class="p">.</span><span class="nf">stock</span> <span class="o">&gt;</span> <span class="mi">0</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>SQL:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">BEGIN</span><span class="p">;</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">products</span> <span class="k">WHERE</span> <span class="n">id</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">FOR</span> <span class="k">UPDATE</span><span class="p">;</span>
+<span class="k">UPDATE</span> <span class="n">products</span> <span class="k">SET</span> <span class="n">stock</span> <span class="o">=</span> <span class="n">stock</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">WHERE</span> <span class="n">id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="k">COMMIT</span><span class="p">;</span>
+
+</code></pre></div>
 <p><strong>Behavior:</strong><br>
 - Other transactions block on <code>SELECT FOR UPDATE</code> until lock released<br>
 - Prevents lost updates from concurrent read-modify-write</p>
 
-<p><strong>Variants:</strong><br>
-<code>ruby<br>
-Product.lock(&quot;FOR UPDATE NOWAIT&quot;).find(1)  # Raises error instead of waiting<br>
-Product.lock(&quot;FOR UPDATE SKIP LOCKED&quot;).where(processed: false).first  # Skips locked rows<br>
-</code></p>
+<p><strong>Variants:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Product</span><span class="p">.</span><span class="nf">lock</span><span class="p">(</span><span class="s2">"FOR UPDATE NOWAIT"</span><span class="p">).</span><span class="nf">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Raises error instead of waiting</span>
+<span class="no">Product</span><span class="p">.</span><span class="nf">lock</span><span class="p">(</span><span class="s2">"FOR UPDATE SKIP LOCKED"</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="ss">processed: </span><span class="kp">false</span><span class="p">).</span><span class="nf">first</span>  <span class="c1"># Skips locked rows</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Table Locks</h2>
 
 <p>Lock entire table. Rarely needed; use for DDL or bulk operations.</p>
 
-<p><strong>Exclusive lock (blocks all access):</strong><br>
-<code>ruby<br>
-ActiveRecord::Base.connection.execute(&quot;LOCK TABLE orders IN ACCESS EXCLUSIVE MODE&quot;)<br>
-</code></p>
+<p><strong>Exclusive lock (blocks all access):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="s2">"LOCK TABLE orders IN ACCESS EXCLUSIVE MODE"</span><span class="p">)</span>
 
-<p><strong>Share lock (allows reads, blocks writes):</strong><br>
-<code>ruby<br>
-ActiveRecord::Base.connection.execute(&quot;LOCK TABLE orders IN SHARE MODE&quot;)<br>
-</code></p>
+</code></pre></div>
+<p><strong>Share lock (allows reads, blocks writes):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="s2">"LOCK TABLE orders IN SHARE MODE"</span><span class="p">)</span>
 
+</code></pre></div>
 <p><strong>Warning:</strong> Table locks block all queries. Avoid in production web requests.</p>
 
 <hr>
@@ -803,111 +790,97 @@ ActiveRecord::Base.connection.execute(&quot;LOCK TABLE orders IN SHARE MODE&quot
 
 <p>Two transactions wait for each other&#39;s locks.</p>
 
-<p><strong>Example:</strong><br>
-```ruby</p>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Transaction A</span>
+<span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">transaction</span> <span class="k">do</span>
+  <span class="no">User</span><span class="p">.</span><span class="nf">lock</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+  <span class="nb">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+  <span class="no">User</span><span class="p">.</span><span class="nf">lock</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Waits for Transaction B</span>
+<span class="k">end</span>
 
-<h1>Transaction A</h1>
+<span class="c1"># Transaction B</span>
+<span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">transaction</span> <span class="k">do</span>
+  <span class="no">User</span><span class="p">.</span><span class="nf">lock</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+  <span class="nb">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+  <span class="no">User</span><span class="p">.</span><span class="nf">lock</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Waits for Transaction A</span>
+<span class="k">end</span>
+<span class="c1"># Deadlock detected! Postgres kills one transaction</span>
 
-<p>ActiveRecord::Base.transaction do<br>
-  User.lock.find(1)<br>
-  sleep(1)<br>
-  User.lock.find(2)  # Waits for Transaction B<br>
-end</p>
-
-<h1>Transaction B</h1>
-
-<p>ActiveRecord::Base.transaction do<br>
-  User.lock.find(2)<br>
-  sleep(1)<br>
-  User.lock.find(1)  # Waits for Transaction A<br>
-end</p>
-
-<h1>Deadlock detected! Postgres kills one transaction</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Fix: Lock in consistent order:**
-```ruby
-ids = [1, 2].sort  # Always lock in ascending order
-User.lock.where(id: ids).order(:id).to_a
 </code></pre></div>
-<p><strong>Viewing deadlocks:</strong><br>
-<code>sql<br>
-SELECT * FROM pg_stat_activity WHERE wait_event_type = &#39;Lock&#39;;<br>
-</code></p>
+<p><strong>Fix: Lock in consistent order:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">].</span><span class="nf">sort</span>  <span class="c1"># Always lock in ascending order</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">lock</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">id: </span><span class="n">ids</span><span class="p">).</span><span class="nf">order</span><span class="p">(</span><span class="ss">:id</span><span class="p">).</span><span class="nf">to_a</span>
 
+</code></pre></div>
+<p><strong>Viewing deadlocks:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">pg_stat_activity</span> <span class="k">WHERE</span> <span class="n">wait_event_type</span> <span class="o">=</span> <span class="s1">'Lock'</span><span class="p">;</span>
+
+</code></pre></div>
 <hr>
 
 <h2>Advisory Locks</h2>
 
 <p>Application-level locks for coordinating resources. Unlike row locks, advisory locks are purely cooperative.</p>
 
-<p><strong>Exclusive lock:</strong><br>
-```ruby<br>
-ActiveRecord::Base.connection.execute(&quot;SELECT pg_advisory_lock(12345)&quot;)</p>
+<p><strong>Exclusive lock:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="s2">"SELECT pg_advisory_lock(12345)"</span><span class="p">)</span>
+<span class="c1"># Do work</span>
+<span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="s2">"SELECT pg_advisory_unlock(12345)"</span><span class="p">)</span>
 
-<h1>Do work</h1>
+</code></pre></div>
+<p><strong>Try lock (non-blocking):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">locked</span> <span class="o">=</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">select_value</span><span class="p">(</span><span class="s2">"SELECT pg_try_advisory_lock(12345)"</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">locked</span>
+  <span class="c1"># Do work</span>
+  <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="s2">"SELECT pg_advisory_unlock(12345)"</span><span class="p">)</span>
+<span class="k">else</span>
+  <span class="c1"># Another process holds lock</span>
+<span class="k">end</span>
 
-<p>ActiveRecord::Base.connection.execute(&quot;SELECT pg_advisory_unlock(12345)&quot;)<br>
-```</p>
+</code></pre></div>
+<p><strong>Use case:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Ensure only one Sidekiq job processes a resource</span>
+<span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">resource_id</span><span class="p">)</span>
+  <span class="n">lock_id</span> <span class="o">=</span> <span class="no">Zlib</span><span class="p">.</span><span class="nf">crc32</span><span class="p">(</span><span class="s2">"process_</span><span class="si">#{</span><span class="n">resource_id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+  <span class="k">if</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">select_value</span><span class="p">(</span><span class="s2">"SELECT pg_try_advisory_lock(</span><span class="si">#{</span><span class="n">lock_id</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+    <span class="k">begin</span>
+      <span class="n">process_resource</span><span class="p">(</span><span class="n">resource_id</span><span class="p">)</span>
+    <span class="k">ensure</span>
+      <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="s2">"SELECT pg_advisory_unlock(</span><span class="si">#{</span><span class="n">lock_id</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">else</span>
+    <span class="c1"># Skip; another job is processing</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p><strong>Try lock (non-blocking):</strong><br>
-<code>ruby<br>
-locked = ActiveRecord::Base.connection.select_value(&quot;SELECT pg_try_advisory_lock(12345)&quot;)<br>
-if locked<br>
-  # Do work<br>
-  ActiveRecord::Base.connection.execute(&quot;SELECT pg_advisory_unlock(12345)&quot;)<br>
-else<br>
-  # Another process holds lock<br>
-end<br>
-</code></p>
-
-<p><strong>Use case:</strong><br>
-```ruby</p>
-
-<h1>Ensure only one Sidekiq job processes a resource</h1>
-
-<p>def perform(resource_id)<br>
-  lock_id = Zlib.crc32(&quot;process_#{resource_id}&quot;)<br>
-  if ActiveRecord::Base.connection.select_value(&quot;SELECT pg_try_advisory_lock(#{lock_id})&quot;)<br>
-    begin<br>
-      process_resource(resource_id)<br>
-    ensure<br>
-      ActiveRecord::Base.connection.execute(&quot;SELECT pg_advisory_unlock(#{lock_id})&quot;)<br>
-    end<br>
-  else<br>
-    # Skip; another job is processing<br>
-  end<br>
-end<br>
-```</p>
-
+</code></pre></div>
 <hr>
 
 <h2>Debugging Locks</h2>
 
-<p><strong>Find blocked queries:</strong><br>
-<code>sql<br>
-SELECT blocked_locks.pid AS blocked_pid,<br>
-       blocked_activity.usename AS blocked_user,<br>
-       blocking_locks.pid AS blocking_pid,<br>
-       blocking_activity.usename AS blocking_user,<br>
-       blocked_activity.query AS blocked_statement,<br>
-       blocking_activity.query AS blocking_statement<br>
-FROM pg_locks blocked_locks<br>
-JOIN pg_stat_activity blocked_activity ON blocked_activity.pid = blocked_locks.pid<br>
-JOIN pg_locks blocking_locks ON blocking_locks.locktype = blocked_locks.locktype<br>
-  AND blocking_locks.database IS NOT DISTINCT FROM blocked_locks.database<br>
-  AND blocking_locks.relation IS NOT DISTINCT FROM blocked_locks.relation<br>
-  AND blocking_locks.page IS NOT DISTINCT FROM blocked_locks.page<br>
-  AND blocking_locks.tuple IS NOT DISTINCT FROM blocked_locks.tuple<br>
-  AND blocking_locks.pid != blocked_locks.pid<br>
-JOIN pg_stat_activity blocking_activity ON blocking_activity.pid = blocking_locks.pid<br>
-WHERE NOT blocked_locks.granted;<br>
-</code></p>
+<p><strong>Find blocked queries:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">SELECT</span> <span class="n">blocked_locks</span><span class="p">.</span><span class="n">pid</span> <span class="k">AS</span> <span class="n">blocked_pid</span><span class="p">,</span>
+       <span class="n">blocked_activity</span><span class="p">.</span><span class="n">usename</span> <span class="k">AS</span> <span class="n">blocked_user</span><span class="p">,</span>
+       <span class="n">blocking_locks</span><span class="p">.</span><span class="n">pid</span> <span class="k">AS</span> <span class="n">blocking_pid</span><span class="p">,</span>
+       <span class="n">blocking_activity</span><span class="p">.</span><span class="n">usename</span> <span class="k">AS</span> <span class="n">blocking_user</span><span class="p">,</span>
+       <span class="n">blocked_activity</span><span class="p">.</span><span class="n">query</span> <span class="k">AS</span> <span class="n">blocked_statement</span><span class="p">,</span>
+       <span class="n">blocking_activity</span><span class="p">.</span><span class="n">query</span> <span class="k">AS</span> <span class="n">blocking_statement</span>
+<span class="k">FROM</span> <span class="n">pg_locks</span> <span class="n">blocked_locks</span>
+<span class="k">JOIN</span> <span class="n">pg_stat_activity</span> <span class="n">blocked_activity</span> <span class="k">ON</span> <span class="n">blocked_activity</span><span class="p">.</span><span class="n">pid</span> <span class="o">=</span> <span class="n">blocked_locks</span><span class="p">.</span><span class="n">pid</span>
+<span class="k">JOIN</span> <span class="n">pg_locks</span> <span class="n">blocking_locks</span> <span class="k">ON</span> <span class="n">blocking_locks</span><span class="p">.</span><span class="n">locktype</span> <span class="o">=</span> <span class="n">blocked_locks</span><span class="p">.</span><span class="n">locktype</span>
+  <span class="k">AND</span> <span class="n">blocking_locks</span><span class="p">.</span><span class="k">database</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">DISTINCT</span> <span class="k">FROM</span> <span class="n">blocked_locks</span><span class="p">.</span><span class="k">database</span>
+  <span class="k">AND</span> <span class="n">blocking_locks</span><span class="p">.</span><span class="n">relation</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">DISTINCT</span> <span class="k">FROM</span> <span class="n">blocked_locks</span><span class="p">.</span><span class="n">relation</span>
+  <span class="k">AND</span> <span class="n">blocking_locks</span><span class="p">.</span><span class="n">page</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">DISTINCT</span> <span class="k">FROM</span> <span class="n">blocked_locks</span><span class="p">.</span><span class="n">page</span>
+  <span class="k">AND</span> <span class="n">blocking_locks</span><span class="p">.</span><span class="n">tuple</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">DISTINCT</span> <span class="k">FROM</span> <span class="n">blocked_locks</span><span class="p">.</span><span class="n">tuple</span>
+  <span class="k">AND</span> <span class="n">blocking_locks</span><span class="p">.</span><span class="n">pid</span> <span class="o">!=</span> <span class="n">blocked_locks</span><span class="p">.</span><span class="n">pid</span>
+<span class="k">JOIN</span> <span class="n">pg_stat_activity</span> <span class="n">blocking_activity</span> <span class="k">ON</span> <span class="n">blocking_activity</span><span class="p">.</span><span class="n">pid</span> <span class="o">=</span> <span class="n">blocking_locks</span><span class="p">.</span><span class="n">pid</span>
+<span class="k">WHERE</span> <span class="k">NOT</span> <span class="n">blocked_locks</span><span class="p">.</span><span class="k">granted</span><span class="p">;</span>
 
-<p><strong>Kill blocking query:</strong><br>
-<code>sql<br>
-SELECT pg_terminate_backend(12345);  -- Replace with PID<br>
-</code></p>
+</code></pre></div>
+<p><strong>Kill blocking query:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">SELECT</span> <span class="n">pg_terminate_backend</span><span class="p">(</span><span class="mi">12345</span><span class="p">);</span>  <span class="c1">-- Replace with PID</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Trade-offs Box</h2>
@@ -964,22 +937,20 @@ SELECT pg_terminate_backend(12345);  -- Replace with PID<br>
 
 <p>You&#39;re building a ticket reservation system. Multiple users can simultaneously attempt to reserve the same ticket. Implement locking to ensure only one user successfully reserves each ticket.</p>
 
-<p><strong>Setup:</strong><br>
-```ruby<br>
-class Ticket &lt; ApplicationRecord<br>
-  # status: &#39;available&#39;, &#39;reserved&#39;, &#39;sold&#39;<br>
-end</p>
+<p><strong>Setup:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Ticket</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="c1"># status: 'available', 'reserved', 'sold'</span>
+<span class="k">end</span>
 
-<h1>Schema</h1>
+<span class="c1"># Schema</span>
+<span class="n">create_table</span> <span class="ss">:tickets</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:seat_number</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:status</span><span class="p">,</span> <span class="ss">default: </span><span class="s1">'available'</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">references</span> <span class="ss">:user</span><span class="p">,</span> <span class="ss">foreign_key: </span><span class="kp">true</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">timestamps</span>
+<span class="k">end</span>
 
-<p>create_table :tickets do |t|<br>
-  t.string :seat_number, null: false<br>
-  t.string :status, default: &#39;available&#39;<br>
-  t.references :user, foreign_key: true<br>
-  t.timestamps<br>
-end<br>
-```</p>
-
+</code></pre></div>
 <p><strong>Scenario:</strong><br>
 Two users (User 1 and User 2) simultaneously try to reserve the last available ticket (Ticket #42).</p>
 

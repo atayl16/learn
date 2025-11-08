@@ -47,6 +47,7 @@ def index
     }
   }
 end
+
 ```
 
 Use the `kaminari` or `pagy` gem for helpers. Offset pagination degrades with large offsets because the database still scans skipped rows.
@@ -75,6 +76,7 @@ def index
     }
   }
 end
+
 ```
 
 Client passes `?cursor=12345` to fetch posts older than ID 12345. No total count or page numbers, just `next_cursor`.
@@ -100,6 +102,7 @@ def index
 
   render json: { data: @products }
 end
+
 ```
 
 Use strong params or a gem like `ransack` (carefully scoped) or `filterrific`. Always whitelist allowed filters.
@@ -121,6 +124,7 @@ def index
   @orders = Order.order(column => direction)
   render json: { data: @orders }
 end
+
 ```
 
 Add indexes on sortable columns. For composite sorts, create multi-column indexes.
@@ -147,6 +151,7 @@ Return enough metadata for clients to build navigation UI.
     "last": "/api/users?page=78"
   }
 }
+
 ```
 
 Include `links` for HATEOAS. Omit `total_count` for cursor pagination.

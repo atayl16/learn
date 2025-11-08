@@ -24,6 +24,7 @@ Using a Rails app with posts, authors, and comments:
 ## Verification Steps
 
 1. Check logs for each method's SQL:
+
 ```bash
 # includes (default)
 Post.includes(:author).limit(10).to_a
@@ -44,6 +45,7 @@ Post.eager_load(:author).limit(10).to_a
 # joins (no loading)
 Post.joins(:author).limit(10).to_a
 # Should show INNER JOIN but only SELECT posts.*
+
 ```
 
 2. Verify memory usage comparison between methods
@@ -61,36 +63,44 @@ bin/rails generate model User name:string verified:boolean
 bin/rails generate model Post title:string user:references
 bin/rails generate model Comment body:text post:references
 bin/rails db:migrate
+
 ```
 
 **Add associations:**
 
 `app/models/user.rb`:
+
 ```ruby
 class User < ApplicationRecord
   has_many :posts
 end
+
 ```
 
 `app/models/post.rb`:
+
 ```ruby
 class Post < ApplicationRecord
   belongs_to :user
   has_many :comments
 end
+
 ```
 
 `app/models/comment.rb`:
+
 ```ruby
 class Comment < ApplicationRecord
   belongs_to :post
 end
+
 ```
 
 ### Step 2: Seed Data
 
 ```bash
 bin/rails console
+
 ```
 
 ```ruby
@@ -106,11 +116,13 @@ bin/rails console
 end
 
 puts "Created #{Post.count} posts, #{User.count} users, #{Comment.count} comments"
+
 ```
 
 ### Step 3: Enable Query Logging
 
 Create `test/loading_strategies_test.rb`:
+
 ```ruby
 require 'test_helper'
 
@@ -157,12 +169,14 @@ class LoadingStrategiesTest < ActiveSupport::TestCase
     posts = Post.includes(user: :posts, comments: []).limit(10).to_a
   end
 end
+
 ```
 
 ### Step 4: Run Tests and Observe
 
 ```bash
 bin/rails test test/loading_strategies_test.rb
+
 ```
 
 Compare SQL output for each test.
@@ -170,6 +184,7 @@ Compare SQL output for each test.
 ### Step 5: Benchmark Performance
 
 Create `lib/tasks/benchmark_loading.rake`:
+
 ```ruby
 require 'benchmark'
 
@@ -199,17 +214,21 @@ namespace :loading do
     end
   end
 end
+
 ```
 
 Run benchmark:
+
 ```bash
 bin/rails loading:benchmark
+
 ```
 
 ### Step 6: Memory Profiling (Optional)
 
 ```bash
 bundle add memory_profiler
+
 ```
 
 ```ruby
@@ -220,6 +239,7 @@ report = MemoryProfiler.report do
 end
 
 report.pretty_print
+
 ```
 
 Compare memory usage between `includes(:user)` and `includes(user: :posts)`.
@@ -227,14 +247,17 @@ Compare memory usage between `includes(:user)` and `includes(user: :posts)`.
 ## Stretch (Optional)
 
 1. Use `EXPLAIN ANALYZE` to compare query plans:
+
 ```ruby
 Post.includes(:user).limit(100).explain
 Post.eager_load(:user).limit(100).explain
+
 ```
 
 2. Test performance with 10,000 posts and see when JOINs become slower than separate queries.
 
 3. Create a scope that conditionally includes associations:
+
 ```ruby
 scope :with_associations, ->(include_user: false, include_comments: false) {
   query = all
@@ -242,6 +265,7 @@ scope :with_associations, ->(include_user: false, include_comments: false) {
   query = query.includes(:comments) if include_comments
   query
 }
+
 ```
 
 ## Time Estimate

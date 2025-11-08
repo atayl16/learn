@@ -7,6 +7,7 @@ Practice adding appropriate indexes to optimize common query patterns and verify
 You have a posts table with millions of rows. Users frequently query posts by author, publication status, and creation date. Add indexes to optimize these queries, then use EXPLAIN to verify Postgres uses them.
 
 **Setup:**
+
 ```ruby
 # Assume this schema
 create_table :posts do |t|
@@ -17,9 +18,11 @@ create_table :posts do |t|
   t.datetime :published_at
   t.timestamps
 end
+
 ```
 
 **Common queries:**
+
 ```ruby
 # Query 1: User's published posts sorted by date
 Post.where(user_id: 5, status: 'published').order(published_at: :desc).limit(20)
@@ -29,6 +32,7 @@ Post.where(status: 'published').where('published_at > ?', 1.week.ago).order(publ
 
 # Query 3: User's drafts
 Post.where(user_id: 5, status: 'draft')
+
 ```
 
 ## Acceptance Criteria

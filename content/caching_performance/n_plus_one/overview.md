@@ -28,15 +28,18 @@ Check your logs for repeated queries with only the foreign key changing:
 # Controller
 @posts = Post.all
 @posts.each { |post| puts post.author.name }
+
 ```
 
 **Log output:**
+
 ```
 Post Load (0.5ms)  SELECT "posts".* FROM "posts"
 User Load (0.3ms)  SELECT "users".* FROM "users" WHERE "users"."id" = 1
 User Load (0.3ms)  SELECT "users".* FROM "users" WHERE "users"."id" = 2
 User Load (0.3ms)  SELECT "users".* FROM "users" WHERE "users"."id" = 3
 # ... 47 more identical queries
+
 ```
 
 You execute 1 + N queries (51 total for 50 posts).
@@ -60,6 +63,7 @@ config.after_initialize do
   Bullet.console = true
   Bullet.rails_logger = true
 end
+
 ```
 
 When you trigger an N+1, Bullet logs:
@@ -68,6 +72,7 @@ When you trigger an N+1, Bullet logs:
 USE eager loading detected
   Post => [:author]
   Add to your query: .includes(:author)
+
 ```
 
 Run your test suite with Bullet enabled to catch N+1 issues before code review.
@@ -82,12 +87,15 @@ Use `includes` for most cases. Rails loads associations in a second query:
 # Executes 2 queries: 1 for posts, 1 for all authors
 @posts = Post.includes(:author)
 @posts.each { |post| puts post.author.name }
+
 ```
 
 **Log output:**
+
 ```
 Post Load (0.5ms)  SELECT "posts".* FROM "posts"
 User Load (1.2ms)  SELECT "users".* FROM "users" WHERE "users"."id" IN (1, 2, 3, ...)
+
 ```
 
 `includes` decides between `preload` (separate queries) or `eager_load` (LEFT JOIN) based on your query.
@@ -102,6 +110,7 @@ Force separate queries even if you add conditions:
 # Always uses 2 queries (1 for posts, 1 for authors)
 @posts = Post.preload(:author).where(published: true)
 @posts.each { |post| puts post.author.name }
+
 ```
 
 Use `preload` when you want to ensure separate queries for performance reasons (large JOINs can be slower than two small queries).
@@ -115,14 +124,17 @@ Force a single LEFT JOIN query:
 ```ruby
 # Single query with LEFT JOIN
 @posts = Post.eager_load(:author).where("users.verified = true")
+
 ```
 
 **Log output:**
+
 ```
 SELECT "posts".*, "users".*
 FROM "posts"
 LEFT OUTER JOIN "users" ON "users"."id" = "posts"."author_id"
 WHERE "users"."verified" = true
+
 ```
 
 Use `eager_load` when you need to filter by associated table columns.
@@ -137,6 +149,7 @@ Only fetch the main records, not the association:
 # Filters posts by author but doesn't load author objects
 @posts = Post.joins(:author).where(users: { verified: true })
 @posts.each { |post| post.author.name } # Still triggers N+1!
+
 ```
 
 Use `joins` for filtering, not for loading associations. If you need the association data, use `eager_load` instead.
@@ -153,6 +166,7 @@ Eager load multiple levels:
 @posts.each do |post|
   puts "#{post.title} by #{post.author.name} at #{post.author.company.name}"
 end
+
 ```
 
 **Generates 3 queries:**

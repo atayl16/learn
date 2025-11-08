@@ -23,12 +23,15 @@ Build a subscription management system that:
 ## Verification Steps
 
 1. Check cron jobs loaded:
+
 ```ruby
 Sidekiq::Cron::Job.all.each { |job| puts "#{job.name}: #{job.cron}" }
 # Should show: cleanup_expired_trials: 0 3 * * *
+
 ```
 
 2. Schedule a reminder and verify it's unique:
+
 ```ruby
 user = User.create!(email: 'test@example.com', trial_end_date: 5.days.from_now)
 
@@ -40,6 +43,7 @@ TrialReminderWorker.perform_at(user.trial_end_date - 3.days, user.id)
 
 # Check scheduled set - should only have 1 job
 Sidekiq::ScheduledSet.new.select { |j| j.klass == 'TrialReminderWorker' }.size  # => 1
+
 ```
 
 3. Check logs for uniqueness conflict message
@@ -52,16 +56,20 @@ Sidekiq::ScheduledSet.new.select { |j| j.klass == 'TrialReminderWorker' }.size  
 # Gemfile
 gem 'sidekiq-cron'
 gem 'sidekiq-unique-jobs'
+
 ```
 
 Run:
+
 ```bash
 bundle install
+
 ```
 
 ### Step 2: Configure Sidekiq
 
 Edit `config/initializers/sidekiq.rb`:
+
 ```ruby
 require 'sidekiq/cron/web'
 require 'sidekiq-unique-jobs/web'
@@ -84,11 +92,13 @@ end
 SidekiqUniqueJobs.configure do |config|
   config.enabled = true
 end
+
 ```
 
 ### Step 3: Create Schedule Configuration
 
 Create `config/schedule.yml`:
+
 ```yaml
 cleanup_expired_trials:
   cron: "0 3 * * *"  # Daily at 3 AM UTC
@@ -101,15 +111,18 @@ cache_warmer:
   class: "CacheWarmerWorker"
   queue: maintenance
   description: "Warm frequently accessed caches"
+
 ```
 
 ### Step 4: Create User Model
 
 ```bash
 bin/rails generate model User email:string trial_end_date:datetime subscription_active:boolean
+
 ```
 
 Edit migration to add defaults:
+
 ```ruby
 class CreateUsers < ActiveRecord::Migration[7.0]
   def change
@@ -124,16 +137,20 @@ class CreateUsers < ActiveRecord::Migration[7.0]
     add_index :users, :trial_end_date
   end
 end
+
 ```
 
 Run:
+
 ```bash
 bin/rails db:migrate
+
 ```
 
 ### Step 5: Create Recurring Cleanup Worker
 
 Create `app/workers/cleanup_expired_trials_worker.rb`:
+
 ```ruby
 class CleanupExpiredTrialsWorker
   include Sidekiq::Worker
@@ -154,11 +171,13 @@ class CleanupExpiredTrialsWorker
     Rails.logger.info "Cleaned up #{expired_count} expired trials"
   end
 end
+
 ```
 
 ### Step 6: Create Unique Delayed Worker
 
 Create `app/workers/trial_reminder_worker.rb`:
+
 ```ruby
 class TrialReminderWorker
   include Sidekiq::Worker
@@ -183,11 +202,13 @@ class TrialReminderWorker
     Rails.logger.warn "User #{user_id} not found, skipping reminder"
   end
 end
+
 ```
 
 ### Step 7: Create Cache Warmer (Bonus Cron Job)
 
 Create `app/workers/cache_warmer_worker.rb`:
+
 ```ruby
 class CacheWarmerWorker
   include Sidekiq::Worker
@@ -204,11 +225,13 @@ class CacheWarmerWorker
     Rails.logger.info "Cache warming completed"
   end
 end
+
 ```
 
 ### Step 8: Helper to Schedule Reminders
 
 Add to `app/models/user.rb`:
+
 ```ruby
 class User < ApplicationRecord
   after_create :schedule_trial_reminder
@@ -227,6 +250,7 @@ class User < ApplicationRecord
     end
   end
 end
+
 ```
 
 ### Step 9: Test in Console
@@ -257,11 +281,13 @@ end
 
 # Manually trigger cron job for testing
 CleanupExpiredTrialsWorker.perform_async
+
 ```
 
 ### Step 10: Access Web UI
 
 Add to `config/routes.rb`:
+
 ```ruby
 require 'sidekiq/web'
 require 'sidekiq/cron/web'
@@ -269,6 +295,7 @@ require 'sidekiq/cron/web'
 Rails.application.routes.draw do
   mount Sidekiq::Web => '/sidekiq'
 end
+
 ```
 
 Visit:
@@ -285,6 +312,7 @@ Visit:
 user_timezone = ActiveSupport::TimeZone['America/Los_Angeles']
 send_time = user_timezone.parse('9:00 AM tomorrow')
 NotificationWorker.perform_at(send_time, user.id)
+
 ```
 
 2. Implement custom uniqueness key (ignore trial_end_date changes):
@@ -297,6 +325,7 @@ class TrialReminderWorker
     [args.first]
   end
 end
+
 ```
 
 ## Time Estimate

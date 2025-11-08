@@ -35,6 +35,7 @@ namespace :api do
     resources :posts, only: [:index, :create]
   end
 end
+
 ```
 
 This generates `/api/users` (GET for list, POST for create), `/api/users/:id` (GET for show, PUT/PATCH for update, DELETE for destroy), and `/api/users/:user_id/posts` for nested resources.
@@ -54,6 +55,7 @@ def update
   @user.update!(user_params)
   render json: @user
 end
+
 ```
 
 Return 201 Created with a `Location` header for POST. Return 200 OK for PUT/PATCH. Return 204 No Content for DELETE if no body is needed.
@@ -76,6 +78,7 @@ head :forbidden                                                    # 403
 
 # Server error codes
 render json: {error: "Internal error"}, status: :internal_server_error # 500
+
 ```
 
 Use 400 for malformed requests, 422 for validation failures, 401 for missing auth, 403 for insufficient permissions.
@@ -110,6 +113,7 @@ Pick a format and enforce it. JSON:API provides standards for pagination, includ
     }
   }
 }
+
 ```
 
 Wrap responses in a top-level `data` or `user` key. Use ISO8601 timestamps. Include links for discoverability (HATEOAS).
@@ -134,6 +138,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
+
 ```
 
 Use `rswag` or `rspec-openapi` to generate specs from tests. Host docs with Swagger UI or ReDoc.

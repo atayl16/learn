@@ -27,6 +27,7 @@ Zeitwerk maps file paths to constants:
 app/models/user.rb           → User
 app/models/billing/invoice.rb → Billing::Invoice
 app/services/pdf_generator.rb → PdfGenerator
+
 ```
 
 **Convention:**
@@ -49,20 +50,26 @@ When you reference `User`, Ruby triggers `const_missing`, which:
 | **Eager load** | Production | Load all files at boot | Catch errors early, thread-safe |
 
 **Development:**
+
 ```ruby
 # config/environments/development.rb
 config.eager_load = false  # autoload instead
+
 ```
 
 **Production:**
+
 ```ruby
 # config/environments/production.rb
 config.eager_load = true  # load everything upfront
+
 ```
 
 **Check which files will eager-load:**
+
 ```ruby
 Rails.autoloaders.main.all_expected_cpaths
+
 ```
 
 ---
@@ -79,8 +86,10 @@ Rails.autoloaders.main.all_expected_cpaths
 8. **Application ready** — server/console starts
 
 **Profile boot time:**
+
 ```bash
 RAILS_ENV=production time bin/rails runner 'puts "Booted"'
+
 ```
 
 ---
@@ -96,14 +105,18 @@ Rails autoloads from:
 - etc.
 
 **Add custom autoload paths:**
+
 ```ruby
 # config/application.rb
 config.autoload_paths += %W[#{config.root}/app/services #{config.root}/app/presenters]
+
 ```
 
 **Check current paths:**
+
 ```ruby
 Rails.autoloaders.main.dirs
+
 ```
 
 ---
@@ -121,6 +134,7 @@ Rails.autoloaders.main.dirs
 ### Error: "Circular dependency detected"
 
 **Cause:**
+
 ```ruby
 # app/models/user.rb
 class User < ApplicationRecord
@@ -131,14 +145,17 @@ end
 class Order < ApplicationRecord
   belongs_to :user  # triggers User load → infinite loop
 end
+
 ```
 
 **Fix:**
 Use strings to defer loading:
+
 ```ruby
 class User < ApplicationRecord
   has_many :orders, class_name: "Order"
 end
+
 ```
 
 Or extract shared logic to a concern.
@@ -146,17 +163,21 @@ Or extract shared logic to a concern.
 ### Error: "Expected app/models/user.rb to define User, but did not"
 
 **Cause:**
+
 ```ruby
 # app/models/user.rb
 class UserModel < ApplicationRecord  # wrong name
 end
+
 ```
 
 **Fix:**
 Match file name to class name:
+
 ```ruby
 class User < ApplicationRecord
 end
+
 ```
 
 ---
@@ -167,17 +188,22 @@ Before deploying, verify all constants:
 
 ```bash
 bin/rails zeitwerk:check
+
 ```
 
 Output:
+
 ```
 Hold on, I am eager loading the application.
 All is good!
+
 ```
 
 If errors appear:
+
 ```
 expected file app/models/user.rb to define constant User, but didn't
+
 ```
 
 Fix the mismatch.
@@ -187,8 +213,10 @@ Fix the mismatch.
 ## Optimizing Boot Time
 
 **Measure:**
+
 ```bash
 time bin/rails runner 'puts "Booted"'
+
 ```
 
 **Common slow spots:**
@@ -198,6 +226,7 @@ time bin/rails runner 'puts "Booted"'
 4. **Eager loading in dev:** set `config.eager_load = false`
 
 **Profile initializers:**
+
 ```ruby
 # config/environments/development.rb
 config.after_initialize do
@@ -206,6 +235,7 @@ end
 
 # config/application.rb
 config.beginning_time = Time.now
+
 ```
 
 ---

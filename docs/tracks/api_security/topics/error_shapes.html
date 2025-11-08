@@ -669,6 +669,7 @@
 
 <span class="c1"># 5xx Server Errors</span>
 <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span><span class="ss">error: </span><span class="s2">"Internal server error"</span><span class="p">},</span> <span class="ss">status: :internal_server_error</span>  <span class="c1"># 500</span>
+
 </code></pre></div>
 <p>Use 400 for malformed requests, 401 for missing auth, 403 for denied access, 422 for validation failures.</p>
 
@@ -694,6 +695,7 @@
   <span class="ss">detail: </span><span class="s1">'Email must be a valid format'</span><span class="p">,</span>
   <span class="ss">instance: </span><span class="s2">"/api/users/</span><span class="si">#{</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
 <span class="p">)</span>
+
 </code></pre></div>
 <p><code>type</code> is a URI identifying the error category. <code>instance</code> is the specific resource URL.</p>
 
@@ -714,6 +716,7 @@
     <span class="p">}</span>
   <span class="p">]</span>
 <span class="p">}</span>
+
 </code></pre></div>
 <p><code>source.pointer</code> uses JSON Pointer syntax (<code>/data/attributes/email</code>) to identify the exact field.</p>
 
@@ -737,6 +740,7 @@
     <span class="p">},</span> <span class="ss">status: :unprocessable_entity</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Returns <code>[{field: &quot;email&quot;, message: &quot;is invalid&quot;, code: &quot;invalid&quot;}]</code>. Clients can map to form fields.</p>
 
@@ -755,6 +759,7 @@
     <span class="ss">support_message: </span><span class="s2">"Please contact support with ID: </span><span class="si">#{</span><span class="n">error_id</span><span class="si">}</span><span class="s2">"</span>
   <span class="p">},</span> <span class="ss">status: :internal_server_error</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Users report the <code>error_id</code>, support searches logs for the full trace.</p>
 
@@ -772,6 +777,7 @@
     <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span><span class="ss">error: </span><span class="n">exception</span><span class="p">.</span><span class="nf">message</span><span class="p">,</span> <span class="ss">backtrace: </span><span class="n">exception</span><span class="p">.</span><span class="nf">backtrace</span><span class="p">.</span><span class="nf">first</span><span class="p">(</span><span class="mi">5</span><span class="p">)},</span> <span class="ss">status: :not_found</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>In production, return generic messages. In development, include traces for debugging.</p>
 

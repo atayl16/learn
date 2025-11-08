@@ -34,6 +34,7 @@ Every form should post to a Rails controller and handle the full lifecycle:
   <%= f.text_field :email %>
   <%= f.submit "Sign Up" %>
 <% end %>
+
 ```
 
 On success, redirect with a flash message. On failure, re-render with errors:
@@ -48,6 +49,7 @@ def create
     render :new, status: :unprocessable_entity
   end
 end
+
 ```
 
 This works in every browser, with or without JavaScript. Everything else is an enhancement.
@@ -63,6 +65,7 @@ Turbo intercepts form submissions and sends them via AJAX, replacing the page co
   <%= f.text_field :title %>
   <%= f.submit %>
 <% end %>
+
 ```
 
 On success, return a Turbo Stream to update the UI. On failure, return the form with errors:
@@ -78,6 +81,7 @@ def create
     end
   end
 end
+
 ```
 
 If Turbo fails to load, the form submits normally. No JavaScript required for basic functionality.
@@ -105,6 +109,7 @@ export default class extends Controller {
     }
   }
 }
+
 ```
 
 HTML:
@@ -114,6 +119,7 @@ HTML:
   <%= f.text_field :email, data: { validation_target: "email", action: "blur->validation#validateEmail" } %>
   <span data-validation-target="error" class="hidden" role="alert"></span>
 </div>
+
 ```
 
 The server endpoint validates using the same model rules:
@@ -125,6 +131,7 @@ def validate_email
   user.valid?
   render json: { valid: user.errors[:email].empty?, message: user.errors[:email].first }
 end
+
 ```
 
 ---
@@ -157,6 +164,7 @@ export default class extends Controller {
     }
   }
 }
+
 ```
 
 Always store the previous state and revert on error. Never leave the UI in a broken state.
@@ -181,6 +189,7 @@ def create
     end
   end
 end
+
 ```
 
 The partial includes error messages:
@@ -198,6 +207,7 @@ The partial includes error messages:
   <% end %>
   <%= f.text_field :title %>
 <% end %>
+
 ```
 
 ---
@@ -212,6 +222,7 @@ Announce errors to screen readers with ARIA live regions:
     <span role="alert"><%= @user.errors[:email].first %></span>
   <% end %>
 </div>
+
 ```
 
 Focus the first invalid field after submission:
@@ -224,6 +235,7 @@ export default class extends Controller {
     if (firstError) firstError.focus()
   }
 }
+
 ```
 
 ---

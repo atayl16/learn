@@ -657,30 +657,26 @@
 
 <h2>EXPLAIN vs EXPLAIN ANALYZE</h2>
 
-<p><strong>EXPLAIN (no execution):</strong><br>
-<code>sql<br>
-EXPLAIN SELECT * FROM users WHERE email = &#39;user@example.com&#39;;<br>
-</code></p>
+<p><strong>EXPLAIN (no execution):</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">EXPLAIN</span> <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">users</span> <span class="k">WHERE</span> <span class="n">email</span> <span class="o">=</span> <span class="s1">'user@example.com'</span><span class="p">;</span>
 
-<p><strong>Output:</strong><br>
-<code><br>
-Index Scan using index_users_on_email on users  (cost=0.42..8.44 rows=1 width=123)<br>
-  Index Cond: (email = &#39;user@example.com&#39;)<br>
-</code></p>
+</code></pre></div>
+<p><strong>Output:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>Index Scan using index_users_on_email on users  (cost=0.42..8.44 rows=1 width=123)
+  Index Cond: (email = 'user@example.com')
 
-<p><strong>EXPLAIN ANALYZE (executes query):</strong><br>
-<code>sql<br>
-EXPLAIN ANALYZE SELECT * FROM users WHERE email = &#39;user@example.com&#39;;<br>
-</code></p>
+</code></pre></div>
+<p><strong>EXPLAIN ANALYZE (executes query):</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span> <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">users</span> <span class="k">WHERE</span> <span class="n">email</span> <span class="o">=</span> <span class="s1">'user@example.com'</span><span class="p">;</span>
 
-<p><strong>Output:</strong><br>
-<code><br>
-Index Scan using index_users_on_email on users  (cost=0.42..8.44 rows=1 width=123) (actual time=0.045..0.047 rows=1 loops=1)<br>
-  Index Cond: (email = &#39;user@example.com&#39;)<br>
-Planning Time: 0.123 ms<br>
-Execution Time: 0.089 ms<br>
-</code></p>
+</code></pre></div>
+<p><strong>Output:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>Index Scan using index_users_on_email on users  (cost=0.42..8.44 rows=1 width=123) (actual time=0.045..0.047 rows=1 loops=1)
+  Index Cond: (email = 'user@example.com')
+Planning Time: 0.123 ms
+Execution Time: 0.089 ms
 
+</code></pre></div>
 <p><strong>Key differences:</strong><br>
 - EXPLAIN shows estimated cost and rows<br>
 - EXPLAIN ANALYZE shows actual time and rows<br>
@@ -690,16 +686,14 @@ Execution Time: 0.089 ms<br>
 
 <h2>Reading Query Plans</h2>
 
-<p><strong>Format:</strong><br>
-<code><br>
-Node Type (cost=startup..total rows=estimate width=bytes) (actual time=first..last rows=count loops=iterations)<br>
-</code></p>
+<p><strong>Format:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>Node Type (cost=startup..total rows=estimate width=bytes) (actual time=first..last rows=count loops=iterations)
 
-<p><strong>Example:</strong><br>
-<code><br>
-Seq Scan on users  (cost=0.00..1543.67 rows=50000 width=123) (actual time=0.012..15.234 rows=48923 loops=1)<br>
-</code></p>
+</code></pre></div>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>Seq Scan on users  (cost=0.00..1543.67 rows=50000 width=123) (actual time=0.012..15.234 rows=48923 loops=1)
 
+</code></pre></div>
 <p><strong>Fields:</strong><br>
 - <strong>cost:</strong> Startup cost (0.00) to total cost (1543.67) in arbitrary units<br>
 - <strong>rows:</strong> Estimated row count (50000)<br>
@@ -712,114 +706,109 @@ Seq Scan on users  (cost=0.00..1543.67 rows=50000 width=123) (actual time=0.012.
 
 <h2>Common Scan Types</h2>
 
-<p><strong>Sequential Scan (Seq Scan):</strong> Reads entire table row-by-row.<br>
-<code><br>
-Seq Scan on users  (cost=0.00..1543.67 rows=50000 width=123)<br>
-  Filter: (status = &#39;active&#39;)<br>
-</code><br>
-<strong>When it appears:</strong> No index, or Postgres estimates sequential scan is faster (small tables, selecting large percentage of rows).</p>
+<p><strong>Sequential Scan (Seq Scan):</strong> Reads entire table row-by-row.</p>
+<div class="highlight"><pre class="highlight plaintext"><code>Seq Scan on users  (cost=0.00..1543.67 rows=50000 width=123)
+  Filter: (status = 'active')
 
-<p><strong>Index Scan:</strong> Uses index to find rows, then fetches from table.<br>
-<code><br>
-Index Scan using index_users_on_email on users  (cost=0.42..8.44 rows=1 width=123)<br>
-  Index Cond: (email = &#39;user@example.com&#39;)<br>
-</code><br>
-<strong>When it appears:</strong> Query filters/sorts by indexed column(s).</p>
+</code></pre></div>
+<p><strong>When it appears:</strong> No index, or Postgres estimates sequential scan is faster (small tables, selecting large percentage of rows).</p>
 
-<p><strong>Index Only Scan:</strong> Reads data directly from index without table lookup.<br>
-<code><br>
-Index Only Scan using index_users_on_email_covering on users  (cost=0.42..4.44 rows=1 width=8)<br>
-  Index Cond: (email = &#39;user@example.com&#39;)<br>
-  Heap Fetches: 0<br>
-</code><br>
-<strong>When it appears:</strong> Index contains all needed columns (covering index).</p>
+<p><strong>Index Scan:</strong> Uses index to find rows, then fetches from table.</p>
+<div class="highlight"><pre class="highlight plaintext"><code>Index Scan using index_users_on_email on users  (cost=0.42..8.44 rows=1 width=123)
+  Index Cond: (email = 'user@example.com')
 
-<p><strong>Bitmap Index Scan:</strong> Scans index, builds bitmap of matching rows, then fetches rows.<br>
-<code><br>
-Bitmap Heap Scan on users  (cost=12.34..567.89 rows=500 width=123)<br>
-  Recheck Cond: (created_at &gt; &#39;2024-01-01&#39;)<br>
-  -&gt; Bitmap Index Scan on index_users_on_created_at  (cost=0.00..12.21 rows=500 width=0)<br>
-</code><br>
-<strong>When it appears:</strong> Query returns moderate percentage of rows (5-15%).</p>
+</code></pre></div>
+<p><strong>When it appears:</strong> Query filters/sorts by indexed column(s).</p>
+
+<p><strong>Index Only Scan:</strong> Reads data directly from index without table lookup.</p>
+<div class="highlight"><pre class="highlight plaintext"><code>Index Only Scan using index_users_on_email_covering on users  (cost=0.42..4.44 rows=1 width=8)
+  Index Cond: (email = 'user@example.com')
+  Heap Fetches: 0
+
+</code></pre></div>
+<p><strong>When it appears:</strong> Index contains all needed columns (covering index).</p>
+
+<p><strong>Bitmap Index Scan:</strong> Scans index, builds bitmap of matching rows, then fetches rows.</p>
+<div class="highlight"><pre class="highlight plaintext"><code>Bitmap Heap Scan on users  (cost=12.34..567.89 rows=500 width=123)
+  Recheck Cond: (created_at &gt; '2024-01-01')
+  -&gt; Bitmap Index Scan on index_users_on_created_at  (cost=0.00..12.21 rows=500 width=0)
+
+</code></pre></div>
+<p><strong>When it appears:</strong> Query returns moderate percentage of rows (5-15%).</p>
 
 <hr>
 
 <h2>Join Strategies</h2>
 
-<p><strong>Nested Loop:</strong> Outer loop iterates rows, inner loop finds matches. Fast for small datasets.<br>
-<code><br>
-Nested Loop  (cost=0.85..123.45 rows=10 width=256)<br>
-  -&gt; Index Scan on orders  (cost=0.42..8.44 rows=1 width=128)<br>
-  -&gt; Index Scan on line_items  (cost=0.43..115.00 rows=10 width=128)<br>
-</code><br>
-<strong>Problem:</strong> Nested loops with large outer rows become O(N*M).</p>
+<p><strong>Nested Loop:</strong> Outer loop iterates rows, inner loop finds matches. Fast for small datasets.</p>
+<div class="highlight"><pre class="highlight plaintext"><code>Nested Loop  (cost=0.85..123.45 rows=10 width=256)
+  -&gt; Index Scan on orders  (cost=0.42..8.44 rows=1 width=128)
+  -&gt; Index Scan on line_items  (cost=0.43..115.00 rows=10 width=128)
 
-<p><strong>Hash Join:</strong> Builds hash table of one side, probes with other side. Fast for large datasets.<br>
-<code><br>
-Hash Join  (cost=234.56..1567.89 rows=5000 width=256)<br>
-  Hash Cond: (orders.user_id = users.id)<br>
-  -&gt; Seq Scan on orders  (cost=0.00..1200.00 rows=5000 width=128)<br>
-  -&gt; Hash  (cost=200.00..200.00 rows=2000 width=128)<br>
-        -&gt; Seq Scan on users  (cost=0.00..200.00 rows=2000 width=128)<br>
-</code></p>
+</code></pre></div>
+<p><strong>Problem:</strong> Nested loops with large outer rows become O(N*M).</p>
 
+<p><strong>Hash Join:</strong> Builds hash table of one side, probes with other side. Fast for large datasets.</p>
+<div class="highlight"><pre class="highlight plaintext"><code>Hash Join  (cost=234.56..1567.89 rows=5000 width=256)
+  Hash Cond: (orders.user_id = users.id)
+  -&gt; Seq Scan on orders  (cost=0.00..1200.00 rows=5000 width=128)
+  -&gt; Hash  (cost=200.00..200.00 rows=2000 width=128)
+        -&gt; Seq Scan on users  (cost=0.00..200.00 rows=2000 width=128)
+
+</code></pre></div>
 <p><strong>Merge Join:</strong> Sorts both sides, then merges. Efficient when inputs are pre-sorted.</p>
 
 <hr>
 
 <h2>Identifying Bottlenecks</h2>
 
-<p><strong>High cost nodes:</strong><br>
-<code><br>
-Seq Scan on large_table  (cost=0.00..150000.00 rows=1000000 width=200)<br>
-</code><br>
-<strong>Fix:</strong> Add index if filtering or sorting.</p>
+<p><strong>High cost nodes:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>Seq Scan on large_table  (cost=0.00..150000.00 rows=1000000 width=200)
 
-<p><strong>Nested loop with large rows:</strong><br>
-<code><br>
-Nested Loop  (cost=0.00..5000000.00 rows=100000 width=256)<br>
-</code><br>
-<strong>Fix:</strong> Consider hash join or add index to reduce inner loop cost.</p>
+</code></pre></div>
+<p><strong>Fix:</strong> Add index if filtering or sorting.</p>
 
-<p><strong>Sort on disk:</strong><br>
-<code><br>
-Sort  (cost=12345.67..13456.78 rows=50000 width=200)<br>
-  Sort Key: created_at DESC<br>
-  Sort Method: external merge  Disk: 12345kB<br>
-</code><br>
-<strong>Fix:</strong> Increase work_mem or add index on sort column.</p>
+<p><strong>Nested loop with large rows:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>Nested Loop  (cost=0.00..5000000.00 rows=100000 width=256)
+
+</code></pre></div>
+<p><strong>Fix:</strong> Consider hash join or add index to reduce inner loop cost.</p>
+
+<p><strong>Sort on disk:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>Sort  (cost=12345.67..13456.78 rows=50000 width=200)
+  Sort Key: created_at DESC
+  Sort Method: external merge  Disk: 12345kB
+
+</code></pre></div>
+<p><strong>Fix:</strong> Increase work_mem or add index on sort column.</p>
 
 <hr>
 
 <h2>Using pg_stat_statements</h2>
 
-<p>Enable in postgresql.conf:<br>
-<code><br>
-shared_preload_libraries = &#39;pg_stat_statements&#39;<br>
-pg_stat_statements.track = all<br>
-</code></p>
+<p>Enable in postgresql.conf:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>shared_preload_libraries = 'pg_stat_statements'
+pg_stat_statements.track = all
 
-<p><strong>Find slowest queries:</strong><br>
-<code>sql<br>
-SELECT query, calls, mean_exec_time, total_exec_time<br>
-FROM pg_stat_statements<br>
-ORDER BY mean_exec_time DESC<br>
-LIMIT 10;<br>
-</code></p>
+</code></pre></div>
+<p><strong>Find slowest queries:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">SELECT</span> <span class="n">query</span><span class="p">,</span> <span class="n">calls</span><span class="p">,</span> <span class="n">mean_exec_time</span><span class="p">,</span> <span class="n">total_exec_time</span>
+<span class="k">FROM</span> <span class="n">pg_stat_statements</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="n">mean_exec_time</span> <span class="k">DESC</span>
+<span class="k">LIMIT</span> <span class="mi">10</span><span class="p">;</span>
 
-<p><strong>Find most frequent queries:</strong><br>
-<code>sql<br>
-SELECT query, calls<br>
-FROM pg_stat_statements<br>
-ORDER BY calls DESC<br>
-LIMIT 10;<br>
-</code></p>
+</code></pre></div>
+<p><strong>Find most frequent queries:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">SELECT</span> <span class="n">query</span><span class="p">,</span> <span class="n">calls</span>
+<span class="k">FROM</span> <span class="n">pg_stat_statements</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="n">calls</span> <span class="k">DESC</span>
+<span class="k">LIMIT</span> <span class="mi">10</span><span class="p">;</span>
 
-<p><strong>Reset statistics:</strong><br>
-<code>sql<br>
-SELECT pg_stat_statements_reset();<br>
-</code></p>
+</code></pre></div>
+<p><strong>Reset statistics:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">SELECT</span> <span class="n">pg_stat_statements_reset</span><span class="p">();</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Trade-offs Box</h2>
@@ -876,28 +865,25 @@ SELECT pg_stat_statements_reset();<br>
 
 <p>You have a slow query on an orders table. Run EXPLAIN ANALYZE, identify the bottleneck, add an appropriate index, and verify the query plan improves.</p>
 
-<p><strong>Setup:</strong><br>
-```ruby</p>
+<p><strong>Setup:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Assume this schema with 100,000 orders</span>
+<span class="n">create_table</span> <span class="ss">:orders</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">references</span> <span class="ss">:user</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span><span class="p">,</span> <span class="ss">foreign_key: </span><span class="kp">true</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:status</span>  <span class="c1"># 'pending', 'completed', 'cancelled'</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">decimal</span> <span class="ss">:total</span><span class="p">,</span> <span class="ss">precision: </span><span class="mi">10</span><span class="p">,</span> <span class="ss">scale: </span><span class="mi">2</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">timestamps</span>
+<span class="k">end</span>
 
-<h1>Assume this schema with 100,000 orders</h1>
+<span class="c1"># Slow query: find recent completed orders for a user</span>
+<span class="c1"># User.find(5).orders.where(status: 'completed').order(created_at: :desc).limit(20)</span>
 
-<p>create_table :orders do |t|<br>
-  t.references :user, null: false, foreign_key: true<br>
-  t.string :status  # &#39;pending&#39;, &#39;completed&#39;, &#39;cancelled&#39;<br>
-  t.decimal :total, precision: 10, scale: 2<br>
-  t.timestamps<br>
-end</p>
+</code></pre></div>
+<p><strong>SQL equivalent:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">orders</span>
+<span class="k">WHERE</span> <span class="n">user_id</span> <span class="o">=</span> <span class="mi">5</span> <span class="k">AND</span> <span class="n">status</span> <span class="o">=</span> <span class="s1">'completed'</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="n">created_at</span> <span class="k">DESC</span>
+<span class="k">LIMIT</span> <span class="mi">20</span><span class="p">;</span>
 
-<h1>Slow query: find recent completed orders for a user</h1>
-
-<h1>User.find(5).orders.where(status: &#39;completed&#39;).order(created_at: :desc).limit(20)</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**SQL equivalent:**
-```sql
-SELECT * FROM orders
-WHERE user_id = 5 AND status = 'completed'
-ORDER BY created_at DESC
-LIMIT 20;
 </code></pre></div>
 <h2>Acceptance Criteria</h2>
 

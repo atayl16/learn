@@ -43,6 +43,7 @@ export default class extends Controller {
     clearInterval(this.intervalId)
   }
 }
+
 ```
 
 Use this pattern for setting up event listeners, third-party libraries, or timers. Always tear down in `disconnect()` to prevent memory leaks.
@@ -63,6 +64,7 @@ export default class extends Controller {
     this.buttonTarget.setAttribute("aria-expanded", !this.menuTarget.classList.contains("hidden"))
   }
 }
+
 ```
 
 In HTML:
@@ -74,6 +76,7 @@ In HTML:
     <li>Item 1</li>
   </ul>
 </div>
+
 ```
 
 Targets replace brittle `querySelector` calls with named references that fail loudly if missing.
@@ -97,6 +100,7 @@ export default class extends Controller {
     this.countValue++
   }
 }
+
 ```
 
 HTML:
@@ -106,6 +110,7 @@ HTML:
   0
 </div>
 <button data-action="click->counter#increment">+</button>
+
 ```
 
 Values sync to the DOM, so updating `this.countValue` updates the `data-counter-count-value` attribute.
@@ -120,6 +125,7 @@ Actions bind events to controller methods:
 <form data-controller="form-validator" data-action="submit->form-validator#validate">
   <input type="email" data-action="blur->form-validator#checkEmail">
 </form>
+
 ```
 
 Default event mappings: `click` for buttons, `submit` for forms, `input` for text fields. Override with `event->controller#method` syntax. Use `->` for bubbling or `@window->` for global events.
@@ -141,6 +147,7 @@ export default class extends Controller {
     })
   }
 }
+
 ```
 
 HTML:
@@ -150,6 +157,7 @@ HTML:
   <div data-controller="product" class="product"></div>
   <button data-action="cart#addToCart">Add All</button>
 </div>
+
 ```
 
 Outlets avoid global variables and enable clean controller composition.
@@ -168,6 +176,7 @@ export default class extends Controller {
     this.dispatch("resultsReady", { detail: { results } })
   }
 }
+
 ```
 
 Listen in another controller:
@@ -181,6 +190,7 @@ export default class extends Controller {
     this.listTarget.innerHTML = event.detail.results
   }
 }
+
 ```
 
 HTML:
@@ -188,6 +198,7 @@ HTML:
 ```erb
 <div data-controller="search" data-action="search:resultsReady@window->results#handleResults"></div>
 <div data-controller="results" data-results-target="list"></div>
+
 ```
 
 ---

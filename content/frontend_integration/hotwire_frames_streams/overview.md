@@ -34,6 +34,7 @@ Wrap a section of HTML in `<turbo-frame id="messages">`. Clicking links inside n
   <%= link_to "Next Page", messages_path(page: 2) %>
   <%= render @messages %>
 </turbo-frame>
+
 ```
 
 The response must also wrap content in `<turbo-frame id="messages">`. Turbo extracts that frame and swaps it in. The rest of the page stays untouched.
@@ -48,6 +49,7 @@ Set `src` attribute to defer loading:
 <turbo-frame id="expensive_stats" src="<%= stats_path %>">
   <p>Loading stats...</p>
 </turbo-frame>
+
 ```
 
 Turbo fires a GET request to `/stats` when the frame appears. The response replaces the loading message. Use this for dashboards or slow queries that shouldn't block initial page render.
@@ -68,6 +70,7 @@ def create
     end
   end
 end
+
 ```
 
 Available actions: `append`, `prepend`, `replace`, `remove`, `update`. Each targets a DOM ID and sends HTML to insert or replace.
@@ -83,6 +86,7 @@ Broadcast updates to all connected clients:
 class Message < ApplicationRecord
   after_create_commit -> { broadcast_append_to "room_messages", target: "messages", partial: "messages/message" }
 end
+
 ```
 
 In the view, subscribe to the stream:
@@ -92,6 +96,7 @@ In the view, subscribe to the stream:
 <div id="messages">
   <%= render @messages %>
 </div>
+
 ```
 
 When a new `Message` saves, all subscribers see it appended instantly. No polling, no custom WebSocket code.
@@ -109,6 +114,7 @@ Forms inside frames submit within the frame:
     <%= f.submit %>
   <% end %>
 </turbo-frame>
+
 ```
 
 On success, return a frame with the updated content. On error, return the form with validation errors. The rest of the page remains stable.

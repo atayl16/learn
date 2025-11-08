@@ -24,6 +24,8 @@ class RailsSeniorityCoach < Sinatra::Base
     markdown = Redcarpet::Markdown.new(renderer,
       fenced_code_blocks: true,
       no_intra_emphasis: true,
+      disable_indented_code_blocks: false,
+      space_after_headers: false,
       autolink: true,
       tables: true,
       strikethrough: true

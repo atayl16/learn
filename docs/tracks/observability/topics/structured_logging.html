@@ -664,9 +664,11 @@ Processing by UsersController#show as HTML
   Parameters: {"id"=&gt;"123"}
   User Load (0.5ms)  SELECT "users".* FROM "users" WHERE "users"."id" = $1 LIMIT $2
 Completed 200 OK in 45ms (Views: 32.1ms | ActiveRecord: 0.5ms)
+
 </code></pre></div>
 <p>Lograge condenses this to one JSON line:</p>
 <div class="highlight"><pre class="highlight json"><code><span class="p">{</span><span class="nl">"method"</span><span class="p">:</span><span class="s2">"GET"</span><span class="p">,</span><span class="nl">"path"</span><span class="p">:</span><span class="s2">"/users/123"</span><span class="p">,</span><span class="nl">"format"</span><span class="p">:</span><span class="s2">"html"</span><span class="p">,</span><span class="nl">"controller"</span><span class="p">:</span><span class="s2">"UsersController"</span><span class="p">,</span><span class="nl">"action"</span><span class="p">:</span><span class="s2">"show"</span><span class="p">,</span><span class="nl">"status"</span><span class="p">:</span><span class="mi">200</span><span class="p">,</span><span class="nl">"duration"</span><span class="p">:</span><span class="mf">45.2</span><span class="p">,</span><span class="nl">"view"</span><span class="p">:</span><span class="mf">32.1</span><span class="p">,</span><span class="nl">"db"</span><span class="p">:</span><span class="mf">0.5</span><span class="p">}</span><span class="w">
+
 </span></code></pre></div>
 <p>Queryable fields enable fast filtering: <code>status:500</code>, <code>duration:&gt;1000</code>, <code>path:/api/*</code>.</p>
 
@@ -689,6 +691,7 @@ Completed 200 OK in 45ms (Views: 32.1ms | ActiveRecord: 0.5ms)
     <span class="ss">request_id: </span><span class="n">event</span><span class="p">.</span><span class="nf">payload</span><span class="p">[</span><span class="ss">:headers</span><span class="p">][</span><span class="s1">'action_dispatch.request_id'</span><span class="p">]</span>
   <span class="p">}</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Every request now logs one JSON line with structured fields.</p>
 
@@ -716,6 +719,7 @@ Completed 200 OK in 45ms (Views: 32.1ms | ActiveRecord: 0.5ms)
   <span class="n">payload</span><span class="p">[</span><span class="ss">:tenant_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_tenant</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">id</span>
   <span class="n">payload</span><span class="p">[</span><span class="ss">:ip</span><span class="p">]</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="nf">remote_ip</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Now search logs by <code>user_id:123</code> to see all requests from one user.</p>
 
@@ -734,6 +738,7 @@ Completed 200 OK in 45ms (Views: 32.1ms | ActiveRecord: 0.5ms)
   <span class="c1"># Skip logging health check requests</span>
   <span class="n">event</span><span class="p">.</span><span class="nf">payload</span><span class="p">[</span><span class="ss">:path</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'/health'</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Filtered params appear as <code>[FILTERED]</code> in logs. Health checks reduce log noise.</p>
 
@@ -743,34 +748,26 @@ Completed 200 OK in 45ms (Views: 32.1ms | ActiveRecord: 0.5ms)
 
 <p>Ship JSON logs to centralized storage:</p>
 
-<p><strong>CloudWatch Logs (AWS):</strong><br>
-```ruby</p>
+<p><strong>CloudWatch Logs (AWS):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'aws-sdk-cloudwatchlogs'</span>
 
-<h1>Gemfile</h1>
+<span class="c1"># config/environments/production.rb</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Logger</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="no">STDOUT</span><span class="p">)</span>
+<span class="n">logger</span><span class="p">.</span><span class="nf">formatter</span> <span class="o">=</span> <span class="o">-&gt;</span><span class="p">(</span><span class="n">severity</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">progname</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span> <span class="p">{</span> <span class="s2">"</span><span class="si">#{</span><span class="n">msg</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span> <span class="p">}</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">logger</span> <span class="o">=</span> <span class="n">logger</span>
 
-<p>gem &#39;aws-sdk-cloudwatchlogs&#39;</p>
+</code></pre></div>
+<p><strong>Datadog:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'ddtrace'</span>
 
-<h1>config/environments/production.rb</h1>
+<span class="c1"># config/initializers/datadog.rb</span>
+<span class="no">Datadog</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span>
+  <span class="n">c</span><span class="p">.</span><span class="nf">tracing</span><span class="p">.</span><span class="nf">instrument</span> <span class="ss">:rails</span>
+<span class="k">end</span>
 
-<p>logger = ActiveSupport::Logger.new(STDOUT)<br>
-logger.formatter = -&gt;(severity, time, progname, msg) { &quot;#{msg}\n&quot; }<br>
-config.logger = logger<br>
-```</p>
-
-<p><strong>Datadog:</strong><br>
-```ruby</p>
-
-<h1>Gemfile</h1>
-
-<p>gem &#39;ddtrace&#39;</p>
-
-<h1>config/initializers/datadog.rb</h1>
-
-<p>Datadog.configure do |c|<br>
-  c.tracing.instrument :rails<br>
-end<br>
-```</p>
-
+</code></pre></div>
 <p>Both parse JSON logs automatically. Build dashboards with queries like <code>status:&gt;=500</code> or <code>duration:&gt;2000</code>.</p>
 
 <hr>
@@ -856,6 +853,7 @@ end<br>
 bundle add lograge
 
 bundle <span class="nb">install</span>
+
 </code></pre></div>
 <h3>Step 2: Configure Lograge</h3>
 
@@ -879,6 +877,7 @@ bundle <span class="nb">install</span>
     <span class="n">event</span><span class="p">.</span><span class="nf">payload</span><span class="p">[</span><span class="ss">:path</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'/health'</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Apply same config to <code>config/environments/production.rb</code>.</p>
 
@@ -899,6 +898,7 @@ bundle <span class="nb">install</span>
     <span class="no">User</span><span class="p">.</span><span class="nf">first</span> <span class="k">if</span> <span class="no">User</span><span class="p">.</span><span class="nf">any?</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h3>Step 4: Configure Parameter Filtering</h3>
 
@@ -910,6 +910,7 @@ bundle <span class="nb">install</span>
   <span class="ss">:secret_key</span><span class="p">,</span>
   <span class="ss">:api_key</span>
 <span class="p">]</span>
+
 </code></pre></div>
 <h3>Step 5: Create Test Routes and Controller</h3>
 
@@ -919,6 +920,7 @@ bundle <span class="nb">install</span>
   <span class="n">post</span> <span class="s1">'/login'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'sessions#create'</span>
   <span class="n">get</span> <span class="s1">'/users/:id'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'users#show'</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Create <code>app/controllers/health_controller.rb</code>:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">HealthController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
@@ -928,6 +930,7 @@ bundle <span class="nb">install</span>
     <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">status: </span><span class="s1">'ok'</span> <span class="p">}</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Create <code>app/controllers/sessions_controller.rb</code>:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">SessionsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
@@ -938,6 +941,7 @@ bundle <span class="nb">install</span>
     <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">success: </span><span class="kp">true</span> <span class="p">}</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Create <code>app/controllers/users_controller.rb</code>:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">UsersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
@@ -946,14 +950,17 @@ bundle <span class="nb">install</span>
     <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">id: </span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">],</span> <span class="ss">name: </span><span class="s1">'Test User'</span> <span class="p">}</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h3>Step 6: Test and Verify</h3>
 
 <p>Start Rails server:</p>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails server
+
 </code></pre></div>
 <p>In another terminal, tail logs:</p>
 <div class="highlight"><pre class="highlight shell"><code><span class="nb">tail</span> <span class="nt">-f</span> log/development.log
+
 </code></pre></div>
 <p>Make test requests:</p>
 <div class="highlight"><pre class="highlight shell"><code><span class="c"># Should appear in logs as JSON</span>
@@ -966,12 +973,15 @@ curl http://localhost:3000/health
 curl <span class="nt">-X</span> POST http://localhost:3000/login <span class="se">\</span>
   <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
   <span class="nt">-d</span> <span class="s1">'{"email":"user@example.com","password":"secret123","api_token":"abc123"}'</span>
+
 </code></pre></div>
 <p>Expected log output for <code>/users/123</code>:</p>
 <div class="highlight"><pre class="highlight json"><code><span class="p">{</span><span class="nl">"method"</span><span class="p">:</span><span class="s2">"GET"</span><span class="p">,</span><span class="nl">"path"</span><span class="p">:</span><span class="s2">"/users/123"</span><span class="p">,</span><span class="nl">"format"</span><span class="p">:</span><span class="s2">"*/*"</span><span class="p">,</span><span class="nl">"controller"</span><span class="p">:</span><span class="s2">"UsersController"</span><span class="p">,</span><span class="nl">"action"</span><span class="p">:</span><span class="s2">"show"</span><span class="p">,</span><span class="nl">"status"</span><span class="p">:</span><span class="mi">200</span><span class="p">,</span><span class="nl">"duration"</span><span class="p">:</span><span class="mf">105.23</span><span class="p">,</span><span class="nl">"view"</span><span class="p">:</span><span class="mf">0.45</span><span class="p">,</span><span class="nl">"db"</span><span class="p">:</span><span class="mf">0.0</span><span class="p">,</span><span class="nl">"time"</span><span class="p">:</span><span class="s2">"2025-01-15T10:23:45-08:00"</span><span class="p">,</span><span class="nl">"request_id"</span><span class="p">:</span><span class="s2">"abc123-def456"</span><span class="p">,</span><span class="nl">"user_id"</span><span class="p">:</span><span class="kc">null</span><span class="p">,</span><span class="nl">"ip"</span><span class="p">:</span><span class="s2">"127.0.0.1"</span><span class="p">}</span><span class="w">
+
 </span></code></pre></div>
 <p>Expected log output for <code>/login</code> (check password is filtered):</p>
 <div class="highlight"><pre class="highlight plaintext"><code>{"method":"POST","path":"/login","format":"json","controller":"SessionsController","action":"create","status":200,"params":{"email":"user@example.com","password":"[FILTERED]","api_token":"[FILTERED]"},...}
+
 </code></pre></div>
 <h3>Step 7: Verify in Rails Console</h3>
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Check configuration</span>
@@ -983,6 +993,7 @@ curl <span class="nt">-X</span> POST http://localhost:3000/login <span class="se
 
 <span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">config</span><span class="p">.</span><span class="nf">filter_parameters</span>
 <span class="c1"># =&gt; [:password, :password_confirmation, :api_token, :secret_key, :api_key, ...]</span>
+
 </code></pre></div>
 <h2>Stretch (Optional)</h2>
 
@@ -998,6 +1009,7 @@ curl <span class="nt">-X</span> POST http://localhost:3000/login <span class="se
     <span class="ss">exception_message: </span><span class="n">event</span><span class="p">.</span><span class="nf">payload</span><span class="p">[</span><span class="ss">:exception</span><span class="p">]</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">last</span>
   <span class="p">}</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <ol>
 <li>Log SQL query counts per request:</li>
@@ -1008,6 +1020,7 @@ curl <span class="nt">-X</span> POST http://localhost:3000/login <span class="se
     <span class="ss">cache_hits: </span><span class="n">event</span><span class="p">.</span><span class="nf">payload</span><span class="p">[</span><span class="ss">:cache_hits</span><span class="p">]</span>
   <span class="p">}</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h2>Time Estimate</h2>
 

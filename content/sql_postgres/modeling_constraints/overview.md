@@ -24,6 +24,7 @@ Constraints are the last line of defense against bad data. Application validatio
 Ensure referential integrity: child rows must reference valid parent rows.
 
 **Migration:**
+
 ```ruby
 class CreateOrders < ActiveRecord::Migration[7.0]
   def change
@@ -34,9 +35,11 @@ class CreateOrders < ActiveRecord::Migration[7.0]
     end
   end
 end
+
 ```
 
 **SQL generated:**
+
 ```sql
 CREATE TABLE orders (
   id BIGSERIAL PRIMARY KEY,
@@ -46,6 +49,7 @@ CREATE TABLE orders (
   updated_at TIMESTAMP NOT NULL,
   CONSTRAINT fk_rails_abc123 FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
 ```
 
 **Behavior:**
@@ -53,6 +57,7 @@ CREATE TABLE orders (
 - Prevents deleting `user` with existing `orders` (unless `ON DELETE CASCADE`)
 
 **On delete options:**
+
 ```ruby
 t.references :user, foreign_key: { on_delete: :cascade }
 # Deletes orders when user is deleted
@@ -62,6 +67,7 @@ t.references :user, foreign_key: { on_delete: :nullify }
 
 t.references :user, foreign_key: { on_delete: :restrict }
 # Prevents deleting user with orders (default)
+
 ```
 
 ---
@@ -71,26 +77,33 @@ t.references :user, foreign_key: { on_delete: :restrict }
 Prevent duplicate values across one or more columns.
 
 **Single column:**
+
 ```ruby
 class AddUniqueIndexToUsersEmail < ActiveRecord::Migration[7.0]
   def change
     add_index :users, :email, unique: true
   end
 end
+
 ```
 
 **SQL:**
+
 ```sql
 CREATE UNIQUE INDEX index_users_on_email ON users (email);
+
 ```
 
 **Multi-column (composite unique):**
+
 ```ruby
 add_index :enrollments, [:user_id, :course_id], unique: true
 # Ensures user can enroll in each course only once
+
 ```
 
 **Unique constraint (Rails 6.1+):**
+
 ```ruby
 create_table :products do |t|
   t.string :sku, null: false
@@ -102,6 +115,7 @@ add_index :products, :sku, unique: true, name: 'unique_sku'
 execute <<-SQL
   ALTER TABLE products ADD CONSTRAINT unique_sku UNIQUE (sku);
 SQL
+
 ```
 
 ---
@@ -111,6 +125,7 @@ SQL
 Validate data meets conditions.
 
 **Rails 6.1+ syntax:**
+
 ```ruby
 class CreateProducts < ActiveRecord::Migration[7.0]
   def change
@@ -125,25 +140,32 @@ class CreateProducts < ActiveRecord::Migration[7.0]
     end
   end
 end
+
 ```
 
 **SQL:**
+
 ```sql
 CREATE TABLE products (
   ...
   CONSTRAINT price_positive CHECK (price > 0),
   CONSTRAINT quantity_non_negative CHECK (quantity >= 0)
 );
+
 ```
 
 **Adding constraint to existing table:**
+
 ```ruby
 add_check_constraint :products, "price > 0", name: "price_positive"
+
 ```
 
 **Removing:**
+
 ```ruby
 remove_check_constraint :products, name: "price_positive"
+
 ```
 
 ---
@@ -163,20 +185,25 @@ class CreateUsers < ActiveRecord::Migration[7.0]
     end
   end
 end
+
 ```
 
 **Adding to existing column:**
+
 ```ruby
 change_column_null :users, :email, false
+
 ```
 
 **Safe multi-step process (zero-downtime):**
+
 ```ruby
 # Step 1: Add default for existing NULLs
 update("UPDATE users SET email = '' WHERE email IS NULL")
 
 # Step 2: Add constraint
 change_column_null :users, :email, false
+
 ```
 
 ---
@@ -186,6 +213,7 @@ change_column_null :users, :email, false
 Prevent overlapping ranges (Postgres-specific).
 
 **Example: No overlapping reservations**
+
 ```ruby
 execute <<-SQL
   CREATE EXTENSION IF NOT EXISTS btree_gist;
@@ -197,6 +225,7 @@ execute <<-SQL
     tsrange(start_time, end_time) WITH &&
   );
 SQL
+
 ```
 
 This prevents reservations for the same room during overlapping times.
@@ -206,6 +235,7 @@ This prevents reservations for the same room during overlapping times.
 ## Constraint Violations
 
 **Handling errors:**
+
 ```ruby
 user = User.create(email: existing_email)
 # ActiveRecord::RecordNotUnique: PG::UniqueViolation: ERROR:  duplicate key value violates unique constraint "index_users_on_email"
@@ -215,12 +245,15 @@ begin
 rescue ActiveRecord::RecordNotUnique
   # Handle duplicate
 end
+
 ```
 
 **Check constraint violation:**
+
 ```ruby
 Product.create!(name: "Widget", price: -10)
 # ActiveRecord::StatementInvalid: PG::CheckViolation: ERROR:  new row for relation "products" violates check constraint "price_positive"
+
 ```
 
 ---

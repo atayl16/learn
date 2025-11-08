@@ -666,6 +666,7 @@
 │  └─ Partial: _posts.html.erb (120ms)
 │     └─ SQL: SELECT * FROM posts WHERE user_id = ? (110ms) [N+1]
 └─ External API: fetch_avatar (10ms)
+
 </code></pre></div>
 <p><strong>Reading top to bottom:</strong><br>
 - Top level = controller action (total time)<br>
@@ -689,6 +690,7 @@
 
 <span class="c1"># config/application.rb</span>
 <span class="n">config</span><span class="p">.</span><span class="nf">skylight</span><span class="p">.</span><span class="nf">authentication</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'SKYLIGHT_AUTHENTICATION'</span><span class="p">]</span>
+
 </code></pre></div>
 <p>Deploy and visit Skylight dashboard to see traces.</p>
 
@@ -709,6 +711,7 @@
 <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="p">.</span><span class="nf">instrument</span><span class="p">(</span><span class="s1">'process.payment'</span><span class="p">)</span> <span class="k">do</span>
   <span class="no">PaymentGateway</span><span class="p">.</span><span class="nf">charge</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Skylight/Scout auto-instrument:<br>
 - ActiveRecord queries<br>
@@ -728,6 +731,7 @@
 <span class="vi">@users</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span>
   <span class="nb">puts</span> <span class="n">user</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">count</span>  <span class="c1"># Triggers: SELECT COUNT(*) FROM posts WHERE user_id = ?</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><strong>APM flamegraph shows:</strong><br>
 - 1 query to fetch users (5ms)<br>
@@ -745,6 +749,7 @@
 
 <span class="vi">@users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
 <span class="vi">@users</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span> <span class="nb">puts</span> <span class="n">user</span><span class="p">.</span><span class="nf">posts_count</span> <span class="p">}</span>  <span class="c1"># No extra queries</span>
+
 </code></pre></div>
 <p>APM shows only the initial User query.</p>
 
@@ -759,10 +764,12 @@
   <span class="n">gem</span> <span class="s1">'memory_profiler'</span>
   <span class="n">gem</span> <span class="s1">'stackprof'</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Visit any page in development - see performance badge in top-left corner:</p>
 <div class="highlight"><pre class="highlight plaintext"><code>GET /users/123
 Total: 245ms | SQL: 18ms (4 queries) | Views: 220ms
+
 </code></pre></div>
 <p>Click badge for detailed breakdown:<br>
 - SQL queries with durations<br>
@@ -786,6 +793,7 @@ Total: 245ms | SQL: 18ms (4 queries) | Views: 220ms
 
   <span class="n">render</span> <span class="ss">:show</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>rack-mini-profiler shows each step&#39;s duration separately.</p>
 
@@ -874,6 +882,7 @@ bundle add memory_profiler <span class="nt">--group</span> development
 bundle add stackprof <span class="nt">--group</span> development
 
 bundle <span class="nb">install</span>
+
 </code></pre></div>
 <h3>Step 2: Configure rack-mini-profiler</h3>
 
@@ -884,6 +893,7 @@ bundle <span class="nb">install</span>
   <span class="c1"># Memory profiling</span>
   <span class="no">Rack</span><span class="o">::</span><span class="no">MiniProfiler</span><span class="p">.</span><span class="nf">config</span><span class="p">.</span><span class="nf">enable_advanced_debugging_tools</span> <span class="o">=</span> <span class="kp">true</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h3>Step 3: Create Models</h3>
 
@@ -891,27 +901,26 @@ bundle <span class="nb">install</span>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails generate model Author name:string bio:text
 bin/rails generate model Book title:string author:references published_year:integer
 bin/rails db:migrate
+
 </code></pre></div>
 <p>Edit models:</p>
 
-<p><code>app/models/author.rb</code>:<br>
-```ruby<br>
-class Author &lt; ApplicationRecord<br>
-  has_many :books</p>
+<p><code>app/models/author.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Author</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_many</span> <span class="ss">:books</span>
 
-<p>validates :name, presence: true<br>
-end<br>
-```</p>
+  <span class="n">validates</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span>
+<span class="k">end</span>
 
-<p><code>app/models/book.rb</code>:<br>
-```ruby<br>
-class Book &lt; ApplicationRecord<br>
-  belongs_to :author</p>
+</code></pre></div>
+<p><code>app/models/book.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Book</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:author</span>
 
-<p>validates :title, presence: true<br>
-end<br>
-```</p>
+  <span class="n">validates</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 4: Seed Test Data</h3>
 
 <p>Edit <code>db/seeds.rb</code>:</p>
@@ -932,14 +941,17 @@ end<br>
 <span class="k">end</span>
 
 <span class="nb">puts</span> <span class="s2">"Created </span><span class="si">#{</span><span class="no">Author</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> authors with </span><span class="si">#{</span><span class="no">Book</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> books"</span>
+
 </code></pre></div>
 <p>Run seeds:</p>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails db:seed
+
 </code></pre></div>
 <h3>Step 5: Create Controller with N+1</h3>
 
 <p>Generate controller:</p>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails generate controller Authors index
+
 </code></pre></div>
 <p>Edit <code>app/controllers/authors_controller.rb</code>:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">AuthorsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
@@ -954,6 +966,7 @@ end<br>
     <span class="n">render</span> <span class="ss">:index</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h3>Step 6: Create View</h3>
 
@@ -981,6 +994,7 @@ end<br>
 <span class="nt">&lt;p&gt;</span>
   Compare this page to the <span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s1">'optimized version'</span><span class="p">,</span> <span class="n">authors_optimized_path</span> <span class="cp">%&gt;</span>
 <span class="nt">&lt;/p&gt;</span>
+
 </code></pre></div>
 <h3>Step 7: Update Routes</h3>
 
@@ -989,11 +1003,13 @@ end<br>
   <span class="n">resources</span> <span class="ss">:authors</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">]</span>
   <span class="n">get</span> <span class="s1">'authors_optimized'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'authors#index_optimized'</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h3>Step 8: Test and Profile</h3>
 
 <p>Start Rails server:</p>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails server
+
 </code></pre></div>
 <p>Visit <a href="http://localhost:3000/authors" target="_blank">http://localhost:3000/authors</a></p>
 
@@ -1004,29 +1020,27 @@ end<br>
 
 <p>Click the badge to see detailed breakdown:</p>
 
-<p><strong>Expected N+1 pattern:</strong><br>
-<code><br>
-SQL (21 queries - 180ms)<br>
-├─ SELECT &quot;authors&quot;.* FROM &quot;authors&quot;  (1.2ms)<br>
-├─ SELECT COUNT(*) FROM &quot;books&quot; WHERE &quot;books&quot;.&quot;author_id&quot; = 1  (8.1ms)<br>
-├─ SELECT COUNT(*) FROM &quot;books&quot; WHERE &quot;books&quot;.&quot;author_id&quot; = 2  (7.9ms)<br>
-├─ SELECT COUNT(*) FROM &quot;books&quot; WHERE &quot;books&quot;.&quot;author_id&quot; = 3  (8.2ms)<br>
-... (repeated for each author)<br>
-├─ SELECT &quot;books&quot;.* FROM &quot;books&quot; WHERE &quot;books&quot;.&quot;author_id&quot; = 1 LIMIT 3  (2.1ms)<br>
-... (repeated for each author)<br>
-</code></p>
+<p><strong>Expected N+1 pattern:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>SQL (21 queries - 180ms)
+├─ SELECT "authors".* FROM "authors"  (1.2ms)
+├─ SELECT COUNT(*) FROM "books" WHERE "books"."author_id" = 1  (8.1ms)
+├─ SELECT COUNT(*) FROM "books" WHERE "books"."author_id" = 2  (7.9ms)
+├─ SELECT COUNT(*) FROM "books" WHERE "books"."author_id" = 3  (8.2ms)
+... (repeated for each author)
+├─ SELECT "books".* FROM "books" WHERE "books"."author_id" = 1 LIMIT 3  (2.1ms)
+... (repeated for each author)
 
+</code></pre></div>
 <h3>Step 9: Compare with Optimized Version</h3>
 
 <p>Visit <a href="http://localhost:3000/authors_optimized" target="_blank">http://localhost:3000/authors_optimized</a></p>
 
-<p><strong>rack-mini-profiler should show:</strong><br>
-<code><br>
-SQL (2 queries - 15ms)<br>
-├─ SELECT &quot;authors&quot;.* FROM &quot;authors&quot;  (1.2ms)<br>
-└─ SELECT &quot;books&quot;.* FROM &quot;books&quot; WHERE &quot;books&quot;.&quot;author_id&quot; IN (1,2,3,4,5...)  (13.8ms)<br>
-</code></p>
+<p><strong>rack-mini-profiler should show:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>SQL (2 queries - 15ms)
+├─ SELECT "authors".* FROM "authors"  (1.2ms)
+└─ SELECT "books".* FROM "books" WHERE "books"."author_id" IN (1,2,3,4,5...)  (13.8ms)
 
+</code></pre></div>
 <p><strong>Improvement:</strong> 21 queries → 2 queries, ~170ms saved</p>
 
 <h3>Step 10: View Flamegraph</h3>
@@ -1050,6 +1064,7 @@ SQL (2 queries - 15ms)<br>
 <span class="n">authors</span> <span class="o">=</span> <span class="no">Author</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:books</span><span class="p">).</span><span class="nf">all</span>
 <span class="n">authors</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">a</span><span class="o">|</span> <span class="nb">puts</span> <span class="n">a</span><span class="p">.</span><span class="nf">books</span><span class="p">.</span><span class="nf">size</span> <span class="p">}</span>  <span class="c1"># Use size, not count!</span>
 <span class="c1"># Only 2 queries total</span>
+
 </code></pre></div>
 <h2>Stretch (Optional)</h2>
 
@@ -1058,11 +1073,13 @@ SQL (2 queries - 15ms)<br>
 </ol>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails generate migration AddBooksCountToAuthors books_count:integer
 bin/rails db:migrate
+
 </code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/models/book.rb</span>
 <span class="n">belongs_to</span> <span class="ss">:author</span><span class="p">,</span> <span class="ss">counter_cache: </span><span class="kp">true</span>
 
 <span class="c1"># Reset counter cache for existing records</span>
 <span class="no">Author</span><span class="p">.</span><span class="nf">find_each</span> <span class="p">{</span> <span class="o">|</span><span class="n">a</span><span class="o">|</span> <span class="no">Author</span><span class="p">.</span><span class="nf">reset_counters</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="ss">:books</span><span class="p">)</span> <span class="p">}</span>
+
 </code></pre></div>
 <p>Now <code>author.books_count</code> requires zero queries.</p>
 
@@ -1078,6 +1095,7 @@ bin/rails db:migrate
     <span class="n">render</span> <span class="ss">:index</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <ol>
 <li>Profile memory usage (click &quot;memory&quot; in rack-mini-profiler):</li>
@@ -1088,6 +1106,7 @@ bin/rails db:migrate
     <span class="vi">@authors</span> <span class="o">=</span> <span class="no">Author</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:books</span><span class="p">).</span><span class="nf">all</span>
   <span class="k">end</span><span class="p">.</span><span class="nf">pretty_print</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h2>Time Estimate</h2>
 

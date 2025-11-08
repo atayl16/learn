@@ -677,6 +677,7 @@
     <span class="no">Redis</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">setex</span><span class="p">(</span><span class="n">idempotency_key</span><span class="p">,</span> <span class="mi">7</span><span class="p">.</span><span class="nf">days</span><span class="p">.</span><span class="nf">to_i</span><span class="p">,</span> <span class="n">result</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><strong>Key composition:</strong> Include record ID + timestamp or version to allow re-processing if the record changes.</p>
 
@@ -715,6 +716,7 @@
     <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Invoice already exists for order </span><span class="si">#{</span><span class="n">order_id</span><span class="si">}</span><span class="s2">"</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Database constraints are more reliable than application-level checks (no race conditions).</p>
 
@@ -732,6 +734,7 @@
     <span class="no">UserMailer</span><span class="p">.</span><span class="nf">welcome_email</span><span class="p">(</span><span class="n">user</span><span class="p">).</span><span class="nf">deliver_now</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><strong>Default backoff schedule (in seconds):</strong><br>
 - Attempt 1: immediate<br>
@@ -743,6 +746,7 @@
 
 <p>Disable retries for jobs that should never retry:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="n">sidekiq_options</span> <span class="ss">retry: </span><span class="kp">false</span>
+
 </code></pre></div>
 <hr>
 
@@ -774,6 +778,7 @@
     <span class="k">end</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><strong>Callbacks:</strong><br>
 - <code>sidekiq_retry_in</code>: set custom delay before next retry<br>
@@ -802,6 +807,7 @@
 
 <span class="c1"># Clear DLQ (permanent deletion)</span>
 <span class="no">Sidekiq</span><span class="o">::</span><span class="no">DeadSet</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">clear</span>
+
 </code></pre></div>
 <p><strong>DLQ monitoring:</strong> Alert when <code>Sidekiq::DeadSet.new.size &gt; threshold</code>. Investigate patterns: same error, same job class, or data quality issues.</p>
 
@@ -820,6 +826,7 @@
     <span class="no">PaymentService</span><span class="p">.</span><span class="nf">charge</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>ActiveJob provides <code>retry_on</code> and <code>discard_on</code> for declarative retry policies.</p>
 
@@ -902,210 +909,201 @@
 <h2>Verification Steps</h2>
 
 <ol>
-<li><p>Enqueue the same payment twice rapidly:<br>
-<code>ruby<br>
-payment = Payment.create!(amount: 100, status: &#39;pending&#39;)<br>
-2.times { ChargePaymentJob.perform_later(payment.id) }<br>
-</code></p></li>
-<li><p>Check logs - second job should skip with &quot;already processed&quot; message</p></li>
-<li><p>Simulate failure and watch retries:<br>
-```ruby</p>
-
-<h1>Set environment to trigger failures</h1>
-
-<p>ENV[&#39;SIMULATE_FAILURE&#39;] = &#39;true&#39;<br>
-ChargePaymentJob.perform_later(payment.id)<br>
-```</p></li>
-<li><p>After 3 retries, check DLQ:<br>
-<code>ruby<br>
-Sidekiq::DeadSet.new.size  # =&gt; 1<br>
-dead_job = Sidekiq::DeadSet.new.first<br>
-dead_job.item[&#39;error_message&#39;]  # Shows ApiError<br>
-</code></p></li>
+<li>Enqueue the same payment twice rapidly:</li>
 </ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">payment</span> <span class="o">=</span> <span class="no">Payment</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">amount: </span><span class="mi">100</span><span class="p">,</span> <span class="ss">status: </span><span class="s1">'pending'</span><span class="p">)</span>
+<span class="mi">2</span><span class="p">.</span><span class="nf">times</span> <span class="p">{</span> <span class="no">ChargePaymentJob</span><span class="p">.</span><span class="nf">perform_later</span><span class="p">(</span><span class="n">payment</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span> <span class="p">}</span>
 
+</code></pre></div>
+<ol>
+<li><p>Check logs - second job should skip with &quot;already processed&quot; message</p></li>
+<li><p>Simulate failure and watch retries:</p></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Set environment to trigger failures</span>
+<span class="no">ENV</span><span class="p">[</span><span class="s1">'SIMULATE_FAILURE'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'true'</span>
+<span class="no">ChargePaymentJob</span><span class="p">.</span><span class="nf">perform_later</span><span class="p">(</span><span class="n">payment</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+
+</code></pre></div>
+<ol>
+<li>After 3 retries, check DLQ:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Sidekiq</span><span class="o">::</span><span class="no">DeadSet</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">size</span>  <span class="c1"># =&gt; 1</span>
+<span class="n">dead_job</span> <span class="o">=</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">DeadSet</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">first</span>
+<span class="n">dead_job</span><span class="p">.</span><span class="nf">item</span><span class="p">[</span><span class="s1">'error_message'</span><span class="p">]</span>  <span class="c1"># Shows ApiError</span>
+
+</code></pre></div>
 <h2>Setup Code</h2>
 
 <h3>Step 1: Create Payment Model</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails generate model Payment amount:decimal status:string stripe_charge_id:string
-</code></pre></div>
-<p>Edit migration to add unique constraint:<br>
-```ruby<br>
-class CreatePayments &lt; ActiveRecord::Migration[7.0]<br>
-  def change<br>
-    create_table :payments do |t|<br>
-      t.decimal :amount, precision: 10, scale: 2<br>
-      t.string :status<br>
-      t.string :stripe_charge_id<br>
-      t.timestamps<br>
-    end</p>
-<div class="highlight"><pre class="highlight plaintext"><code>add_index :payments, :stripe_charge_id, unique: true
-</code></pre></div>
-<p>end<br>
-end<br>
-```</p>
 
-<p>Run migration:<br>
-<code>bash<br>
-bin/rails db:migrate<br>
-</code></p>
+</code></pre></div>
+<p>Edit migration to add unique constraint:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CreatePayments</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">create_table</span> <span class="ss">:payments</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">decimal</span> <span class="ss">:amount</span><span class="p">,</span> <span class="ss">precision: </span><span class="mi">10</span><span class="p">,</span> <span class="ss">scale: </span><span class="mi">2</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:status</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:stripe_charge_id</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">timestamps</span>
+    <span class="k">end</span>
 
+    <span class="n">add_index</span> <span class="ss">:payments</span><span class="p">,</span> <span class="ss">:stripe_charge_id</span><span class="p">,</span> <span class="ss">unique: </span><span class="kp">true</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Run migration:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails db:migrate
+
+</code></pre></div>
 <h3>Step 2: Create Payment Job with Idempotency</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails generate job ChargePayment
+
 </code></pre></div>
-<p>Edit <code>app/jobs/charge_payment_job.rb</code>:<br>
-```ruby<br>
-class ChargePaymentJob &lt; ApplicationJob<br>
-  queue_as :payments</p>
+<p>Edit <code>app/jobs/charge_payment_job.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ChargePaymentJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="n">queue_as</span> <span class="ss">:payments</span>
 
-<p>retry_on StandardError, wait: :exponentially_longer, attempts: 3<br>
-  discard_on ActiveRecord::RecordNotFound</p>
+  <span class="n">retry_on</span> <span class="no">StandardError</span><span class="p">,</span> <span class="ss">wait: :exponentially_longer</span><span class="p">,</span> <span class="ss">attempts: </span><span class="mi">3</span>
+  <span class="n">discard_on</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">RecordNotFound</span>
 
-<p>def perform(payment_id)<br>
-    payment = Payment.find(payment_id)<br>
-    idempotency_key = &quot;payment:charge:#{payment.id}:#{payment.updated_at.to_i}&quot;</p>
-<div class="highlight"><pre class="highlight plaintext"><code># Check if already processed
-if redis.exists?(idempotency_key)
-  Rails.logger.info "Payment #{payment.id} already charged (idempotency), skipping"
-  return
-end
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">payment_id</span><span class="p">)</span>
+    <span class="n">payment</span> <span class="o">=</span> <span class="no">Payment</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">payment_id</span><span class="p">)</span>
+    <span class="n">idempotency_key</span> <span class="o">=</span> <span class="s2">"payment:charge:</span><span class="si">#{</span><span class="n">payment</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2">:</span><span class="si">#{</span><span class="n">payment</span><span class="p">.</span><span class="nf">updated_at</span><span class="p">.</span><span class="nf">to_i</span><span class="si">}</span><span class="s2">"</span>
 
-# Simulate API call
-if ENV['SIMULATE_FAILURE'] == 'true'
-  raise ApiError, "Simulated API failure for testing"
-end
+    <span class="c1"># Check if already processed</span>
+    <span class="k">if</span> <span class="n">redis</span><span class="p">.</span><span class="nf">exists?</span><span class="p">(</span><span class="n">idempotency_key</span><span class="p">)</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Payment </span><span class="si">#{</span><span class="n">payment</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2"> already charged (idempotency), skipping"</span>
+      <span class="k">return</span>
+    <span class="k">end</span>
 
-charge_id = simulate_stripe_charge(payment.amount)
+    <span class="c1"># Simulate API call</span>
+    <span class="k">if</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'SIMULATE_FAILURE'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'true'</span>
+      <span class="k">raise</span> <span class="no">ApiError</span><span class="p">,</span> <span class="s2">"Simulated API failure for testing"</span>
+    <span class="k">end</span>
 
-# Update payment and set idempotency key atomically
-ActiveRecord::Base.transaction do
-  payment.update!(status: 'completed', stripe_charge_id: charge_id)
-  redis.setex(idempotency_key, 7.days.to_i, charge_id)
-end
+    <span class="n">charge_id</span> <span class="o">=</span> <span class="n">simulate_stripe_charge</span><span class="p">(</span><span class="n">payment</span><span class="p">.</span><span class="nf">amount</span><span class="p">)</span>
 
-Rails.logger.info "Payment #{payment.id} charged successfully: #{charge_id}"
+    <span class="c1"># Update payment and set idempotency key atomically</span>
+    <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">transaction</span> <span class="k">do</span>
+      <span class="n">payment</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">status: </span><span class="s1">'completed'</span><span class="p">,</span> <span class="ss">stripe_charge_id: </span><span class="n">charge_id</span><span class="p">)</span>
+      <span class="n">redis</span><span class="p">.</span><span class="nf">setex</span><span class="p">(</span><span class="n">idempotency_key</span><span class="p">,</span> <span class="mi">7</span><span class="p">.</span><span class="nf">days</span><span class="p">.</span><span class="nf">to_i</span><span class="p">,</span> <span class="n">charge_id</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Payment </span><span class="si">#{</span><span class="n">payment</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2"> charged successfully: </span><span class="si">#{</span><span class="n">charge_id</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">redis</span>
+    <span class="vi">@redis</span> <span class="o">||=</span> <span class="no">Redis</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">url: </span><span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'REDIS_URL'</span><span class="p">,</span> <span class="s1">'redis://localhost:6379/1'</span><span class="p">))</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">simulate_stripe_charge</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span>
+    <span class="nb">sleep</span> <span class="mi">1</span>
+    <span class="s2">"ch_</span><span class="si">#{</span><span class="no">SecureRandom</span><span class="p">.</span><span class="nf">hex</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>  <span class="c1"># Fake Stripe charge ID</span>
+  <span class="k">end</span>
+
+  <span class="k">class</span> <span class="nc">ApiError</span> <span class="o">&lt;</span> <span class="no">StandardError</span><span class="p">;</span> <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end</p>
-
-<p>private</p>
-
-<p>def redis<br>
-    @redis ||= Redis.new(url: ENV.fetch(&#39;REDIS_URL&#39;, &#39;redis://localhost:6379/1&#39;))<br>
-  end</p>
-
-<p>def simulate_stripe_charge(amount)<br>
-    sleep 1<br>
-    &quot;ch_#{SecureRandom.hex(12)}&quot;  # Fake Stripe charge ID<br>
-  end</p>
-
-<p>class ApiError &lt; StandardError; end<br>
-end<br>
-```</p>
-
 <h3>Step 3: Create Sidekiq Worker with Custom Retry</h3>
 
-<p>Create <code>app/workers/payment_processor.rb</code>:<br>
-```ruby<br>
-class PaymentProcessor<br>
-  include Sidekiq::Worker<br>
-  sidekiq_options retry: 3, queue: :payments</p>
+<p>Create <code>app/workers/payment_processor.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">PaymentProcessor</span>
+  <span class="kp">include</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Worker</span>
+  <span class="n">sidekiq_options</span> <span class="ss">retry: </span><span class="mi">3</span><span class="p">,</span> <span class="ss">queue: :payments</span>
 
-<p>def perform(payment_id)<br>
-    payment = Payment.find(payment_id)</p>
-<div class="highlight"><pre class="highlight plaintext"><code>if ENV['SIMULATE_FAILURE'] == 'true'
-  raise ApiError, "Temporary API failure"
-end
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">payment_id</span><span class="p">)</span>
+    <span class="n">payment</span> <span class="o">=</span> <span class="no">Payment</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">payment_id</span><span class="p">)</span>
 
-charge_id = "ch_#{SecureRandom.hex(12)}"
-payment.update!(status: 'completed', stripe_charge_id: charge_id)
+    <span class="k">if</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'SIMULATE_FAILURE'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'true'</span>
+      <span class="k">raise</span> <span class="no">ApiError</span><span class="p">,</span> <span class="s2">"Temporary API failure"</span>
+    <span class="k">end</span>
+
+    <span class="n">charge_id</span> <span class="o">=</span> <span class="s2">"ch_</span><span class="si">#{</span><span class="no">SecureRandom</span><span class="p">.</span><span class="nf">hex</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">payment</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">status: </span><span class="s1">'completed'</span><span class="p">,</span> <span class="ss">stripe_charge_id: </span><span class="n">charge_id</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="n">sidekiq_retry_in</span> <span class="k">do</span> <span class="o">|</span><span class="n">count</span><span class="p">,</span> <span class="n">exception</span><span class="o">|</span>
+    <span class="k">case</span> <span class="n">exception</span>
+    <span class="k">when</span> <span class="no">ApiError</span>
+      <span class="mi">30</span>  <span class="c1"># Wait 30 seconds between retries</span>
+    <span class="k">else</span>
+      <span class="p">(</span><span class="n">count</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="mi">15</span>  <span class="c1"># Exponential backoff</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="n">sidekiq_retries_exhausted</span> <span class="k">do</span> <span class="o">|</span><span class="n">job</span><span class="p">,</span> <span class="n">exception</span><span class="o">|</span>
+    <span class="n">payment_id</span> <span class="o">=</span> <span class="n">job</span><span class="p">[</span><span class="s1">'args'</span><span class="p">].</span><span class="nf">first</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span> <span class="s2">"Payment </span><span class="si">#{</span><span class="n">payment_id</span><span class="si">}</span><span class="s2"> failed permanently: </span><span class="si">#{</span><span class="n">exception</span><span class="p">.</span><span class="nf">message</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="c1"># Notify monitoring system</span>
+    <span class="c1"># Bugsnag.notify(exception, payment_id: payment_id)</span>
+
+    <span class="c1"># Mark payment as failed</span>
+    <span class="no">Payment</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">payment_id</span><span class="p">).</span><span class="nf">update</span><span class="p">(</span><span class="ss">status: </span><span class="s1">'failed'</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">class</span> <span class="nc">ApiError</span> <span class="o">&lt;</span> <span class="no">StandardError</span><span class="p">;</span> <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end</p>
-
-<p>sidekiq_retry_in do |count, exception|<br>
-    case exception<br>
-    when ApiError<br>
-      30  # Wait 30 seconds between retries<br>
-    else<br>
-      (count ** 4) + 15  # Exponential backoff<br>
-    end<br>
-  end</p>
-
-<p>sidekiq_retries_exhausted do |job, exception|<br>
-    payment_id = job[&#39;args&#39;].first<br>
-    Rails.logger.error &quot;Payment #{payment_id} failed permanently: #{exception.message}&quot;</p>
-<div class="highlight"><pre class="highlight plaintext"><code># Notify monitoring system
-# Bugsnag.notify(exception, payment_id: payment_id)
-
-# Mark payment as failed
-Payment.find(payment_id).update(status: 'failed')
-</code></pre></div>
-<p>end</p>
-
-<p>class ApiError &lt; StandardError; end<br>
-end<br>
-```</p>
-
 <h3>Step 4: DLQ Inspection Commands</h3>
 
-<p>Add to <code>lib/tasks/sidekiq.rake</code>:<br>
-```ruby<br>
-namespace :sidekiq do<br>
-  desc &quot;Show dead jobs&quot;<br>
-  task dead_jobs: :environment do<br>
-    dead_set = Sidekiq::DeadSet.new<br>
-    puts &quot;Dead jobs: #{dead_set.size}&quot;</p>
-<div class="highlight"><pre class="highlight plaintext"><code>dead_set.each do |job|
-  puts "\n---"
-  puts "Class: #{job.klass}"
-  puts "Args: #{job.args}"
-  puts "Error: #{job.item['error_message']}"
-  puts "Failed at: #{job.item['failed_at']}"
-end
+<p>Add to <code>lib/tasks/sidekiq.rake</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">namespace</span> <span class="ss">:sidekiq</span> <span class="k">do</span>
+  <span class="n">desc</span> <span class="s2">"Show dead jobs"</span>
+  <span class="n">task</span> <span class="ss">dead_jobs: :environment</span> <span class="k">do</span>
+    <span class="n">dead_set</span> <span class="o">=</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">DeadSet</span><span class="p">.</span><span class="nf">new</span>
+    <span class="nb">puts</span> <span class="s2">"Dead jobs: </span><span class="si">#{</span><span class="n">dead_set</span><span class="p">.</span><span class="nf">size</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="n">dead_set</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">job</span><span class="o">|</span>
+      <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">---"</span>
+      <span class="nb">puts</span> <span class="s2">"Class: </span><span class="si">#{</span><span class="n">job</span><span class="p">.</span><span class="nf">klass</span><span class="si">}</span><span class="s2">"</span>
+      <span class="nb">puts</span> <span class="s2">"Args: </span><span class="si">#{</span><span class="n">job</span><span class="p">.</span><span class="nf">args</span><span class="si">}</span><span class="s2">"</span>
+      <span class="nb">puts</span> <span class="s2">"Error: </span><span class="si">#{</span><span class="n">job</span><span class="p">.</span><span class="nf">item</span><span class="p">[</span><span class="s1">'error_message'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+      <span class="nb">puts</span> <span class="s2">"Failed at: </span><span class="si">#{</span><span class="n">job</span><span class="p">.</span><span class="nf">item</span><span class="p">[</span><span class="s1">'failed_at'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="n">desc</span> <span class="s2">"Retry all dead jobs"</span>
+  <span class="n">task</span> <span class="ss">retry_dead: :environment</span> <span class="k">do</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">DeadSet</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">size</span>
+    <span class="no">Sidekiq</span><span class="o">::</span><span class="no">DeadSet</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">retry_all</span>
+    <span class="nb">puts</span> <span class="s2">"Retried </span><span class="si">#{</span><span class="n">count</span><span class="si">}</span><span class="s2"> dead jobs"</span>
+  <span class="k">end</span>
+
+  <span class="n">desc</span> <span class="s2">"Clear dead jobs"</span>
+  <span class="n">task</span> <span class="ss">clear_dead: :environment</span> <span class="k">do</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">DeadSet</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">size</span>
+    <span class="no">Sidekiq</span><span class="o">::</span><span class="no">DeadSet</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">clear</span>
+    <span class="nb">puts</span> <span class="s2">"Cleared </span><span class="si">#{</span><span class="n">count</span><span class="si">}</span><span class="s2"> dead jobs"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end</p>
-
-<p>desc &quot;Retry all dead jobs&quot;<br>
-  task retry_dead: :environment do<br>
-    count = Sidekiq::DeadSet.new.size<br>
-    Sidekiq::DeadSet.new.retry_all<br>
-    puts &quot;Retried #{count} dead jobs&quot;<br>
-  end</p>
-
-<p>desc &quot;Clear dead jobs&quot;<br>
-  task clear_dead: :environment do<br>
-    count = Sidekiq::DeadSet.new.size<br>
-    Sidekiq::DeadSet.new.clear<br>
-    puts &quot;Cleared #{count} dead jobs&quot;<br>
-  end<br>
-end<br>
-```</p>
-
 <h3>Step 5: Test Idempotency</h3>
 
-<p>In Rails console:<br>
-```ruby</p>
+<p>In Rails console:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Create payment</span>
+<span class="n">payment</span> <span class="o">=</span> <span class="no">Payment</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">amount: </span><span class="mf">150.00</span><span class="p">,</span> <span class="ss">status: </span><span class="s1">'pending'</span><span class="p">)</span>
 
-<h1>Create payment</h1>
+<span class="c1"># Enqueue twice</span>
+<span class="no">ChargePaymentJob</span><span class="p">.</span><span class="nf">perform_later</span><span class="p">(</span><span class="n">payment</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+<span class="no">ChargePaymentJob</span><span class="p">.</span><span class="nf">perform_later</span><span class="p">(</span><span class="n">payment</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
 
-<p>payment = Payment.create!(amount: 150.00, status: &#39;pending&#39;)</p>
+<span class="c1"># Watch Sidekiq logs - second job should skip</span>
+<span class="c1"># Check Redis</span>
+<span class="n">redis</span> <span class="o">=</span> <span class="no">Redis</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">url: </span><span class="s1">'redis://localhost:6379/1'</span><span class="p">)</span>
+<span class="n">redis</span><span class="p">.</span><span class="nf">keys</span><span class="p">(</span><span class="s2">"payment:charge:*"</span><span class="p">)</span>  <span class="c1"># Should show idempotency key</span>
 
-<h1>Enqueue twice</h1>
+<span class="c1"># Verify only one charge</span>
+<span class="no">Payment</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">status: </span><span class="s1">'completed'</span><span class="p">).</span><span class="nf">count</span>  <span class="c1"># =&gt; 1</span>
 
-<p>ChargePaymentJob.perform_later(payment.id)<br>
-ChargePaymentJob.perform_later(payment.id)</p>
-
-<h1>Watch Sidekiq logs - second job should skip</h1>
-
-<h1>Check Redis</h1>
-
-<p>redis = Redis.new(url: &#39;redis://localhost:6379/1&#39;)<br>
-redis.keys(&quot;payment:charge:*&quot;)  # Should show idempotency key</p>
-
-<h1>Verify only one charge</h1>
-
-<p>Payment.where(status: &#39;completed&#39;).count  # =&gt; 1<br>
-```</p>
-
+</code></pre></div>
 <h3>Step 6: Test Retries and DLQ</h3>
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Enable failure simulation</span>
 <span class="no">ENV</span><span class="p">[</span><span class="s1">'SIMULATE_FAILURE'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'true'</span>
@@ -1126,6 +1124,7 @@ redis.keys(&quot;payment:charge:*&quot;)  # Should show idempotency key</p>
 <span class="c1"># Disable simulation and retry</span>
 <span class="no">ENV</span><span class="p">[</span><span class="s1">'SIMULATE_FAILURE'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'false'</span>
 <span class="n">rake</span> <span class="n">sidekiq</span><span class="ss">:retry_dead</span>
+
 </code></pre></div>
 <h2>Stretch (Optional)</h2>
 
@@ -1158,6 +1157,7 @@ redis.keys(&quot;payment:charge:*&quot;)  # Should show idempotency key</p>
   <span class="no">CircuitBreaker</span><span class="p">.</span><span class="nf">record_failure</span><span class="p">(</span><span class="s1">'stripe'</span><span class="p">)</span>
   <span class="k">raise</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h2>Time Estimate</h2>
 

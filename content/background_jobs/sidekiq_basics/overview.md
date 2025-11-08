@@ -37,12 +37,14 @@ end
 
 # Enqueue from anywhere
 EmailNotificationJob.perform_later(user.id)
+
 ```
 
 Configure the adapter in `config/application.rb`:
 
 ```ruby
 config.active_job.queue_adapter = :sidekiq
+
 ```
 
 Switching to Resque or DelayedJob requires changing one line. Jobs remain unchanged.
@@ -72,6 +74,7 @@ ReportGenerator.perform_async(report.id)
 # Schedule for later
 ReportGenerator.perform_in(1.hour, report.id)
 ReportGenerator.perform_at(Time.now + 2.hours, report.id)
+
 ```
 
 Direct usage unlocks Sidekiq-specific options: batch processing, unique jobs, pro features.
@@ -91,6 +94,7 @@ end
 Sidekiq.configure_client do |config|
   config.redis = { url: ENV['REDIS_URL'] || 'redis://localhost:6379/0' }
 end
+
 ```
 
 **Client vs Server:**
@@ -98,9 +102,11 @@ end
 - Server: Sidekiq process running workers (needs larger pool)
 
 **Connection pool sizing:**
+
 ```ruby
 # Server: pool size = concurrency + 5 (default: 10)
 config.redis = { url: 'redis://localhost:6379/0', size: 15 }
+
 ```
 
 ---
@@ -117,6 +123,7 @@ end
 class ReportGeneratorJob < ApplicationJob
   queue_as :reports
 end
+
 ```
 
 Start workers with queue priorities:
@@ -124,6 +131,7 @@ Start workers with queue priorities:
 ```bash
 # Process :critical 4x more than :default, 8x more than :low
 bundle exec sidekiq -q critical,4 -q default,2 -q low,1
+
 ```
 
 Or use dedicated worker processes:
@@ -134,6 +142,7 @@ bundle exec sidekiq -q mailers -q critical -c 10
 
 # Terminal 2: Slow jobs with limited concurrency
 bundle exec sidekiq -q reports -c 2
+
 ```
 
 ---
@@ -151,6 +160,7 @@ bundle exec sidekiq -c 25
 
 # Low memory: 5 threads
 bundle exec sidekiq -c 5
+
 ```
 
 **Thread safety requirement:** Jobs must be thread-safe. Avoid shared mutable state, use connection pools for databases/Redis.

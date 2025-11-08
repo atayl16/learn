@@ -664,6 +664,7 @@
     <span class="p">[</span><span class="mi">200</span><span class="p">,</span> <span class="p">{</span><span class="s2">"Content-Type"</span> <span class="o">=&gt;</span> <span class="s2">"text/plain"</span><span class="p">},</span> <span class="p">[</span><span class="s2">"Hello World"</span><span class="p">]]</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Rails wraps this in layers of middleware before your controller code runs.</p>
 
@@ -673,30 +674,30 @@
 
 <p>View your app&#39;s middleware:</p>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails middleware
-</code></pre></div>
-<p>Output (simplified):<br>
-<code><br>
-use Rack::Sendfile<br>
-use ActionDispatch::Static<br>
-use Rack::Lock<br>
-use ActionDispatch::RequestId<br>
-use Rack::Runtime<br>
-use Rack::MethodOverride<br>
-use ActionDispatch::RemoteIp<br>
-use ActionDispatch::ShowExceptions<br>
-use ActionDispatch::DebugExceptions<br>
-use ActionDispatch::Callbacks<br>
-use ActionDispatch::Cookies<br>
-use ActionDispatch::Session::CookieStore<br>
-use ActionDispatch::Flash<br>
-use ActionDispatch::ContentSecurityPolicy<br>
-use Rack::Head<br>
-use Rack::ConditionalGet<br>
-use Rack::ETag<br>
-use ActionDispatch::ParamsParser  # ← Parses JSON/XML into params<br>
-run MyApp::Application.routes<br>
-</code></p>
 
+</code></pre></div>
+<p>Output (simplified):</p>
+<div class="highlight"><pre class="highlight plaintext"><code>use Rack::Sendfile
+use ActionDispatch::Static
+use Rack::Lock
+use ActionDispatch::RequestId
+use Rack::Runtime
+use Rack::MethodOverride
+use ActionDispatch::RemoteIp
+use ActionDispatch::ShowExceptions
+use ActionDispatch::DebugExceptions
+use ActionDispatch::Callbacks
+use ActionDispatch::Cookies
+use ActionDispatch::Session::CookieStore
+use ActionDispatch::Flash
+use ActionDispatch::ContentSecurityPolicy
+use Rack::Head
+use Rack::ConditionalGet
+use Rack::ETag
+use ActionDispatch::ParamsParser  # ← Parses JSON/XML into params
+run MyApp::Application.routes
+
+</code></pre></div>
 <p><strong>Key middleware roles:</strong><br>
 - <code>ActionDispatch::Static</code>: serves assets from <code>public/</code><br>
 - <code>ActionDispatch::RequestId</code>: assigns <code>X-Request-Id</code> for tracing<br>
@@ -746,6 +747,7 @@ run MyApp::Application.routes<br>
     <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"User </span><span class="si">#{</span><span class="vi">@user</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2"> viewed by </span><span class="si">#{</span><span class="n">current_user</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2">"</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><strong>Filter chain halting:</strong><br>
 If a <code>before_action</code> calls <code>redirect_to</code> or <code>render</code>, the chain stops. Subsequent filters and the action don&#39;t run.</p>
@@ -760,6 +762,7 @@ If a <code>before_action</code> calls <code>redirect_to</code> or <code>render</
 
 <span class="c1"># config/environments/development.rb</span>
 <span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">MiniProfiler</span>
+
 </code></pre></div>
 <p>Visit any page; a speed badge appears in the top-left corner. Click it to see:<br>
 - <strong>Middleware time:</strong> which middleware layers add latency<br>
@@ -849,14 +852,16 @@ If a <code>before_action</code> calls <code>redirect_to</code> or <code>render</
 
 <ol>
 <li><p>Run <code>bin/rails middleware</code> and confirm your custom middleware appears</p></li>
-<li><p>Check <code>log/development.log</code> for:<br>
-<code><br>
-CustomMiddleware: Processing /posts<br>
-Filter started<br>
-Post Load (0.3ms)  SELECT &quot;posts&quot;.* FROM &quot;posts&quot;<br>
-Completed 200 OK in 15ms<br>
-</code></p></li>
-<li><p>Open browser, click Rack Mini Profiler badge, screenshot showing:</p>
+<li><p>Check <code>log/development.log</code> for:</p></li>
+</ol>
+<div class="highlight"><pre class="highlight plaintext"><code>CustomMiddleware: Processing /posts
+Filter started
+  Post Load (0.3ms)  SELECT "posts".* FROM "posts"
+Completed 200 OK in 15ms
+
+</code></pre></div>
+<ol>
+<li>Open browser, click Rack Mini Profiler badge, screenshot showing:
 
 <ul>
 <li>Middleware timing</li>
@@ -872,77 +877,76 @@ Completed 200 OK in 15ms<br>
 rails new profiler_demo <span class="nt">--skip-javascript</span>
 <span class="nb">cd </span>profiler_demo
 bundle add rack-mini-profiler
-</code></pre></div>
-<p>Edit <code>config/environments/development.rb</code>:<br>
-<code>ruby<br>
-Rails.application.configure do<br>
-  # ... existing config<br>
-  config.middleware.use Rack::MiniProfiler<br>
-end<br>
-</code></p>
 
+</code></pre></div>
+<p>Edit <code>config/environments/development.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span>
+  <span class="c1"># ... existing config</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">MiniProfiler</span>
+<span class="k">end</span>
+
+</code></pre></div>
 <h3>Step 2: Create Custom Middleware</h3>
 
-<p>Create <code>app/middleware/request_logger.rb</code>:<br>
-```ruby<br>
-class RequestLogger<br>
-  def initialize(app)<br>
-    @app = app<br>
-  end</p>
+<p>Create <code>app/middleware/request_logger.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">RequestLogger</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+    <span class="vi">@app</span> <span class="o">=</span> <span class="n">app</span>
+  <span class="k">end</span>
 
-<p>def call(env)<br>
-    request = Rack::Request.new(env)<br>
-    Rails.logger.info &quot;CustomMiddleware: Processing #{request.path}&quot;<br>
-    @app.call(env)<br>
-  end<br>
-end<br>
-```</p>
+  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Request</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"CustomMiddleware: Processing </span><span class="si">#{</span><span class="n">request</span><span class="p">.</span><span class="nf">path</span><span class="si">}</span><span class="s2">"</span>
+    <span class="vi">@app</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>Add to <code>config/application.rb</code>:<br>
-<code>ruby<br>
-module ProfilerDemo<br>
-  class Application &lt; Rails::Application<br>
-    # ... existing config<br>
-    config.middleware.use RequestLogger<br>
-  end<br>
-end<br>
-</code></p>
+</code></pre></div>
+<p>Add to <code>config/application.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">ProfilerDemo</span>
+  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="no">Rails</span><span class="o">::</span><span class="no">Application</span>
+    <span class="c1"># ... existing config</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">use</span> <span class="no">RequestLogger</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 3: Create Controller with Filters</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails generate controller Posts index
+
 </code></pre></div>
-<p>Edit <code>app/controllers/posts_controller.rb</code>:<br>
-```ruby<br>
-class PostsController &lt; ApplicationController<br>
-  before_action :log_filter_start</p>
+<p>Edit <code>app/controllers/posts_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">PostsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="n">before_action</span> <span class="ss">:log_filter_start</span>
 
-<p>def index<br>
-    @posts = Post.all<br>
-    render plain: &quot;Found #{@posts.count} posts&quot;<br>
-  end</p>
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">all</span>
+    <span class="n">render</span> <span class="ss">plain: </span><span class="s2">"Found </span><span class="si">#{</span><span class="vi">@posts</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> posts"</span>
+  <span class="k">end</span>
 
-<p>private</p>
+  <span class="kp">private</span>
 
-<p>def log_filter_start<br>
-    Rails.logger.info &quot;Filter started at #{Time.now}&quot;<br>
-  end<br>
-end<br>
-```</p>
+  <span class="k">def</span> <span class="nf">log_filter_start</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Filter started at </span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 4: Create Sample Data</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails generate model Post title:string body:text
 bin/rails db:migrate
 bin/rails console
-</code></pre></div>
-<p>In console:<br>
-<code>ruby<br>
-5.times { |i| Post.create(title: &quot;Post #{i}&quot;, body: &quot;Body #{i}&quot;) }<br>
-</code></p>
 
+</code></pre></div>
+<p>In console:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="mi">5</span><span class="p">.</span><span class="nf">times</span> <span class="p">{</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span> <span class="no">Post</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">title: </span><span class="s2">"Post </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">body: </span><span class="s2">"Body </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="p">}</span>
+
+</code></pre></div>
 <h3>Step 5: Test Request</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails server
 <span class="c"># Visit http://localhost:3000/posts</span>
 <span class="c"># Check Rack Mini Profiler badge in top-left</span>
+
 </code></pre></div>
 <h2>Stretch (Optional)</h2>
 
@@ -954,6 +958,7 @@ bin/rails console
 <span class="k">def</span> <span class="nf">log_response_status</span>
   <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Response status: </span><span class="si">#{</span><span class="n">response</span><span class="p">.</span><span class="nf">status</span><span class="si">}</span><span class="s2">"</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Trigger a 404 by visiting <code>/posts/999</code> and verify the log shows <code>404</code>.</p>
 

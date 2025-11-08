@@ -29,6 +29,7 @@ In a Rails application:
 bundle add statsd-instrument
 
 bundle install
+
 ```
 
 ### Step 2: Configure StatsD
@@ -49,6 +50,7 @@ end
 
 StatsD.prefix = 'myapp'
 StatsD.default_sample_rate = 1.0
+
 ```
 
 ### Step 3: Add Metrics Middleware
@@ -68,6 +70,7 @@ module YourApp
     )
   end
 end
+
 ```
 
 ### Step 4: Create Metrics Store
@@ -126,6 +129,7 @@ class MetricsStore
     @requests = []
   end
 end
+
 ```
 
 ### Step 5: Track Metrics in ApplicationController
@@ -155,6 +159,7 @@ class ApplicationController < ActionController::Base
     end
   end
 end
+
 ```
 
 ### Step 6: Create Dashboard Controller
@@ -163,6 +168,7 @@ Generate controller:
 
 ```bash
 bin/rails generate controller Dashboard index
+
 ```
 
 Edit `app/controllers/dashboard_controller.rb`:
@@ -200,6 +206,7 @@ class DashboardController < ApplicationController
     }
   end
 end
+
 ```
 
 ### Step 7: Create Dashboard View
@@ -260,6 +267,7 @@ Edit `app/views/dashboard/index.html.erb`:
   <li><%= link_to 'Error endpoint (500)', error_test_path %></li>
   <li><%= link_to 'Reset metrics', reset_metrics_path, method: :post %></li>
 </ul>
+
 ```
 
 ### Step 8: Create Test Endpoints
@@ -285,6 +293,7 @@ def reset_metrics
   MetricsStore.reset!
   redirect_to dashboard_index_path, notice: 'Metrics reset'
 end
+
 ```
 
 Update `config/routes.rb`:
@@ -297,6 +306,7 @@ Rails.application.routes.draw do
   get 'dashboard/error', to: 'dashboard#error_test', as: :error_test
   post 'dashboard/reset', to: 'dashboard#reset_metrics', as: :reset_metrics
 end
+
 ```
 
 ### Step 9: Test the Dashboard
@@ -305,6 +315,7 @@ Start Rails server:
 
 ```bash
 bin/rails server
+
 ```
 
 1. Visit http://localhost:3000/dashboard
@@ -325,6 +336,7 @@ Check `log/development.log` for StatsD metrics:
 [StatsD] myapp.requests.count:1|c
 [StatsD] myapp.requests.status.200:1|c
 [StatsD] myapp.requests.duration:52.3|ms
+
 ```
 
 In production, these would be sent to actual StatsD server.
@@ -347,6 +359,7 @@ def error_budget
     budget_remaining_percent: 100 - budget_used
   }
 end
+
 ```
 
 2. Add request rate (requests/sec):
@@ -357,12 +370,14 @@ def stats
   rate_per_second = (total.to_f / WINDOW_SIZE).round(2)
   { rate_per_second: rate_per_second, ... }
 end
+
 ```
 
 3. Track per-endpoint metrics:
 
 ```ruby
 StatsD.increment("requests.endpoint.#{controller_name}.#{action_name}")
+
 ```
 
 ## Time Estimate

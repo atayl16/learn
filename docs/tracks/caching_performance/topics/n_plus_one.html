@@ -662,42 +662,42 @@
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Controller</span>
 <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">all</span>
 <span class="vi">@posts</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">post</span><span class="o">|</span> <span class="nb">puts</span> <span class="n">post</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">name</span> <span class="p">}</span>
+
 </code></pre></div>
-<p><strong>Log output:</strong><br>
-```<br>
-Post Load (0.5ms)  SELECT &quot;posts&quot;.* FROM &quot;posts&quot;<br>
-User Load (0.3ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE &quot;users&quot;.&quot;id&quot; = 1<br>
-User Load (0.3ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE &quot;users&quot;.&quot;id&quot; = 2<br>
-User Load (0.3ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE &quot;users&quot;.&quot;id&quot; = 3</p>
+<p><strong>Log output:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>Post Load (0.5ms)  SELECT "posts".* FROM "posts"
+User Load (0.3ms)  SELECT "users".* FROM "users" WHERE "users"."id" = 1
+User Load (0.3ms)  SELECT "users".* FROM "users" WHERE "users"."id" = 2
+User Load (0.3ms)  SELECT "users".* FROM "users" WHERE "users"."id" = 3
+# ... 47 more identical queries
 
-<h1>... 47 more identical queries</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-You execute 1 + N queries (51 total for 50 posts).
+</code></pre></div>
+<p>You execute 1 + N queries (51 total for 50 posts).</p>
 
----
+<hr>
 
-## Using Bullet Gem
+<h2>Using Bullet Gem</h2>
 
-Add Bullet to automatically detect N+1 queries during development and tests:
+<p>Add Bullet to automatically detect N+1 queries during development and tests:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">group</span> <span class="ss">:development</span><span class="p">,</span> <span class="ss">:test</span> <span class="k">do</span>
+  <span class="n">gem</span> <span class="s1">'bullet'</span>
+<span class="k">end</span>
 
-```ruby
-# Gemfile
-group :development, :test do
-  gem 'bullet'
-end
+<span class="c1"># config/environments/development.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">after_initialize</span> <span class="k">do</span>
+  <span class="no">Bullet</span><span class="p">.</span><span class="nf">enable</span> <span class="o">=</span> <span class="kp">true</span>
+  <span class="no">Bullet</span><span class="p">.</span><span class="nf">alert</span> <span class="o">=</span> <span class="kp">true</span>
+  <span class="no">Bullet</span><span class="p">.</span><span class="nf">console</span> <span class="o">=</span> <span class="kp">true</span>
+  <span class="no">Bullet</span><span class="p">.</span><span class="nf">rails_logger</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="k">end</span>
 
-# config/environments/development.rb
-config.after_initialize do
-  Bullet.enable = true
-  Bullet.alert = true
-  Bullet.console = true
-  Bullet.rails_logger = true
-end
 </code></pre></div>
 <p>When you trigger an N+1, Bullet logs:</p>
 <div class="highlight"><pre class="highlight plaintext"><code>USE eager loading detected
   Post =&gt; [:author]
   Add to your query: .includes(:author)
+
 </code></pre></div>
 <p>Run your test suite with Bullet enabled to catch N+1 issues before code review.</p>
 
@@ -709,13 +709,13 @@ end
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Executes 2 queries: 1 for posts, 1 for all authors</span>
 <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:author</span><span class="p">)</span>
 <span class="vi">@posts</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">post</span><span class="o">|</span> <span class="nb">puts</span> <span class="n">post</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">name</span> <span class="p">}</span>
-</code></pre></div>
-<p><strong>Log output:</strong><br>
-<code><br>
-Post Load (0.5ms)  SELECT &quot;posts&quot;.* FROM &quot;posts&quot;<br>
-User Load (1.2ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE &quot;users&quot;.&quot;id&quot; IN (1, 2, 3, ...)<br>
-</code></p>
 
+</code></pre></div>
+<p><strong>Log output:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>Post Load (0.5ms)  SELECT "posts".* FROM "posts"
+User Load (1.2ms)  SELECT "users".* FROM "users" WHERE "users"."id" IN (1, 2, 3, ...)
+
+</code></pre></div>
 <p><code>includes</code> decides between <code>preload</code> (separate queries) or <code>eager_load</code> (LEFT JOIN) based on your query.</p>
 
 <hr>
@@ -726,6 +726,7 @@ User Load (1.2ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE &quot
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Always uses 2 queries (1 for posts, 1 for authors)</span>
 <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">preload</span><span class="p">(</span><span class="ss">:author</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="ss">published: </span><span class="kp">true</span><span class="p">)</span>
 <span class="vi">@posts</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">post</span><span class="o">|</span> <span class="nb">puts</span> <span class="n">post</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">name</span> <span class="p">}</span>
+
 </code></pre></div>
 <p>Use <code>preload</code> when you want to ensure separate queries for performance reasons (large JOINs can be slower than two small queries).</p>
 
@@ -736,15 +737,15 @@ User Load (1.2ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE &quot
 <p>Force a single LEFT JOIN query:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Single query with LEFT JOIN</span>
 <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">eager_load</span><span class="p">(</span><span class="ss">:author</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="s2">"users.verified = true"</span><span class="p">)</span>
-</code></pre></div>
-<p><strong>Log output:</strong><br>
-<code><br>
-SELECT &quot;posts&quot;.*, &quot;users&quot;.*<br>
-FROM &quot;posts&quot;<br>
-LEFT OUTER JOIN &quot;users&quot; ON &quot;users&quot;.&quot;id&quot; = &quot;posts&quot;.&quot;author_id&quot;<br>
-WHERE &quot;users&quot;.&quot;verified&quot; = true<br>
-</code></p>
 
+</code></pre></div>
+<p><strong>Log output:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>SELECT "posts".*, "users".*
+FROM "posts"
+LEFT OUTER JOIN "users" ON "users"."id" = "posts"."author_id"
+WHERE "users"."verified" = true
+
+</code></pre></div>
 <p>Use <code>eager_load</code> when you need to filter by associated table columns.</p>
 
 <hr>
@@ -755,6 +756,7 @@ WHERE &quot;users&quot;.&quot;verified&quot; = true<br>
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Filters posts by author but doesn't load author objects</span>
 <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">joins</span><span class="p">(</span><span class="ss">:author</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="ss">users: </span><span class="p">{</span> <span class="ss">verified: </span><span class="kp">true</span> <span class="p">})</span>
 <span class="vi">@posts</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">post</span><span class="o">|</span> <span class="n">post</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">name</span> <span class="p">}</span> <span class="c1"># Still triggers N+1!</span>
+
 </code></pre></div>
 <p>Use <code>joins</code> for filtering, not for loading associations. If you need the association data, use <code>eager_load</code> instead.</p>
 
@@ -768,6 +770,7 @@ WHERE &quot;users&quot;.&quot;verified&quot; = true<br>
 <span class="vi">@posts</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">post</span><span class="o">|</span>
   <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">post</span><span class="p">.</span><span class="nf">title</span><span class="si">}</span><span class="s2"> by </span><span class="si">#{</span><span class="n">post</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2"> at </span><span class="si">#{</span><span class="n">post</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">company</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">"</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><strong>Generates 3 queries:</strong><br>
 1. Posts<br>
@@ -852,31 +855,32 @@ WHERE &quot;users&quot;.&quot;verified&quot; = true<br>
 <h2>Verification Steps</h2>
 
 <ol>
-<li><p>Run the unoptimized endpoint and check <code>log/development.log</code>:<br>
-```<br>
-Started GET &quot;/posts&quot;<br>
-Post Load (0.5ms)  SELECT &quot;posts&quot;.* FROM &quot;posts&quot;<br>
-User Load (0.3ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE &quot;users&quot;.&quot;id&quot; = 1<br>
-User Load (0.3ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE &quot;users&quot;.&quot;id&quot; = 2</p>
-
-<h1>... repeated N times</h1>
-
-<p>Completed 200 OK in 150ms (51 queries)<br>
-```</p></li>
-<li><p>Check browser for Bullet alert:<br>
-<code><br>
-USE eager loading detected<br>
-Post =&gt; [:author]<br>
-Add to your query: .includes(:author)<br>
-</code></p></li>
-<li><p>After fix, verify logs show only 2 queries:<br>
-<code><br>
-Post Load (0.5ms)  SELECT &quot;posts&quot;.* FROM &quot;posts&quot;<br>
-User Load (1.2ms)  SELECT &quot;users&quot;.* FROM &quot;users&quot; WHERE &quot;users&quot;.&quot;id&quot; IN (1, 2, 3, ...)<br>
-Completed 200 OK in 25ms (2 queries)<br>
-</code></p></li>
+<li>Run the unoptimized endpoint and check <code>log/development.log</code>:</li>
 </ol>
+<div class="highlight"><pre class="highlight plaintext"><code>Started GET "/posts"
+Post Load (0.5ms)  SELECT "posts".* FROM "posts"
+User Load (0.3ms)  SELECT "users".* FROM "users" WHERE "users"."id" = 1
+User Load (0.3ms)  SELECT "users".* FROM "users" WHERE "users"."id" = 2
+# ... repeated N times
+Completed 200 OK in 150ms (51 queries)
 
+</code></pre></div>
+<ol>
+<li>Check browser for Bullet alert:</li>
+</ol>
+<div class="highlight"><pre class="highlight plaintext"><code>USE eager loading detected
+  Post =&gt; [:author]
+  Add to your query: .includes(:author)
+
+</code></pre></div>
+<ol>
+<li>After fix, verify logs show only 2 queries:</li>
+</ol>
+<div class="highlight"><pre class="highlight plaintext"><code>Post Load (0.5ms)  SELECT "posts".* FROM "posts"
+User Load (1.2ms)  SELECT "users".* FROM "users" WHERE "users"."id" IN (1, 2, 3, ...)
+Completed 200 OK in 25ms (2 queries)
+
+</code></pre></div>
 <h2>Setup Code</h2>
 
 <h3>Step 1: Create Rails App &amp; Models</h3>
@@ -886,162 +890,151 @@ bin/rails generate model Company name:string
 bin/rails generate model User name:string company:references
 bin/rails generate model Post title:string user:references
 bin/rails db:migrate
+
 </code></pre></div>
 <p><strong>Add associations in models:</strong></p>
 
-<p><code>app/models/company.rb</code>:<br>
-<code>ruby<br>
-class Company &lt; ApplicationRecord<br>
-  has_many :users<br>
-end<br>
-</code></p>
+<p><code>app/models/company.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Company</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_many</span> <span class="ss">:users</span>
+<span class="k">end</span>
 
-<p><code>app/models/user.rb</code>:<br>
-<code>ruby<br>
-class User &lt; ApplicationRecord<br>
-  belongs_to :company<br>
-  has_many :posts<br>
-end<br>
-</code></p>
+</code></pre></div>
+<p><code>app/models/user.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:company</span>
+  <span class="n">has_many</span> <span class="ss">:posts</span>
+<span class="k">end</span>
 
-<p><code>app/models/post.rb</code>:<br>
-<code>ruby<br>
-class Post &lt; ApplicationRecord<br>
-  belongs_to :user<br>
-end<br>
-</code></p>
+</code></pre></div>
+<p><code>app/models/post.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Post</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:user</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 2: Install Bullet</h3>
 <div class="highlight"><pre class="highlight shell"><code>bundle add bullet
+
 </code></pre></div>
-<p>Edit <code>config/environments/development.rb</code>:<br>
-```ruby<br>
-Rails.application.configure do<br>
-  # ... existing config</p>
+<p>Edit <code>config/environments/development.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span>
+  <span class="c1"># ... existing config</span>
 
-<p>config.after_initialize do<br>
-    Bullet.enable = true<br>
-    Bullet.alert = true           # Browser alert<br>
-    Bullet.console = true         # Terminal output<br>
-    Bullet.rails_logger = true    # Log file<br>
-  end<br>
-end<br>
-```</p>
+  <span class="n">config</span><span class="p">.</span><span class="nf">after_initialize</span> <span class="k">do</span>
+    <span class="no">Bullet</span><span class="p">.</span><span class="nf">enable</span> <span class="o">=</span> <span class="kp">true</span>
+    <span class="no">Bullet</span><span class="p">.</span><span class="nf">alert</span> <span class="o">=</span> <span class="kp">true</span>           <span class="c1"># Browser alert</span>
+    <span class="no">Bullet</span><span class="p">.</span><span class="nf">console</span> <span class="o">=</span> <span class="kp">true</span>         <span class="c1"># Terminal output</span>
+    <span class="no">Bullet</span><span class="p">.</span><span class="nf">rails_logger</span> <span class="o">=</span> <span class="kp">true</span>    <span class="c1"># Log file</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 3: Seed Data</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails console
+
 </code></pre></div>
-<p>In console:<br>
-```ruby</p>
+<p>In console:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Create sample data</span>
+<span class="mi">3</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+  <span class="n">company</span> <span class="o">=</span> <span class="no">Company</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">name: </span><span class="s2">"Company </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+  <span class="mi">5</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">j</span><span class="o">|</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">name: </span><span class="s2">"User </span><span class="si">#{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">company: </span><span class="n">company</span><span class="p">)</span>
+    <span class="mi">10</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">k</span><span class="o">|</span>
+      <span class="no">Post</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">title: </span><span class="s2">"Post </span><span class="si">#{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">user: </span><span class="n">user</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<h1>Create sample data</h1>
+<span class="nb">puts</span> <span class="s2">"Created </span><span class="si">#{</span><span class="no">Post</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> posts, </span><span class="si">#{</span><span class="no">User</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> users, </span><span class="si">#{</span><span class="no">Company</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> companies"</span>
 
-<p>3.times do |i|<br>
-  company = Company.create(name: &quot;Company #{i}&quot;)<br>
-  5.times do |j|<br>
-    user = User.create(name: &quot;User #{j}&quot;, company: company)<br>
-    10.times do |k|<br>
-      Post.create(title: &quot;Post #{k}&quot;, user: user)<br>
-    end<br>
-  end<br>
-end</p>
-
-<p>puts &quot;Created #{Post.count} posts, #{User.count} users, #{Company.count} companies&quot;<br>
-```</p>
-
+</code></pre></div>
 <h3>Step 4: Create Controller with N+1</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails generate controller Posts index
-</code></pre></div>
-<p>Edit <code>app/controllers/posts_controller.rb</code>:<br>
-```ruby<br>
-class PostsController &lt; ApplicationController<br>
-  def index<br>
-    # BEFORE: triggers N+1<br>
-    @posts = Post.limit(50)</p>
-<div class="highlight"><pre class="highlight plaintext"><code># This will be used in the view
-</code></pre></div>
-<p>end<br>
-end<br>
-```</p>
 
-<p>Edit <code>app/views/posts/index.html.erb</code>:<br>
-<code>erb<br>
-&lt;h1&gt;Posts&lt;/h1&gt;<br>
-&lt;ul&gt;<br>
-  &lt;% @posts.each do |post| %&gt;<br>
-    &lt;li&gt;&lt;%= post.title %&gt; by &lt;%= post.user.name %&gt;&lt;/li&gt;<br>
-  &lt;% end %&gt;<br>
-&lt;/ul&gt;<br>
-</code></p>
+</code></pre></div>
+<p>Edit <code>app/controllers/posts_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">PostsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="c1"># BEFORE: triggers N+1</span>
+    <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
 
+    <span class="c1"># This will be used in the view</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Edit <code>app/views/posts/index.html.erb</code>:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="nt">&lt;h1&gt;</span>Posts<span class="nt">&lt;/h1&gt;</span>
+<span class="nt">&lt;ul&gt;</span>
+  <span class="cp">&lt;%</span> <span class="vi">@posts</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">post</span><span class="o">|</span> <span class="cp">%&gt;</span>
+    <span class="nt">&lt;li&gt;</span><span class="cp">&lt;%=</span> <span class="n">post</span><span class="p">.</span><span class="nf">title</span> <span class="cp">%&gt;</span> by <span class="cp">&lt;%=</span> <span class="n">post</span><span class="p">.</span><span class="nf">user</span><span class="p">.</span><span class="nf">name</span> <span class="cp">%&gt;</span><span class="nt">&lt;/li&gt;</span>
+  <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;/ul&gt;</span>
+
+</code></pre></div>
 <h3>Step 5: Trigger N+1 and Observe</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails server
 <span class="c"># Visit http://localhost:3000/posts</span>
-</code></pre></div>
-<p>Check terminal for Bullet output:<br>
-<code><br>
-USE eager loading detected<br>
-  Post =&gt; [:user]<br>
-  Add to your query: .includes(:user)<br>
-</code></p>
 
+</code></pre></div>
+<p>Check terminal for Bullet output:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>USE eager loading detected
+  Post =&gt; [:user]
+  Add to your query: .includes(:user)
+
+</code></pre></div>
 <p>Check <code>log/development.log</code> for query count.</p>
 
 <h3>Step 6: Fix with includes</h3>
 
-<p>Edit <code>app/controllers/posts_controller.rb</code>:<br>
-<code>ruby<br>
-class PostsController &lt; ApplicationController<br>
-  def index<br>
-    # AFTER: fixed with includes<br>
-    @posts = Post.includes(:user).limit(50)<br>
-  end<br>
-end<br>
-</code></p>
+<p>Edit <code>app/controllers/posts_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">PostsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="c1"># AFTER: fixed with includes</span>
+    <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:user</span><span class="p">).</span><span class="nf">limit</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <p>Reload page and verify only 2 queries in logs.</p>
 
 <h3>Step 7: Test Nested Associations</h3>
 
-<p>Update view to show company:<br>
-<code>erb<br>
-&lt;% @posts.each do |post| %&gt;<br>
-  &lt;li&gt;<br>
-    &lt;%= post.title %&gt;<br>
-    by &lt;%= post.user.name %&gt;<br>
-    at &lt;%= post.user.company.name %&gt;<br>
-  &lt;/li&gt;<br>
-&lt;% end %&gt;<br>
-</code></p>
+<p>Update view to show company:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="cp">&lt;%</span> <span class="vi">@posts</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">post</span><span class="o">|</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;li&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="n">post</span><span class="p">.</span><span class="nf">title</span> <span class="cp">%&gt;</span>
+    by <span class="cp">&lt;%=</span> <span class="n">post</span><span class="p">.</span><span class="nf">user</span><span class="p">.</span><span class="nf">name</span> <span class="cp">%&gt;</span>
+    at <span class="cp">&lt;%=</span> <span class="n">post</span><span class="p">.</span><span class="nf">user</span><span class="p">.</span><span class="nf">company</span><span class="p">.</span><span class="nf">name</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;/li&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
 
-<p>This triggers a new N+1 on companies. Fix it:<br>
-<code>ruby<br>
-@posts = Post.includes(user: :company).limit(50)<br>
-</code></p>
+</code></pre></div>
+<p>This triggers a new N+1 on companies. Fix it:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">user: :company</span><span class="p">).</span><span class="nf">limit</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
 
+</code></pre></div>
 <p>Verify 3 queries: posts, users, companies.</p>
 
 <h2>Stretch (Optional)</h2>
 
 <ol>
-<li><p>Compare <code>includes</code> vs <code>eager_load</code> vs <code>preload</code>:<br>
-```ruby</p>
-
-<h1>Log queries for each and observe SQL differences</h1>
-
-<p>Post.includes(:user).where(users: { name: &quot;User 1&quot; }).to_a<br>
-Post.eager_load(:user).where(users: { name: &quot;User 1&quot; }).to_a<br>
-Post.preload(:user).where(users: { name: &quot;User 1&quot; }).to_a<br>
-```</p></li>
-<li><p>Test when N+1 is acceptable:<br>
-```ruby</p>
-
-<h1>For first 3 posts only, is eager loading worth it?</h1>
-
-<p>Post.limit(3).each { |p| puts p.user.name }<br>
-```</p></li>
+<li>Compare <code>includes</code> vs <code>eager_load</code> vs <code>preload</code>:</li>
 </ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Log queries for each and observe SQL differences</span>
+<span class="no">Post</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:user</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="ss">users: </span><span class="p">{</span> <span class="ss">name: </span><span class="s2">"User 1"</span> <span class="p">}).</span><span class="nf">to_a</span>
+<span class="no">Post</span><span class="p">.</span><span class="nf">eager_load</span><span class="p">(</span><span class="ss">:user</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="ss">users: </span><span class="p">{</span> <span class="ss">name: </span><span class="s2">"User 1"</span> <span class="p">}).</span><span class="nf">to_a</span>
+<span class="no">Post</span><span class="p">.</span><span class="nf">preload</span><span class="p">(</span><span class="ss">:user</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="ss">users: </span><span class="p">{</span> <span class="ss">name: </span><span class="s2">"User 1"</span> <span class="p">}).</span><span class="nf">to_a</span>
 
+</code></pre></div>
+<ol>
+<li>Test when N+1 is acceptable:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># For first 3 posts only, is eager loading worth it?</span>
+<span class="no">Post</span><span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="mi">3</span><span class="p">).</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="nb">p</span><span class="o">|</span> <span class="nb">puts</span> <span class="nb">p</span><span class="p">.</span><span class="nf">user</span><span class="p">.</span><span class="nf">name</span> <span class="p">}</span>
+
+</code></pre></div>
 <p>Measure query time and decide if optimization is needed.</p>
 
 <h2>Time Estimate</h2>

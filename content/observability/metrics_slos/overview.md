@@ -23,12 +23,15 @@ Monitoring individual errors or slow requests creates noise without revealing sy
 ## RED Metrics Explained
 
 **Rate:** Requests per second (throughput)
+
 ```ruby
 # Track with StatsD or Prometheus
 StatsD.increment('requests.count')
+
 ```
 
 **Errors:** Percentage of requests returning 5xx status
+
 ```ruby
 # Track error rate
 if response.status >= 500
@@ -36,15 +39,18 @@ if response.status >= 500
 end
 
 # Calculate: errors / total_requests * 100
+
 ```
 
 **Duration:** Request latency (P50, P95, P99)
+
 ```ruby
 # Track response time
 start = Time.current
 process_request
 duration_ms = (Time.current - start) * 1000
 StatsD.measure('requests.duration', duration_ms)
+
 ```
 
 These three metrics reveal most service problems.
@@ -116,6 +122,7 @@ Error budgets balance innovation with stability.
 Effective dashboards answer: "Is the service healthy?"
 
 **Layout:**
+
 ```
 ┌─────────────────────────────────────┐
 │ Service Health: ✓ All SLOs Met     │
@@ -126,6 +133,7 @@ Effective dashboards answer: "Is the service healthy?"
 ├─────────────────────────────────────┤
 │ Error Budget: 67% remaining        │
 └─────────────────────────────────────┘
+
 ```
 
 **Design principles:**
@@ -149,9 +157,11 @@ end
 if p99_latency > 500.ms for 10.minutes
   page_oncall("Latency SLO violated")
 end
+
 ```
 
 **Bad alerts:**
+
 ```ruby
 # Don't alert on single errors
 if single_request.status == 500
@@ -162,6 +172,7 @@ end
 if error_rate > 1%  # Why 1%? Is it tied to user impact?
   page_oncall
 end
+
 ```
 
 Every alert should answer: "Does this require immediate human action?"
@@ -183,6 +194,7 @@ StatsD.backend = StatsD::Instrument::Backends::UDPBackend.new(
 
 # config/application.rb
 config.middleware.use(StatsD::Instrument::Middleware)
+
 ```
 
 Metrics sent automatically:

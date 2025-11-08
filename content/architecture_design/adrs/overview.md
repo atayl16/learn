@@ -37,6 +37,7 @@ docs/
     0002-use-sidekiq-for-background-jobs.md
     0003-switch-to-graphql-api.md
     0004-supersede-rest-api-with-graphql.md
+
 ```
 
 Sequential numbering prevents merge conflicts. Files are immutable once committed; new decisions supersede old ones.
@@ -79,6 +80,7 @@ Use Postgres 14 as the primary database.
 ## Notes
 Migration from SQLite in development took 2 hours. Added pg gem and
 updated database.yml. No code changes required.
+
 ```
 
 Each section is concise. The template takes 10-20 minutes to fill out.
@@ -126,6 +128,7 @@ List positive and negative outcomes to set expectations.
 - Thread safety required in job code (no class variables)
 - Redis dependency adds operational complexity
 - Requires paid Sidekiq Pro for advanced features (batching)
+
 ```
 
 Honest assessment of trade-offs prevents surprises.
@@ -141,6 +144,7 @@ When reversing a decision, update the old ADR and link to the new one.
 Superseded by ADR-0003
 
 (original content remains)
+
 ```
 
 In ADR-0003:
@@ -154,6 +158,7 @@ per screen, causing latency. GraphQL reduces round trips.
 
 ## Decision
 Migrate public API to GraphQL...
+
 ```
 
 Never delete old ADRs. They explain why earlier decisions didn't work.

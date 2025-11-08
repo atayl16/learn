@@ -685,6 +685,7 @@
     <span class="n">expect</span><span class="p">(</span><span class="n">page</span><span class="p">).</span><span class="nf">to</span> <span class="n">have_content</span><span class="p">(</span><span class="s2">"Order complete"</span><span class="p">)</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Unit tests run in milliseconds. Request tests take seconds. System tests take 10+ seconds each.</p>
 
@@ -706,6 +707,7 @@
 <span class="c1"># In test</span>
 <span class="n">user</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>  <span class="c1"># writes to database</span>
 <span class="n">admin</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="ss">:user</span><span class="p">,</span> <span class="ss">:admin</span><span class="p">)</span>  <span class="c1"># no database write</span>
+
 </code></pre></div>
 <p>Use factories for tests requiring specific attributes. Use fixtures for shared reference data (countries, currencies) loaded once per suite.</p>
 
@@ -726,6 +728,7 @@
     <span class="n">expect</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="nf">success?</span><span class="p">).</span><span class="nf">to</span> <span class="n">be</span> <span class="kp">true</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>First run records the request to <code>spec/fixtures/vcr_cassettes/</code>. Subsequent runs replay it instantly. The <code>:vcr</code> tag wraps the test in a cassette.</p>
 
@@ -749,6 +752,7 @@
     <span class="n">expect</span><span class="p">(</span><span class="no">WeatherService</span><span class="p">.</span><span class="nf">current_temperature</span><span class="p">).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="mi">72</span><span class="p">)</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>WebMock gives full control over response bodies, status codes, and network errors.</p>
 
@@ -767,6 +771,7 @@
     <span class="n">expect</span><span class="p">(</span><span class="n">page</span><span class="p">).</span><span class="nf">to</span> <span class="n">have_content</span><span class="p">(</span><span class="s2">"Total: $30.00"</span><span class="p">)</span>  <span class="c1"># updated via JS</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>System tests are slow. Limit them to critical user flows and use request tests for API coverage.</p>
 
@@ -782,6 +787,7 @@
 
 <span class="c1"># After running tests</span>
 <span class="c1"># open coverage/index.html</span>
+
 </code></pre></div>
 <p>Aim for 80%+ coverage on models and services. Skip coverage for views and configuration. High coverage doesn&#39;t guarantee bug-free code; it shows untested areas.</p>
 

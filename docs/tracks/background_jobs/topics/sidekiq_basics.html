@@ -671,9 +671,11 @@
 
 <span class="c1"># Enqueue from anywhere</span>
 <span class="no">EmailNotificationJob</span><span class="p">.</span><span class="nf">perform_later</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+
 </code></pre></div>
 <p>Configure the adapter in <code>config/application.rb</code>:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span><span class="p">.</span><span class="nf">active_job</span><span class="p">.</span><span class="nf">queue_adapter</span> <span class="o">=</span> <span class="ss">:sidekiq</span>
+
 </code></pre></div>
 <p>Switching to Resque or DelayedJob requires changing one line. Jobs remain unchanged.</p>
 
@@ -700,6 +702,7 @@
 <span class="c1"># Schedule for later</span>
 <span class="no">ReportGenerator</span><span class="p">.</span><span class="nf">perform_in</span><span class="p">(</span><span class="mi">1</span><span class="p">.</span><span class="nf">hour</span><span class="p">,</span> <span class="n">report</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
 <span class="no">ReportGenerator</span><span class="p">.</span><span class="nf">perform_at</span><span class="p">(</span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span> <span class="o">+</span> <span class="mi">2</span><span class="p">.</span><span class="nf">hours</span><span class="p">,</span> <span class="n">report</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+
 </code></pre></div>
 <p>Direct usage unlocks Sidekiq-specific options: batch processing, unique jobs, pro features.</p>
 
@@ -716,19 +719,17 @@
 <span class="no">Sidekiq</span><span class="p">.</span><span class="nf">configure_client</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
   <span class="n">config</span><span class="p">.</span><span class="nf">redis</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">url: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'REDIS_URL'</span><span class="p">]</span> <span class="o">||</span> <span class="s1">'redis://localhost:6379/0'</span> <span class="p">}</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><strong>Client vs Server:</strong><br>
 - Client: Rails app enqueueing jobs (needs connection pool)<br>
 - Server: Sidekiq process running workers (needs larger pool)</p>
 
-<p><strong>Connection pool sizing:</strong><br>
-```ruby</p>
+<p><strong>Connection pool sizing:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Server: pool size = concurrency + 5 (default: 10)</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">redis</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">url: </span><span class="s1">'redis://localhost:6379/0'</span><span class="p">,</span> <span class="ss">size: </span><span class="mi">15</span> <span class="p">}</span>
 
-<h1>Server: pool size = concurrency + 5 (default: 10)</h1>
-
-<p>config.redis = { url: &#39;redis://localhost:6379/0&#39;, size: 15 }<br>
-```</p>
-
+</code></pre></div>
 <hr>
 
 <h2>Queues and Priorities</h2>
@@ -741,10 +742,12 @@
 <span class="k">class</span> <span class="nc">ReportGeneratorJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
   <span class="n">queue_as</span> <span class="ss">:reports</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Start workers with queue priorities:</p>
 <div class="highlight"><pre class="highlight shell"><code><span class="c"># Process :critical 4x more than :default, 8x more than :low</span>
 bundle <span class="nb">exec </span>sidekiq <span class="nt">-q</span> critical,4 <span class="nt">-q</span> default,2 <span class="nt">-q</span> low,1
+
 </code></pre></div>
 <p>Or use dedicated worker processes:</p>
 <div class="highlight"><pre class="highlight shell"><code><span class="c"># Terminal 1: Fast jobs only</span>
@@ -752,6 +755,7 @@ bundle <span class="nb">exec </span>sidekiq <span class="nt">-q</span> mailers <
 
 <span class="c"># Terminal 2: Slow jobs with limited concurrency</span>
 bundle <span class="nb">exec </span>sidekiq <span class="nt">-q</span> reports <span class="nt">-c</span> 2
+
 </code></pre></div>
 <hr>
 
@@ -766,6 +770,7 @@ bundle <span class="nb">exec </span>sidekiq <span class="nt">-c</span> 25
 
 <span class="c"># Low memory: 5 threads</span>
 bundle <span class="nb">exec </span>sidekiq <span class="nt">-c</span> 5
+
 </code></pre></div>
 <p><strong>Thread safety requirement:</strong> Jobs must be thread-safe. Avoid shared mutable state, use connection pools for databases/Redis.</p>
 
@@ -853,38 +858,38 @@ bundle <span class="nb">exec </span>sidekiq <span class="nt">-c</span> 5
 <h2>Verification Steps</h2>
 
 <ol>
-<li><p>Start Redis:<br>
-<code>bash<br>
-redis-server<br>
-</code></p></li>
-<li><p>Check Redis is running:<br>
-```bash<br>
-redis-cli ping</p>
-
-<h1>Should output: PONG</h1>
-<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
-<li><p>Start Sidekiq with queue priorities:<br>
-<code>bash<br>
-bundle exec sidekiq -q mailers,2 -q reports,1<br>
-</code></p></li>
-<li><p>In Rails console, enqueue jobs:<br>
-```ruby</p>
-
-<h1>Enqueue 5 report jobs (slow queue)</h1>
-
-<p>5.times { |i| ReportWorker.perform_async(i) }</p></li>
+<li>Start Redis:</li>
 </ol>
+<div class="highlight"><pre class="highlight shell"><code>redis-server
 
-<h1>Enqueue 3 notification jobs (fast queue)</h1>
+</code></pre></div>
+<ol>
+<li>Check Redis is running:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code>redis-cli ping
+<span class="c"># Should output: PONG</span>
 
-<p>3.times { |i| NotificationJob.perform_later(i) }</p>
+</code></pre></div>
+<ol>
+<li>Start Sidekiq with queue priorities:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code>bundle <span class="nb">exec </span>sidekiq <span class="nt">-q</span> mailers,2 <span class="nt">-q</span> reports,1
 
-<h1>Check queue sizes</h1>
+</code></pre></div>
+<ol>
+<li>In Rails console, enqueue jobs:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Enqueue 5 report jobs (slow queue)</span>
+<span class="mi">5</span><span class="p">.</span><span class="nf">times</span> <span class="p">{</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span> <span class="no">ReportWorker</span><span class="p">.</span><span class="nf">perform_async</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="p">}</span>
 
-<p>Sidekiq::Queue.new(&#39;mailers&#39;).size  # =&gt; 3<br>
-Sidekiq::Queue.new(&#39;reports&#39;).size  # =&gt; 5<br>
-```</p>
+<span class="c1"># Enqueue 3 notification jobs (fast queue)</span>
+<span class="mi">3</span><span class="p">.</span><span class="nf">times</span> <span class="p">{</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span> <span class="no">NotificationJob</span><span class="p">.</span><span class="nf">perform_later</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="p">}</span>
 
+<span class="c1"># Check queue sizes</span>
+<span class="no">Sidekiq</span><span class="o">::</span><span class="no">Queue</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s1">'mailers'</span><span class="p">).</span><span class="nf">size</span>  <span class="c1"># =&gt; 3</span>
+<span class="no">Sidekiq</span><span class="o">::</span><span class="no">Queue</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s1">'reports'</span><span class="p">).</span><span class="nf">size</span>  <span class="c1"># =&gt; 5</span>
+
+</code></pre></div>
 <ol>
 <li>Watch Sidekiq logs - notification jobs should process first despite being enqueued second</li>
 </ol>
@@ -898,85 +903,78 @@ bundle add redis
 
 <span class="c"># Start Redis</span>
 redis-server
+
 </code></pre></div>
-<p>Create <code>config/initializers/sidekiq.rb</code>:<br>
-```ruby<br>
-Sidekiq.configure_server do |config|<br>
-  config.redis = { url: ENV.fetch(&#39;REDIS_URL&#39;, &#39;redis://localhost:6379/1&#39;) }<br>
-end</p>
+<p>Create <code>config/initializers/sidekiq.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Sidekiq</span><span class="p">.</span><span class="nf">configure_server</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">redis</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">url: </span><span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'REDIS_URL'</span><span class="p">,</span> <span class="s1">'redis://localhost:6379/1'</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
 
-<p>Sidekiq.configure_client do |config|<br>
-  config.redis = { url: ENV.fetch(&#39;REDIS_URL&#39;, &#39;redis://localhost:6379/1&#39;) }<br>
-end<br>
-```</p>
+<span class="no">Sidekiq</span><span class="p">.</span><span class="nf">configure_client</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">redis</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">url: </span><span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'REDIS_URL'</span><span class="p">,</span> <span class="s1">'redis://localhost:6379/1'</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
 
-<p>Configure ActiveJob in <code>config/application.rb</code>:<br>
-<code>ruby<br>
-config.active_job.queue_adapter = :sidekiq<br>
-</code></p>
+</code></pre></div>
+<p>Configure ActiveJob in <code>config/application.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span><span class="p">.</span><span class="nf">active_job</span><span class="p">.</span><span class="nf">queue_adapter</span> <span class="o">=</span> <span class="ss">:sidekiq</span>
 
+</code></pre></div>
 <h3>Step 2: Create ActiveJob</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails generate job Notification
+
 </code></pre></div>
-<p>Edit <code>app/jobs/notification_job.rb</code>:<br>
-```ruby<br>
-class NotificationJob &lt; ApplicationJob<br>
-  queue_as :mailers</p>
+<p>Edit <code>app/jobs/notification_job.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">NotificationJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="n">queue_as</span> <span class="ss">:mailers</span>
 
-<p>def perform(user_id)<br>
-    Rails.logger.info &quot;NotificationJob: Processing user #{user_id}&quot;<br>
-    sleep 2  # Simulate email sending<br>
-    Rails.logger.info &quot;NotificationJob: Completed user #{user_id}&quot;<br>
-  end<br>
-end<br>
-```</p>
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"NotificationJob: Processing user </span><span class="si">#{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">sleep</span> <span class="mi">2</span>  <span class="c1"># Simulate email sending</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"NotificationJob: Completed user </span><span class="si">#{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 3: Create Sidekiq Worker</h3>
 
-<p>Create <code>app/workers/report_worker.rb</code>:<br>
-```ruby<br>
-class ReportWorker<br>
-  include Sidekiq::Worker<br>
-  sidekiq_options queue: :reports, retry: 3</p>
+<p>Create <code>app/workers/report_worker.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ReportWorker</span>
+  <span class="kp">include</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Worker</span>
+  <span class="n">sidekiq_options</span> <span class="ss">queue: :reports</span><span class="p">,</span> <span class="ss">retry: </span><span class="mi">3</span>
 
-<p>def perform(report_id)<br>
-    Rails.logger.info &quot;ReportWorker: Generating report #{report_id}&quot;<br>
-    sleep 5  # Simulate slow report generation<br>
-    Rails.logger.info &quot;ReportWorker: Completed report #{report_id}&quot;<br>
-  end<br>
-end<br>
-```</p>
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">report_id</span><span class="p">)</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"ReportWorker: Generating report </span><span class="si">#{</span><span class="n">report_id</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">sleep</span> <span class="mi">5</span>  <span class="c1"># Simulate slow report generation</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"ReportWorker: Completed report </span><span class="si">#{</span><span class="n">report_id</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 4: Add Web UI (Optional)</h3>
 
-<p>In <code>config/routes.rb</code>:<br>
-```ruby<br>
-require &#39;sidekiq/web&#39;</p>
+<p>In <code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s1">'sidekiq/web'</span>
 
-<p>Rails.application.routes.draw do<br>
-  mount Sidekiq::Web =&gt; &#39;/sidekiq&#39;<br>
-end<br>
-```</p>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">mount</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Web</span> <span class="o">=&gt;</span> <span class="s1">'/sidekiq'</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <p>Visit <a href="http://localhost:3000/sidekiq" target="_blank">http://localhost:3000/sidekiq</a> to see queues, jobs, and stats.</p>
 
 <h3>Step 5: Test Different Enqueue Methods</h3>
 
-<p>In Rails console:<br>
-```ruby</p>
+<p>In Rails console:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># ActiveJob syntax</span>
+<span class="no">NotificationJob</span><span class="p">.</span><span class="nf">perform_later</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+<span class="no">NotificationJob</span><span class="p">.</span><span class="nf">set</span><span class="p">(</span><span class="ss">wait: </span><span class="mi">10</span><span class="p">.</span><span class="nf">seconds</span><span class="p">).</span><span class="nf">perform_later</span><span class="p">(</span><span class="mi">456</span><span class="p">)</span>
 
-<h1>ActiveJob syntax</h1>
+<span class="c1"># Native Sidekiq syntax</span>
+<span class="no">ReportWorker</span><span class="p">.</span><span class="nf">perform_async</span><span class="p">(</span><span class="mi">789</span><span class="p">)</span>
+<span class="no">ReportWorker</span><span class="p">.</span><span class="nf">perform_in</span><span class="p">(</span><span class="mi">1</span><span class="p">.</span><span class="nf">minute</span><span class="p">,</span> <span class="mi">999</span><span class="p">)</span>
+<span class="no">ReportWorker</span><span class="p">.</span><span class="nf">perform_at</span><span class="p">(</span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span> <span class="o">+</span> <span class="mi">5</span><span class="p">.</span><span class="nf">minutes</span><span class="p">,</span> <span class="mi">111</span><span class="p">)</span>
 
-<p>NotificationJob.perform_later(123)<br>
-NotificationJob.set(wait: 10.seconds).perform_later(456)</p>
-
-<h1>Native Sidekiq syntax</h1>
-
-<p>ReportWorker.perform_async(789)<br>
-ReportWorker.perform_in(1.minute, 999)<br>
-ReportWorker.perform_at(Time.now + 5.minutes, 111)<br>
-```</p>
-
+</code></pre></div>
 <h2>Stretch (Optional)</h2>
 
 <ol>
@@ -990,16 +988,16 @@ ReportWorker.perform_at(Time.now + 5.minutes, 111)<br>
     <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"URGENT: Processing alert </span><span class="si">#{</span><span class="n">alert_id</span><span class="si">}</span><span class="s2">"</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Start worker: <code>bundle exec sidekiq -q critical,4 -q mailers,2 -q reports,1</code></p>
 
 <ol>
-<li>Monitor Redis memory usage:
-<code>bash
-redis-cli info memory | grep used_memory_human
-</code></li>
+<li>Monitor Redis memory usage:</li>
 </ol>
+<div class="highlight"><pre class="highlight shell"><code>redis-cli info memory | <span class="nb">grep </span>used_memory_human
 
+</code></pre></div>
 <p>Enqueue 1000 jobs and check memory increase.</p>
 
 <h2>Time Estimate</h2>

@@ -25,17 +25,21 @@ Unindexed queries scan entire tables, which is acceptable for 100 rows but unacc
 B-tree indexes support equality and range queries. Postgres creates B-tree indexes by default.
 
 **Migration:**
+
 ```ruby
 class AddIndexToUsersEmail < ActiveRecord::Migration[7.0]
   def change
     add_index :users, :email
   end
 end
+
 ```
 
 **SQL generated:**
+
 ```sql
 CREATE INDEX index_users_on_email ON users USING btree (email);
+
 ```
 
 **Use cases:**
@@ -44,9 +48,11 @@ CREATE INDEX index_users_on_email ON users USING btree (email);
 - Sorting: `ORDER BY created_at DESC`
 
 **Verification:**
+
 ```sql
 EXPLAIN SELECT * FROM users WHERE email = 'user@example.com';
 -- Index Scan using index_users_on_email on users
+
 ```
 
 ---
@@ -56,23 +62,29 @@ EXPLAIN SELECT * FROM users WHERE email = 'user@example.com';
 Index multiple columns together. Column order determines which queries benefit.
 
 **Migration:**
+
 ```ruby
 add_index :posts, [:user_id, :published_at]
+
 ```
 
 **Effective queries:**
+
 ```sql
 -- Uses index: starts with user_id
 SELECT * FROM posts WHERE user_id = 5 ORDER BY published_at DESC;
 
 -- Uses index: filters user_id, sorts published_at
 SELECT * FROM posts WHERE user_id = 5 AND published_at > '2024-01-01';
+
 ```
 
 **Ineffective queries:**
+
 ```sql
 -- Ignores index: doesn't filter user_id
 SELECT * FROM posts WHERE published_at > '2024-01-01';
+
 ```
 
 **Rule:** Composite index `(a, b, c)` helps queries filtering `a`, `a + b`, or `a + b + c`, but not `b` or `c` alone.
@@ -84,22 +96,28 @@ SELECT * FROM posts WHERE published_at > '2024-01-01';
 Index only rows matching a condition. Smaller, faster, and more efficient for filtered queries.
 
 **Migration:**
+
 ```ruby
 add_index :users, :email, where: "deleted_at IS NULL", name: "index_active_users_on_email"
+
 ```
 
 **SQL:**
+
 ```sql
 CREATE INDEX index_active_users_on_email ON users (email) WHERE deleted_at IS NULL;
+
 ```
 
 **Use case:**
+
 ```ruby
 # Uses partial index
 User.where(deleted_at: nil).where(email: "user@example.com")
 
 # Ignores partial index
 User.where(email: "user@example.com")  # doesn't filter deleted_at
+
 ```
 
 **Common patterns:**
@@ -119,18 +137,22 @@ add_index :events, :metadata, using: :gin
 
 # Array column
 add_index :posts, :tag_ids, using: :gin
+
 ```
 
 **Query:**
+
 ```ruby
 Event.where("metadata @> ?", {source: "web"}.to_json)  # JSONB containment
 Post.where("tag_ids && ARRAY[?]::integer[]", [1, 2])  # Array overlap
+
 ```
 
 **GiST (Generalized Search Tree):** For geometric data, ranges, full-text.
 
 ```ruby
 execute "CREATE INDEX index_locations_on_coords ON locations USING gist (coords);"
+
 ```
 
 ---
@@ -140,19 +162,25 @@ execute "CREATE INDEX index_locations_on_coords ON locations USING gist (coords)
 Include extra columns so Postgres reads only the index, not the table.
 
 **Postgres 11+:**
+
 ```ruby
 add_index :users, :email, include: [:name, :created_at]
+
 ```
 
 **SQL:**
+
 ```sql
 CREATE INDEX index_users_on_email_covering ON users (email) INCLUDE (name, created_at);
+
 ```
 
 **Benefit:**
+
 ```sql
 -- Index-only scan: no table lookup
 SELECT name, created_at FROM users WHERE email = 'user@example.com';
+
 ```
 
 ---
@@ -164,6 +192,7 @@ SELECT name, created_at FROM users WHERE email = 'user@example.com';
 **Index maintenance overhead:** Postgres must keep indexes sorted. Large bulk imports are faster with indexes dropped and rebuilt afterward.
 
 **Example:**
+
 ```ruby
 # Slow: 1M inserts with indexes
 User.create!(email: "user#{i}@example.com")
@@ -172,6 +201,7 @@ User.create!(email: "user#{i}@example.com")
 remove_index :users, :email
 User.insert_all(records)
 add_index :users, :email
+
 ```
 
 ---

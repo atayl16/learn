@@ -26,9 +26,11 @@ Generate 7 standard routes:
 ```ruby
 # config/routes.rb
 resources :posts
+
 ```
 
 Generates:
+
 ```
 GET    /posts          posts#index
 POST   /posts          posts#create
@@ -37,29 +39,36 @@ GET    /posts/:id/edit posts#edit
 GET    /posts/:id      posts#show
 PATCH  /posts/:id      posts#update
 DELETE /posts/:id      posts#destroy
+
 ```
 
 **Limit routes:**
+
 ```ruby
 resources :posts, only: [:index, :show]
 resources :comments, except: [:destroy]
+
 ```
 
 **Nested resources:**
+
 ```ruby
 resources :posts do
   resources :comments
 end
 # Generates /posts/:post_id/comments
+
 ```
 
 **Shallow nesting (avoid deep nesting):**
+
 ```ruby
 resources :posts do
   resources :comments, shallow: true
 end
 # /posts/:post_id/comments (create)
 # /comments/:id (show, edit, update, destroy)
+
 ```
 
 ---
@@ -67,30 +76,36 @@ end
 ## Namespaces and Scopes
 
 **Namespace (organizes controllers):**
+
 ```ruby
 namespace :admin do
   resources :posts
 end
 # Routes to Admin::PostsController
 # URL: /admin/posts
+
 ```
 
 **Scope (URL only):**
+
 ```ruby
 scope :api do
   resources :posts
 end
 # Routes to PostsController
 # URL: /api/posts
+
 ```
 
 **Module (controller only):**
+
 ```ruby
 scope module: :api do
   resources :posts
 end
 # Routes to Api::PostsController
 # URL: /posts
+
 ```
 
 ---
@@ -98,20 +113,25 @@ end
 ## Constraints
 
 **Subdomain routing:**
+
 ```ruby
 constraints subdomain: 'api' do
   resources :posts
 end
 # Matches http://api.example.com/posts
+
 ```
 
 **Format constraints:**
+
 ```ruby
 resources :posts, constraints: { format: 'json' }
 # Only matches /posts.json
+
 ```
 
 **Custom constraints (class-based):**
+
 ```ruby
 # lib/constraints/api_version_constraint.rb
 class ApiVersionConstraint
@@ -132,6 +152,7 @@ end
 constraints ApiVersionConstraint.new(2) do
   resources :posts, controller: 'api/v2/posts'
 end
+
 ```
 
 ---
@@ -145,18 +166,23 @@ posts_path          # => "/posts"
 post_path(@post)    # => "/posts/123"
 new_post_path       # => "/posts/new"
 edit_post_path(@post) # => "/posts/123/edit"
+
 ```
 
 **Named routes:**
+
 ```ruby
 get 'dashboard', to: 'pages#dashboard', as: :user_dashboard
 # Generates: user_dashboard_path => "/dashboard"
+
 ```
 
 **URL helpers:**
+
 ```ruby
 posts_url  # => "http://example.com/posts" (absolute)
 posts_path # => "/posts" (relative)
+
 ```
 
 ---
@@ -192,6 +218,7 @@ end
 
 # config/application.rb
 config.middleware.use RequestLogger
+
 ```
 
 **Example: API Key Authentication**
@@ -225,15 +252,18 @@ end
 
 # config/application.rb
 config.middleware.use ApiKeyAuth
+
 ```
 
 **Insert middleware at specific position:**
+
 ```ruby
 # Before a specific middleware
 config.middleware.insert_before ActionDispatch::Static, ApiKeyAuth
 
 # After a specific middleware
 config.middleware.insert_after ActionDispatch::RequestId, RequestLogger
+
 ```
 
 ---
@@ -241,27 +271,35 @@ config.middleware.insert_after ActionDispatch::RequestId, RequestLogger
 ## Debugging Routes
 
 **List all routes:**
+
 ```bash
 bin/rails routes
 bin/rails routes | grep posts
 bin/rails routes -c posts  # routes for PostsController
+
 ```
 
 **Check specific route:**
+
 ```bash
 bin/rails routes | grep "posts#show"
+
 ```
 
 **Test route matching in console:**
+
 ```ruby
 Rails.application.routes.recognize_path("/posts/123", method: :get)
 # => { controller: "posts", action: "show", id: "123" }
+
 ```
 
 **Generate URL from route:**
+
 ```ruby
 Rails.application.routes.url_helpers.post_path(123)
 # => "/posts/123"
+
 ```
 
 ---

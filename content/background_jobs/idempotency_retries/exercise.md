@@ -23,25 +23,31 @@ Create a payment processing job that:
 ## Verification Steps
 
 1. Enqueue the same payment twice rapidly:
+
 ```ruby
 payment = Payment.create!(amount: 100, status: 'pending')
 2.times { ChargePaymentJob.perform_later(payment.id) }
+
 ```
 
 2. Check logs - second job should skip with "already processed" message
 
 3. Simulate failure and watch retries:
+
 ```ruby
 # Set environment to trigger failures
 ENV['SIMULATE_FAILURE'] = 'true'
 ChargePaymentJob.perform_later(payment.id)
+
 ```
 
 4. After 3 retries, check DLQ:
+
 ```ruby
 Sidekiq::DeadSet.new.size  # => 1
 dead_job = Sidekiq::DeadSet.new.first
 dead_job.item['error_message']  # Shows ApiError
+
 ```
 
 ## Setup Code
@@ -50,9 +56,11 @@ dead_job.item['error_message']  # Shows ApiError
 
 ```bash
 bin/rails generate model Payment amount:decimal status:string stripe_charge_id:string
+
 ```
 
 Edit migration to add unique constraint:
+
 ```ruby
 class CreatePayments < ActiveRecord::Migration[7.0]
   def change
@@ -66,20 +74,25 @@ class CreatePayments < ActiveRecord::Migration[7.0]
     add_index :payments, :stripe_charge_id, unique: true
   end
 end
+
 ```
 
 Run migration:
+
 ```bash
 bin/rails db:migrate
+
 ```
 
 ### Step 2: Create Payment Job with Idempotency
 
 ```bash
 bin/rails generate job ChargePayment
+
 ```
 
 Edit `app/jobs/charge_payment_job.rb`:
+
 ```ruby
 class ChargePaymentJob < ApplicationJob
   queue_as :payments
@@ -126,11 +139,13 @@ class ChargePaymentJob < ApplicationJob
 
   class ApiError < StandardError; end
 end
+
 ```
 
 ### Step 3: Create Sidekiq Worker with Custom Retry
 
 Create `app/workers/payment_processor.rb`:
+
 ```ruby
 class PaymentProcessor
   include Sidekiq::Worker
@@ -169,11 +184,13 @@ class PaymentProcessor
 
   class ApiError < StandardError; end
 end
+
 ```
 
 ### Step 4: DLQ Inspection Commands
 
 Add to `lib/tasks/sidekiq.rake`:
+
 ```ruby
 namespace :sidekiq do
   desc "Show dead jobs"
@@ -204,11 +221,13 @@ namespace :sidekiq do
     puts "Cleared #{count} dead jobs"
   end
 end
+
 ```
 
 ### Step 5: Test Idempotency
 
 In Rails console:
+
 ```ruby
 # Create payment
 payment = Payment.create!(amount: 150.00, status: 'pending')
@@ -224,6 +243,7 @@ redis.keys("payment:charge:*")  # Should show idempotency key
 
 # Verify only one charge
 Payment.where(status: 'completed').count  # => 1
+
 ```
 
 ### Step 6: Test Retries and DLQ
@@ -248,6 +268,7 @@ rake sidekiq:dead_jobs
 # Disable simulation and retry
 ENV['SIMULATE_FAILURE'] = 'false'
 rake sidekiq:retry_dead
+
 ```
 
 ## Stretch (Optional)
@@ -283,6 +304,7 @@ rescue ApiError => e
   CircuitBreaker.record_failure('stripe')
   raise
 end
+
 ```
 
 ## Time Estimate

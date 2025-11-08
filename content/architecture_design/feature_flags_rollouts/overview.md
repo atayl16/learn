@@ -48,6 +48,7 @@ if Flipper.enabled?(:new_checkout, current_user)
 else
   render :old_checkout
 end
+
 ```
 
 Flipper checks `current_user` against the flag's rules. If enabled, the new path runs.
@@ -62,6 +63,7 @@ Flipper.enable_percentage_of_actors(:new_checkout, 10)
 
 # Affects 10% of users deterministically (same user always sees same state)
 Flipper.enabled?(:new_checkout, current_user)
+
 ```
 
 Increase percentage as confidence grows: 10% → 25% → 50% → 100%.
@@ -81,6 +83,7 @@ Flipper.enable_group(:new_checkout, :admins)
 
 # Check returns true for admins
 Flipper.enabled?(:new_checkout, current_user)
+
 ```
 
 Groups let you dogfood features internally before public launch.
@@ -95,6 +98,7 @@ Flipper.enable_actor(:new_checkout, User.find(123))
 
 # Check
 Flipper.enabled?(:new_checkout, current_user)  # true if current_user.id == 123
+
 ```
 
 Useful for debugging production issues with specific accounts.
@@ -112,6 +116,7 @@ else
   StatsD.increment("checkout.old.started")
   render :old_checkout
 end
+
 ```
 
 Compare error rates, conversion rates, and latency between branches. If the new branch degrades, disable the flag instantly.
@@ -140,6 +145,7 @@ RSpec.describe CheckoutController do
     end
   end
 end
+
 ```
 
 Alternatively, default flags to one state in CI and document that the other branch is tested manually or in staging.
@@ -158,6 +164,7 @@ end
 
 # After cleanup (flag permanently enabled)
 render :new_checkout
+
 ```
 
 Delete the flag from Flipper, remove conditional logic, and delete the old code path. Set a reminder (30 days post-launch) to clean up.
@@ -179,6 +186,7 @@ if UNLEASH.is_enabled?("new_checkout", user_id: current_user.id)
 else
   render :old_checkout
 end
+
 ```
 
 Unleash adds an admin UI for non-engineers to toggle flags, useful for product managers running experiments.

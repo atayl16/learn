@@ -41,6 +41,7 @@ Sentry.init do |config|
   # Sample rate: send 10% of events in high-traffic apps
   config.traces_sample_rate = 0.1
 end
+
 ```
 
 Sentry now captures all unhandled exceptions automatically.
@@ -78,6 +79,7 @@ class ApplicationController < ActionController::Base
     })
   end
 end
+
 ```
 
 Every error now includes user, tenant, and request metadata for debugging.
@@ -99,6 +101,7 @@ rescue PaymentGateway::NetworkError => e
   })
   raise
 end
+
 ```
 
 Send custom messages for non-exception issues:
@@ -115,6 +118,7 @@ if inventory.stock < order.quantity
     }
   )
 end
+
 ```
 
 ---
@@ -139,6 +143,7 @@ Sentry.init do |config|
     event
   end
 end
+
 ```
 
 Custom fingerprints prevent one issue from creating dozens of separate alerts.
@@ -155,6 +160,7 @@ Sentry.init do |config|
   config.release = ENV.fetch('HEROKU_SLUG_COMMIT', 'dev')
   config.environment = ENV.fetch('RAILS_ENV', 'development')
 end
+
 ```
 
 In deployment script:
@@ -164,6 +170,7 @@ In deployment script:
 curl https://sentry.io/api/0/organizations/my-org/releases/ \
   -H "Authorization: Bearer $SENTRY_AUTH_TOKEN" \
   -d '{"version":"'"$GIT_COMMIT"'","projects":["my-app"]}'
+
 ```
 
 Sentry dashboard shows which release introduced each error.
@@ -192,6 +199,7 @@ Sentry.init do |config|
   # Breadcrumbs help debug but increase data sent
   config.breadcrumbs_logger = [:active_support_logger]
 end
+
 ```
 
 ---

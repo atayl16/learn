@@ -29,6 +29,7 @@ In a Rails application:
 bundle add lograge
 
 bundle install
+
 ```
 
 ### Step 2: Configure Lograge
@@ -55,6 +56,7 @@ Rails.application.configure do
     event.payload[:path] == '/health'
   end
 end
+
 ```
 
 Apply same config to `config/environments/production.rb`.
@@ -78,6 +80,7 @@ class ApplicationController < ActionController::Base
     User.first if User.any?
   end
 end
+
 ```
 
 ### Step 4: Configure Parameter Filtering
@@ -92,6 +95,7 @@ Rails.application.config.filter_parameters += [
   :secret_key,
   :api_key
 ]
+
 ```
 
 ### Step 5: Create Test Routes and Controller
@@ -104,6 +108,7 @@ Rails.application.routes.draw do
   post '/login', to: 'sessions#create'
   get '/users/:id', to: 'users#show'
 end
+
 ```
 
 Create `app/controllers/health_controller.rb`:
@@ -116,6 +121,7 @@ class HealthController < ApplicationController
     render json: { status: 'ok' }
   end
 end
+
 ```
 
 Create `app/controllers/sessions_controller.rb`:
@@ -129,6 +135,7 @@ class SessionsController < ApplicationController
     render json: { success: true }
   end
 end
+
 ```
 
 Create `app/controllers/users_controller.rb`:
@@ -140,6 +147,7 @@ class UsersController < ApplicationController
     render json: { id: params[:id], name: 'Test User' }
   end
 end
+
 ```
 
 ### Step 6: Test and Verify
@@ -148,12 +156,14 @@ Start Rails server:
 
 ```bash
 bin/rails server
+
 ```
 
 In another terminal, tail logs:
 
 ```bash
 tail -f log/development.log
+
 ```
 
 Make test requests:
@@ -169,18 +179,21 @@ curl http://localhost:3000/health
 curl -X POST http://localhost:3000/login \
   -H "Content-Type: application/json" \
   -d '{"email":"user@example.com","password":"secret123","api_token":"abc123"}'
+
 ```
 
 Expected log output for `/users/123`:
 
 ```json
 {"method":"GET","path":"/users/123","format":"*/*","controller":"UsersController","action":"show","status":200,"duration":105.23,"view":0.45,"db":0.0,"time":"2025-01-15T10:23:45-08:00","request_id":"abc123-def456","user_id":null,"ip":"127.0.0.1"}
+
 ```
 
 Expected log output for `/login` (check password is filtered):
 
 ```
 {"method":"POST","path":"/login","format":"json","controller":"SessionsController","action":"create","status":200,"params":{"email":"user@example.com","password":"[FILTERED]","api_token":"[FILTERED]"},...}
+
 ```
 
 ### Step 7: Verify in Rails Console
@@ -195,6 +208,7 @@ Rails.configuration.lograge.formatter
 
 Rails.application.config.filter_parameters
 # => [:password, :password_confirmation, :api_token, :secret_key, :api_key, ...]
+
 ```
 
 ## Stretch (Optional)
@@ -211,6 +225,7 @@ config.lograge.custom_options = lambda do |event|
     exception_message: event.payload[:exception]&.last
   }
 end
+
 ```
 
 2. Log SQL query counts per request:
@@ -222,6 +237,7 @@ config.lograge.custom_options = lambda do |event|
     cache_hits: event.payload[:cache_hits]
   }
 end
+
 ```
 
 ## Time Estimate

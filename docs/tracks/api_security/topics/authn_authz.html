@@ -680,6 +680,7 @@
 
   <span class="nb">attr_reader</span> <span class="ss">:current_user</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Generate tokens with <code>JWT.encode({user_id: user.id}, secret, &#39;HS256&#39;)</code>. Send them as <code>Authorization: Bearer &lt;token&gt;</code>.</p>
 
@@ -708,6 +709,7 @@
   <span class="vi">@post</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="n">post_params</span><span class="p">)</span>
   <span class="n">render</span> <span class="ss">json: </span><span class="vi">@post</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><code>authorize @post</code> raises <code>Pundit::NotAuthorizedError</code> if <code>update?</code> returns false. Rescue and render 403.</p>
 
@@ -732,6 +734,7 @@
   <span class="vi">@posts</span> <span class="o">=</span> <span class="n">policy_scope</span><span class="p">(</span><span class="no">Post</span><span class="p">)</span>
   <span class="n">render</span> <span class="ss">json: </span><span class="vi">@posts</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Guests see only published posts; owners see their drafts; admins see all.</p>
 
@@ -748,6 +751,7 @@
 <span class="k">def</span> <span class="nf">user_not_authorized</span>
   <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span><span class="ss">error: </span><span class="s1">'Forbidden'</span><span class="p">},</span> <span class="ss">status: :forbidden</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Optionally log the attempt for audit trails.</p>
 
@@ -775,6 +779,7 @@
     <span class="n">it</span> <span class="p">{</span> <span class="n">is_expected</span><span class="p">.</span><span class="nf">not_to</span> <span class="n">permit_action</span><span class="p">(</span><span class="ss">:destroy</span><span class="p">)</span> <span class="p">}</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Use <code>pundit-matchers</code> gem for <code>permit_action</code> matcher.</p>
 
@@ -793,6 +798,7 @@
   <span class="n">authorize</span> <span class="vi">@post</span>  <span class="c1"># Calls PostPolicy#show?</span>
   <span class="n">render</span> <span class="ss">json: </span><span class="vi">@post</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Attacker changes <code>/api/posts/123</code> to <code>/api/posts/124</code> and sees another user&#39;s draft. <code>authorize</code> prevents this.</p>
 

@@ -69,6 +69,7 @@ class CheckoutOrder
     # ...
   end
 end
+
 ```
 
 Modules communicate through service objects, not direct model access. Benefits: domain isolation, easier extraction later. Costs: discipline required to enforce boundaries.
@@ -105,6 +106,7 @@ class OrderCreatedConsumer
     Inventory::ReserveStock.call(order_id: event[:order_id])
   end
 end
+
 ```
 
 Message queues enable eventual consistency but complicate debugging (messages lost, duplicate processing, ordering issues). Use only when async processing or decoupling justifies the complexity.
@@ -119,6 +121,7 @@ Order.transaction do
   PaymentGateway.charge(order.total)
   Inventory.decrement(order.product_id, order.quantity)
 end
+
 ```
 
 If any step fails, the database rolls back. In microservices:
@@ -131,6 +134,7 @@ if result.success?
 else
   # Compensate: what if inventory already decremented?
 end
+
 ```
 
 Microservices require saga patterns (event-driven compensation) to handle failures, adding complexity.

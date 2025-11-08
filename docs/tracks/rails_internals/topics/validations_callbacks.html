@@ -665,27 +665,26 @@
   <span class="n">validates</span> <span class="ss">:role</span><span class="p">,</span> <span class="ss">inclusion: </span><span class="p">{</span> <span class="ss">in: </span><span class="sx">%w[admin user guest]</span> <span class="p">}</span>
   <span class="n">validates</span> <span class="ss">:username</span><span class="p">,</span> <span class="ss">format: </span><span class="p">{</span> <span class="ss">with: </span><span class="sr">/\A[a-zA-Z0-9_]+\z/</span> <span class="p">}</span>
 <span class="k">end</span>
+
 </code></pre></div>
-<p><strong>Conditional validations:</strong><br>
-```ruby<br>
-validates :ssn, presence: true, if: :us_resident?</p>
+<p><strong>Conditional validations:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">validates</span> <span class="ss">:ssn</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">if: :us_resident?</span>
 
-<p>def us_resident?<br>
-  country == &quot;US&quot;<br>
-end<br>
-```</p>
+<span class="k">def</span> <span class="nf">us_resident?</span>
+  <span class="n">country</span> <span class="o">==</span> <span class="s2">"US"</span>
+<span class="k">end</span>
 
-<p><strong>Custom validations:</strong><br>
-```ruby<br>
-validate :email_domain_allowed</p>
+</code></pre></div>
+<p><strong>Custom validations:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">validate</span> <span class="ss">:email_domain_allowed</span>
 
-<p>def email_domain_allowed<br>
-  return if email.blank?<br>
-  domain = email.split(&quot;@&quot;).last<br>
-  errors.add(:email, &quot;domain not allowed&quot;) unless %w[example.com mycompany.com].include?(domain)<br>
-end<br>
-```</p>
+<span class="k">def</span> <span class="nf">email_domain_allowed</span>
+  <span class="k">return</span> <span class="k">if</span> <span class="n">email</span><span class="p">.</span><span class="nf">blank?</span>
+  <span class="n">domain</span> <span class="o">=</span> <span class="n">email</span><span class="p">.</span><span class="nf">split</span><span class="p">(</span><span class="s2">"@"</span><span class="p">).</span><span class="nf">last</span>
+  <span class="n">errors</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="ss">:email</span><span class="p">,</span> <span class="s2">"domain not allowed"</span><span class="p">)</span> <span class="k">unless</span> <span class="sx">%w[example.com mycompany.com]</span><span class="p">.</span><span class="nf">include?</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Validation Lifecycle</h2>
@@ -695,13 +694,12 @@ end<br>
 - <strong>On create/update:</strong> <code>create!</code>, <code>save!</code>, <code>update!</code> raise if invalid<br>
 - <strong>Skipped by:</strong> <code>update_attribute</code>, <code>save(validate: false)</code>, <code>update_column</code></p>
 
-<p>Check validity:<br>
-<code>ruby<br>
-user = User.new(email: &quot;&quot;)<br>
-user.valid?  # =&gt; false<br>
-user.errors.full_messages  # =&gt; [&quot;Email can&#39;t be blank&quot;]<br>
-</code></p>
+<p>Check validity:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">email: </span><span class="s2">""</span><span class="p">)</span>
+<span class="n">user</span><span class="p">.</span><span class="nf">valid?</span>  <span class="c1"># =&gt; false</span>
+<span class="n">user</span><span class="p">.</span><span class="nf">errors</span><span class="p">.</span><span class="nf">full_messages</span>  <span class="c1"># =&gt; ["Email can't be blank"]</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Callbacks</h2>
@@ -736,6 +734,7 @@ user.errors.full_messages  # =&gt; [&quot;Email can&#39;t be blank&quot;]<br>
     <span class="n">subscriptions</span><span class="p">.</span><span class="nf">each</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:cancel!</span><span class="p">)</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><strong>Callback order:</strong><br>
 1. <code>before_validation</code><br>
@@ -778,33 +777,33 @@ user.errors.full_messages  # =&gt; [&quot;Email can&#39;t be blank&quot;]<br>
   <span class="n">after_create</span> <span class="ss">:generate_avatar</span>
   <span class="n">after_create</span> <span class="ss">:set_defaults</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><strong>Problem:</strong> Creating a user triggers 6+ callbacks across models. Hard to debug and test.</p>
 
-<p><strong>Solution:</strong> Use service objects:<br>
-<code>ruby<br>
-class UserRegistration<br>
-  def call(params)<br>
-    user = User.create!(params)<br>
-    Profile.create!(user: user)<br>
-    WelcomeMailer.deliver_later(user)<br>
-    AnalyticsService.track_signup(user)<br>
-    user<br>
-  end<br>
-end<br>
-</code></p>
+<p><strong>Solution:</strong> Use service objects:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">UserRegistration</span>
+  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="no">Profile</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">user: </span><span class="n">user</span><span class="p">)</span>
+    <span class="no">WelcomeMailer</span><span class="p">.</span><span class="nf">deliver_later</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+    <span class="no">AnalyticsService</span><span class="p">.</span><span class="nf">track_signup</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+    <span class="n">user</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Callbacks Break Expectations</h3>
 <div class="highlight"><pre class="highlight ruby"><code><span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">email: </span><span class="s2">"test@example.com"</span><span class="p">)</span>
 <span class="n">user</span><span class="p">.</span><span class="nf">save</span>  <span class="c1"># Triggers 5 callbacks, sends email, calls API</span>
+
 </code></pre></div>
 <p><strong>Problem:</strong> <code>save</code> is expected to be a database operation. Hidden side effects surprise developers.</p>
 
-<p><strong>Solution:</strong> Explicit service methods:<br>
-<code>ruby<br>
-UserService.register(user)  # Clear intent<br>
-</code></p>
+<p><strong>Solution:</strong> Explicit service methods:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">UserService</span><span class="p">.</span><span class="nf">register</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>  <span class="c1"># Clear intent</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Concerns</h2>
@@ -833,6 +832,7 @@ UserService.register(user)  # Clear intent<br>
 <span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
   <span class="kp">include</span> <span class="no">Taggable</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><strong>What <code>ActiveSupport::Concern</code> does:</strong><br>
 - <code>included</code> block runs when module is included<br>
@@ -926,28 +926,33 @@ UserService.register(user)  # Clear intent<br>
 <h2>Verification Steps</h2>
 
 <ol>
-<li><p>Test validations in console:<br>
-<code>ruby<br>
-product = Product.new(name: &quot;Widget&quot;, price: -5)<br>
-product.valid?  # =&gt; false<br>
-product.errors.full_messages  # =&gt; [&quot;Price must be greater than 0&quot;]<br>
-</code></p></li>
-<li><p>Test SKU normalization:<br>
-<code>ruby<br>
-product = Product.create!(name: &quot;Gadget&quot;, price: 10, sku: &quot;abc-123&quot;)<br>
-product.sku  # =&gt; &quot;ABC-123&quot;<br>
-</code></p></li>
-<li><p>Check log for <code>after_commit</code> message:<br>
-<code><br>
-Product created: ABC-123<br>
-</code></p></li>
-<li><p>Test concern:<br>
-<code>ruby<br>
-Article.published.count<br>
-Product.published.count<br>
-</code></p></li>
+<li>Test validations in console:</li>
 </ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">product</span> <span class="o">=</span> <span class="no">Product</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">name: </span><span class="s2">"Widget"</span><span class="p">,</span> <span class="ss">price: </span><span class="o">-</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">product</span><span class="p">.</span><span class="nf">valid?</span>  <span class="c1"># =&gt; false</span>
+<span class="n">product</span><span class="p">.</span><span class="nf">errors</span><span class="p">.</span><span class="nf">full_messages</span>  <span class="c1"># =&gt; ["Price must be greater than 0"]</span>
 
+</code></pre></div>
+<ol>
+<li>Test SKU normalization:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">product</span> <span class="o">=</span> <span class="no">Product</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">name: </span><span class="s2">"Gadget"</span><span class="p">,</span> <span class="ss">price: </span><span class="mi">10</span><span class="p">,</span> <span class="ss">sku: </span><span class="s2">"abc-123"</span><span class="p">)</span>
+<span class="n">product</span><span class="p">.</span><span class="nf">sku</span>  <span class="c1"># =&gt; "ABC-123"</span>
+
+</code></pre></div>
+<ol>
+<li>Check log for <code>after_commit</code> message:</li>
+</ol>
+<div class="highlight"><pre class="highlight plaintext"><code>Product created: ABC-123
+
+</code></pre></div>
+<ol>
+<li>Test concern:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Article</span><span class="p">.</span><span class="nf">published</span><span class="p">.</span><span class="nf">count</span>
+<span class="no">Product</span><span class="p">.</span><span class="nf">published</span><span class="p">.</span><span class="nf">count</span>
+
+</code></pre></div>
 <h2>Setup Code</h2>
 
 <h3>Step 1: Create Models</h3>
@@ -956,76 +961,74 @@ Product.published.count<br>
 bin/rails generate model Product name:string price:decimal sku:string published:boolean published_at:datetime
 bin/rails generate model Article title:string body:text published:boolean published_at:datetime
 bin/rails db:migrate
+
 </code></pre></div>
 <h3>Step 2: Add Validations</h3>
 
-<p>Edit <code>app/models/product.rb</code>:<br>
-```ruby<br>
-class Product &lt; ApplicationRecord<br>
-  validates :name, presence: true<br>
-  validates :price, numericality: { greater_than: 0 }<br>
-  validates :sku, uniqueness: true, allow_blank: true</p>
+<p>Edit <code>app/models/product.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Product</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">validates</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span>
+  <span class="n">validates</span> <span class="ss">:price</span><span class="p">,</span> <span class="ss">numericality: </span><span class="p">{</span> <span class="ss">greater_than: </span><span class="mi">0</span> <span class="p">}</span>
+  <span class="n">validates</span> <span class="ss">:sku</span><span class="p">,</span> <span class="ss">uniqueness: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">allow_blank: </span><span class="kp">true</span>
 
-<p>before_save :normalize_sku<br>
-  after_commit :log_creation, on: :create</p>
+  <span class="n">before_save</span> <span class="ss">:normalize_sku</span>
+  <span class="n">after_commit</span> <span class="ss">:log_creation</span><span class="p">,</span> <span class="ss">on: :create</span>
 
-<p>private</p>
+  <span class="kp">private</span>
 
-<p>def normalize_sku<br>
-    self.sku = sku.upcase if sku.present?<br>
-  end</p>
+  <span class="k">def</span> <span class="nf">normalize_sku</span>
+    <span class="nb">self</span><span class="p">.</span><span class="nf">sku</span> <span class="o">=</span> <span class="n">sku</span><span class="p">.</span><span class="nf">upcase</span> <span class="k">if</span> <span class="n">sku</span><span class="p">.</span><span class="nf">present?</span>
+  <span class="k">end</span>
 
-<p>def log_creation<br>
-    Rails.logger.info &quot;Product created: #{sku}&quot;<br>
-  end<br>
-end<br>
-```</p>
+  <span class="k">def</span> <span class="nf">log_creation</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Product created: </span><span class="si">#{</span><span class="n">sku</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 3: Create Publishable Concern</h3>
 
-<p>Create <code>app/models/concerns/publishable.rb</code>:<br>
-```ruby<br>
-module Publishable<br>
-  extend ActiveSupport::Concern</p>
+<p>Create <code>app/models/concerns/publishable.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">Publishable</span>
+  <span class="kp">extend</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Concern</span>
 
-<p>included do<br>
-    validates :published_at, presence: true, if: :published?<br>
-    validate :published_at_in_past, if: :published?</p>
-<div class="highlight"><pre class="highlight plaintext"><code>scope :published, -&gt; { where(published: true) }
-scope :unpublished, -&gt; { where(published: false) }
+  <span class="n">included</span> <span class="k">do</span>
+    <span class="n">validates</span> <span class="ss">:published_at</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">if: :published?</span>
+    <span class="n">validate</span> <span class="ss">:published_at_in_past</span><span class="p">,</span> <span class="ss">if: :published?</span>
+
+    <span class="n">scope</span> <span class="ss">:published</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="ss">published: </span><span class="kp">true</span><span class="p">)</span> <span class="p">}</span>
+    <span class="n">scope</span> <span class="ss">:unpublished</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="ss">published: </span><span class="kp">false</span><span class="p">)</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">published_at_in_past</span>
+    <span class="k">return</span> <span class="k">if</span> <span class="n">published_at</span><span class="p">.</span><span class="nf">blank?</span>
+    <span class="n">errors</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="ss">:published_at</span><span class="p">,</span> <span class="s2">"must be in the past"</span><span class="p">)</span> <span class="k">if</span> <span class="n">published_at</span> <span class="o">&gt;</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">publish!</span>
+    <span class="n">update!</span><span class="p">(</span><span class="ss">published: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">published_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end</p>
-
-<p>def published_at_in_past<br>
-    return if published_at.blank?<br>
-    errors.add(:published_at, &quot;must be in the past&quot;) if published_at &gt; Time.current<br>
-  end</p>
-
-<p>def publish!<br>
-    update!(published: true, published_at: Time.current)<br>
-  end<br>
-end<br>
-```</p>
-
 <h3>Step 4: Include Concern in Models</h3>
 
-<p>Edit <code>app/models/product.rb</code>:<br>
-<code>ruby<br>
-class Product &lt; ApplicationRecord<br>
-  include Publishable<br>
-  # ... existing validations and callbacks<br>
-end<br>
-</code></p>
+<p>Edit <code>app/models/product.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Product</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="kp">include</span> <span class="no">Publishable</span>
+  <span class="c1"># ... existing validations and callbacks</span>
+<span class="k">end</span>
 
-<p>Edit <code>app/models/article.rb</code>:<br>
-<code>ruby<br>
-class Article &lt; ApplicationRecord<br>
-  include Publishable<br>
-end<br>
-</code></p>
+</code></pre></div>
+<p>Edit <code>app/models/article.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="kp">include</span> <span class="no">Publishable</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 5: Test in Console</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails console
+
 </code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Test validations</span>
 <span class="n">product</span> <span class="o">=</span> <span class="no">Product</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">name: </span><span class="s2">"Widget"</span><span class="p">,</span> <span class="ss">price: </span><span class="o">-</span><span class="mi">5</span><span class="p">)</span>
 <span class="n">product</span><span class="p">.</span><span class="nf">valid?</span>  <span class="c1"># =&gt; false</span>
@@ -1047,6 +1050,7 @@ end<br>
 <span class="c1"># Test publish! method</span>
 <span class="n">product</span><span class="p">.</span><span class="nf">publish!</span>
 <span class="n">product</span><span class="p">.</span><span class="nf">published?</span>  <span class="c1"># =&gt; true</span>
+
 </code></pre></div>
 <h2>Stretch (Optional)</h2>
 
@@ -1054,36 +1058,33 @@ end<br>
 <li>Add a custom validator class:</li>
 </ol>
 
-<p>Create <code>app/validators/email_validator.rb</code>:<br>
-<code>ruby<br>
-class EmailValidator &lt; ActiveModel::EachValidator<br>
-  def validate_each(record, attribute, value)<br>
-    unless value =~ /\A[^@\s]+@[^@\s]+\z/<br>
-      record.errors.add(attribute, &quot;is not a valid email&quot;)<br>
-    end<br>
-  end<br>
-end<br>
-</code></p>
+<p>Create <code>app/validators/email_validator.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">EmailValidator</span> <span class="o">&lt;</span> <span class="no">ActiveModel</span><span class="o">::</span><span class="no">EachValidator</span>
+  <span class="k">def</span> <span class="nf">validate_each</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">unless</span> <span class="n">value</span> <span class="o">=~</span> <span class="sr">/\A[^@\s]+@[^@\s]+\z/</span>
+      <span class="n">record</span><span class="p">.</span><span class="nf">errors</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="s2">"is not a valid email"</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>Use in model:<br>
-<code>ruby<br>
-validates :contact_email, email: true<br>
-</code></p>
+</code></pre></div>
+<p>Use in model:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">validates</span> <span class="ss">:contact_email</span><span class="p">,</span> <span class="ss">email: </span><span class="kp">true</span>
 
+</code></pre></div>
 <ol>
-<li>Add a callback that prevents deletion:
-```ruby
-before_destroy :prevent_if_published, prepend: true</li>
+<li>Add a callback that prevents deletion:</li>
 </ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">before_destroy</span> <span class="ss">:prevent_if_published</span><span class="p">,</span> <span class="ss">prepend: </span><span class="kp">true</span>
 
-<p>def prevent_if_published<br>
-  if published?<br>
-    errors.add(:base, &quot;Cannot delete published product&quot;)<br>
-    throw(:abort)<br>
-  end<br>
-end<br>
-```</p>
+<span class="k">def</span> <span class="nf">prevent_if_published</span>
+  <span class="k">if</span> <span class="n">published?</span>
+    <span class="n">errors</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="ss">:base</span><span class="p">,</span> <span class="s2">"Cannot delete published product"</span><span class="p">)</span>
+    <span class="kp">throw</span><span class="p">(</span><span class="ss">:abort</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h2>Time Estimate</h2>
 
 <p>20 minutes</p>

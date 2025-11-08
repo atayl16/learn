@@ -32,6 +32,7 @@ Controller: UsersController#show (145ms)
 │  └─ Partial: _posts.html.erb (120ms)
 │     └─ SQL: SELECT * FROM posts WHERE user_id = ? (110ms) [N+1]
 └─ External API: fetch_avatar (10ms)
+
 ```
 
 **Reading top to bottom:**
@@ -58,6 +59,7 @@ bundle exec skylight setup
 
 # config/application.rb
 config.skylight.authentication = ENV['SKYLIGHT_AUTHENTICATION']
+
 ```
 
 Deploy and visit Skylight dashboard to see traces.
@@ -81,6 +83,7 @@ User.where(active: true).includes(:posts)  # Auto-traced as SQL segment
 ActiveSupport::Notifications.instrument('process.payment') do
   PaymentGateway.charge(amount)
 end
+
 ```
 
 Skylight/Scout auto-instrument:
@@ -103,6 +106,7 @@ APM highlights N+1 patterns:
 @users.each do |user|
   puts user.posts.count  # Triggers: SELECT COUNT(*) FROM posts WHERE user_id = ?
 end
+
 ```
 
 **APM flamegraph shows:**
@@ -123,6 +127,7 @@ end
 
 @users = User.limit(10)
 @users.each { |user| puts user.posts_count }  # No extra queries
+
 ```
 
 APM shows only the initial User query.
@@ -140,6 +145,7 @@ group :development do
   gem 'memory_profiler'
   gem 'stackprof'
 end
+
 ```
 
 Visit any page in development - see performance badge in top-left corner:
@@ -147,6 +153,7 @@ Visit any page in development - see performance badge in top-left corner:
 ```
 GET /users/123
 Total: 245ms | SQL: 18ms (4 queries) | Views: 220ms
+
 ```
 
 Click badge for detailed breakdown:
@@ -173,6 +180,7 @@ def show
 
   render :show
 end
+
 ```
 
 rack-mini-profiler shows each step's duration separately.

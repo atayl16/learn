@@ -651,6 +651,7 @@
   <span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s2">"Next Page"</span><span class="p">,</span> <span class="n">messages_path</span><span class="p">(</span><span class="ss">page: </span><span class="mi">2</span><span class="p">)</span> <span class="cp">%&gt;</span>
   <span class="cp">&lt;%=</span> <span class="n">render</span> <span class="vi">@messages</span> <span class="cp">%&gt;</span>
 <span class="nt">&lt;/turbo-frame&gt;</span>
+
 </code></pre></div>
 <p>The response must also wrap content in <code>&lt;turbo-frame id=&quot;messages&quot;&gt;</code>. Turbo extracts that frame and swaps it in. The rest of the page stays untouched.</p>
 
@@ -662,6 +663,7 @@
 <div class="highlight"><pre class="highlight erb"><code><span class="nt">&lt;turbo-frame</span> <span class="na">id=</span><span class="s">"expensive_stats"</span> <span class="na">src=</span><span class="s">"</span><span class="cp">&lt;%=</span> <span class="n">stats_path</span> <span class="cp">%&gt;</span><span class="s">"</span><span class="nt">&gt;</span>
   <span class="nt">&lt;p&gt;</span>Loading stats...<span class="nt">&lt;/p&gt;</span>
 <span class="nt">&lt;/turbo-frame&gt;</span>
+
 </code></pre></div>
 <p>Turbo fires a GET request to <code>/stats</code> when the frame appears. The response replaces the loading message. Use this for dashboards or slow queries that shouldn&#39;t block initial page render.</p>
 
@@ -679,6 +681,7 @@
     <span class="k">end</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Available actions: <code>append</code>, <code>prepend</code>, <code>replace</code>, <code>remove</code>, <code>update</code>. Each targets a DOM ID and sends HTML to insert or replace.</p>
 
@@ -691,12 +694,14 @@
 <span class="k">class</span> <span class="nc">Message</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
   <span class="n">after_create_commit</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">broadcast_append_to</span> <span class="s2">"room_messages"</span><span class="p">,</span> <span class="ss">target: </span><span class="s2">"messages"</span><span class="p">,</span> <span class="ss">partial: </span><span class="s2">"messages/message"</span> <span class="p">}</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>In the view, subscribe to the stream:</p>
 <div class="highlight"><pre class="highlight erb"><code><span class="cp">&lt;%=</span> <span class="n">turbo_stream_from</span> <span class="s2">"room_messages"</span> <span class="cp">%&gt;</span>
 <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"messages"</span><span class="nt">&gt;</span>
   <span class="cp">&lt;%=</span> <span class="n">render</span> <span class="vi">@messages</span> <span class="cp">%&gt;</span>
 <span class="nt">&lt;/div&gt;</span>
+
 </code></pre></div>
 <p>When a new <code>Message</code> saves, all subscribers see it appended instantly. No polling, no custom WebSocket code.</p>
 
@@ -711,6 +716,7 @@
     <span class="cp">&lt;%=</span> <span class="n">f</span><span class="p">.</span><span class="nf">submit</span> <span class="cp">%&gt;</span>
   <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
 <span class="nt">&lt;/turbo-frame&gt;</span>
+
 </code></pre></div>
 <p>On success, return a frame with the updated content. On error, return the form with validation errors. The rest of the page remains stable.</p>
 

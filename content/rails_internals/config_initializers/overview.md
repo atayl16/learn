@@ -22,6 +22,7 @@ Proper configuration keeps settings organized by environment (dev/test/prod). In
 ## Environment Configuration
 
 `config/application.rb` (all environments):
+
 ```ruby
 module MyApp
   class Application < Rails::Application
@@ -32,9 +33,11 @@ module MyApp
     config.generators.system_tests = nil
   end
 end
+
 ```
 
 `config/environments/development.rb`:
+
 ```ruby
 Rails.application.configure do
   config.cache_classes = false
@@ -43,9 +46,11 @@ Rails.application.configure do
   config.action_controller.perform_caching = false
   config.active_record.verbose_query_logs = true
 end
+
 ```
 
 `config/environments/production.rb`:
+
 ```ruby
 Rails.application.configure do
   config.cache_classes = true
@@ -55,6 +60,7 @@ Rails.application.configure do
   config.log_level = :info
   config.force_ssl = true
 end
+
 ```
 
 ---
@@ -62,31 +68,41 @@ end
 ## Common Configuration Options
 
 **Caching:**
+
 ```ruby
 config.cache_store = :redis_cache_store, { url: ENV['REDIS_URL'] }
+
 ```
 
 **Logging:**
+
 ```ruby
 config.log_level = :debug  # :debug, :info, :warn, :error
 config.log_formatter = ::Logger::Formatter.new
+
 ```
 
 **Asset pipeline:**
+
 ```ruby
 config.assets.compile = false  # precompile in production
 config.assets.digest = true    # fingerprint assets
+
 ```
 
 **Database:**
+
 ```ruby
 config.active_record.schema_format = :sql  # use SQL instead of schema.rb
+
 ```
 
 **Time zone:**
+
 ```ruby
 config.time_zone = "Eastern Time (US & Canada)"
 config.active_record.default_timezone = :local  # or :utc
+
 ```
 
 ---
@@ -98,6 +114,7 @@ Located in `config/initializers/*.rb`. Run alphabetically after frameworks load.
 **Example: Sidekiq setup**
 
 `config/initializers/sidekiq.rb`:
+
 ```ruby
 Sidekiq.configure_server do |config|
   config.redis = { url: ENV['REDIS_URL'], network_timeout: 5 }
@@ -106,20 +123,24 @@ end
 Sidekiq.configure_client do |config|
   config.redis = { url: ENV['REDIS_URL'], network_timeout: 5 }
 end
+
 ```
 
 **Example: Custom constants**
 
 `config/initializers/constants.rb`:
+
 ```ruby
 SUPPORT_EMAIL = "support@example.com"
 MAX_UPLOAD_SIZE = 10.megabytes
 ALLOWED_DOMAINS = %w[example.com mycompany.com]
+
 ```
 
 **Example: Middleware**
 
 `config/initializers/rack_attack.rb`:
+
 ```ruby
 class Rack::Attack
   throttle('req/ip', limit: 300, period: 5.minutes) do |req|
@@ -132,6 +153,7 @@ class Rack::Attack
 end
 
 Rails.application.config.middleware.use Rack::Attack
+
 ```
 
 ---
@@ -139,11 +161,14 @@ Rails.application.config.middleware.use Rack::Attack
 ## Credentials and Secrets
 
 **Edit credentials:**
+
 ```bash
 EDITOR=nano bin/rails credentials:edit
+
 ```
 
 **Structure (`config/credentials.yml.enc`):**
+
 ```yaml
 secret_key_base: abc123...
 aws:
@@ -152,32 +177,41 @@ aws:
 stripe:
   secret_key: sk_test_abc123
   publishable_key: pk_test_xyz789
+
 ```
 
 **Access in code:**
+
 ```ruby
 Rails.application.credentials.aws[:access_key_id]
 # => "AKIAIOSFODNN7EXAMPLE"
 
 Rails.application.credentials.stripe[:secret_key]
 # => "sk_test_abc123"
+
 ```
 
 **Master key:**
 Stored in `config/master.key` (gitignored). On production, set via ENV var:
+
 ```bash
 RAILS_MASTER_KEY=abc123...
+
 ```
 
 **Per-environment credentials (Rails 6+):**
+
 ```bash
 bin/rails credentials:edit --environment production
 # Creates config/credentials/production.yml.enc
+
 ```
 
 Access:
+
 ```ruby
 Rails.application.credentials.secret_key
+
 ```
 
 ---
@@ -191,16 +225,21 @@ Use `.env` file (with `dotenv-rails` gem) for dev/test:
 DATABASE_URL=postgres://localhost/myapp_development
 REDIS_URL=redis://localhost:6379/0
 STRIPE_SECRET_KEY=sk_test_abc123
+
 ```
 
 Load in `Gemfile`:
+
 ```ruby
 gem 'dotenv-rails', groups: [:development, :test]
+
 ```
 
 Access:
+
 ```ruby
 ENV['STRIPE_SECRET_KEY']
+
 ```
 
 **Production:** Set ENV vars via hosting platform (Heroku config vars, AWS Secrets Manager, etc.).
@@ -216,20 +255,25 @@ config/initializers/
   01_redis.rb
   02_sidekiq.rb    # depends on Redis being configured
   03_rack_attack.rb
+
 ```
 
 **Check load order:**
+
 ```ruby
 Dir["config/initializers/*.rb"].sort
+
 ```
 
 **Alternative:** Use `config.after_initialize`:
+
 ```ruby
 # config/application.rb
 config.after_initialize do
   # Runs after all initializers
   SomeService.setup
 end
+
 ```
 
 ---

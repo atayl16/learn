@@ -668,6 +668,7 @@
 <span class="c1"># ActiveJob syntax</span>
 <span class="no">ReportJob</span><span class="p">.</span><span class="nf">set</span><span class="p">(</span><span class="ss">wait: </span><span class="mi">1</span><span class="p">.</span><span class="nf">hour</span><span class="p">).</span><span class="nf">perform_later</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
 <span class="no">ReportJob</span><span class="p">.</span><span class="nf">set</span><span class="p">(</span><span class="ss">wait_until: </span><span class="no">Date</span><span class="p">.</span><span class="nf">tomorrow</span><span class="p">.</span><span class="nf">noon</span><span class="p">).</span><span class="nf">perform_later</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+
 </code></pre></div>
 <p><strong>Use cases:</strong><br>
 - Send reminder email 24 hours after signup<br>
@@ -678,6 +679,7 @@
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Send at 9 AM in user's timezone</span>
 <span class="n">send_time</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">zone</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="s2">"</span><span class="si">#{</span><span class="n">user</span><span class="p">.</span><span class="nf">timezone</span><span class="si">}</span><span class="s2"> 9:00 AM tomorrow"</span><span class="p">)</span>
 <span class="no">NotificationJob</span><span class="p">.</span><span class="nf">set</span><span class="p">(</span><span class="ss">wait_until: </span><span class="n">send_time</span><span class="p">).</span><span class="nf">perform_later</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+
 </code></pre></div>
 <hr>
 
@@ -686,6 +688,7 @@
 <p>Install sidekiq-cron:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
 <span class="n">gem</span> <span class="s1">'sidekiq-cron'</span>
+
 </code></pre></div>
 <p>Configure recurring jobs in <code>config/initializers/sidekiq.rb</code>:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s1">'sidekiq/cron/web'</span>
@@ -708,20 +711,18 @@
 <span class="p">}</span>
 
 <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Cron</span><span class="o">::</span><span class="no">Job</span><span class="p">.</span><span class="nf">load_from_hash</span><span class="p">(</span><span class="n">schedule</span><span class="p">)</span>
+
 </code></pre></div>
-<p><strong>Cron syntax quick reference:</strong><br>
-```</p>
+<p><strong>Cron syntax quick reference:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>* * * * *
+| | | | |
+| | | | └─ Day of week (0-6, 0=Sunday)
+| | | └─── Month (1-12)
+| | └───── Day of month (1-31)
+| └─────── Hour (0-23)
+└───────── Minute (0-59)
 
-<hr>
-
-<p>| | | | |<br>
-| | | | └─ Day of week (0-6, 0=Sunday)<br>
-| | | └─── Month (1-12)<br>
-| | └───── Day of month (1-31)<br>
-| └─────── Hour (0-23)<br>
-└───────── Minute (0-59)<br>
-```</p>
-
+</code></pre></div>
 <p><strong>Examples:</strong><br>
 - <code>*/15 * * * *</code> — Every 15 minutes<br>
 - <code>0 0 * * *</code> — Daily at midnight UTC<br>
@@ -734,6 +735,7 @@
 <p>Install sidekiq-unique-jobs:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
 <span class="n">gem</span> <span class="s1">'sidekiq-unique-jobs'</span>
+
 </code></pre></div>
 <p>Configure in <code>config/initializers/sidekiq.rb</code>:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s1">'sidekiq-unique-jobs/web'</span>
@@ -741,6 +743,7 @@
 <span class="no">SidekiqUniqueJobs</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
   <span class="n">config</span><span class="p">.</span><span class="nf">enabled</span> <span class="o">=</span> <span class="kp">true</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Use in workers:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ExportReportWorker</span>
@@ -754,6 +757,7 @@
     <span class="c1"># Generate and send report</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><strong>Lock strategies:</strong><br>
 - <code>until_executing</code>: Prevent duplicate enqueuing, allow re-enqueue once job starts<br>
@@ -775,6 +779,7 @@
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># DON'T DO THIS</span>
 <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
 <span class="no">EmailJob</span><span class="p">.</span><span class="nf">perform_later</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>  <span class="c1"># Serializes entire User object</span>
+
 </code></pre></div>
 <p><strong>Problems:</strong><br>
 - If user&#39;s email changes after enqueue, job sends to old address<br>
@@ -792,6 +797,7 @@
 <span class="k">rescue</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">RecordNotFound</span>
   <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">warn</span> <span class="s2">"User </span><span class="si">#{</span><span class="n">user_id</span><span class="si">}</span><span class="s2"> not found, skipping email"</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><strong>Serializable types:</strong><br>
 - Primitives: <code>Integer</code>, <code>String</code>, <code>Float</code>, <code>Boolean</code>, <code>nil</code><br>
@@ -806,6 +812,7 @@
   <span class="n">end_date</span> <span class="o">=</span> <span class="no">Date</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">end_date_str</span><span class="p">)</span>
   <span class="c1"># ...</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <hr>
 
@@ -838,6 +845,7 @@
 <span class="c1"># If user extends trial, old job is replaced</span>
 <span class="n">user</span><span class="p">.</span><span class="nf">trial_end_date</span> <span class="o">=</span> <span class="mi">30</span><span class="p">.</span><span class="nf">days</span><span class="p">.</span><span class="nf">from_now</span>
 <span class="no">TrialExpirationWorker</span><span class="p">.</span><span class="nf">perform_at</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nf">trial_end_date</span> <span class="o">-</span> <span class="mi">7</span><span class="p">.</span><span class="nf">days</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="nf">trial_end_date</span><span class="p">)</span>
+
 </code></pre></div>
 <hr>
 
@@ -918,30 +926,27 @@
 <h2>Verification Steps</h2>
 
 <ol>
-<li><p>Check cron jobs loaded:<br>
-```ruby<br>
-Sidekiq::Cron::Job.all.each { |job| puts &quot;#{job.name}: #{job.cron}&quot; }</p>
-
-<h1>Should show: cleanup_expired_trials: 0 3 * * *</h1>
-<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
-<li><p>Schedule a reminder and verify it&#39;s unique:<br>
-```ruby<br>
-user = User.create!(email: &#39;<a href="mailto:test@example.com" target="_blank">test@example.com</a>&#39;, trial_end_date: 5.days.from_now)</p></li>
+<li>Check cron jobs loaded:</li>
 </ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Sidekiq</span><span class="o">::</span><span class="no">Cron</span><span class="o">::</span><span class="no">Job</span><span class="p">.</span><span class="nf">all</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">job</span><span class="o">|</span> <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">job</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">job</span><span class="p">.</span><span class="nf">cron</span><span class="si">}</span><span class="s2">"</span> <span class="p">}</span>
+<span class="c1"># Should show: cleanup_expired_trials: 0 3 * * *</span>
 
-<h1>Enqueue once</h1>
+</code></pre></div>
+<ol>
+<li>Schedule a reminder and verify it&#39;s unique:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">email: </span><span class="s1">'test@example.com'</span><span class="p">,</span> <span class="ss">trial_end_date: </span><span class="mi">5</span><span class="p">.</span><span class="nf">days</span><span class="p">.</span><span class="nf">from_now</span><span class="p">)</span>
 
-<p>TrialReminderWorker.perform_at(user.trial_end_date - 3.days, user.id)</p>
+<span class="c1"># Enqueue once</span>
+<span class="no">TrialReminderWorker</span><span class="p">.</span><span class="nf">perform_at</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nf">trial_end_date</span> <span class="o">-</span> <span class="mi">3</span><span class="p">.</span><span class="nf">days</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
 
-<h1>Try to enqueue duplicate</h1>
+<span class="c1"># Try to enqueue duplicate</span>
+<span class="no">TrialReminderWorker</span><span class="p">.</span><span class="nf">perform_at</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nf">trial_end_date</span> <span class="o">-</span> <span class="mi">3</span><span class="p">.</span><span class="nf">days</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
 
-<p>TrialReminderWorker.perform_at(user.trial_end_date - 3.days, user.id)</p>
+<span class="c1"># Check scheduled set - should only have 1 job</span>
+<span class="no">Sidekiq</span><span class="o">::</span><span class="no">ScheduledSet</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">select</span> <span class="p">{</span> <span class="o">|</span><span class="n">j</span><span class="o">|</span> <span class="n">j</span><span class="p">.</span><span class="nf">klass</span> <span class="o">==</span> <span class="s1">'TrialReminderWorker'</span> <span class="p">}.</span><span class="nf">size</span>  <span class="c1"># =&gt; 1</span>
 
-<h1>Check scheduled set - should only have 1 job</h1>
-
-<p>Sidekiq::ScheduledSet.new.select { |j| j.klass == &#39;TrialReminderWorker&#39; }.size  # =&gt; 1<br>
-```</p>
-
+</code></pre></div>
 <ol>
 <li>Check logs for uniqueness conflict message</li>
 </ol>
@@ -952,178 +957,172 @@ user = User.create!(email: &#39;<a href="mailto:test@example.com" target="_blank
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
 <span class="n">gem</span> <span class="s1">'sidekiq-cron'</span>
 <span class="n">gem</span> <span class="s1">'sidekiq-unique-jobs'</span>
-</code></pre></div>
-<p>Run:<br>
-<code>bash<br>
-bundle install<br>
-</code></p>
 
+</code></pre></div>
+<p>Run:</p>
+<div class="highlight"><pre class="highlight shell"><code>bundle <span class="nb">install</span>
+
+</code></pre></div>
 <h3>Step 2: Configure Sidekiq</h3>
 
-<p>Edit <code>config/initializers/sidekiq.rb</code>:<br>
-```ruby<br>
-require &#39;sidekiq/cron/web&#39;<br>
-require &#39;sidekiq-unique-jobs/web&#39;</p>
+<p>Edit <code>config/initializers/sidekiq.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s1">'sidekiq/cron/web'</span>
+<span class="nb">require</span> <span class="s1">'sidekiq-unique-jobs/web'</span>
 
-<p>Sidekiq.configure_server do |config|<br>
-  config.redis = { url: ENV.fetch(&#39;REDIS_URL&#39;, &#39;redis://localhost:6379/1&#39;) }</p>
+<span class="no">Sidekiq</span><span class="p">.</span><span class="nf">configure_server</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">redis</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">url: </span><span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'REDIS_URL'</span><span class="p">,</span> <span class="s1">'redis://localhost:6379/1'</span><span class="p">)</span> <span class="p">}</span>
 
-<p># Load cron schedule<br>
-  schedule_file = &#39;config/schedule.yml&#39;<br>
-  if File.exist?(schedule_file)<br>
-    schedule = YAML.load_file(schedule_file)<br>
-    Sidekiq::Cron::Job.load_from_hash(schedule)<br>
-  end<br>
-end</p>
+  <span class="c1"># Load cron schedule</span>
+  <span class="n">schedule_file</span> <span class="o">=</span> <span class="s1">'config/schedule.yml'</span>
+  <span class="k">if</span> <span class="no">File</span><span class="p">.</span><span class="nf">exist?</span><span class="p">(</span><span class="n">schedule_file</span><span class="p">)</span>
+    <span class="n">schedule</span> <span class="o">=</span> <span class="no">YAML</span><span class="p">.</span><span class="nf">load_file</span><span class="p">(</span><span class="n">schedule_file</span><span class="p">)</span>
+    <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Cron</span><span class="o">::</span><span class="no">Job</span><span class="p">.</span><span class="nf">load_from_hash</span><span class="p">(</span><span class="n">schedule</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>Sidekiq.configure_client do |config|<br>
-  config.redis = { url: ENV.fetch(&#39;REDIS_URL&#39;, &#39;redis://localhost:6379/1&#39;) }<br>
-end</p>
+<span class="no">Sidekiq</span><span class="p">.</span><span class="nf">configure_client</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">redis</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">url: </span><span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'REDIS_URL'</span><span class="p">,</span> <span class="s1">'redis://localhost:6379/1'</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
 
-<p>SidekiqUniqueJobs.configure do |config|<br>
-  config.enabled = true<br>
-end<br>
-```</p>
+<span class="no">SidekiqUniqueJobs</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">enabled</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 3: Create Schedule Configuration</h3>
 
-<p>Create <code>config/schedule.yml</code>:<br>
-```yaml<br>
-cleanup_expired_trials:<br>
-  cron: &quot;0 3 * * *&quot;  # Daily at 3 AM UTC<br>
-  class: &quot;CleanupExpiredTrialsWorker&quot;<br>
-  queue: maintenance<br>
-  description: &quot;Remove expired trial users and send final notifications&quot;</p>
+<p>Create <code>config/schedule.yml</code>:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">cleanup_expired_trials</span><span class="pi">:</span>
+  <span class="na">cron</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0</span><span class="nv"> </span><span class="s">3</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*"</span>  <span class="c1"># Daily at 3 AM UTC</span>
+  <span class="na">class</span><span class="pi">:</span> <span class="s2">"</span><span class="s">CleanupExpiredTrialsWorker"</span>
+  <span class="na">queue</span><span class="pi">:</span> <span class="s">maintenance</span>
+  <span class="na">description</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Remove</span><span class="nv"> </span><span class="s">expired</span><span class="nv"> </span><span class="s">trial</span><span class="nv"> </span><span class="s">users</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">send</span><span class="nv"> </span><span class="s">final</span><span class="nv"> </span><span class="s">notifications"</span>
 
-<p>cache_warmer:<br>
-  cron: &quot;*/30 * * * *&quot;  # Every 30 minutes<br>
-  class: &quot;CacheWarmerWorker&quot;<br>
-  queue: maintenance<br>
-  description: &quot;Warm frequently accessed caches&quot;<br>
-```</p>
+<span class="na">cache_warmer</span><span class="pi">:</span>
+  <span class="na">cron</span><span class="pi">:</span> <span class="s2">"</span><span class="s">*/30</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*"</span>  <span class="c1"># Every 30 minutes</span>
+  <span class="na">class</span><span class="pi">:</span> <span class="s2">"</span><span class="s">CacheWarmerWorker"</span>
+  <span class="na">queue</span><span class="pi">:</span> <span class="s">maintenance</span>
+  <span class="na">description</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Warm</span><span class="nv"> </span><span class="s">frequently</span><span class="nv"> </span><span class="s">accessed</span><span class="nv"> </span><span class="s">caches"</span>
 
+</code></pre></div>
 <h3>Step 4: Create User Model</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails generate model User email:string trial_end_date:datetime subscription_active:boolean
-</code></pre></div>
-<p>Edit migration to add defaults:<br>
-```ruby<br>
-class CreateUsers &lt; ActiveRecord::Migration[7.0]<br>
-  def change<br>
-    create_table :users do |t|<br>
-      t.string :email, null: false<br>
-      t.datetime :trial_end_date<br>
-      t.boolean :subscription_active, default: false<br>
-      t.timestamps<br>
-    end</p>
-<div class="highlight"><pre class="highlight plaintext"><code>add_index :users, :email, unique: true
-add_index :users, :trial_end_date
-</code></pre></div>
-<p>end<br>
-end<br>
-```</p>
 
-<p>Run:<br>
-<code>bash<br>
-bin/rails db:migrate<br>
-</code></p>
+</code></pre></div>
+<p>Edit migration to add defaults:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CreateUsers</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">create_table</span> <span class="ss">:users</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">datetime</span> <span class="ss">:trial_end_date</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">boolean</span> <span class="ss">:subscription_active</span><span class="p">,</span> <span class="ss">default: </span><span class="kp">false</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">timestamps</span>
+    <span class="k">end</span>
 
+    <span class="n">add_index</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">unique: </span><span class="kp">true</span>
+    <span class="n">add_index</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:trial_end_date</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Run:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails db:migrate
+
+</code></pre></div>
 <h3>Step 5: Create Recurring Cleanup Worker</h3>
 
-<p>Create <code>app/workers/cleanup_expired_trials_worker.rb</code>:<br>
-```ruby<br>
-class CleanupExpiredTrialsWorker<br>
-  include Sidekiq::Worker<br>
-  sidekiq_options queue: :maintenance, retry: 3</p>
+<p>Create <code>app/workers/cleanup_expired_trials_worker.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CleanupExpiredTrialsWorker</span>
+  <span class="kp">include</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Worker</span>
+  <span class="n">sidekiq_options</span> <span class="ss">queue: :maintenance</span><span class="p">,</span> <span class="ss">retry: </span><span class="mi">3</span>
 
-<p>def perform<br>
-    Rails.logger.info &quot;Starting trial cleanup at #{Time.current}&quot;</p>
-<div class="highlight"><pre class="highlight plaintext"><code>expired_count = 0
-User.where('trial_end_date &lt; ?', Time.current)
-    .where(subscription_active: false)
-    .find_each do |user|
-  Rails.logger.info "Cleaning up expired trial for user #{user.id}"
-  user.destroy
-  expired_count += 1
-end
+  <span class="k">def</span> <span class="nf">perform</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Starting trial cleanup at </span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="si">}</span><span class="s2">"</span>
 
-Rails.logger.info "Cleaned up #{expired_count} expired trials"
+    <span class="n">expired_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s1">'trial_end_date &lt; ?'</span><span class="p">,</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">)</span>
+        <span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">subscription_active: </span><span class="kp">false</span><span class="p">)</span>
+        <span class="p">.</span><span class="nf">find_each</span> <span class="k">do</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Cleaning up expired trial for user </span><span class="si">#{</span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2">"</span>
+      <span class="n">user</span><span class="p">.</span><span class="nf">destroy</span>
+      <span class="n">expired_count</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">end</span>
+
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Cleaned up </span><span class="si">#{</span><span class="n">expired_count</span><span class="si">}</span><span class="s2"> expired trials"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
-
 <h3>Step 6: Create Unique Delayed Worker</h3>
 
-<p>Create <code>app/workers/trial_reminder_worker.rb</code>:<br>
-```ruby<br>
-class TrialReminderWorker<br>
-  include Sidekiq::Worker<br>
-  sidekiq_options queue: :notifications,<br>
-                  lock: :until_executed,<br>
-                  on_conflict: :log</p>
+<p>Create <code>app/workers/trial_reminder_worker.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">TrialReminderWorker</span>
+  <span class="kp">include</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Worker</span>
+  <span class="n">sidekiq_options</span> <span class="ss">queue: :notifications</span><span class="p">,</span>
+                  <span class="ss">lock: :until_executed</span><span class="p">,</span>
+                  <span class="ss">on_conflict: :log</span>
 
-<p>def perform(user_id)<br>
-    user = User.find(user_id)</p>
-<div class="highlight"><pre class="highlight plaintext"><code># Skip if already subscribed
-if user.subscription_active
-  Rails.logger.info "User #{user_id} already subscribed, skipping reminder"
-  return
-end
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
 
-# Send reminder email
-Rails.logger.info "Sending trial reminder to #{user.email} (ends: #{user.trial_end_date})"
-# TrialMailer.expiration_reminder(user).deliver_now
+    <span class="c1"># Skip if already subscribed</span>
+    <span class="k">if</span> <span class="n">user</span><span class="p">.</span><span class="nf">subscription_active</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"User </span><span class="si">#{</span><span class="n">user_id</span><span class="si">}</span><span class="s2"> already subscribed, skipping reminder"</span>
+      <span class="k">return</span>
+    <span class="k">end</span>
+
+    <span class="c1"># Send reminder email</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Sending trial reminder to </span><span class="si">#{</span><span class="n">user</span><span class="p">.</span><span class="nf">email</span><span class="si">}</span><span class="s2"> (ends: </span><span class="si">#{</span><span class="n">user</span><span class="p">.</span><span class="nf">trial_end_date</span><span class="si">}</span><span class="s2">)"</span>
+    <span class="c1"># TrialMailer.expiration_reminder(user).deliver_now</span>
+
+  <span class="k">rescue</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">RecordNotFound</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">warn</span> <span class="s2">"User </span><span class="si">#{</span><span class="n">user_id</span><span class="si">}</span><span class="s2"> not found, skipping reminder"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>rescue ActiveRecord::RecordNotFound<br>
-    Rails.logger.warn &quot;User #{user_id} not found, skipping reminder&quot;<br>
-  end<br>
-end<br>
-```</p>
-
 <h3>Step 7: Create Cache Warmer (Bonus Cron Job)</h3>
 
-<p>Create <code>app/workers/cache_warmer_worker.rb</code>:<br>
-```ruby<br>
-class CacheWarmerWorker<br>
-  include Sidekiq::Worker<br>
-  sidekiq_options queue: :maintenance, retry: 2</p>
+<p>Create <code>app/workers/cache_warmer_worker.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CacheWarmerWorker</span>
+  <span class="kp">include</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Worker</span>
+  <span class="n">sidekiq_options</span> <span class="ss">queue: :maintenance</span><span class="p">,</span> <span class="ss">retry: </span><span class="mi">2</span>
 
-<p>def perform<br>
-    Rails.logger.info &quot;Warming caches at #{Time.current}&quot;</p>
-<div class="highlight"><pre class="highlight plaintext"><code># Warm popular queries
-Rails.cache.fetch('active_users_count', expires_in: 1.hour) do
-  User.where(subscription_active: true).count
-end
+  <span class="k">def</span> <span class="nf">perform</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Warming caches at </span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="si">}</span><span class="s2">"</span>
 
-Rails.logger.info "Cache warming completed"
+    <span class="c1"># Warm popular queries</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'active_users_count'</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">1</span><span class="p">.</span><span class="nf">hour</span><span class="p">)</span> <span class="k">do</span>
+      <span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">subscription_active: </span><span class="kp">true</span><span class="p">).</span><span class="nf">count</span>
+    <span class="k">end</span>
+
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Cache warming completed"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
-
 <h3>Step 8: Helper to Schedule Reminders</h3>
 
-<p>Add to <code>app/models/user.rb</code>:<br>
-```ruby<br>
-class User &lt; ApplicationRecord<br>
-  after_create :schedule_trial_reminder</p>
+<p>Add to <code>app/models/user.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">after_create</span> <span class="ss">:schedule_trial_reminder</span>
 
-<p>private</p>
+  <span class="kp">private</span>
 
-<p>def schedule_trial_reminder<br>
-    return unless trial_end_date.present?<br>
-    return if subscription_active?</p>
-<div class="highlight"><pre class="highlight plaintext"><code>reminder_time = trial_end_date - 3.days
+  <span class="k">def</span> <span class="nf">schedule_trial_reminder</span>
+    <span class="k">return</span> <span class="k">unless</span> <span class="n">trial_end_date</span><span class="p">.</span><span class="nf">present?</span>
+    <span class="k">return</span> <span class="k">if</span> <span class="n">subscription_active?</span>
 
-if reminder_time &gt; Time.current
-  TrialReminderWorker.perform_at(reminder_time, id)
-  Rails.logger.info "Scheduled trial reminder for user #{id} at #{reminder_time}"
-end
+    <span class="n">reminder_time</span> <span class="o">=</span> <span class="n">trial_end_date</span> <span class="o">-</span> <span class="mi">3</span><span class="p">.</span><span class="nf">days</span>
+
+    <span class="k">if</span> <span class="n">reminder_time</span> <span class="o">&gt;</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+      <span class="no">TrialReminderWorker</span><span class="p">.</span><span class="nf">perform_at</span><span class="p">(</span><span class="n">reminder_time</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Scheduled trial reminder for user </span><span class="si">#{</span><span class="nb">id</span><span class="si">}</span><span class="s2"> at </span><span class="si">#{</span><span class="n">reminder_time</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
-
 <h3>Step 9: Test in Console</h3>
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Create user with trial</span>
 <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
@@ -1150,19 +1149,19 @@ end<br>
 
 <span class="c1"># Manually trigger cron job for testing</span>
 <span class="no">CleanupExpiredTrialsWorker</span><span class="p">.</span><span class="nf">perform_async</span>
+
 </code></pre></div>
 <h3>Step 10: Access Web UI</h3>
 
-<p>Add to <code>config/routes.rb</code>:<br>
-```ruby<br>
-require &#39;sidekiq/web&#39;<br>
-require &#39;sidekiq/cron/web&#39;</p>
+<p>Add to <code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s1">'sidekiq/web'</span>
+<span class="nb">require</span> <span class="s1">'sidekiq/cron/web'</span>
 
-<p>Rails.application.routes.draw do<br>
-  mount Sidekiq::Web =&gt; &#39;/sidekiq&#39;<br>
-end<br>
-```</p>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">mount</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Web</span> <span class="o">=&gt;</span> <span class="s1">'/sidekiq'</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <p>Visit:<br>
 - <a href="http://localhost:3000/sidekiq" target="_blank">http://localhost:3000/sidekiq</a> — Main dashboard<br>
 - <a href="http://localhost:3000/sidekiq/cron" target="_blank">http://localhost:3000/sidekiq/cron</a> — Cron jobs list<br>
@@ -1177,6 +1176,7 @@ end<br>
 <span class="n">user_timezone</span> <span class="o">=</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">TimeZone</span><span class="p">[</span><span class="s1">'America/Los_Angeles'</span><span class="p">]</span>
 <span class="n">send_time</span> <span class="o">=</span> <span class="n">user_timezone</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="s1">'9:00 AM tomorrow'</span><span class="p">)</span>
 <span class="no">NotificationWorker</span><span class="p">.</span><span class="nf">perform_at</span><span class="p">(</span><span class="n">send_time</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+
 </code></pre></div>
 <ol>
 <li>Implement custom uniqueness key (ignore trial_end_date changes):</li>
@@ -1188,6 +1188,7 @@ end<br>
     <span class="p">[</span><span class="n">args</span><span class="p">.</span><span class="nf">first</span><span class="p">]</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h2>Time Estimate</h2>
 

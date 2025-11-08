@@ -23,12 +23,15 @@ Unsafe migrations lock tables for seconds or minutes, blocking all queries and c
 ## Adding Columns Safely
 
 **Unsafe (Postgres <11):**
+
 ```ruby
 # Rewrites entire table, holding exclusive lock
 add_column :users, :role, :string, default: 'user'
+
 ```
 
 **Safe (multi-step):**
+
 ```ruby
 # Step 1: Add column without default
 class AddRoleToUsers < ActiveRecord::Migration[7.0]
@@ -62,6 +65,7 @@ class AddNotNullToUserRole < ActiveRecord::Migration[7.0]
     change_column_null :users, :role, false
   end
 end
+
 ```
 
 **Note:** Postgres 11+ optimizes adding columns with defaults but still requires caution for very large tables.
@@ -71,12 +75,15 @@ end
 ## Creating Indexes Concurrently
 
 **Unsafe:**
+
 ```ruby
 add_index :users, :email
 # Acquires ShareLock, blocking INSERT/UPDATE/DELETE
+
 ```
 
 **Safe:**
+
 ```ruby
 class AddIndexToUsersEmail < ActiveRecord::Migration[7.0]
   disable_ddl_transaction!
@@ -85,11 +92,14 @@ class AddIndexToUsersEmail < ActiveRecord::Migration[7.0]
     add_index :users, :email, algorithm: :concurrently
   end
 end
+
 ```
 
 **SQL:**
+
 ```sql
 CREATE INDEX CONCURRENTLY index_users_on_email ON users (email);
+
 ```
 
 **Behavior:**
@@ -98,6 +108,7 @@ CREATE INDEX CONCURRENTLY index_users_on_email ON users (email);
 - Fails if transaction is open (use `disable_ddl_transaction!`)
 
 **Removing indexes:**
+
 ```ruby
 class RemoveIndexFromUsersEmail < ActiveRecord::Migration[7.0]
   disable_ddl_transaction!
@@ -106,6 +117,7 @@ class RemoveIndexFromUsersEmail < ActiveRecord::Migration[7.0]
     remove_index :users, :email, algorithm: :concurrently
   end
 end
+
 ```
 
 ---
@@ -113,14 +125,17 @@ end
 ## Backfilling Data in Batches
 
 **Unsafe (single transaction):**
+
 ```ruby
 def up
   User.update_all(verified: false)
   # Locks table for entire duration
 end
+
 ```
 
 **Safe (batched):**
+
 ```ruby
 class BackfillUserVerified < ActiveRecord::Migration[7.0]
   disable_ddl_transaction!
@@ -131,9 +146,11 @@ class BackfillUserVerified < ActiveRecord::Migration[7.0]
     end
   end
 end
+
 ```
 
 **Better (raw SQL for speed):**
+
 ```ruby
 def up
   batch_size = 10_000
@@ -153,6 +170,7 @@ def up
     sleep(0.01)  # Reduce load
   end
 end
+
 ```
 
 ---
@@ -160,12 +178,15 @@ end
 ## Adding NOT NULL Constraints Safely
 
 **Unsafe:**
+
 ```ruby
 change_column_null :users, :email, false
 # Scans entire table with exclusive lock
+
 ```
 
 **Safe:**
+
 ```ruby
 # Step 1: Backfill NULLs
 class BackfillUserEmails < ActiveRecord::Migration[7.0]
@@ -185,9 +206,11 @@ class AddNotNullToUserEmail < ActiveRecord::Migration[7.0]
     change_column_null :users, :email, false
   end
 end
+
 ```
 
 **Postgres 12+ (safer):**
+
 ```ruby
 # Add check constraint first (validates new rows only)
 add_check_constraint :users, "email IS NOT NULL", name: "users_email_null", validate: false
@@ -200,6 +223,7 @@ change_column_null :users, :email, false
 
 # Remove check constraint
 remove_check_constraint :users, name: "users_email_null"
+
 ```
 
 ---
@@ -207,12 +231,15 @@ remove_check_constraint :users, name: "users_email_null"
 ## Changing Column Types
 
 **Unsafe:**
+
 ```ruby
 change_column :users, :age, :bigint
 # Rewrites table, exclusive lock
+
 ```
 
 **Safe (multi-step):**
+
 ```ruby
 # Step 1: Add new column
 add_column :users, :age_bigint, :bigint
@@ -232,6 +259,7 @@ rename_column :users, :age_bigint, :age
 
 # Step 5: Remove old column
 remove_column :users, :age_int
+
 ```
 
 ---
@@ -253,6 +281,7 @@ class AddIndexToUsersEmail < ActiveRecord::Migration[7.0]
     remove_index :users, :email, algorithm: :concurrently
   end
 end
+
 ```
 
 **Behavior:**
@@ -264,17 +293,22 @@ end
 ## Using strong_migrations Gem
 
 Install:
+
 ```ruby
 gem 'strong_migrations'
+
 ```
 
 **Detects unsafe operations:**
+
 ```ruby
 add_column :users, :role, :string, default: 'user'
 # StrongMigrations::UnsafeMigration: Adding a column with a default value is unsafe
+
 ```
 
 **Suggests safe alternatives:**
+
 ```
 Use this safer approach instead:
 
@@ -284,6 +318,7 @@ Use this safer approach instead:
       change_column_default :users, :role, 'user'
     end
   end
+
 ```
 
 ---

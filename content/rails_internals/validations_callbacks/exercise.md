@@ -23,27 +23,35 @@ In a Rails app with `Product` and `Article` models:
 ## Verification Steps
 
 1. Test validations in console:
+
 ```ruby
 product = Product.new(name: "Widget", price: -5)
 product.valid?  # => false
 product.errors.full_messages  # => ["Price must be greater than 0"]
+
 ```
 
 2. Test SKU normalization:
+
 ```ruby
 product = Product.create!(name: "Gadget", price: 10, sku: "abc-123")
 product.sku  # => "ABC-123"
+
 ```
 
 3. Check log for `after_commit` message:
+
 ```
 Product created: ABC-123
+
 ```
 
 4. Test concern:
+
 ```ruby
 Article.published.count
 Product.published.count
+
 ```
 
 ## Setup Code
@@ -56,11 +64,13 @@ cd validations_demo
 bin/rails generate model Product name:string price:decimal sku:string published:boolean published_at:datetime
 bin/rails generate model Article title:string body:text published:boolean published_at:datetime
 bin/rails db:migrate
+
 ```
 
 ### Step 2: Add Validations
 
 Edit `app/models/product.rb`:
+
 ```ruby
 class Product < ApplicationRecord
   validates :name, presence: true
@@ -80,11 +90,13 @@ class Product < ApplicationRecord
     Rails.logger.info "Product created: #{sku}"
   end
 end
+
 ```
 
 ### Step 3: Create Publishable Concern
 
 Create `app/models/concerns/publishable.rb`:
+
 ```ruby
 module Publishable
   extend ActiveSupport::Concern
@@ -106,29 +118,35 @@ module Publishable
     update!(published: true, published_at: Time.current)
   end
 end
+
 ```
 
 ### Step 4: Include Concern in Models
 
 Edit `app/models/product.rb`:
+
 ```ruby
 class Product < ApplicationRecord
   include Publishable
   # ... existing validations and callbacks
 end
+
 ```
 
 Edit `app/models/article.rb`:
+
 ```ruby
 class Article < ApplicationRecord
   include Publishable
 end
+
 ```
 
 ### Step 5: Test in Console
 
 ```bash
 bin/rails console
+
 ```
 
 ```ruby
@@ -153,6 +171,7 @@ article.errors.full_messages  # => ["Published at must be in the past"]
 # Test publish! method
 product.publish!
 product.published?  # => true
+
 ```
 
 ## Stretch (Optional)
@@ -160,6 +179,7 @@ product.published?  # => true
 1. Add a custom validator class:
 
 Create `app/validators/email_validator.rb`:
+
 ```ruby
 class EmailValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
@@ -168,14 +188,18 @@ class EmailValidator < ActiveModel::EachValidator
     end
   end
 end
+
 ```
 
 Use in model:
+
 ```ruby
 validates :contact_email, email: true
+
 ```
 
 2. Add a callback that prevents deletion:
+
 ```ruby
 before_destroy :prevent_if_published, prepend: true
 
@@ -185,6 +209,7 @@ def prevent_if_published
     throw(:abort)
   end
 end
+
 ```
 
 ## Time Estimate

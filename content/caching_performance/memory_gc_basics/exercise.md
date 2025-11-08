@@ -25,21 +25,25 @@ In a Rails app with bulk data processing:
 ## Verification Steps
 
 1. Unoptimized code profile:
+
 ```
 Total allocated: 250 MB (2,500,000 objects)
 Total retained: 50 MB (500,000 objects)
 
 allocated memory by location:
   app/controllers/reports_controller.rb:10: 100 MB
+
 ```
 
 2. After optimization:
+
 ```
 Total allocated: 50 MB (500,000 objects)
 Total retained: 10 MB (100,000 objects)
 
 allocated memory by location:
   app/controllers/reports_controller.rb:10: 20 MB
+
 ```
 
 3. GC stats comparison showing fewer live objects after optimization
@@ -54,11 +58,14 @@ cd memory_demo
 bin/rails generate model User name:string email:string
 bin/rails generate model Post title:string body:text user:references
 bin/rails db:migrate
+
 ```
 
 **Seed data:**
+
 ```bash
 bin/rails console
+
 ```
 
 ```ruby
@@ -75,22 +82,27 @@ bin/rails console
 end
 
 puts "Created #{User.count} users, #{Post.count} posts"
+
 ```
 
 ### Step 2: Install Memory Profiler
 
 ```bash
 bundle add memory_profiler
+
 ```
 
 ### Step 3: Create Memory-Heavy Endpoint (Before Optimization)
 
 Generate controller:
+
 ```bash
 bin/rails generate controller Reports index
+
 ```
 
 Edit `app/controllers/reports_controller.rb`:
+
 ```ruby
 class ReportsController < ApplicationController
   def index
@@ -136,19 +148,23 @@ class ReportsController < ApplicationController
     report_lines.join("\n")
   end
 end
+
 ```
 
 Add routes in `config/routes.rb`:
+
 ```ruby
 Rails.application.routes.draw do
   get 'reports', to: 'reports#index'
   get 'reports/optimized', to: 'reports#optimized'
 end
+
 ```
 
 ### Step 4: Profile Unoptimized Endpoint
 
 Create `lib/tasks/profile_memory.rake`:
+
 ```ruby
 require 'memory_profiler'
 
@@ -197,16 +213,20 @@ namespace :profile do
     puts "Leaked objects: #{after_gc - before_gc}"
   end
 end
+
 ```
 
 Run profile:
+
 ```bash
 bin/rails profile:memory
+
 ```
 
 ### Step 5: Add GC Instrumentation
 
 Create `config/initializers/gc_stats.rb`:
+
 ```ruby
 # Log GC stats on each request
 Rails.application.config.after_initialize do
@@ -223,12 +243,14 @@ Rails.application.config.after_initialize do
     Rails.logger.info "GC Stats after #{event.payload[:action]}: #{gc_stats}"
   end
 end
+
 ```
 
 ### Step 6: Test Manual GC Stats
 
 ```bash
 bin/rails console
+
 ```
 
 ```ruby
@@ -246,11 +268,13 @@ puts "GC ran #{after_count - before_count} times"
 # Force GC
 GC.start
 puts "After forced GC: #{GC.stat(:heap_live_slots)} live objects"
+
 ```
 
 ### Step 7: Object Allocation Tracking
 
 Create `lib/tasks/track_allocations.rake`:
+
 ```ruby
 namespace :profile do
   desc "Track object allocations by location"
@@ -280,16 +304,20 @@ namespace :profile do
     end
   end
 end
+
 ```
 
 Run:
+
 ```bash
 bin/rails profile:allocations
+
 ```
 
 ### Step 8: Benchmark Memory Impact
 
 Create `lib/tasks/benchmark_memory.rake`:
+
 ```ruby
 require 'benchmark'
 
@@ -331,11 +359,14 @@ namespace :benchmark do
     puts "Optimized RSS increase: #{after_opt - after_unopt} KB"
   end
 end
+
 ```
 
 Run:
+
 ```bash
 bin/rails benchmark:memory
+
 ```
 
 ### Step 9: Add Counter Cache (Further Optimization)
@@ -344,9 +375,11 @@ Optimize N+1 counting with counter cache:
 
 ```bash
 bin/rails generate migration AddPostsCountToUsers posts_count:integer
+
 ```
 
 Edit migration:
+
 ```ruby
 class AddPostsCountToUsers < ActiveRecord::Migration[7.0]
   def change
@@ -362,21 +395,26 @@ class AddPostsCountToUsers < ActiveRecord::Migration[7.0]
     end
   end
 end
+
 ```
 
 ```bash
 bin/rails db:migrate
+
 ```
 
 Update model:
+
 ```ruby
 # app/models/post.rb
 class Post < ApplicationRecord
   belongs_to :user, counter_cache: true
 end
+
 ```
 
 Update optimized report:
+
 ```ruby
 def generate_report_optimized
   report_lines = []
@@ -388,6 +426,7 @@ def generate_report_optimized
 
   report_lines.join("\n")
 end
+
 ```
 
 Re-run profile to see further memory reduction.
@@ -395,11 +434,14 @@ Re-run profile to see further memory reduction.
 ## Stretch (Optional)
 
 1. Tune GC settings and measure impact:
+
 ```bash
 RUBY_GC_HEAP_GROWTH_FACTOR=1.2 bin/rails server
+
 ```
 
 2. Create a memory leak detector:
+
 ```ruby
 # Detect leaks by tracking live objects over requests
 leaked = []
@@ -408,6 +450,7 @@ leaked = []
   leaked << GC.stat(:heap_live_slots)
 end
 puts "Leak trend: #{leaked}" # Should be stable, not growing
+
 ```
 
 3. Profile different batch sizes (100 vs 500 vs 1000) for optimal memory/speed trade-off.

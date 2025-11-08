@@ -665,6 +665,7 @@
     <span class="n">resources</span> <span class="ss">:posts</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">,</span> <span class="ss">:create</span><span class="p">]</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>This generates <code>/api/users</code> (GET for list, POST for create), <code>/api/users/:id</code> (GET for show, PUT/PATCH for update, DELETE for destroy), and <code>/api/users/:user_id/posts</code> for nested resources.</p>
 
@@ -681,6 +682,7 @@
   <span class="vi">@user</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="n">user_params</span><span class="p">)</span>
   <span class="n">render</span> <span class="ss">json: </span><span class="vi">@user</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Return 201 Created with a <code>Location</code> header for POST. Return 200 OK for PUT/PATCH. Return 204 No Content for DELETE if no body is needed.</p>
 
@@ -700,6 +702,7 @@
 
 <span class="c1"># Server error codes</span>
 <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span><span class="ss">error: </span><span class="s2">"Internal error"</span><span class="p">},</span> <span class="ss">status: :internal_server_error</span> <span class="c1"># 500</span>
+
 </code></pre></div>
 <p>Use 400 for malformed requests, 422 for validation failures, 401 for missing auth, 403 for insufficient permissions.</p>
 
@@ -731,6 +734,7 @@
     <span class="p">}</span>
   <span class="p">}</span>
 <span class="p">}</span>
+
 </code></pre></div>
 <p>Wrap responses in a top-level <code>data</code> or <code>user</code> key. Use ISO8601 timestamps. Include links for discoverability (HATEOAS).</p>
 
@@ -752,6 +756,7 @@
                 <span class="na">type</span><span class="pi">:</span> <span class="s">array</span>
                 <span class="na">items</span><span class="pi">:</span>
                   <span class="na">$ref</span><span class="pi">:</span> <span class="s1">'</span><span class="s">#/components/schemas/User'</span>
+
 </code></pre></div>
 <p>Use <code>rswag</code> or <code>rspec-openapi</code> to generate specs from tests. Host docs with Swagger UI or ReDoc.</p>
 

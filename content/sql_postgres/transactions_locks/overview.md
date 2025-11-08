@@ -23,18 +23,22 @@ Without transactions, partial failures corrupt data: imagine charging a credit c
 ## ACID Properties
 
 **Atomicity:** All operations succeed or none do. Rollback on failure.
+
 ```ruby
 ActiveRecord::Base.transaction do
   account_a.update!(balance: account_a.balance - 100)
   account_b.update!(balance: account_b.balance + 100)
 end
 # Both updates succeed or both roll back
+
 ```
 
 **Consistency:** Data stays valid. Constraints enforced.
+
 ```ruby
 # Foreign key prevents invalid data
 order.update!(user_id: 99999)  # Raises if user 99999 doesn't exist
+
 ```
 
 **Isolation:** Concurrent transactions don't interfere. Controlled via isolation levels.
@@ -46,14 +50,17 @@ order.update!(user_id: 99999)  # Raises if user 99999 doesn't exist
 ## Transactions in Rails
 
 **Basic transaction:**
+
 ```ruby
 ActiveRecord::Base.transaction do
   user.update!(credits: user.credits - 50)
   purchase.create!(user: user, amount: 50)
 end
+
 ```
 
 **Rollback on exception:**
+
 ```ruby
 begin
   ActiveRecord::Base.transaction do
@@ -64,14 +71,17 @@ begin
 rescue => e
   # Transaction rolled back automatically
 end
+
 ```
 
 **Manual rollback:**
+
 ```ruby
 ActiveRecord::Base.transaction do
   user.save!
   raise ActiveRecord::Rollback if some_condition
 end
+
 ```
 
 ---
@@ -81,29 +91,35 @@ end
 **READ UNCOMMITTED:** Reads uncommitted changes from other transactions. Not supported by Postgres (upgrades to READ COMMITTED).
 
 **READ COMMITTED (default):** Reads only committed data. Each statement sees latest committed values.
+
 ```ruby
 # Transaction 1
 user = User.find(1)  # balance = 100
 sleep(5)
 user.reload           # balance = 200 (if Transaction 2 committed)
+
 ```
 
 **REPEATABLE READ:** Reads consistent snapshot. Same query returns same results within transaction.
+
 ```ruby
 ActiveRecord::Base.transaction(isolation: :repeatable_read) do
   user = User.find(1)  # balance = 100
   sleep(5)
   user.reload           # balance = 100 (ignores other commits)
 end
+
 ```
 
 **SERIALIZABLE:** Strictest isolation. Transactions execute as if run sequentially. Raises serialization error if conflicts detected.
+
 ```ruby
 ActiveRecord::Base.transaction(isolation: :serializable) do
   product = Product.find(1)
   product.update!(stock: product.stock - 1) if product.stock > 0
 end
 # Raises ActiveRecord::SerializationFailure if concurrent transaction modified stock
+
 ```
 
 **When to use each:**
@@ -118,19 +134,23 @@ end
 Lock rows to prevent concurrent modifications.
 
 **Basic usage:**
+
 ```ruby
 ActiveRecord::Base.transaction do
   product = Product.lock.find(1)  # SELECT * FROM products WHERE id = 1 FOR UPDATE
   product.update!(stock: product.stock - 1) if product.stock > 0
 end
+
 ```
 
 **SQL:**
+
 ```sql
 BEGIN;
 SELECT * FROM products WHERE id = 1 FOR UPDATE;
 UPDATE products SET stock = stock - 1 WHERE id = 1;
 COMMIT;
+
 ```
 
 **Behavior:**
@@ -138,9 +158,11 @@ COMMIT;
 - Prevents lost updates from concurrent read-modify-write
 
 **Variants:**
+
 ```ruby
 Product.lock("FOR UPDATE NOWAIT").find(1)  # Raises error instead of waiting
 Product.lock("FOR UPDATE SKIP LOCKED").where(processed: false).first  # Skips locked rows
+
 ```
 
 ---
@@ -150,13 +172,17 @@ Product.lock("FOR UPDATE SKIP LOCKED").where(processed: false).first  # Skips lo
 Lock entire table. Rarely needed; use for DDL or bulk operations.
 
 **Exclusive lock (blocks all access):**
+
 ```ruby
 ActiveRecord::Base.connection.execute("LOCK TABLE orders IN ACCESS EXCLUSIVE MODE")
+
 ```
 
 **Share lock (allows reads, blocks writes):**
+
 ```ruby
 ActiveRecord::Base.connection.execute("LOCK TABLE orders IN SHARE MODE")
+
 ```
 
 **Warning:** Table locks block all queries. Avoid in production web requests.
@@ -168,6 +194,7 @@ ActiveRecord::Base.connection.execute("LOCK TABLE orders IN SHARE MODE")
 Two transactions wait for each other's locks.
 
 **Example:**
+
 ```ruby
 # Transaction A
 ActiveRecord::Base.transaction do
@@ -183,17 +210,22 @@ ActiveRecord::Base.transaction do
   User.lock.find(1)  # Waits for Transaction A
 end
 # Deadlock detected! Postgres kills one transaction
+
 ```
 
 **Fix: Lock in consistent order:**
+
 ```ruby
 ids = [1, 2].sort  # Always lock in ascending order
 User.lock.where(id: ids).order(:id).to_a
+
 ```
 
 **Viewing deadlocks:**
+
 ```sql
 SELECT * FROM pg_stat_activity WHERE wait_event_type = 'Lock';
+
 ```
 
 ---
@@ -203,13 +235,16 @@ SELECT * FROM pg_stat_activity WHERE wait_event_type = 'Lock';
 Application-level locks for coordinating resources. Unlike row locks, advisory locks are purely cooperative.
 
 **Exclusive lock:**
+
 ```ruby
 ActiveRecord::Base.connection.execute("SELECT pg_advisory_lock(12345)")
 # Do work
 ActiveRecord::Base.connection.execute("SELECT pg_advisory_unlock(12345)")
+
 ```
 
 **Try lock (non-blocking):**
+
 ```ruby
 locked = ActiveRecord::Base.connection.select_value("SELECT pg_try_advisory_lock(12345)")
 if locked
@@ -218,9 +253,11 @@ if locked
 else
   # Another process holds lock
 end
+
 ```
 
 **Use case:**
+
 ```ruby
 # Ensure only one Sidekiq job processes a resource
 def perform(resource_id)
@@ -235,6 +272,7 @@ def perform(resource_id)
     # Skip; another job is processing
   end
 end
+
 ```
 
 ---
@@ -242,6 +280,7 @@ end
 ## Debugging Locks
 
 **Find blocked queries:**
+
 ```sql
 SELECT blocked_locks.pid AS blocked_pid,
        blocked_activity.usename AS blocked_user,
@@ -259,11 +298,14 @@ JOIN pg_locks blocking_locks ON blocking_locks.locktype = blocked_locks.locktype
   AND blocking_locks.pid != blocked_locks.pid
 JOIN pg_stat_activity blocking_activity ON blocking_activity.pid = blocking_locks.pid
 WHERE NOT blocked_locks.granted;
+
 ```
 
 **Kill blocking query:**
+
 ```sql
 SELECT pg_terminate_backend(12345);  -- Replace with PID
+
 ```
 
 ---

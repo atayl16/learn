@@ -675,6 +675,7 @@
   <span class="c1"># Sample rate: send 10% of events in high-traffic apps</span>
   <span class="n">config</span><span class="p">.</span><span class="nf">traces_sample_rate</span> <span class="o">=</span> <span class="mf">0.1</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Sentry now captures all unhandled exceptions automatically.</p>
 
@@ -709,6 +710,7 @@
     <span class="p">})</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Every error now includes user, tenant, and request metadata for debugging.</p>
 
@@ -727,6 +729,7 @@
   <span class="p">})</span>
   <span class="k">raise</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Send custom messages for non-exception issues:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="k">if</span> <span class="n">inventory</span><span class="p">.</span><span class="nf">stock</span> <span class="o">&lt;</span> <span class="n">order</span><span class="p">.</span><span class="nf">quantity</span>
@@ -740,6 +743,7 @@
     <span class="p">}</span>
   <span class="p">)</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <hr>
 
@@ -761,6 +765,7 @@
     <span class="n">event</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Custom fingerprints prevent one issue from creating dozens of separate alerts.</p>
 
@@ -774,12 +779,14 @@
   <span class="n">config</span><span class="p">.</span><span class="nf">release</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'HEROKU_SLUG_COMMIT'</span><span class="p">,</span> <span class="s1">'dev'</span><span class="p">)</span>
   <span class="n">config</span><span class="p">.</span><span class="nf">environment</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'RAILS_ENV'</span><span class="p">,</span> <span class="s1">'development'</span><span class="p">)</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>In deployment script:</p>
 <div class="highlight"><pre class="highlight shell"><code><span class="c"># Notify Sentry of new release</span>
 curl https://sentry.io/api/0/organizations/my-org/releases/ <span class="se">\</span>
   <span class="nt">-H</span> <span class="s2">"Authorization: Bearer </span><span class="nv">$SENTRY_AUTH_TOKEN</span><span class="s2">"</span> <span class="se">\</span>
   <span class="nt">-d</span> <span class="s1">'{"version":"'</span><span class="s2">"</span><span class="nv">$GIT_COMMIT</span><span class="s2">"</span><span class="s1">'","projects":["my-app"]}'</span>
+
 </code></pre></div>
 <p>Sentry dashboard shows which release introduced each error.</p>
 
@@ -805,6 +812,7 @@ curl https://sentry.io/api/0/organizations/my-org/releases/ <span class="se">\</
   <span class="c1"># Breadcrumbs help debug but increase data sent</span>
   <span class="n">config</span><span class="p">.</span><span class="nf">breadcrumbs_logger</span> <span class="o">=</span> <span class="p">[</span><span class="ss">:active_support_logger</span><span class="p">]</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <hr>
 
@@ -898,6 +906,7 @@ bundle add sentry-ruby
 bundle add sentry-rails
 
 bundle <span class="nb">install</span>
+
 </code></pre></div>
 <h3>Step 3: Configure Sentry</h3>
 
@@ -926,10 +935,12 @@ bundle <span class="nb">install</span>
     <span class="n">event</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Set environment variable:</p>
 <div class="highlight"><pre class="highlight shell"><code><span class="c"># In .env or terminal</span>
 <span class="nb">export </span><span class="nv">SENTRY_DSN</span><span class="o">=</span><span class="s2">"https://your-dsn-here@sentry.io/project-id"</span>
+
 </code></pre></div>
 <h3>Step 4: Add Context in ApplicationController</h3>
 
@@ -966,6 +977,7 @@ bundle <span class="nb">install</span>
     <span class="no">OpenStruct</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">id: </span><span class="s1">'tenant-abc'</span><span class="p">)</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h3>Step 5: Create Test Controller</h3>
 
@@ -974,6 +986,7 @@ bundle <span class="nb">install</span>
   <span class="n">get</span> <span class="s1">'/error_test'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'errors#test_error'</span>
   <span class="n">post</span> <span class="s1">'/validation_test'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'errors#test_validation'</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Create <code>app/controllers/errors_controller.rb</code>:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ErrorsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
@@ -999,28 +1012,34 @@ bundle <span class="nb">install</span>
     <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">error: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span> <span class="p">},</span> <span class="ss">status: :unprocessable_entity</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h3>Step 6: Create User Model with Validation</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails generate model User email:string
 bin/rails db:migrate
+
 </code></pre></div>
 <p>Edit <code>app/models/user.rb</code>:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
   <span class="n">validates</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h3>Step 7: Test Error Tracking</h3>
 
 <p>Start Rails server:</p>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails server
+
 </code></pre></div>
 <p>Trigger test error:</p>
 <div class="highlight"><pre class="highlight shell"><code>curl http://localhost:3000/error_test
+
 </code></pre></div>
 <p>You should see error in terminal and Sentry dashboard.</p>
 
 <p>Test validation error (should NOT appear in Sentry):</p>
 <div class="highlight"><pre class="highlight shell"><code>curl <span class="nt">-X</span> POST http://localhost:3000/validation_test
+
 </code></pre></div>
 <p>Check Rails logs for &quot;Sentry: Skipping RecordInvalid error&quot; message.</p>
 
@@ -1066,6 +1085,7 @@ bin/rails db:migrate
 <span class="c1"># Check environment</span>
 <span class="no">Sentry</span><span class="p">.</span><span class="nf">configuration</span><span class="p">.</span><span class="nf">environment</span>
 <span class="c1"># =&gt; "development"</span>
+
 </code></pre></div>
 <h2>Stretch (Optional)</h2>
 
@@ -1079,6 +1099,7 @@ bin/rails db:migrate
     <span class="ss">level: </span><span class="s1">'info'</span>
   <span class="p">)</span>
 <span class="p">)</span>
+
 </code></pre></div>
 <ol>
 <li>Configure custom fingerprinting:</li>
@@ -1089,12 +1110,15 @@ bin/rails db:migrate
   <span class="k">end</span>
   <span class="n">event</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <ol>
 <li>Set up release tracking with git:</li>
 </ol>
 <div class="highlight"><pre class="highlight shell"><code>git rev-parse HEAD <span class="o">&gt;</span> REVISION
+
 </code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span><span class="p">.</span><span class="nf">release</span> <span class="o">=</span> <span class="no">File</span><span class="p">.</span><span class="nf">read</span><span class="p">(</span><span class="s1">'REVISION'</span><span class="p">).</span><span class="nf">strip</span> <span class="k">rescue</span> <span class="s1">'unknown'</span>
+
 </code></pre></div>
 <h2>Time Estimate</h2>
 

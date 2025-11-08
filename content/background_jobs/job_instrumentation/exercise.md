@@ -24,29 +24,37 @@ Build an instrumented API integration job that:
 ## Verification Steps
 
 1. Start Sidekiq and enqueue a successful job:
+
 ```ruby
 ApiCallWorker.perform_async(123, 'https://api.example.com/data')
+
 ```
 
 Check logs for:
+
 ```
 [ApiCallWorker] [user:123] [jid:abc123] Starting API call
 [ApiCallWorker] [user:123] [jid:abc123] Completed successfully in 1.23s
 Metric: background_job.success job:ApiCallWorker
+
 ```
 
 2. Simulate timeout error:
+
 ```ruby
 ENV['SIMULATE_TIMEOUT'] = 'true'
 ApiCallWorker.perform_async(456, 'https://slow-api.example.com')
+
 ```
 
 Verify exponential backoff in retry schedule.
 
 3. Check middleware metrics in logs:
+
 ```
 Queue latency: default - 0.05s
 Job duration: ApiCallWorker - 1234ms
+
 ```
 
 ## Setup Code
@@ -54,6 +62,7 @@ Job duration: ApiCallWorker - 1234ms
 ### Step 1: Create Metrics Helper
 
 Create `lib/metrics.rb`:
+
 ```ruby
 module Metrics
   def self.increment(metric_name, tags: [])
@@ -80,11 +89,13 @@ module Metrics
     # StatsD.gauge(metric_name, value, tags: tags)
   end
 end
+
 ```
 
 ### Step 2: Create Instrumentation Middleware
 
 Create `app/middleware/job_instrumentation_middleware.rb`:
+
 ```ruby
 class JobInstrumentationMiddleware
   def call(worker, job, queue)
@@ -121,9 +132,11 @@ class JobInstrumentationMiddleware
     raise  # Re-raise for retry
   end
 end
+
 ```
 
 Configure in `config/initializers/sidekiq.rb`:
+
 ```ruby
 Sidekiq.configure_server do |config|
   config.redis = { url: ENV.fetch('REDIS_URL', 'redis://localhost:6379/1') }
@@ -136,11 +149,13 @@ end
 Sidekiq.configure_client do |config|
   config.redis = { url: ENV.fetch('REDIS_URL', 'redis://localhost:6379/1') }
 end
+
 ```
 
 ### Step 3: Create Worker with Custom Backoff
 
 Create `app/workers/api_call_worker.rb`:
+
 ```ruby
 class ApiCallWorker
   include Sidekiq::Worker
@@ -225,6 +240,7 @@ class ApiCallWorker
   class RateLimitError < StandardError; end
   class ApiServerError < StandardError; end
 end
+
 ```
 
 ### Step 4: Create Model for Context
@@ -232,11 +248,14 @@ end
 ```bash
 bin/rails generate model User email:string
 bin/rails db:migrate
+
 ```
 
 In Rails console:
+
 ```ruby
 User.create!(email: 'test@example.com')
+
 ```
 
 ### Step 5: Test Successful Job
@@ -250,9 +269,11 @@ ENV.delete('SIMULATE_SERVER_ERROR')
 # Enqueue job
 user = User.first
 ApiCallWorker.perform_async(user.id, 'https://api.example.com/data')
+
 ```
 
 Expected log output:
+
 ```
 Queue latency: api_calls - 0.05s
 [ApiCallWorker] [user:1] [jid:abc123] Starting API call to https://api.example.com/data
@@ -260,6 +281,7 @@ Queue latency: api_calls - 0.05s
 Job succeeded: ApiCallWorker [abc123] in 45ms
 Metric: background_job.success job:ApiCallWorker
 Metric: background_job.duration=45 job:ApiCallWorker
+
 ```
 
 ### Step 6: Test Timeout Error with Backoff
@@ -267,21 +289,26 @@ Metric: background_job.duration=45 job:ApiCallWorker
 ```ruby
 ENV['SIMULATE_TIMEOUT'] = 'true'
 ApiCallWorker.perform_async(user.id, 'https://slow-api.example.com')
+
 ```
 
 Watch logs for retry scheduling:
+
 ```
 Job failed: ApiCallWorker [xyz789] after 2005ms - Net::ReadTimeout: Request timeout
 Retry attempt 0 due to Net::ReadTimeout
 Timeout error, retrying in 60s
+
 ```
 
 Check retry set:
+
 ```ruby
 retry_job = Sidekiq::RetrySet.new.first
 retry_job['retry_count']  # => 0, 1, 2...
 retry_job['error_class']   # => "Net::ReadTimeout"
 Time.at(retry_job['at'])   # Next retry time
+
 ```
 
 ### Step 7: Test Rate Limit Error
@@ -290,17 +317,21 @@ Time.at(retry_job['at'])   # Next retry time
 ENV.delete('SIMULATE_TIMEOUT')
 ENV['SIMULATE_RATE_LIMIT'] = 'true'
 ApiCallWorker.perform_async(user.id, 'https://api.example.com/limited')
+
 ```
 
 Verify longer backoff in logs:
+
 ```
 Retry attempt 0 due to RateLimitError
 Rate limit error, retrying in 300s  # 5 minutes
+
 ```
 
 ### Step 8: Force Exhaustion (Optional)
 
 Set low retry count for testing:
+
 ```ruby
 # Temporarily in worker
 sidekiq_options retry: 2
@@ -311,11 +342,13 @@ ApiCallWorker.perform_async(user.id, 'https://broken-api.example.com')
 # Wait for retries to exhaust, check logs
 # Should see: ALERT: ApiCallWorker exhausted retries
 # Metric: background_job.exhausted job:ApiCallWorker error:ApiServerError
+
 ```
 
 ### Step 9: Monitor Queue Depth
 
 Create monitoring task `lib/tasks/sidekiq_monitor.rake`:
+
 ```ruby
 namespace :sidekiq do
   desc "Report queue statistics"
@@ -337,6 +370,7 @@ namespace :sidekiq do
     Metrics.gauge('sidekiq.dead', dead_count)
   end
 end
+
 ```
 
 Run: `bundle exec rake sidekiq:stats`
@@ -357,6 +391,7 @@ def perform(user_id, endpoint, request_id = nil)
     # ... existing code
   end
 end
+
 ```
 
 2. Implement circuit breaker that stops enqueueing after 10 consecutive failures
@@ -377,6 +412,7 @@ task dead_analysis: :environment do
     puts "#{error_class}: #{count} jobs"
   end
 end
+
 ```
 
 ## Time Estimate

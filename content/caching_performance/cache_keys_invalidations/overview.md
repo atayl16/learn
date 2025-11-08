@@ -29,15 +29,18 @@ post = Post.find(1)
 post.cache_key_with_version
 # => "posts/1-20250108123045678901234"
 #     model / id - updated_at (microseconds)
+
 ```
 
 When `updated_at` changes, the cache key changes → cache miss → fresh render.
 
 **In views:**
+
 ```erb
 <% cache post do %>
   <%= render post %>
 <% end %>
+
 ```
 
 Automatically uses `post.cache_key_with_version`.
@@ -53,9 +56,11 @@ Update parent record when child changes:
 class Comment < ApplicationRecord
   belongs_to :post, touch: true
 end
+
 ```
 
 **Behavior:**
+
 ```ruby
 post = Post.find(1)
 old_key = post.cache_key_with_version
@@ -67,6 +72,7 @@ Comment.create(post: post, body: "Nice post")
 # Post's updated_at is touched
 post.reload.cache_key_with_version
 # => "posts/1-20250108120100000000000" (new timestamp)
+
 ```
 
 Cached post fragment now has a new key → cache miss → re-render with new comment.
@@ -94,6 +100,7 @@ Nest caches to reuse unchanged fragments:
     <% end %>
   <% end %>
 <% end %>
+
 ```
 
 **Scenario: User edits comment ID 42 on post ID 5:**
@@ -131,6 +138,7 @@ class Product < ApplicationRecord
     Rails.cache.delete("category/#{category_id}/products")
   end
 end
+
 ```
 
 Use `after_commit` not `after_save` to ensure transaction completes before cache clears.
@@ -140,24 +148,30 @@ Use `after_commit` not `after_save` to ensure transaction completes before cache
 ## Cache Key Versioning Strategies
 
 **Include version in key:**
+
 ```ruby
 # Bump version to invalidate all instances
 Rails.cache.fetch("posts/v2") { Post.all.to_a }
+
 ```
 
 **Include max timestamp:**
+
 ```ruby
 Rails.cache.fetch(["posts", Post.maximum(:updated_at)]) do
   Post.all.to_a
 end
+
 ```
 
 **Include dependent data:**
+
 ```ruby
 # Cache expires when user OR their posts change
 Rails.cache.fetch([@user, @user.posts.maximum(:updated_at)]) do
   render_user_dashboard(@user)
 end
+
 ```
 
 ---
@@ -167,24 +181,29 @@ end
 When cache expires, multiple requests simultaneously regenerate it, overloading the database.
 
 **Problem:**
+
 ```ruby
 # 1000 concurrent requests hit this
 Rails.cache.fetch("expensive_data", expires_in: 1.hour) do
   # All 1000 threads execute this slow query
   ExpensiveCalculation.run
 end
+
 ```
 
 **Solution 1: race_condition_ttl**
+
 ```ruby
 Rails.cache.fetch("expensive_data", expires_in: 1.hour, race_condition_ttl: 10.seconds) do
   ExpensiveCalculation.run
 end
+
 ```
 
 When cache expires, Rails serves stale data for 10 seconds while ONE thread regenerates. Other threads get stale data instead of all regenerating.
 
 **Solution 2: Distributed lock (Redlock)**
+
 ```ruby
 gem 'redlock'
 
@@ -200,6 +219,7 @@ lock_manager.lock("expensive_data_lock", 10_000) do |locked|
     Rails.cache.read("expensive_data")
   end
 end
+
 ```
 
 ---
@@ -207,26 +227,32 @@ end
 ## Time-Based vs Event-Based Invalidation
 
 **Time-based (expires_in):**
+
 ```ruby
 # Good for: approximate data, external APIs, statistics
 Rails.cache.fetch("stats/daily_revenue", expires_in: 15.minutes) do
   calculate_revenue
 end
+
 ```
 
 **Event-based (cache_key_with_version):**
+
 ```erb
 <!-- Good for: user-facing content that must be fresh -->
 <% cache post do %>
   <%= render post %>
 <% end %>
+
 ```
 
 Combine both:
+
 ```ruby
 Rails.cache.fetch([post, "sidebar"], expires_in: 1.hour) do
   render_sidebar(post)
 end
+
 ```
 
 Cache expires after 1 hour OR when post changes (whichever comes first).
@@ -241,6 +267,7 @@ Scope by user, locale, or features:
 <% cache [post, current_user.admin?, I18n.locale] do %>
   <%= render post %>
 <% end %>
+
 ```
 
 **Key changes when:**

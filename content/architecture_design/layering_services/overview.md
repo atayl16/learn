@@ -65,6 +65,7 @@ else
   flash[:error] = result.error
   render :checkout
 end
+
 ```
 
 The service coordinates steps without bloating the Order model. Each private method handles one concern.
@@ -98,6 +99,7 @@ else
   @errors = result.errors.to_h
   render :new
 end
+
 ```
 
 The form validates without creating a User. Separates input validation from persistence.
@@ -131,6 +133,7 @@ authorize @post  # raises Pundit::NotAuthorizedError if update? returns false
 
 # In background job or service
 PostPolicy.new(current_user, post).update?  # no controller required
+
 ```
 
 Policies move authorization out of callbacks and before filters, making it reusable across contexts.
@@ -169,6 +172,7 @@ end
 # In view
 <%= @order.formatted_total %>  <!-- $42.50 -->
 <%= @order.status_badge %>  <!-- <span class="badge badge-success">paid</span> -->
+
 ```
 
 View logic stays out of Order model and helper modules. The decorator wraps the model at the controller boundary.

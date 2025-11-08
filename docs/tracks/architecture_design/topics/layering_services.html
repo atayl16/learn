@@ -693,6 +693,7 @@
   <span class="n">flash</span><span class="p">[</span><span class="ss">:error</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">.</span><span class="nf">error</span>
   <span class="n">render</span> <span class="ss">:checkout</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>The service coordinates steps without bloating the Order model. Each private method handles one concern.</p>
 
@@ -723,6 +724,7 @@
   <span class="vi">@errors</span> <span class="o">=</span> <span class="n">result</span><span class="p">.</span><span class="nf">errors</span><span class="p">.</span><span class="nf">to_h</span>
   <span class="n">render</span> <span class="ss">:new</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>The form validates without creating a User. Separates input validation from persistence.</p>
 
@@ -753,6 +755,7 @@
 
 <span class="c1"># In background job or service</span>
 <span class="no">PostPolicy</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="n">post</span><span class="p">).</span><span class="nf">update?</span>  <span class="c1"># no controller required</span>
+
 </code></pre></div>
 <p>Policies move authorization out of callbacks and before filters, making it reusable across contexts.</p>
 
@@ -788,6 +791,7 @@
 <span class="c1"># In view</span>
 <span class="o">&lt;</span><span class="sx">%= @order.formatted_total %&gt;  &lt;!-- $42.50 --&gt;
 &lt;%=</span> <span class="vi">@order</span><span class="p">.</span><span class="nf">status_badge</span> <span class="sx">%&gt;  &lt;!-- &lt;span class="badge badge-success"&gt;</span><span class="n">paid</span><span class="o">&lt;</span><span class="sr">/span&gt; --&gt;
+
 </span></code></pre></div>
 <p>View logic stays out of Order model and helper modules. The decorator wraps the model at the controller boundary.</p>
 

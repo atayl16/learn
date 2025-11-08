@@ -36,6 +36,7 @@ bundle add sentry-ruby
 bundle add sentry-rails
 
 bundle install
+
 ```
 
 ### Step 3: Configure Sentry
@@ -67,6 +68,7 @@ Sentry.init do |config|
     event
   end
 end
+
 ```
 
 Set environment variable:
@@ -74,6 +76,7 @@ Set environment variable:
 ```bash
 # In .env or terminal
 export SENTRY_DSN="https://your-dsn-here@sentry.io/project-id"
+
 ```
 
 ### Step 4: Add Context in ApplicationController
@@ -113,6 +116,7 @@ class ApplicationController < ActionController::Base
     OpenStruct.new(id: 'tenant-abc')
   end
 end
+
 ```
 
 ### Step 5: Create Test Controller
@@ -124,6 +128,7 @@ Rails.application.routes.draw do
   get '/error_test', to: 'errors#test_error'
   post '/validation_test', to: 'errors#test_validation'
 end
+
 ```
 
 Create `app/controllers/errors_controller.rb`:
@@ -152,6 +157,7 @@ class ErrorsController < ApplicationController
     render json: { error: e.message }, status: :unprocessable_entity
   end
 end
+
 ```
 
 ### Step 6: Create User Model with Validation
@@ -159,6 +165,7 @@ end
 ```bash
 bin/rails generate model User email:string
 bin/rails db:migrate
+
 ```
 
 Edit `app/models/user.rb`:
@@ -167,6 +174,7 @@ Edit `app/models/user.rb`:
 class User < ApplicationRecord
   validates :email, presence: true
 end
+
 ```
 
 ### Step 7: Test Error Tracking
@@ -175,12 +183,14 @@ Start Rails server:
 
 ```bash
 bin/rails server
+
 ```
 
 Trigger test error:
 
 ```bash
 curl http://localhost:3000/error_test
+
 ```
 
 You should see error in terminal and Sentry dashboard.
@@ -189,6 +199,7 @@ Test validation error (should NOT appear in Sentry):
 
 ```bash
 curl -X POST http://localhost:3000/validation_test
+
 ```
 
 Check Rails logs for "Sentry: Skipping RecordInvalid error" message.
@@ -232,6 +243,7 @@ Sentry.configuration.dsn
 # Check environment
 Sentry.configuration.environment
 # => "development"
+
 ```
 
 ## Stretch (Optional)
@@ -246,6 +258,7 @@ Sentry.add_breadcrumb(
     level: 'info'
   )
 )
+
 ```
 
 2. Configure custom fingerprinting:
@@ -257,16 +270,19 @@ config.before_send = lambda do |event, hint|
   end
   event
 end
+
 ```
 
 3. Set up release tracking with git:
 
 ```bash
 git rev-parse HEAD > REVISION
+
 ```
 
 ```ruby
 config.release = File.read('REVISION').strip rescue 'unknown'
+
 ```
 
 ## Time Estimate

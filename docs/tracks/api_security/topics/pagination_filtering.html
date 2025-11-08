@@ -677,6 +677,7 @@
     <span class="p">}</span>
   <span class="p">}</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Use the <code>kaminari</code> or <code>pagy</code> gem for helpers. Offset pagination degrades with large offsets because the database still scans skipped rows.</p>
 
@@ -702,6 +703,7 @@
     <span class="p">}</span>
   <span class="p">}</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Client passes <code>?cursor=12345</code> to fetch posts older than ID 12345. No total count or page numbers, just <code>next_cursor</code>.</p>
 
@@ -724,6 +726,7 @@
 
   <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">data: </span><span class="vi">@products</span> <span class="p">}</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Use strong params or a gem like <code>ransack</code> (carefully scoped) or <code>filterrific</code>. Always whitelist allowed filters.</p>
 
@@ -742,6 +745,7 @@
   <span class="vi">@orders</span> <span class="o">=</span> <span class="no">Order</span><span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="n">column</span> <span class="o">=&gt;</span> <span class="n">direction</span><span class="p">)</span>
   <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">data: </span><span class="vi">@orders</span> <span class="p">}</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Add indexes on sortable columns. For composite sorts, create multi-column indexes.</p>
 
@@ -765,6 +769,7 @@
     <span class="s2">"last"</span><span class="p">:</span> <span class="s2">"/api/users?page=78"</span>
   <span class="p">}</span>
 <span class="p">}</span>
+
 </code></pre></div>
 <p>Include <code>links</code> for HATEOAS. Omit <code>total_count</code> for cursor pagination.</p>
 

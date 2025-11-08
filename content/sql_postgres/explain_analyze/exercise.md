@@ -7,6 +7,7 @@ Practice reading EXPLAIN ANALYZE output to identify bottlenecks and verify index
 You have a slow query on an orders table. Run EXPLAIN ANALYZE, identify the bottleneck, add an appropriate index, and verify the query plan improves.
 
 **Setup:**
+
 ```ruby
 # Assume this schema with 100,000 orders
 create_table :orders do |t|
@@ -18,14 +19,17 @@ end
 
 # Slow query: find recent completed orders for a user
 # User.find(5).orders.where(status: 'completed').order(created_at: :desc).limit(20)
+
 ```
 
 **SQL equivalent:**
+
 ```sql
 SELECT * FROM orders
 WHERE user_id = 5 AND status = 'completed'
 ORDER BY created_at DESC
 LIMIT 20;
+
 ```
 
 ## Acceptance Criteria

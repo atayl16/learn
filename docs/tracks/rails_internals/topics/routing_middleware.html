@@ -660,110 +660,103 @@
 <p>Generate 7 standard routes:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/routes.rb</span>
 <span class="n">resources</span> <span class="ss">:posts</span>
+
 </code></pre></div>
-<p>Generates:<br>
-<code><br>
-GET    /posts          posts#index<br>
-POST   /posts          posts#create<br>
-GET    /posts/new      posts#new<br>
-GET    /posts/:id/edit posts#edit<br>
-GET    /posts/:id      posts#show<br>
-PATCH  /posts/:id      posts#update<br>
-DELETE /posts/:id      posts#destroy<br>
-</code></p>
+<p>Generates:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>GET    /posts          posts#index
+POST   /posts          posts#create
+GET    /posts/new      posts#new
+GET    /posts/:id/edit posts#edit
+GET    /posts/:id      posts#show
+PATCH  /posts/:id      posts#update
+DELETE /posts/:id      posts#destroy
 
-<p><strong>Limit routes:</strong><br>
-<code>ruby<br>
-resources :posts, only: [:index, :show]<br>
-resources :comments, except: [:destroy]<br>
-</code></p>
+</code></pre></div>
+<p><strong>Limit routes:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">resources</span> <span class="ss">:posts</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">,</span> <span class="ss">:show</span><span class="p">]</span>
+<span class="n">resources</span> <span class="ss">:comments</span><span class="p">,</span> <span class="ss">except: </span><span class="p">[</span><span class="ss">:destroy</span><span class="p">]</span>
 
-<p><strong>Nested resources:</strong><br>
-```ruby<br>
-resources :posts do<br>
-  resources :comments<br>
-end</p>
+</code></pre></div>
+<p><strong>Nested resources:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">resources</span> <span class="ss">:posts</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:comments</span>
+<span class="k">end</span>
+<span class="c1"># Generates /posts/:post_id/comments</span>
 
-<h1>Generates /posts/:post_id/comments</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Shallow nesting (avoid deep nesting):**
-```ruby
-resources :posts do
-  resources :comments, shallow: true
-end
-# /posts/:post_id/comments (create)
-# /comments/:id (show, edit, update, destroy)
+</code></pre></div>
+<p><strong>Shallow nesting (avoid deep nesting):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">resources</span> <span class="ss">:posts</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:comments</span><span class="p">,</span> <span class="ss">shallow: </span><span class="kp">true</span>
+<span class="k">end</span>
+<span class="c1"># /posts/:post_id/comments (create)</span>
+<span class="c1"># /comments/:id (show, edit, update, destroy)</span>
+
 </code></pre></div>
 <hr>
 
 <h2>Namespaces and Scopes</h2>
 
-<p><strong>Namespace (organizes controllers):</strong><br>
-```ruby<br>
-namespace :admin do<br>
-  resources :posts<br>
-end</p>
+<p><strong>Namespace (organizes controllers):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">namespace</span> <span class="ss">:admin</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:posts</span>
+<span class="k">end</span>
+<span class="c1"># Routes to Admin::PostsController</span>
+<span class="c1"># URL: /admin/posts</span>
 
-<h1>Routes to Admin::PostsController</h1>
-
-<h1>URL: /admin/posts</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Scope (URL only):**
-```ruby
-scope :api do
-  resources :posts
-end
-# Routes to PostsController
-# URL: /api/posts
 </code></pre></div>
-<p><strong>Module (controller only):</strong><br>
-```ruby<br>
-scope module: :api do<br>
-  resources :posts<br>
-end</p>
+<p><strong>Scope (URL only):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">scope</span> <span class="ss">:api</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:posts</span>
+<span class="k">end</span>
+<span class="c1"># Routes to PostsController</span>
+<span class="c1"># URL: /api/posts</span>
 
-<h1>Routes to Api::PostsController</h1>
-
-<h1>URL: /posts</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
----
-
-## Constraints
-
-**Subdomain routing:**
-```ruby
-constraints subdomain: 'api' do
-  resources :posts
-end
-# Matches http://api.example.com/posts
 </code></pre></div>
-<p><strong>Format constraints:</strong><br>
-```ruby<br>
-resources :posts, constraints: { format: &#39;json&#39; }</p>
+<p><strong>Module (controller only):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">scope</span> <span class="ss">module: :api</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:posts</span>
+<span class="k">end</span>
+<span class="c1"># Routes to Api::PostsController</span>
+<span class="c1"># URL: /posts</span>
 
-<h1>Only matches /posts.json</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Custom constraints (class-based):**
-```ruby
-# lib/constraints/api_version_constraint.rb
-class ApiVersionConstraint
-  def initialize(version)
-    @version = version
-  end
+</code></pre></div>
+<hr>
 
-  def matches?(request)
-    request.headers['Accept']&amp;.include?("application/vnd.myapp.v#{@version}")
-  end
-end
+<h2>Constraints</h2>
 
-# config/routes.rb
-constraints ApiVersionConstraint.new(1) do
-  resources :posts, controller: 'api/v1/posts'
-end
+<p><strong>Subdomain routing:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">constraints</span> <span class="ss">subdomain: </span><span class="s1">'api'</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:posts</span>
+<span class="k">end</span>
+<span class="c1"># Matches http://api.example.com/posts</span>
 
-constraints ApiVersionConstraint.new(2) do
-  resources :posts, controller: 'api/v2/posts'
-end
+</code></pre></div>
+<p><strong>Format constraints:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">resources</span> <span class="ss">:posts</span><span class="p">,</span> <span class="ss">constraints: </span><span class="p">{</span> <span class="ss">format: </span><span class="s1">'json'</span> <span class="p">}</span>
+<span class="c1"># Only matches /posts.json</span>
+
+</code></pre></div>
+<p><strong>Custom constraints (class-based):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># lib/constraints/api_version_constraint.rb</span>
+<span class="k">class</span> <span class="nc">ApiVersionConstraint</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
+    <span class="vi">@version</span> <span class="o">=</span> <span class="n">version</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">matches?</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="n">request</span><span class="p">.</span><span class="nf">headers</span><span class="p">[</span><span class="s1">'Accept'</span><span class="p">]</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">include?</span><span class="p">(</span><span class="s2">"application/vnd.myapp.v</span><span class="si">#{</span><span class="vi">@version</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># config/routes.rb</span>
+<span class="n">constraints</span> <span class="no">ApiVersionConstraint</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:posts</span><span class="p">,</span> <span class="ss">controller: </span><span class="s1">'api/v1/posts'</span>
+<span class="k">end</span>
+
+<span class="n">constraints</span> <span class="no">ApiVersionConstraint</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:posts</span><span class="p">,</span> <span class="ss">controller: </span><span class="s1">'api/v2/posts'</span>
+<span class="k">end</span>
+
 </code></pre></div>
 <hr>
 
@@ -774,17 +767,17 @@ end
 <span class="n">post_path</span><span class="p">(</span><span class="vi">@post</span><span class="p">)</span>    <span class="c1"># =&gt; "/posts/123"</span>
 <span class="n">new_post_path</span>       <span class="c1"># =&gt; "/posts/new"</span>
 <span class="n">edit_post_path</span><span class="p">(</span><span class="vi">@post</span><span class="p">)</span> <span class="c1"># =&gt; "/posts/123/edit"</span>
-</code></pre></div>
-<p><strong>Named routes:</strong><br>
-```ruby<br>
-get &#39;dashboard&#39;, to: &#39;pages#dashboard&#39;, as: :user_dashboard</p>
 
-<h1>Generates: user_dashboard_path =&gt; &quot;/dashboard&quot;</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**URL helpers:**
-```ruby
-posts_url  # =&gt; "http://example.com/posts" (absolute)
-posts_path # =&gt; "/posts" (relative)
+</code></pre></div>
+<p><strong>Named routes:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">get</span> <span class="s1">'dashboard'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'pages#dashboard'</span><span class="p">,</span> <span class="ss">as: :user_dashboard</span>
+<span class="c1"># Generates: user_dashboard_path =&gt; "/dashboard"</span>
+
+</code></pre></div>
+<p><strong>URL helpers:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">posts_url</span>  <span class="c1"># =&gt; "http://example.com/posts" (absolute)</span>
+<span class="n">posts_path</span> <span class="c1"># =&gt; "/posts" (relative)</span>
+
 </code></pre></div>
 <hr>
 
@@ -817,6 +810,7 @@ posts_path # =&gt; "/posts" (relative)
 
 <span class="c1"># config/application.rb</span>
 <span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">use</span> <span class="no">RequestLogger</span>
+
 </code></pre></div>
 <p><strong>Example: API Key Authentication</strong></p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/middleware/api_key_auth.rb</span>
@@ -847,45 +841,39 @@ posts_path # =&gt; "/posts" (relative)
 
 <span class="c1"># config/application.rb</span>
 <span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">use</span> <span class="no">ApiKeyAuth</span>
+
 </code></pre></div>
-<p><strong>Insert middleware at specific position:</strong><br>
-```ruby</p>
+<p><strong>Insert middleware at specific position:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Before a specific middleware</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">insert_before</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">Static</span><span class="p">,</span> <span class="no">ApiKeyAuth</span>
 
-<h1>Before a specific middleware</h1>
+<span class="c1"># After a specific middleware</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">insert_after</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">RequestId</span><span class="p">,</span> <span class="no">RequestLogger</span>
 
-<p>config.middleware.insert_before ActionDispatch::Static, ApiKeyAuth</p>
-
-<h1>After a specific middleware</h1>
-
-<p>config.middleware.insert_after ActionDispatch::RequestId, RequestLogger<br>
-```</p>
-
+</code></pre></div>
 <hr>
 
 <h2>Debugging Routes</h2>
 
-<p><strong>List all routes:</strong><br>
-<code>bash<br>
-bin/rails routes<br>
-bin/rails routes | grep posts<br>
-bin/rails routes -c posts  # routes for PostsController<br>
-</code></p>
+<p><strong>List all routes:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails routes
+bin/rails routes | <span class="nb">grep </span>posts
+bin/rails routes <span class="nt">-c</span> posts  <span class="c"># routes for PostsController</span>
 
-<p><strong>Check specific route:</strong><br>
-<code>bash<br>
-bin/rails routes | grep &quot;posts#show&quot;<br>
-</code></p>
+</code></pre></div>
+<p><strong>Check specific route:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails routes | <span class="nb">grep</span> <span class="s2">"posts#show"</span>
 
-<p><strong>Test route matching in console:</strong><br>
-```ruby<br>
-Rails.application.routes.recognize_path(&quot;/posts/123&quot;, method: :get)</p>
+</code></pre></div>
+<p><strong>Test route matching in console:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">recognize_path</span><span class="p">(</span><span class="s2">"/posts/123"</span><span class="p">,</span> <span class="ss">method: :get</span><span class="p">)</span>
+<span class="c1"># =&gt; { controller: "posts", action: "show", id: "123" }</span>
 
-<h1>=&gt; { controller: &quot;posts&quot;, action: &quot;show&quot;, id: &quot;123&quot; }</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Generate URL from route:**
-```ruby
-Rails.application.routes.url_helpers.post_path(123)
-# =&gt; "/posts/123"
+</code></pre></div>
+<p><strong>Generate URL from route:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">url_helpers</span><span class="p">.</span><span class="nf">post_path</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+<span class="c1"># =&gt; "/posts/123"</span>
+
 </code></pre></div>
 <hr>
 
@@ -967,11 +955,13 @@ Rails.application.routes.url_helpers.post_path(123)
 <ol>
 <li>Run <code>bin/rails routes | grep comments</code> and see nested routes</li>
 <li>Visit <code>/admin/posts</code> and see admin controller response</li>
-<li>Check <code>log/development.log</code> for middleware output:
-<code>
-Request: GET /posts
+<li>Check <code>log/development.log</code> for middleware output:</li>
+</ol>
+<div class="highlight"><pre class="highlight plaintext"><code>Request: GET /posts
 Response: 200 in 45ms
-</code></li>
+
+</code></pre></div>
+<ol>
 <li>Test subdomain constraint (if using <code>lvh.me</code> or similar)</li>
 </ol>
 
@@ -983,125 +973,121 @@ Response: 200 in 45ms
 bin/rails generate scaffold Post title:string body:text
 bin/rails generate model Comment body:text post:references
 bin/rails db:migrate
+
 </code></pre></div>
 <h3>Step 2: Define Routes</h3>
 
-<p>Edit <code>config/routes.rb</code>:<br>
-```ruby<br>
-Rails.application.routes.draw do<br>
-  root &#39;posts#index&#39;</p>
+<p>Edit <code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">root</span> <span class="s1">'posts#index'</span>
 
-<p># Nested resources (shallow to avoid deep URLs)<br>
-  resources :posts do<br>
-    resources :comments, shallow: true, only: [:index, :create]<br>
-  end</p>
+  <span class="c1"># Nested resources (shallow to avoid deep URLs)</span>
+  <span class="n">resources</span> <span class="ss">:posts</span> <span class="k">do</span>
+    <span class="n">resources</span> <span class="ss">:comments</span><span class="p">,</span> <span class="ss">shallow: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">,</span> <span class="ss">:create</span><span class="p">]</span>
+  <span class="k">end</span>
 
-<p># Admin namespace<br>
-  namespace :admin do<br>
-    resources :posts, only: [:index, :edit, :update]<br>
-  end</p>
+  <span class="c1"># Admin namespace</span>
+  <span class="n">namespace</span> <span class="ss">:admin</span> <span class="k">do</span>
+    <span class="n">resources</span> <span class="ss">:posts</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">,</span> <span class="ss">:edit</span><span class="p">,</span> <span class="ss">:update</span><span class="p">]</span>
+  <span class="k">end</span>
 
-<p># API with subdomain constraint<br>
-  constraints subdomain: &#39;api&#39; do<br>
-    namespace :api do<br>
-      namespace :v1 do<br>
-        resources :posts, only: [:index, :show]<br>
-      end<br>
-    end<br>
-  end<br>
-end<br>
-```</p>
+  <span class="c1"># API with subdomain constraint</span>
+  <span class="n">constraints</span> <span class="ss">subdomain: </span><span class="s1">'api'</span> <span class="k">do</span>
+    <span class="n">namespace</span> <span class="ss">:api</span> <span class="k">do</span>
+      <span class="n">namespace</span> <span class="ss">:v1</span> <span class="k">do</span>
+        <span class="n">resources</span> <span class="ss">:posts</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">,</span> <span class="ss">:show</span><span class="p">]</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 3: Create Admin Controller</h3>
 
-<p>Create <code>app/controllers/admin/posts_controller.rb</code>:<br>
-```ruby<br>
-module Admin<br>
-  class PostsController &lt; ApplicationController<br>
-    def index<br>
-      @posts = Post.all<br>
-      render json: @posts<br>
-    end</p>
-<div class="highlight"><pre class="highlight plaintext"><code>def edit
-  @post = Post.find(params[:id])
-  render json: @post
-end
+<p>Create <code>app/controllers/admin/posts_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">Admin</span>
+  <span class="k">class</span> <span class="nc">PostsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+    <span class="k">def</span> <span class="nf">index</span>
+      <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">all</span>
+      <span class="n">render</span> <span class="ss">json: </span><span class="vi">@posts</span>
+    <span class="k">end</span>
 
-def update
-  @post = Post.find(params[:id])
-  if @post.update(post_params)
-    render json: @post
-  else
-    render json: @post.errors, status: :unprocessable_entity
-  end
-end
+    <span class="k">def</span> <span class="nf">edit</span>
+      <span class="vi">@post</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+      <span class="n">render</span> <span class="ss">json: </span><span class="vi">@post</span>
+    <span class="k">end</span>
 
-private
+    <span class="k">def</span> <span class="nf">update</span>
+      <span class="vi">@post</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+      <span class="k">if</span> <span class="vi">@post</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="n">post_params</span><span class="p">)</span>
+        <span class="n">render</span> <span class="ss">json: </span><span class="vi">@post</span>
+      <span class="k">else</span>
+        <span class="n">render</span> <span class="ss">json: </span><span class="vi">@post</span><span class="p">.</span><span class="nf">errors</span><span class="p">,</span> <span class="ss">status: :unprocessable_entity</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
 
-def post_params
-  params.require(:post).permit(:title, :body)
-end
+    <span class="kp">private</span>
+
+    <span class="k">def</span> <span class="nf">post_params</span>
+      <span class="n">params</span><span class="p">.</span><span class="nf">require</span><span class="p">(</span><span class="ss">:post</span><span class="p">).</span><span class="nf">permit</span><span class="p">(</span><span class="ss">:title</span><span class="p">,</span> <span class="ss">:body</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
-
 <h3>Step 4: Create API Controller</h3>
 
-<p>Create <code>app/controllers/api/v1/posts_controller.rb</code>:<br>
-```ruby<br>
-module Api<br>
-  module V1<br>
-    class PostsController &lt; ApplicationController<br>
-      def index<br>
-        @posts = Post.all<br>
-        render json: @posts<br>
-      end</p>
-<div class="highlight"><pre class="highlight plaintext"><code>  def show
-    @post = Post.find(params[:id])
-    render json: @post
-  end
-end
-</code></pre></div>
-<p>end<br>
-end<br>
-```</p>
+<p>Create <code>app/controllers/api/v1/posts_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">Api</span>
+  <span class="k">module</span> <span class="nn">V1</span>
+    <span class="k">class</span> <span class="nc">PostsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+      <span class="k">def</span> <span class="nf">index</span>
+        <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">all</span>
+        <span class="n">render</span> <span class="ss">json: </span><span class="vi">@posts</span>
+      <span class="k">end</span>
 
+      <span class="k">def</span> <span class="nf">show</span>
+        <span class="vi">@post</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+        <span class="n">render</span> <span class="ss">json: </span><span class="vi">@post</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
 <h3>Step 5: Create Custom Middleware</h3>
 
-<p>Create <code>app/middleware/request_timer.rb</code>:<br>
-```ruby<br>
-class RequestTimer<br>
-  def initialize(app)<br>
-    @app = app<br>
-  end</p>
+<p>Create <code>app/middleware/request_timer.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">RequestTimer</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+    <span class="vi">@app</span> <span class="o">=</span> <span class="n">app</span>
+  <span class="k">end</span>
 
-<p>def call(env)<br>
-    start_time = Time.now<br>
-    request = Rack::Request.new(env)</p>
-<div class="highlight"><pre class="highlight plaintext"><code>Rails.logger.info "Request: #{request.request_method} #{request.path}"
+  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">now</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Request</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 
-status, headers, response = @app.call(env)
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Request: </span><span class="si">#{</span><span class="n">request</span><span class="p">.</span><span class="nf">request_method</span><span class="si">}</span><span class="s2"> </span><span class="si">#{</span><span class="n">request</span><span class="p">.</span><span class="nf">path</span><span class="si">}</span><span class="s2">"</span>
 
-duration = ((Time.now - start_time) * 1000).round
-Rails.logger.info "Response: #{status} in #{duration}ms"
+    <span class="n">status</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="vi">@app</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 
-[status, headers, response]
+    <span class="n">duration</span> <span class="o">=</span> <span class="p">((</span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">).</span><span class="nf">round</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Response: </span><span class="si">#{</span><span class="n">status</span><span class="si">}</span><span class="s2"> in </span><span class="si">#{</span><span class="n">duration</span><span class="si">}</span><span class="s2">ms"</span>
+
+    <span class="p">[</span><span class="n">status</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">response</span><span class="p">]</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
+<p>Add to <code>config/application.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">RoutingDemo</span>
+  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="no">Rails</span><span class="o">::</span><span class="no">Application</span>
+    <span class="c1"># ... existing config</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">use</span> <span class="no">RequestTimer</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>Add to <code>config/application.rb</code>:<br>
-<code>ruby<br>
-module RoutingDemo<br>
-  class Application &lt; Rails::Application<br>
-    # ... existing config<br>
-    config.middleware.use RequestTimer<br>
-  end<br>
-end<br>
-</code></p>
-
+</code></pre></div>
 <h3>Step 6: Test Routes</h3>
 <div class="highlight"><pre class="highlight shell"><code><span class="c"># List all routes</span>
 bin/rails routes
@@ -1114,9 +1100,11 @@ bin/rails routes <span class="nt">-c</span> api/v1/posts
 <span class="c"># Test in console</span>
 Rails.application.routes.recognize_path<span class="o">(</span><span class="s2">"/posts/1/comments"</span>, method: :get<span class="o">)</span>
 <span class="c"># =&gt; { controller: "comments", action: "index", post_id: "1" }</span>
+
 </code></pre></div>
 <h3>Step 7: Create Sample Data and Test</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails console
+
 </code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Create posts</span>
 <span class="mi">3</span><span class="p">.</span><span class="nf">times</span> <span class="p">{</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span> <span class="no">Post</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">title: </span><span class="s2">"Post </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">body: </span><span class="s2">"Body </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="p">}</span>
 
@@ -1127,75 +1115,72 @@ Rails.application.routes.recognize_path<span class="o">(</span><span class="s2">
 
 <span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">url_helpers</span><span class="p">.</span><span class="nf">admin_posts_path</span>
 <span class="c1"># =&gt; "/admin/posts"</span>
+
 </code></pre></div>
-<p>Start server and test:<br>
-```bash<br>
-bin/rails server</p>
+<p>Start server and test:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails server
+<span class="c"># Visit http://localhost:3000/posts</span>
+<span class="c"># Visit http://localhost:3000/admin/posts</span>
+<span class="c"># Check log/development.log for timing output</span>
 
-<h1>Visit <a href="http://localhost:3000/posts" target="_blank">http://localhost:3000/posts</a></h1>
-
-<h1>Visit <a href="http://localhost:3000/admin/posts" target="_blank">http://localhost:3000/admin/posts</a></h1>
-
-<h1>Check log/development.log for timing output</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-## Stretch (Optional)
-
-1. Add route constraints for format:
-```ruby
-resources :posts, constraints: { format: 'json' }
 </code></pre></div>
-<ol>
-<li>Create a custom constraint class for API versioning:
-```ruby
-# lib/constraints/api_version.rb
-class ApiVersion
-def initialize(version)
-@version = version
-end</li>
-</ol>
-
-<p>def matches?(request)<br>
-    request.headers[&#39;Accept&#39;]&amp;.include?(&quot;application/vnd.myapp.v#{@version}+json&quot;)<br>
-  end<br>
-end</p>
-
-<h1>config/routes.rb</h1>
-
-<p>namespace :api do<br>
-  constraints ApiVersion.new(1) do<br>
-    resources :posts, controller: &#39;v1/posts&#39;<br>
-  end</p>
-
-<p>constraints ApiVersion.new(2) do<br>
-    resources :posts, controller: &#39;v2/posts&#39;<br>
-  end<br>
-end<br>
-```</p>
+<h2>Stretch (Optional)</h2>
 
 <ol>
-<li>Add middleware to reject requests without API key for /api routes:
-```ruby
-class ApiKeyCheck
-def initialize(app)
-@app = app
-end</li>
+<li>Add route constraints for format:</li>
 </ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">resources</span> <span class="ss">:posts</span><span class="p">,</span> <span class="ss">constraints: </span><span class="p">{</span> <span class="ss">format: </span><span class="s1">'json'</span> <span class="p">}</span>
 
-<p>def call(env)<br>
-    request = Rack::Request.new(env)</p>
-<div class="highlight"><pre class="highlight plaintext"><code>if request.path.start_with?('/api')
-  api_key = request.env['HTTP_X_API_KEY']
-  unless api_key == 'secret'
-    return [401, { 'Content-Type' =&gt; 'application/json' }, ['{"error": "Unauthorized"}']]
-  end
-end
-
-@app.call(env)
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
+<ol>
+<li>Create a custom constraint class for API versioning:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># lib/constraints/api_version.rb</span>
+<span class="k">class</span> <span class="nc">ApiVersion</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
+    <span class="vi">@version</span> <span class="o">=</span> <span class="n">version</span>
+  <span class="k">end</span>
 
+  <span class="k">def</span> <span class="nf">matches?</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="n">request</span><span class="p">.</span><span class="nf">headers</span><span class="p">[</span><span class="s1">'Accept'</span><span class="p">]</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">include?</span><span class="p">(</span><span class="s2">"application/vnd.myapp.v</span><span class="si">#{</span><span class="vi">@version</span><span class="si">}</span><span class="s2">+json"</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># config/routes.rb</span>
+<span class="n">namespace</span> <span class="ss">:api</span> <span class="k">do</span>
+  <span class="n">constraints</span> <span class="no">ApiVersion</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">do</span>
+    <span class="n">resources</span> <span class="ss">:posts</span><span class="p">,</span> <span class="ss">controller: </span><span class="s1">'v1/posts'</span>
+  <span class="k">end</span>
+
+  <span class="n">constraints</span> <span class="no">ApiVersion</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="k">do</span>
+    <span class="n">resources</span> <span class="ss">:posts</span><span class="p">,</span> <span class="ss">controller: </span><span class="s1">'v2/posts'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<ol>
+<li>Add middleware to reject requests without API key for /api routes:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ApiKeyCheck</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+    <span class="vi">@app</span> <span class="o">=</span> <span class="n">app</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Request</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">request</span><span class="p">.</span><span class="nf">path</span><span class="p">.</span><span class="nf">start_with?</span><span class="p">(</span><span class="s1">'/api'</span><span class="p">)</span>
+      <span class="n">api_key</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="nf">env</span><span class="p">[</span><span class="s1">'HTTP_X_API_KEY'</span><span class="p">]</span>
+      <span class="k">unless</span> <span class="n">api_key</span> <span class="o">==</span> <span class="s1">'secret'</span>
+        <span class="k">return</span> <span class="p">[</span><span class="mi">401</span><span class="p">,</span> <span class="p">{</span> <span class="s1">'Content-Type'</span> <span class="o">=&gt;</span> <span class="s1">'application/json'</span> <span class="p">},</span> <span class="p">[</span><span class="s1">'{"error": "Unauthorized"}'</span><span class="p">]]</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="vi">@app</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
 <h2>Time Estimate</h2>
 
 <p>18 minutes</p>

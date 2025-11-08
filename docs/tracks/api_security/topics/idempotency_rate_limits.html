@@ -677,6 +677,7 @@
 
   <span class="n">render</span> <span class="ss">json: </span><span class="n">response</span><span class="p">[</span><span class="ss">:body</span><span class="p">],</span> <span class="ss">status: </span><span class="n">response</span><span class="p">[</span><span class="ss">:status</span><span class="p">]</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>If the client retries with the same key, the cached response is returned without creating a duplicate order.</p>
 
@@ -700,6 +701,7 @@
     <span class="k">end</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Call <code>deduplicate(idempotency_key) { perform_operation }</code> to wrap the operation.</p>
 
@@ -729,6 +731,7 @@
     <span class="p">[{</span><span class="ss">error: </span><span class="s1">'Too many requests'</span><span class="p">,</span> <span class="ss">retry_after: </span><span class="n">retry_after</span><span class="p">}.</span><span class="nf">to_json</span><span class="p">]</span>
   <span class="p">]</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>This limits each IP to 100 requests/minute and each user to 1000 requests/hour.</p>
 
@@ -764,6 +767,7 @@
     <span class="k">end</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>More flexible than fixed windows but requires custom code.</p>
 
@@ -787,6 +791,7 @@
 <span class="k">def</span> <span class="nf">rate_limit_reset_time</span>
   <span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="p">.</span><span class="nf">beginning_of_hour</span> <span class="o">+</span> <span class="mi">1</span><span class="p">.</span><span class="nf">hour</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Clients read these to know when they can retry.</p>
 

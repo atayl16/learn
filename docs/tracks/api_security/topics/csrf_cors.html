@@ -672,6 +672,7 @@
       <span class="ss">credentials: </span><span class="kp">true</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><code>origins</code> whitelists domains. <code>credentials: true</code> allows cookies. Never use <code>origins &#39;*&#39;</code> with <code>credentials: true</code>.</p>
 
@@ -682,6 +683,7 @@
 <span class="na">Origin</span><span class="p">:</span> <span class="s">https://myapp.com</span>
 <span class="na">Access-Control-Request-Method</span><span class="p">:</span> <span class="s">POST</span>
 <span class="na">Access-Control-Request-Headers</span><span class="p">:</span> <span class="s">Authorization</span>
+
 </code></pre></div>
 <p>Rails responds with:</p>
 <div class="highlight"><pre class="highlight http"><code><span class="k">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">204</span> <span class="ne">No Content</span>
@@ -689,6 +691,7 @@
 <span class="na">Access-Control-Allow-Methods</span><span class="p">:</span> <span class="s">POST, GET, PUT, DELETE</span>
 <span class="na">Access-Control-Allow-Headers</span><span class="p">:</span> <span class="s">Authorization, Content-Type</span>
 <span class="na">Access-Control-Max-Age</span><span class="p">:</span> <span class="s">86400</span>
+
 </code></pre></div>
 <p><code>Max-Age</code> caches preflight for 24 hours, reducing overhead.</p>
 
@@ -707,6 +710,7 @@
 <span class="k">class</span> <span class="nc">SessionsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
   <span class="n">protect_from_forgery</span> <span class="ss">with: :null_session</span>  <span class="c1"># Returns 422 on invalid token</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Token-based APIs (JWT, bearer tokens) skip CSRF since attackers can&#39;t steal tokens from cookies.</p>
 
@@ -725,6 +729,7 @@
 <span class="k">def</span> <span class="nf">user_params</span>
   <span class="n">params</span><span class="p">.</span><span class="nf">require</span><span class="p">(</span><span class="ss">:user</span><span class="p">).</span><span class="nf">permit</span><span class="p">(</span><span class="ss">:email</span><span class="p">,</span> <span class="ss">:password</span><span class="p">,</span> <span class="ss">:full_name</span><span class="p">)</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Prevents attackers from passing <code>{admin: true}</code> to escalate privileges.</p>
 
@@ -742,6 +747,7 @@
 
 <span class="c1"># Dangerous (SQL injection)</span>
 <span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"email = '</span><span class="si">#{</span><span class="n">params</span><span class="p">[</span><span class="ss">:email</span><span class="p">]</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>  <span class="c1"># DON'T DO THIS</span>
+
 </code></pre></div>
 <p>ActiveRecord escapes params automatically. Avoid raw SQL strings.</p>
 
@@ -754,6 +760,7 @@
 <span class="c">&lt;!-- Unsafe: Renders raw HTML --&gt;</span>
 <span class="nt">&lt;p&gt;</span><span class="cp">&lt;%=</span> <span class="n">raw</span> <span class="vi">@user</span><span class="p">.</span><span class="nf">bio</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
 <span class="nt">&lt;p&gt;</span><span class="cp">&lt;%=</span><span class="o">=</span> <span class="vi">@user</span><span class="p">.</span><span class="nf">bio</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
+
 </code></pre></div>
 <p>For JSON APIs, don&#39;t use <code>html_safe</code> on user input. Return plain text; let clients escape.</p>
 
@@ -767,6 +774,7 @@
 <span class="c1"># Unsafe</span>
 <span class="no">Post</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"status = '</span><span class="si">#{</span><span class="n">params</span><span class="p">[</span><span class="ss">:status</span><span class="p">]</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
 <span class="c1"># Attack: params[:status] = "'; DROP TABLE posts--"</span>
+
 </code></pre></div>
 <p>Use <code>Arel</code> or scopes for complex queries. Never interpolate user input.</p>
 

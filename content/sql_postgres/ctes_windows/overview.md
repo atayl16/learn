@@ -22,14 +22,17 @@ CTEs make nested subqueries readable. Window functions solve problems that requi
 ## Common Table Expressions (CTEs)
 
 **Basic syntax:**
+
 ```sql
 WITH cte_name AS (
   SELECT ...
 )
 SELECT * FROM cte_name;
+
 ```
 
 **Example: Find users with above-average orders:**
+
 ```sql
 WITH avg_orders AS (
   SELECT AVG(total) AS avg_total FROM orders
@@ -38,9 +41,11 @@ SELECT users.*
 FROM users
 JOIN orders ON orders.user_id = users.id
 JOIN avg_orders ON orders.total > avg_orders.avg_total;
+
 ```
 
 **Rails (raw SQL):**
+
 ```ruby
 sql = <<-SQL
   WITH avg_orders AS (
@@ -54,9 +59,11 @@ sql = <<-SQL
 SQL
 
 User.find_by_sql(sql)
+
 ```
 
 **Multiple CTEs:**
+
 ```sql
 WITH active_users AS (
   SELECT id FROM users WHERE last_login > NOW() - INTERVAL '30 days'
@@ -71,6 +78,7 @@ SELECT users.*, recent_orders.total_spent
 FROM users
 JOIN active_users ON active_users.id = users.id
 JOIN recent_orders ON recent_orders.user_id = users.id;
+
 ```
 
 ---
@@ -80,14 +88,17 @@ JOIN recent_orders ON recent_orders.user_id = users.id;
 Query hierarchical data (org charts, category trees).
 
 **Schema:**
+
 ```ruby
 create_table :categories do |t|
   t.string :name
   t.references :parent, foreign_key: { to_table: :categories }
 end
+
 ```
 
 **Recursive query:**
+
 ```sql
 WITH RECURSIVE category_tree AS (
   -- Base case: root categories
@@ -103,6 +114,7 @@ WITH RECURSIVE category_tree AS (
   JOIN category_tree ct ON c.parent_id = ct.id
 )
 SELECT * FROM category_tree ORDER BY level, name;
+
 ```
 
 ---
@@ -110,12 +122,14 @@ SELECT * FROM category_tree ORDER BY level, name;
 ## Window Functions Basics
 
 **Syntax:**
+
 ```sql
 function_name() OVER (
   PARTITION BY column
   ORDER BY column
   ROWS/RANGE frame_clause
 )
+
 ```
 
 **Without PARTITION BY:** Operates on entire result set.
@@ -128,6 +142,7 @@ function_name() OVER (
 Assign unique sequential numbers to rows.
 
 **Find top 3 products per category:**
+
 ```sql
 WITH ranked_products AS (
   SELECT
@@ -136,9 +151,11 @@ WITH ranked_products AS (
   FROM products
 )
 SELECT * FROM ranked_products WHERE rank <= 3;
+
 ```
 
 **Rails:**
+
 ```ruby
 sql = <<-SQL
   WITH ranked_products AS (
@@ -150,6 +167,7 @@ sql = <<-SQL
 SQL
 
 Product.find_by_sql(sql)
+
 ```
 
 ---
@@ -166,9 +184,11 @@ SELECT
   RANK() OVER (ORDER BY score DESC) AS rank,
   DENSE_RANK() OVER (ORDER BY score DESC) AS dense_rank
 FROM students;
+
 ```
 
 **Result:**
+
 ```
 name    | score | rank | dense_rank
 --------|-------|------|------------
@@ -176,6 +196,7 @@ Alice   | 100   | 1    | 1
 Bob     | 95    | 2    | 2
 Charlie | 95    | 2    | 2
 David   | 90    | 4    | 3
+
 ```
 
 ---
@@ -185,6 +206,7 @@ David   | 90    | 4    | 3
 Access previous or next row within partition.
 
 **Calculate price changes:**
+
 ```sql
 SELECT
   date,
@@ -192,18 +214,22 @@ SELECT
   LAG(price) OVER (ORDER BY date) AS prev_price,
   price - LAG(price) OVER (ORDER BY date) AS price_change
 FROM stock_prices;
+
 ```
 
 **Result:**
+
 ```
 date       | price | prev_price | price_change
 -----------|-------|------------|-------------
 2024-01-01 | 100   | NULL       | NULL
 2024-01-02 | 105   | 100        | 5
 2024-01-03 | 102   | 105        | -3
+
 ```
 
 **Rails:**
+
 ```ruby
 sql = <<-SQL
   SELECT
@@ -215,6 +241,7 @@ sql = <<-SQL
 SQL
 
 StockPrice.find_by_sql(sql)
+
 ```
 
 ---
@@ -222,21 +249,25 @@ StockPrice.find_by_sql(sql)
 ## Running Totals and Moving Averages
 
 **Running total:**
+
 ```sql
 SELECT
   date,
   amount,
   SUM(amount) OVER (ORDER BY date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_total
 FROM transactions;
+
 ```
 
 **3-day moving average:**
+
 ```sql
 SELECT
   date,
   value,
   AVG(value) OVER (ORDER BY date ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS moving_avg_3day
 FROM metrics;
+
 ```
 
 ---
@@ -244,6 +275,7 @@ FROM metrics;
 ## CTEs vs Subqueries
 
 **Subquery (less readable):**
+
 ```sql
 SELECT *
 FROM users
@@ -252,9 +284,11 @@ WHERE id IN (
   FROM orders
   WHERE total > (SELECT AVG(total) FROM orders)
 );
+
 ```
 
 **CTE (more readable):**
+
 ```sql
 WITH avg_total AS (
   SELECT AVG(total) AS avg FROM orders
@@ -263,6 +297,7 @@ high_value_orders AS (
   SELECT user_id FROM orders, avg_total WHERE total > avg_total.avg
 )
 SELECT * FROM users WHERE id IN (SELECT user_id FROM high_value_orders);
+
 ```
 
 **Performance:** Postgres 12+ inlines CTEs like subqueries. Use MATERIALIZED to force evaluation once.
@@ -272,6 +307,7 @@ WITH materialized_cte AS MATERIALIZED (
   SELECT expensive_computation() AS result
 )
 SELECT * FROM materialized_cte;
+
 ```
 
 ---
@@ -279,15 +315,18 @@ SELECT * FROM materialized_cte;
 ## Window Functions in Rails
 
 **Arel:**
+
 ```ruby
 # ROW_NUMBER with partition
 window = Arel::Nodes::Window.new.partition(Product.arel_table[:category_id]).order(Product.arel_table[:sales].desc)
 row_number = Arel::Nodes::NamedFunction.new('ROW_NUMBER', []).over(window)
 
 Product.select(Product.arel_table[Arel.star], row_number.as('rank'))
+
 ```
 
 **Raw SQL (simpler):**
+
 ```ruby
 sql = <<-SQL
   SELECT products.*,
@@ -296,6 +335,7 @@ sql = <<-SQL
 SQL
 
 Product.find_by_sql(sql)
+
 ```
 
 ---

@@ -683,6 +683,7 @@
     <span class="n">render</span> <span class="ss">json: </span><span class="no">User</span><span class="p">.</span><span class="nf">all</span><span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="ss">:id</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:full_name</span><span class="p">)</span>  <span class="c1"># New field</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Pros: Easy to test (just change URL). Cons: Pollutes URL space; caching treats v1 and v2 as separate resources.</p>
 
@@ -711,6 +712,7 @@
     <span class="vi">@default</span> <span class="o">||</span> <span class="n">request</span><span class="p">.</span><span class="nf">headers</span><span class="p">[</span><span class="s1">'API-Version'</span><span class="p">]</span> <span class="o">==</span> <span class="vi">@version</span><span class="p">.</span><span class="nf">to_s</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Clients send <code>API-Version: 2</code>. Requires custom routing logic.</p>
 
@@ -727,6 +729,7 @@
 <span class="k">def</span> <span class="nf">as_json</span><span class="p">(</span><span class="n">options</span> <span class="o">=</span> <span class="p">{})</span>
   <span class="k">super</span><span class="p">.</span><span class="nf">merge</span><span class="p">(</span><span class="ss">name: </span><span class="n">full_name</span><span class="p">)</span>  <span class="c1"># Maintain 'name' for v1 clients</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Use feature flags or serializers to conditionally include fields.</p>
 
@@ -740,6 +743,7 @@
   <span class="n">response</span><span class="p">.</span><span class="nf">set_header</span><span class="p">(</span><span class="s1">'Sunset'</span><span class="p">,</span> <span class="s1">'Sat, 31 Dec 2025 23:59:59 GMT'</span><span class="p">)</span>
   <span class="n">response</span><span class="p">.</span><span class="nf">set_header</span><span class="p">(</span><span class="s1">'Link'</span><span class="p">,</span> <span class="s1">'&lt;https://api.example.com/docs/migration&gt;; rel="sunset"'</span><span class="p">)</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Clients parse <code>Sunset</code> to know the shutdown date. <code>Link</code> points to migration docs.</p>
 
@@ -752,6 +756,7 @@
 <span class="k">def</span> <span class="nf">deprecation_warning</span>
   <span class="n">response</span><span class="p">.</span><span class="nf">set_header</span><span class="p">(</span><span class="s1">'Warning'</span><span class="p">,</span> <span class="s1">'299 - "API v1 is deprecated. Migrate to v2 by 2025-12-31."'</span><span class="p">)</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Log which clients hit deprecated endpoints to prioritize migration outreach.</p>
 

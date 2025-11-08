@@ -31,6 +31,7 @@ user = User.find(1)
 
 # Allocates: N User objects + attributes (strings, integers)
 users = User.limit(1000).to_a
+
 ```
 
 Use `ObjectSpace` to count allocations:
@@ -42,6 +43,7 @@ before = GC.stat(:total_allocated_objects)
 
 after = GC.stat(:total_allocated_objects)
 puts "Allocated: #{after - before} objects" # ~1000 strings
+
 ```
 
 ---
@@ -60,6 +62,7 @@ GC.stat
 #   total_allocated_objects: 1200000,
 #   malloc_increase_bytes: 500000
 # }
+
 ```
 
 **Key metrics:**
@@ -69,9 +72,11 @@ GC.stat
 - `malloc_increase_bytes`: Memory from C extensions
 
 **Monitor in production:**
+
 ```ruby
 # Log GC stats per request
 Rails.logger.info "GC count: #{GC.stat(:count)}, Live objects: #{GC.stat(:heap_live_slots)}"
+
 ```
 
 ---
@@ -91,9 +96,11 @@ report = MemoryProfiler.report do
 end
 
 report.pretty_print
+
 ```
 
 **Output:**
+
 ```
 Total allocated: 50.2 MB (500,000 objects)
 Total retained: 12.5 MB (125,000 objects)
@@ -105,6 +112,7 @@ allocated memory by gem:
 allocated objects by location:
   app/models/user.rb:10: 250,000 objects
   activerecord/lib/connection.rb:42: 100,000 objects
+
 ```
 
 **Allocated vs Retained:**
@@ -128,11 +136,13 @@ def index
 
   render :index
 end
+
 ```
 
 Check `tmp/memory_profile.txt` for allocation hotspots.
 
 **Automate profiling in tests:**
+
 ```ruby
 # test/performance/memory_test.rb
 require 'test_helper'
@@ -147,6 +157,7 @@ class MemoryTest < ActiveSupport::TestCase
     assert report.total_allocated_memsize < 10.megabytes, "Allocates too much memory"
   end
 end
+
 ```
 
 ---
@@ -172,6 +183,7 @@ end
 allocations.each do |file, objs|
   puts "#{file}: #{objs.size} objects"
 end
+
 ```
 
 Use for debugging which gems or lines allocate heavily.
@@ -181,15 +193,18 @@ Use for debugging which gems or lines allocate heavily.
 ## Common Memory Bloat Patterns
 
 **1. Loading all records:**
+
 ```ruby
 # BAD: loads 100k records into memory
 User.all.each { |user| process(user) }
 
 # GOOD: batches in 1k chunks
 User.find_each(batch_size: 1000) { |user| process(user) }
+
 ```
 
 **2. N+1 allocations:**
+
 ```ruby
 # BAD: allocates 1 User object per post
 posts.each { |post| post.user.name }
@@ -197,9 +212,11 @@ posts.each { |post| post.user.name }
 # GOOD: allocates N users once
 posts = Post.includes(:user)
 posts.each { |post| post.user.name }
+
 ```
 
 **3. String concatenation in loops:**
+
 ```ruby
 # BAD: creates N string objects
 result = ""
@@ -209,6 +226,7 @@ result = ""
 result = []
 1000.times { result << "x" }
 result.join
+
 ```
 
 ---
@@ -224,17 +242,20 @@ export RUBY_GC_HEAP_INIT_SLOTS=600000
 export RUBY_GC_MALLOC_LIMIT=16000000
 
 bin/rails server
+
 ```
 
 **Trade-off:** Larger heaps reduce GC pauses but consume more memory.
 
 **Monitor impact:**
+
 ```ruby
 # Before tuning
 GC.stat(:count) # => 150 (many GC runs)
 
 # After tuning
 GC.stat(:count) # => 50 (fewer GC runs, but higher RAM usage)
+
 ```
 
 Test in staging before production. Over-tuning can cause OOM.
@@ -246,6 +267,7 @@ Test in staging before production. Over-tuning can cause OOM.
 Memory leak: memory grows over time, never released.
 
 **Test for leaks:**
+
 ```ruby
 # Run in production console
 before = GC.stat(:heap_live_slots)
@@ -258,6 +280,7 @@ GC.start
 after = GC.stat(:heap_live_slots)
 
 puts "Leaked objects: #{after - before}"
+
 ```
 
 If `after` significantly exceeds `before`, investigate retained objects.
@@ -288,6 +311,7 @@ Rails.application.config.after_initialize do
     end
   end
 end
+
 ```
 
 **APM tools (preferred):**

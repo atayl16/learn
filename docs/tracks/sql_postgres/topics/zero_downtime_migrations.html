@@ -658,226 +658,203 @@
 
 <h2>Adding Columns Safely</h2>
 
-<p><strong>Unsafe (Postgres &lt;11):</strong><br>
-```ruby</p>
+<p><strong>Unsafe (Postgres &lt;11):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Rewrites entire table, holding exclusive lock</span>
+<span class="n">add_column</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:role</span><span class="p">,</span> <span class="ss">:string</span><span class="p">,</span> <span class="ss">default: </span><span class="s1">'user'</span>
 
-<h1>Rewrites entire table, holding exclusive lock</h1>
+</code></pre></div>
+<p><strong>Safe (multi-step):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Step 1: Add column without default</span>
+<span class="k">class</span> <span class="nc">AddRoleToUsers</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">add_column</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:role</span><span class="p">,</span> <span class="ss">:string</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>add_column :users, :role, :string, default: &#39;user&#39;<br>
-```</p>
+<span class="c1"># Step 2: Backfill in batches (separate migration or rake task)</span>
+<span class="k">class</span> <span class="nc">BackfillUserRoles</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="n">disable_ddl_transaction!</span>
 
-<p><strong>Safe (multi-step):</strong><br>
-```ruby</p>
+  <span class="k">def</span> <span class="nf">up</span>
+    <span class="no">User</span><span class="p">.</span><span class="nf">in_batches</span><span class="p">(</span><span class="ss">of: </span><span class="mi">10_000</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">batch</span><span class="o">|</span>
+      <span class="n">batch</span><span class="p">.</span><span class="nf">update_all</span><span class="p">(</span><span class="ss">role: </span><span class="s1">'user'</span><span class="p">)</span>
+      <span class="nb">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>  <span class="c1"># Pause to reduce load</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<h1>Step 1: Add column without default</h1>
+<span class="c1"># Step 3: Add default for new rows</span>
+<span class="k">class</span> <span class="nc">SetDefaultRoleOnUsers</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">change_column_default</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:role</span><span class="p">,</span> <span class="s1">'user'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>class AddRoleToUsers &lt; ActiveRecord::Migration[7.0]<br>
-  def change<br>
-    add_column :users, :role, :string<br>
-  end<br>
-end</p>
+<span class="c1"># Step 4: Add NOT NULL constraint (optional)</span>
+<span class="k">class</span> <span class="nc">AddNotNullToUserRole</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">change_column_null</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:role</span><span class="p">,</span> <span class="kp">false</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<h1>Step 2: Backfill in batches (separate migration or rake task)</h1>
-
-<p>class BackfillUserRoles &lt; ActiveRecord::Migration[7.0]<br>
-  disable_ddl_transaction!</p>
-
-<p>def up<br>
-    User.in_batches(of: 10_000) do |batch|<br>
-      batch.update_all(role: &#39;user&#39;)<br>
-      sleep(0.01)  # Pause to reduce load<br>
-    end<br>
-  end<br>
-end</p>
-
-<h1>Step 3: Add default for new rows</h1>
-
-<p>class SetDefaultRoleOnUsers &lt; ActiveRecord::Migration[7.0]<br>
-  def change<br>
-    change_column_default :users, :role, &#39;user&#39;<br>
-  end<br>
-end</p>
-
-<h1>Step 4: Add NOT NULL constraint (optional)</h1>
-
-<p>class AddNotNullToUserRole &lt; ActiveRecord::Migration[7.0]<br>
-  def change<br>
-    change_column_null :users, :role, false<br>
-  end<br>
-end<br>
-```</p>
-
+</code></pre></div>
 <p><strong>Note:</strong> Postgres 11+ optimizes adding columns with defaults but still requires caution for very large tables.</p>
 
 <hr>
 
 <h2>Creating Indexes Concurrently</h2>
 
-<p><strong>Unsafe:</strong><br>
-```ruby<br>
-add_index :users, :email</p>
+<p><strong>Unsafe:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">add_index</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span>
+<span class="c1"># Acquires ShareLock, blocking INSERT/UPDATE/DELETE</span>
 
-<h1>Acquires ShareLock, blocking INSERT/UPDATE/DELETE</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Safe:**
-```ruby
-class AddIndexToUsersEmail &lt; ActiveRecord::Migration[7.0]
-  disable_ddl_transaction!
-
-  def change
-    add_index :users, :email, algorithm: :concurrently
-  end
-end
 </code></pre></div>
-<p><strong>SQL:</strong><br>
-<code>sql<br>
-CREATE INDEX CONCURRENTLY index_users_on_email ON users (email);<br>
-</code></p>
+<p><strong>Safe:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">AddIndexToUsersEmail</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="n">disable_ddl_transaction!</span>
 
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">add_index</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">algorithm: :concurrently</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>SQL:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">CONCURRENTLY</span> <span class="n">index_users_on_email</span> <span class="k">ON</span> <span class="n">users</span> <span class="p">(</span><span class="n">email</span><span class="p">);</span>
+
+</code></pre></div>
 <p><strong>Behavior:</strong><br>
 - Allows concurrent writes during index creation<br>
 - Takes longer than regular index creation<br>
 - Fails if transaction is open (use <code>disable_ddl_transaction!</code>)</p>
 
-<p><strong>Removing indexes:</strong><br>
-```ruby<br>
-class RemoveIndexFromUsersEmail &lt; ActiveRecord::Migration[7.0]<br>
-  disable_ddl_transaction!</p>
+<p><strong>Removing indexes:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">RemoveIndexFromUsersEmail</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="n">disable_ddl_transaction!</span>
 
-<p>def change<br>
-    remove_index :users, :email, algorithm: :concurrently<br>
-  end<br>
-end<br>
-```</p>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">remove_index</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">algorithm: :concurrently</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Backfilling Data in Batches</h2>
 
-<p><strong>Unsafe (single transaction):</strong><br>
-<code>ruby<br>
-def up<br>
-  User.update_all(verified: false)<br>
-  # Locks table for entire duration<br>
-end<br>
-</code></p>
+<p><strong>Unsafe (single transaction):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">up</span>
+  <span class="no">User</span><span class="p">.</span><span class="nf">update_all</span><span class="p">(</span><span class="ss">verified: </span><span class="kp">false</span><span class="p">)</span>
+  <span class="c1"># Locks table for entire duration</span>
+<span class="k">end</span>
 
-<p><strong>Safe (batched):</strong><br>
-```ruby<br>
-class BackfillUserVerified &lt; ActiveRecord::Migration[7.0]<br>
-  disable_ddl_transaction!</p>
-
-<p>def up<br>
-    User.in_batches(of: 10_000).each_record do |user|<br>
-      user.update_column(:verified, false)<br>
-    end<br>
-  end<br>
-end<br>
-```</p>
-
-<p><strong>Better (raw SQL for speed):</strong><br>
-```ruby<br>
-def up<br>
-  batch_size = 10_000<br>
-  last_id = 0</p>
-
-<p>loop do<br>
-    result = execute(&lt;&lt;-SQL)<br>
-      UPDATE users<br>
-      SET verified = false<br>
-      WHERE id &gt; #{last_id} AND id &lt;= #{last_id + batch_size}<br>
-      RETURNING id<br>
-    SQL</p>
-<div class="highlight"><pre class="highlight plaintext"><code>break if result.count == 0
-
-last_id += batch_size
-sleep(0.01)  # Reduce load
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
+<p><strong>Safe (batched):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">BackfillUserVerified</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="n">disable_ddl_transaction!</span>
 
+  <span class="k">def</span> <span class="nf">up</span>
+    <span class="no">User</span><span class="p">.</span><span class="nf">in_batches</span><span class="p">(</span><span class="ss">of: </span><span class="mi">10_000</span><span class="p">).</span><span class="nf">each_record</span> <span class="k">do</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span>
+      <span class="n">user</span><span class="p">.</span><span class="nf">update_column</span><span class="p">(</span><span class="ss">:verified</span><span class="p">,</span> <span class="kp">false</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Better (raw SQL for speed):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">up</span>
+  <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">10_000</span>
+  <span class="n">last_id</span> <span class="o">=</span> <span class="mi">0</span>
+
+  <span class="kp">loop</span> <span class="k">do</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">execute</span><span class="p">(</span><span class="o">&lt;&lt;-</span><span class="no">SQL</span><span class="p">)</span><span class="sh">
+      UPDATE users
+      SET verified = false
+      WHERE id &gt; </span><span class="si">#{</span><span class="n">last_id</span><span class="si">}</span><span class="sh"> AND id &lt;= </span><span class="si">#{</span><span class="n">last_id</span> <span class="o">+</span> <span class="n">batch_size</span><span class="si">}</span><span class="sh">
+      RETURNING id
+</span><span class="no">    SQL</span>
+
+    <span class="k">break</span> <span class="k">if</span> <span class="n">result</span><span class="p">.</span><span class="nf">count</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="n">last_id</span> <span class="o">+=</span> <span class="n">batch_size</span>
+    <span class="nb">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>  <span class="c1"># Reduce load</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
 <hr>
 
 <h2>Adding NOT NULL Constraints Safely</h2>
 
-<p><strong>Unsafe:</strong><br>
-```ruby<br>
-change_column_null :users, :email, false</p>
+<p><strong>Unsafe:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">change_column_null</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="kp">false</span>
+<span class="c1"># Scans entire table with exclusive lock</span>
 
-<h1>Scans entire table with exclusive lock</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Safe:**
-```ruby
-# Step 1: Backfill NULLs
-class BackfillUserEmails &lt; ActiveRecord::Migration[7.0]
-  disable_ddl_transaction!
-
-  def up
-    User.where(email: nil).in_batches(of: 10_000) do |batch|
-      batch.update_all(email: '')
-      sleep(0.01)
-    end
-  end
-end
-
-# Step 2: Add NOT NULL constraint
-class AddNotNullToUserEmail &lt; ActiveRecord::Migration[7.0]
-  def change
-    change_column_null :users, :email, false
-  end
-end
 </code></pre></div>
-<p><strong>Postgres 12+ (safer):</strong><br>
-```ruby</p>
+<p><strong>Safe:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Step 1: Backfill NULLs</span>
+<span class="k">class</span> <span class="nc">BackfillUserEmails</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="n">disable_ddl_transaction!</span>
 
-<h1>Add check constraint first (validates new rows only)</h1>
+  <span class="k">def</span> <span class="nf">up</span>
+    <span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">email: </span><span class="kp">nil</span><span class="p">).</span><span class="nf">in_batches</span><span class="p">(</span><span class="ss">of: </span><span class="mi">10_000</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">batch</span><span class="o">|</span>
+      <span class="n">batch</span><span class="p">.</span><span class="nf">update_all</span><span class="p">(</span><span class="ss">email: </span><span class="s1">''</span><span class="p">)</span>
+      <span class="nb">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>add_check_constraint :users, &quot;email IS NOT NULL&quot;, name: &quot;users_email_null&quot;, validate: false</p>
+<span class="c1"># Step 2: Add NOT NULL constraint</span>
+<span class="k">class</span> <span class="nc">AddNotNullToUserEmail</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">change_column_null</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="kp">false</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<h1>Validate existing rows (can run concurrently)</h1>
+</code></pre></div>
+<p><strong>Postgres 12+ (safer):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Add check constraint first (validates new rows only)</span>
+<span class="n">add_check_constraint</span> <span class="ss">:users</span><span class="p">,</span> <span class="s2">"email IS NOT NULL"</span><span class="p">,</span> <span class="ss">name: </span><span class="s2">"users_email_null"</span><span class="p">,</span> <span class="ss">validate: </span><span class="kp">false</span>
 
-<p>validate_check_constraint :users, name: &quot;users_email_null&quot;</p>
+<span class="c1"># Validate existing rows (can run concurrently)</span>
+<span class="n">validate_check_constraint</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">name: </span><span class="s2">"users_email_null"</span>
 
-<h1>Promote to NOT NULL</h1>
+<span class="c1"># Promote to NOT NULL</span>
+<span class="n">change_column_null</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="kp">false</span>
 
-<p>change_column_null :users, :email, false</p>
+<span class="c1"># Remove check constraint</span>
+<span class="n">remove_check_constraint</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">name: </span><span class="s2">"users_email_null"</span>
 
-<h1>Remove check constraint</h1>
-
-<p>remove_check_constraint :users, name: &quot;users_email_null&quot;<br>
-```</p>
-
+</code></pre></div>
 <hr>
 
 <h2>Changing Column Types</h2>
 
-<p><strong>Unsafe:</strong><br>
-```ruby<br>
-change_column :users, :age, :bigint</p>
+<p><strong>Unsafe:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">change_column</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:age</span><span class="p">,</span> <span class="ss">:bigint</span>
+<span class="c1"># Rewrites table, exclusive lock</span>
 
-<h1>Rewrites table, exclusive lock</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Safe (multi-step):**
-```ruby
-# Step 1: Add new column
-add_column :users, :age_bigint, :bigint
+</code></pre></div>
+<p><strong>Safe (multi-step):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Step 1: Add new column</span>
+<span class="n">add_column</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:age_bigint</span><span class="p">,</span> <span class="ss">:bigint</span>
 
-# Step 2: Dual-write (application code)
-user.update(age: 25, age_bigint: 25)
+<span class="c1"># Step 2: Dual-write (application code)</span>
+<span class="n">user</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="ss">age: </span><span class="mi">25</span><span class="p">,</span> <span class="ss">age_bigint: </span><span class="mi">25</span><span class="p">)</span>
 
-# Step 3: Backfill existing rows
-User.where(age_bigint: nil).in_batches(of: 10_000) do |batch|
-  batch.update_all("age_bigint = age")
-  sleep(0.01)
-end
+<span class="c1"># Step 3: Backfill existing rows</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">age_bigint: </span><span class="kp">nil</span><span class="p">).</span><span class="nf">in_batches</span><span class="p">(</span><span class="ss">of: </span><span class="mi">10_000</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">batch</span><span class="o">|</span>
+  <span class="n">batch</span><span class="p">.</span><span class="nf">update_all</span><span class="p">(</span><span class="s2">"age_bigint = age"</span><span class="p">)</span>
+  <span class="nb">sleep</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="k">end</span>
 
-# Step 4: Swap columns
-rename_column :users, :age, :age_int
-rename_column :users, :age_bigint, :age
+<span class="c1"># Step 4: Swap columns</span>
+<span class="n">rename_column</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:age</span><span class="p">,</span> <span class="ss">:age_int</span>
+<span class="n">rename_column</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:age_bigint</span><span class="p">,</span> <span class="ss">:age</span>
 
-# Step 5: Remove old column
-remove_column :users, :age_int
+<span class="c1"># Step 5: Remove old column</span>
+<span class="n">remove_column</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:age_int</span>
+
 </code></pre></div>
 <hr>
 
@@ -896,6 +873,7 @@ remove_column :users, :age_int
     <span class="n">remove_index</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">algorithm: :concurrently</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><strong>Behavior:</strong><br>
 - If lock not acquired within 5 seconds, migration fails instead of hanging<br>
@@ -905,29 +883,26 @@ remove_column :users, :age_int
 
 <h2>Using strong_migrations Gem</h2>
 
-<p>Install:<br>
-<code>ruby<br>
-gem &#39;strong_migrations&#39;<br>
-</code></p>
+<p>Install:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">gem</span> <span class="s1">'strong_migrations'</span>
 
-<p><strong>Detects unsafe operations:</strong><br>
-```ruby<br>
-add_column :users, :role, :string, default: &#39;user&#39;</p>
-
-<h1>StrongMigrations::UnsafeMigration: Adding a column with a default value is unsafe</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Suggests safe alternatives:**
 </code></pre></div>
-<p>Use this safer approach instead:</p>
+<p><strong>Detects unsafe operations:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">add_column</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:role</span><span class="p">,</span> <span class="ss">:string</span><span class="p">,</span> <span class="ss">default: </span><span class="s1">'user'</span>
+<span class="c1"># StrongMigrations::UnsafeMigration: Adding a column with a default value is unsafe</span>
 
-<p>class AddRoleToUsers &lt; ActiveRecord::Migration[7.0]<br>
-    def change<br>
-      add_column :users, :role, :string<br>
-      change_column_default :users, :role, &#39;user&#39;<br>
-    end<br>
-  end<br>
-```</p>
+</code></pre></div>
+<p><strong>Suggests safe alternatives:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>Use this safer approach instead:
 
+  class AddRoleToUsers &lt; ActiveRecord::Migration[7.0]
+    def change
+      add_column :users, :role, :string
+      change_column_default :users, :role, 'user'
+    end
+  end
+
+</code></pre></div>
 <hr>
 
 <h2>Trade-offs Box</h2>
@@ -984,16 +959,15 @@ add_column :users, :role, :string, default: &#39;user&#39;</p>
 
 <p>You have a <code>posts</code> table with 5 million rows in production. You need to add an <code>author_name</code> column with a default value, create an index, and enforce NOT NULL. Write migrations that won&#39;t lock the table or cause downtime.</p>
 
-<p><strong>Current schema:</strong><br>
-<code>ruby<br>
-create_table :posts do |t|<br>
-  t.references :user, null: false, foreign_key: true<br>
-  t.string :title, null: false<br>
-  t.text :body<br>
-  t.timestamps<br>
-end<br>
-</code></p>
+<p><strong>Current schema:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">create_table</span> <span class="ss">:posts</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">references</span> <span class="ss">:user</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span><span class="p">,</span> <span class="ss">foreign_key: </span><span class="kp">true</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">text</span> <span class="ss">:body</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">timestamps</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <p><strong>Requirements:</strong><br>
 - Add <code>author_name</code> string column with default <code>&#39;Anonymous&#39;</code><br>
 - Backfill existing posts with user&#39;s name<br>

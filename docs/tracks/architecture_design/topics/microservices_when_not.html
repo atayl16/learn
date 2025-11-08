@@ -697,6 +697,7 @@
     <span class="c1"># ...</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Modules communicate through service objects, not direct model access. Benefits: domain isolation, easier extraction later. Costs: discipline required to enforce boundaries.</p>
 
@@ -730,6 +731,7 @@
     <span class="no">Inventory</span><span class="o">::</span><span class="no">ReserveStock</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="ss">order_id: </span><span class="n">event</span><span class="p">[</span><span class="ss">:order_id</span><span class="p">])</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Message queues enable eventual consistency but complicate debugging (messages lost, duplicate processing, ordering issues). Use only when async processing or decoupling justifies the complexity.</p>
 
@@ -741,6 +743,7 @@
   <span class="no">PaymentGateway</span><span class="p">.</span><span class="nf">charge</span><span class="p">(</span><span class="n">order</span><span class="p">.</span><span class="nf">total</span><span class="p">)</span>
   <span class="no">Inventory</span><span class="p">.</span><span class="nf">decrement</span><span class="p">(</span><span class="n">order</span><span class="p">.</span><span class="nf">product_id</span><span class="p">,</span> <span class="n">order</span><span class="p">.</span><span class="nf">quantity</span><span class="p">)</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>If any step fails, the database rolls back. In microservices:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># orders-service</span>
@@ -750,6 +753,7 @@
 <span class="k">else</span>
   <span class="c1"># Compensate: what if inventory already decremented?</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Microservices require saga patterns (event-driven compensation) to handle failures, adding complexity.</p>
 

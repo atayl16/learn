@@ -665,16 +665,16 @@
 <span class="n">post</span><span class="p">.</span><span class="nf">cache_key_with_version</span>
 <span class="c1"># =&gt; "posts/1-20250108123045678901234"</span>
 <span class="c1">#     model / id - updated_at (microseconds)</span>
+
 </code></pre></div>
 <p>When <code>updated_at</code> changes, the cache key changes → cache miss → fresh render.</p>
 
-<p><strong>In views:</strong><br>
-<code>erb<br>
-&lt;% cache post do %&gt;<br>
-  &lt;%= render post %&gt;<br>
-&lt;% end %&gt;<br>
-</code></p>
+<p><strong>In views:</strong></p>
+<div class="highlight"><pre class="highlight erb"><code><span class="cp">&lt;%</span> <span class="n">cache</span> <span class="n">post</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">render</span> <span class="n">post</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
 
+</code></pre></div>
 <p>Automatically uses <code>post.cache_key_with_version</code>.</p>
 
 <hr>
@@ -686,49 +686,45 @@
 <span class="k">class</span> <span class="nc">Comment</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
   <span class="n">belongs_to</span> <span class="ss">:post</span><span class="p">,</span> <span class="ss">touch: </span><span class="kp">true</span>
 <span class="k">end</span>
+
 </code></pre></div>
-<p><strong>Behavior:</strong><br>
-```ruby<br>
-post = Post.find(1)<br>
-old_key = post.cache_key_with_version</p>
+<p><strong>Behavior:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">post</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">old_key</span> <span class="o">=</span> <span class="n">post</span><span class="p">.</span><span class="nf">cache_key_with_version</span>
+<span class="c1"># =&gt; "posts/1-20250108120000000000000"</span>
 
-<h1>=&gt; &quot;posts/1-20250108120000000000000&quot;</h1>
+<span class="c1"># Create a comment</span>
+<span class="no">Comment</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">post: </span><span class="n">post</span><span class="p">,</span> <span class="ss">body: </span><span class="s2">"Nice post"</span><span class="p">)</span>
 
-<h1>Create a comment</h1>
+<span class="c1"># Post's updated_at is touched</span>
+<span class="n">post</span><span class="p">.</span><span class="nf">reload</span><span class="p">.</span><span class="nf">cache_key_with_version</span>
+<span class="c1"># =&gt; "posts/1-20250108120100000000000" (new timestamp)</span>
 
-<p>Comment.create(post: post, body: &quot;Nice post&quot;)</p>
+</code></pre></div>
+<p>Cached post fragment now has a new key → cache miss → re-render with new comment.</p>
 
-<h1>Post&#39;s updated_at is touched</h1>
+<hr>
 
-<p>post.reload.cache_key_with_version</p>
+<h2>Russian-Doll Caching</h2>
 
-<h1>=&gt; &quot;posts/1-20250108120100000000000&quot; (new timestamp)</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-Cached post fragment now has a new key → cache miss → re-render with new comment.
+<p>Nest caches to reuse unchanged fragments:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="c">&lt;!-- Outer cache: expires when ANY post changes --&gt;</span>
+<span class="cp">&lt;%</span> <span class="n">cache</span> <span class="p">[</span><span class="s2">"posts"</span><span class="p">,</span> <span class="vi">@posts</span><span class="p">.</span><span class="nf">maximum</span><span class="p">(</span><span class="ss">:updated_at</span><span class="p">)]</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%</span> <span class="vi">@posts</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">post</span><span class="o">|</span> <span class="cp">%&gt;</span>
+    <span class="c">&lt;!-- Inner cache: expires when THIS post changes --&gt;</span>
+    <span class="cp">&lt;%</span> <span class="n">cache</span> <span class="n">post</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+      <span class="cp">&lt;%=</span> <span class="n">render</span> <span class="n">post</span> <span class="cp">%&gt;</span>
 
----
+      <span class="c">&lt;!-- Nested: each comment cached separately --&gt;</span>
+      <span class="cp">&lt;%</span> <span class="n">post</span><span class="p">.</span><span class="nf">comments</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">comment</span><span class="o">|</span> <span class="cp">%&gt;</span>
+        <span class="cp">&lt;%</span> <span class="n">cache</span> <span class="n">comment</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+          <span class="cp">&lt;%=</span> <span class="n">render</span> <span class="n">comment</span> <span class="cp">%&gt;</span>
+        <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+      <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+    <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
 
-## Russian-Doll Caching
-
-Nest caches to reuse unchanged fragments:
-
-```erb
-&lt;!-- Outer cache: expires when ANY post changes --&gt;
-&lt;% cache ["posts", @posts.maximum(:updated_at)] do %&gt;
-  &lt;% @posts.each do |post| %&gt;
-    &lt;!-- Inner cache: expires when THIS post changes --&gt;
-    &lt;% cache post do %&gt;
-      &lt;%= render post %&gt;
-
-      &lt;!-- Nested: each comment cached separately --&gt;
-      &lt;% post.comments.each do |comment| %&gt;
-        &lt;% cache comment do %&gt;
-          &lt;%= render comment %&gt;
-        &lt;% end %&gt;
-      &lt;% end %&gt;
-    &lt;% end %&gt;
-  &lt;% end %&gt;
-&lt;% end %&gt;
 </code></pre></div>
 <p><strong>Scenario: User edits comment ID 42 on post ID 5:</strong><br>
 1. Comment 42&#39;s cache expires (updated_at changed)<br>
@@ -763,6 +759,7 @@ Nest caches to reuse unchanged fragments:
     <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="s2">"category/</span><span class="si">#{</span><span class="n">category_id</span><span class="si">}</span><span class="s2">/products"</span><span class="p">)</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Use <code>after_commit</code> not <code>after_save</code> to ensure transaction completes before cache clears.</p>
 
@@ -770,104 +767,87 @@ Nest caches to reuse unchanged fragments:
 
 <h2>Cache Key Versioning Strategies</h2>
 
-<p><strong>Include version in key:</strong><br>
-```ruby</p>
+<p><strong>Include version in key:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Bump version to invalidate all instances</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"posts/v2"</span><span class="p">)</span> <span class="p">{</span> <span class="no">Post</span><span class="p">.</span><span class="nf">all</span><span class="p">.</span><span class="nf">to_a</span> <span class="p">}</span>
 
-<h1>Bump version to invalidate all instances</h1>
+</code></pre></div>
+<p><strong>Include max timestamp:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">([</span><span class="s2">"posts"</span><span class="p">,</span> <span class="no">Post</span><span class="p">.</span><span class="nf">maximum</span><span class="p">(</span><span class="ss">:updated_at</span><span class="p">)])</span> <span class="k">do</span>
+  <span class="no">Post</span><span class="p">.</span><span class="nf">all</span><span class="p">.</span><span class="nf">to_a</span>
+<span class="k">end</span>
 
-<p>Rails.cache.fetch(&quot;posts/v2&quot;) { Post.all.to_a }<br>
-```</p>
+</code></pre></div>
+<p><strong>Include dependent data:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Cache expires when user OR their posts change</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">([</span><span class="vi">@user</span><span class="p">,</span> <span class="vi">@user</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">maximum</span><span class="p">(</span><span class="ss">:updated_at</span><span class="p">)])</span> <span class="k">do</span>
+  <span class="n">render_user_dashboard</span><span class="p">(</span><span class="vi">@user</span><span class="p">)</span>
+<span class="k">end</span>
 
-<p><strong>Include max timestamp:</strong><br>
-<code>ruby<br>
-Rails.cache.fetch([&quot;posts&quot;, Post.maximum(:updated_at)]) do<br>
-  Post.all.to_a<br>
-end<br>
-</code></p>
-
-<p><strong>Include dependent data:</strong><br>
-```ruby</p>
-
-<h1>Cache expires when user OR their posts change</h1>
-
-<p>Rails.cache.fetch([@user, @user.posts.maximum(:updated_at)]) do<br>
-  render_user_dashboard(@user)<br>
-end<br>
-```</p>
-
+</code></pre></div>
 <hr>
 
 <h2>Cache Stampede Prevention</h2>
 
 <p>When cache expires, multiple requests simultaneously regenerate it, overloading the database.</p>
 
-<p><strong>Problem:</strong><br>
-```ruby</p>
+<p><strong>Problem:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># 1000 concurrent requests hit this</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"expensive_data"</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">1</span><span class="p">.</span><span class="nf">hour</span><span class="p">)</span> <span class="k">do</span>
+  <span class="c1"># All 1000 threads execute this slow query</span>
+  <span class="no">ExpensiveCalculation</span><span class="p">.</span><span class="nf">run</span>
+<span class="k">end</span>
 
-<h1>1000 concurrent requests hit this</h1>
+</code></pre></div>
+<p><strong>Solution 1: race_condition_ttl</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"expensive_data"</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">1</span><span class="p">.</span><span class="nf">hour</span><span class="p">,</span> <span class="ss">race_condition_ttl: </span><span class="mi">10</span><span class="p">.</span><span class="nf">seconds</span><span class="p">)</span> <span class="k">do</span>
+  <span class="no">ExpensiveCalculation</span><span class="p">.</span><span class="nf">run</span>
+<span class="k">end</span>
 
-<p>Rails.cache.fetch(&quot;expensive_data&quot;, expires_in: 1.hour) do<br>
-  # All 1000 threads execute this slow query<br>
-  ExpensiveCalculation.run<br>
-end<br>
-```</p>
-
-<p><strong>Solution 1: race_condition_ttl</strong><br>
-<code>ruby<br>
-Rails.cache.fetch(&quot;expensive_data&quot;, expires_in: 1.hour, race_condition_ttl: 10.seconds) do<br>
-  ExpensiveCalculation.run<br>
-end<br>
-</code></p>
-
+</code></pre></div>
 <p>When cache expires, Rails serves stale data for 10 seconds while ONE thread regenerates. Other threads get stale data instead of all regenerating.</p>
 
-<p><strong>Solution 2: Distributed lock (Redlock)</strong><br>
-```ruby<br>
-gem &#39;redlock&#39;</p>
+<p><strong>Solution 2: Distributed lock (Redlock)</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">gem</span> <span class="s1">'redlock'</span>
 
-<p>lock_manager = Redlock::Client.new([ENV[&#39;REDIS_URL&#39;]])</p>
+<span class="n">lock_manager</span> <span class="o">=</span> <span class="no">Redlock</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">([</span><span class="no">ENV</span><span class="p">[</span><span class="s1">'REDIS_URL'</span><span class="p">]])</span>
 
-<p>lock_manager.lock(&quot;expensive_data_lock&quot;, 10_000) do |locked|<br>
-  if locked<br>
-    Rails.cache.fetch(&quot;expensive_data&quot;, expires_in: 1.hour) do<br>
-      ExpensiveCalculation.run<br>
-    end<br>
-  else<br>
-    # Another process is regenerating, return stale or wait<br>
-    Rails.cache.read(&quot;expensive_data&quot;)<br>
-  end<br>
-end<br>
-```</p>
+<span class="n">lock_manager</span><span class="p">.</span><span class="nf">lock</span><span class="p">(</span><span class="s2">"expensive_data_lock"</span><span class="p">,</span> <span class="mi">10_000</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">locked</span><span class="o">|</span>
+  <span class="k">if</span> <span class="n">locked</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"expensive_data"</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">1</span><span class="p">.</span><span class="nf">hour</span><span class="p">)</span> <span class="k">do</span>
+      <span class="no">ExpensiveCalculation</span><span class="p">.</span><span class="nf">run</span>
+    <span class="k">end</span>
+  <span class="k">else</span>
+    <span class="c1"># Another process is regenerating, return stale or wait</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">read</span><span class="p">(</span><span class="s2">"expensive_data"</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Time-Based vs Event-Based Invalidation</h2>
 
-<p><strong>Time-based (expires_in):</strong><br>
-```ruby</p>
+<p><strong>Time-based (expires_in):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Good for: approximate data, external APIs, statistics</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"stats/daily_revenue"</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">15</span><span class="p">.</span><span class="nf">minutes</span><span class="p">)</span> <span class="k">do</span>
+  <span class="n">calculate_revenue</span>
+<span class="k">end</span>
 
-<h1>Good for: approximate data, external APIs, statistics</h1>
+</code></pre></div>
+<p><strong>Event-based (cache_key_with_version):</strong></p>
+<div class="highlight"><pre class="highlight erb"><code><span class="c">&lt;!-- Good for: user-facing content that must be fresh --&gt;</span>
+<span class="cp">&lt;%</span> <span class="n">cache</span> <span class="n">post</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">render</span> <span class="n">post</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
 
-<p>Rails.cache.fetch(&quot;stats/daily_revenue&quot;, expires_in: 15.minutes) do<br>
-  calculate_revenue<br>
-end<br>
-```</p>
+</code></pre></div>
+<p>Combine both:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">([</span><span class="n">post</span><span class="p">,</span> <span class="s2">"sidebar"</span><span class="p">],</span> <span class="ss">expires_in: </span><span class="mi">1</span><span class="p">.</span><span class="nf">hour</span><span class="p">)</span> <span class="k">do</span>
+  <span class="n">render_sidebar</span><span class="p">(</span><span class="n">post</span><span class="p">)</span>
+<span class="k">end</span>
 
-<p><strong>Event-based (cache_key_with_version):</strong><br>
-<code>erb<br>
-&lt;!-- Good for: user-facing content that must be fresh --&gt;<br>
-&lt;% cache post do %&gt;<br>
-  &lt;%= render post %&gt;<br>
-&lt;% end %&gt;<br>
-</code></p>
-
-<p>Combine both:<br>
-<code>ruby<br>
-Rails.cache.fetch([post, &quot;sidebar&quot;], expires_in: 1.hour) do<br>
-  render_sidebar(post)<br>
-end<br>
-</code></p>
-
+</code></pre></div>
 <p>Cache expires after 1 hour OR when post changes (whichever comes first).</p>
 
 <hr>
@@ -878,6 +858,7 @@ end<br>
 <div class="highlight"><pre class="highlight erb"><code><span class="cp">&lt;%</span> <span class="n">cache</span> <span class="p">[</span><span class="n">post</span><span class="p">,</span> <span class="n">current_user</span><span class="p">.</span><span class="nf">admin?</span><span class="p">,</span> <span class="no">I18n</span><span class="p">.</span><span class="nf">locale</span><span class="p">]</span> <span class="k">do</span> <span class="cp">%&gt;</span>
   <span class="cp">&lt;%=</span> <span class="n">render</span> <span class="n">post</span> <span class="cp">%&gt;</span>
 <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+
 </code></pre></div>
 <p><strong>Key changes when:</strong><br>
 - Post updates<br>
@@ -967,34 +948,31 @@ end<br>
 <h2>Verification Steps</h2>
 
 <ol>
-<li><p>Check cache key changes on child update:<br>
-<code>ruby<br>
-post = Post.first<br>
-old_key = post.cache_key_with_version<br>
-Comment.create(post: post, body: &quot;New comment&quot;)<br>
-post.reload.cache_key_with_version # Should differ from old_key<br>
-</code></p></li>
-<li><p>Verify Russian-doll caching in logs:<br>
-```</p>
-
-<h1>First render: all misses</h1>
-
-<p>Cache MISS: posts/all-20250108120000<br>
-Cache MISS: posts/1-20250108120000<br>
-Cache MISS: comments/1-20250108120000<br>
-Cache MISS: comments/2-20250108120000</p></li>
+<li>Check cache key changes on child update:</li>
 </ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">post</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">first</span>
+<span class="n">old_key</span> <span class="o">=</span> <span class="n">post</span><span class="p">.</span><span class="nf">cache_key_with_version</span>
+<span class="no">Comment</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">post: </span><span class="n">post</span><span class="p">,</span> <span class="ss">body: </span><span class="s2">"New comment"</span><span class="p">)</span>
+<span class="n">post</span><span class="p">.</span><span class="nf">reload</span><span class="p">.</span><span class="nf">cache_key_with_version</span> <span class="c1"># Should differ from old_key</span>
 
-<h1>Update comment 1</h1>
+</code></pre></div>
+<ol>
+<li>Verify Russian-doll caching in logs:</li>
+</ol>
+<div class="highlight"><pre class="highlight plaintext"><code># First render: all misses
+Cache MISS: posts/all-20250108120000
+Cache MISS: posts/1-20250108120000
+Cache MISS: comments/1-20250108120000
+Cache MISS: comments/2-20250108120000
 
-<h1>Second render: outer + post 1 miss, comment 2 hit</h1>
+# Update comment 1
+# Second render: outer + post 1 miss, comment 2 hit
+Cache MISS: posts/all-20250108120100
+Cache MISS: posts/1-20250108120100
+Cache MISS: comments/1-20250108120100
+Cache HIT: comments/2-20250108120000
 
-<p>Cache MISS: posts/all-20250108120100<br>
-Cache MISS: posts/1-20250108120100<br>
-Cache MISS: comments/1-20250108120100<br>
-Cache HIT: comments/2-20250108120000<br>
-```</p>
-
+</code></pre></div>
 <ol>
 <li>Test race_condition_ttl prevents stampede (simulate concurrent requests)</li>
 </ol>
@@ -1007,50 +985,49 @@ Cache HIT: comments/2-20250108120000<br>
 bin/rails generate scaffold Post title:string body:text
 bin/rails generate model Comment body:text post:references
 bin/rails db:migrate
+
 </code></pre></div>
 <p><strong>Add associations:</strong></p>
 
-<p><code>app/models/post.rb</code>:<br>
-<code>ruby<br>
-class Post &lt; ApplicationRecord<br>
-  has_many :comments, dependent: :destroy<br>
-end<br>
-</code></p>
+<p><code>app/models/post.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Post</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_many</span> <span class="ss">:comments</span><span class="p">,</span> <span class="ss">dependent: :destroy</span>
+<span class="k">end</span>
 
-<p><code>app/models/comment.rb</code>:<br>
-<code>ruby<br>
-class Comment &lt; ApplicationRecord<br>
-  belongs_to :post, touch: true  # ← Auto-invalidate post cache<br>
-end<br>
-</code></p>
+</code></pre></div>
+<p><code>app/models/comment.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Comment</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:post</span><span class="p">,</span> <span class="ss">touch: </span><span class="kp">true</span>  <span class="c1"># ← Auto-invalidate post cache</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 2: Configure Cache Store</h3>
 <div class="highlight"><pre class="highlight shell"><code>bundle add redis
-</code></pre></div>
-<p>Edit <code>config/environments/development.rb</code>:<br>
-<code>ruby<br>
-Rails.application.configure do<br>
-  config.cache_store = :redis_cache_store, { url: &quot;redis://localhost:6379/1&quot; }<br>
-end<br>
-</code></p>
 
+</code></pre></div>
+<p>Edit <code>config/environments/development.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">cache_store</span> <span class="o">=</span> <span class="ss">:redis_cache_store</span><span class="p">,</span> <span class="p">{</span> <span class="ss">url: </span><span class="s2">"redis://localhost:6379/1"</span> <span class="p">}</span>
+<span class="k">end</span>
+
+</code></pre></div>
 <h3>Step 3: Enable Cache Instrumentation</h3>
 
-<p>Create <code>config/initializers/cache_instrumentation.rb</code>:<br>
-```ruby<br>
-ActiveSupport::Notifications.subscribe(&quot;cache_read.active_support&quot;) do |*args|<br>
-  event = ActiveSupport::Notifications::Event.new(*args)<br>
-  hit = event.payload[:hit]<br>
-  key = event.payload[:key]</p>
+<p>Create <code>config/initializers/cache_instrumentation.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="p">.</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">"cache_read.active_support"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|*</span><span class="n">args</span><span class="o">|</span>
+  <span class="n">event</span> <span class="o">=</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="o">::</span><span class="no">Event</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+  <span class="n">hit</span> <span class="o">=</span> <span class="n">event</span><span class="p">.</span><span class="nf">payload</span><span class="p">[</span><span class="ss">:hit</span><span class="p">]</span>
+  <span class="n">key</span> <span class="o">=</span> <span class="n">event</span><span class="p">.</span><span class="nf">payload</span><span class="p">[</span><span class="ss">:key</span><span class="p">]</span>
 
-<p># Shorten key for readability<br>
-  short_key = key.to_s.split(&quot;/&quot;).last(2).join(&quot;/&quot;)<br>
-  Rails.logger.info &quot;CACHE #{hit ? &#39;HIT&#39; : &#39;MISS&#39;}: #{short_key}&quot;<br>
-end<br>
-```</p>
+  <span class="c1"># Shorten key for readability</span>
+  <span class="n">short_key</span> <span class="o">=</span> <span class="n">key</span><span class="p">.</span><span class="nf">to_s</span><span class="p">.</span><span class="nf">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">).</span><span class="nf">last</span><span class="p">(</span><span class="mi">2</span><span class="p">).</span><span class="nf">join</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
+  <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"CACHE </span><span class="si">#{</span><span class="n">hit</span> <span class="p">?</span> <span class="s1">'HIT'</span> <span class="p">:</span> <span class="s1">'MISS'</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">short_key</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 4: Seed Data</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails console
+
 </code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="mi">10</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
   <span class="n">post</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">title: </span><span class="s2">"Post </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">body: </span><span class="s2">"Content </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
   <span class="mi">5</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">j</span><span class="o">|</span>
@@ -1059,55 +1036,54 @@ end<br>
 <span class="k">end</span>
 
 <span class="nb">puts</span> <span class="s2">"Created </span><span class="si">#{</span><span class="no">Post</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> posts, </span><span class="si">#{</span><span class="no">Comment</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> comments"</span>
+
 </code></pre></div>
 <h3>Step 5: Implement Russian-Doll Caching</h3>
 
-<p>Edit <code>app/views/posts/index.html.erb</code>:<br>
-```erb<br>
-<h1>Posts</h1></p>
+<p>Edit <code>app/views/posts/index.html.erb</code>:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="nt">&lt;h1&gt;</span>Posts<span class="nt">&lt;/h1&gt;</span>
 
-<!-- Outer cache: all posts -->
+<span class="c">&lt;!-- Outer cache: all posts --&gt;</span>
+<span class="cp">&lt;%</span> <span class="n">cache</span> <span class="p">[</span><span class="s2">"posts"</span><span class="p">,</span> <span class="s2">"all"</span><span class="p">,</span> <span class="vi">@posts</span><span class="p">.</span><span class="nf">maximum</span><span class="p">(</span><span class="ss">:updated_at</span><span class="p">)]</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"posts"</span><span class="nt">&gt;</span>
+    <span class="cp">&lt;%</span> <span class="vi">@posts</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">post</span><span class="o">|</span> <span class="cp">%&gt;</span>
+      <span class="c">&lt;!-- Middle cache: individual post --&gt;</span>
+      <span class="cp">&lt;%</span> <span class="n">cache</span> <span class="n">post</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+        <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"post"</span><span class="nt">&gt;</span>
+          <span class="nt">&lt;h2&gt;</span><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="n">post</span><span class="p">.</span><span class="nf">title</span><span class="p">,</span> <span class="n">post</span> <span class="cp">%&gt;</span><span class="nt">&lt;/h2&gt;</span>
+          <span class="nt">&lt;p&gt;</span><span class="cp">&lt;%=</span> <span class="n">post</span><span class="p">.</span><span class="nf">body</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
 
-<p>&lt;% cache [&quot;posts&quot;, &quot;all&quot;, @posts.maximum(:updated_at)] do %&gt;<br>
-  <div id="posts"><br>
-    &lt;% @posts.each do |post| %&gt;<br>
-      &lt;!-- Middle cache: individual post --&gt;<br>
-      &lt;% cache post do %&gt;<br>
-        <div class="post"><br>
-          <h2>&lt;%= link_to post.title, post %&gt;</h2><br>
-          <p>&lt;%= post.body %&gt;</p></p>
-<div class="highlight"><pre class="highlight plaintext"><code>      &lt;div class="comments"&gt;
-        &lt;h3&gt;Comments:&lt;/h3&gt;
-        &lt;!-- Inner cache: each comment --&gt;
-        &lt;% post.comments.each do |comment| %&gt;
-          &lt;% cache comment do %&gt;
-            &lt;p class="comment"&gt;&lt;%= comment.body %&gt;&lt;/p&gt;
-          &lt;% end %&gt;
-        &lt;% end %&gt;
-      &lt;/div&gt;
-    &lt;/div&gt;
-  &lt;% end %&gt;
-&lt;% end %&gt;
+          <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"comments"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;h3&gt;</span>Comments:<span class="nt">&lt;/h3&gt;</span>
+            <span class="c">&lt;!-- Inner cache: each comment --&gt;</span>
+            <span class="cp">&lt;%</span> <span class="n">post</span><span class="p">.</span><span class="nf">comments</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">comment</span><span class="o">|</span> <span class="cp">%&gt;</span>
+              <span class="cp">&lt;%</span> <span class="n">cache</span> <span class="n">comment</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+                <span class="nt">&lt;p</span> <span class="na">class=</span><span class="s">"comment"</span><span class="nt">&gt;</span><span class="cp">&lt;%=</span> <span class="n">comment</span><span class="p">.</span><span class="nf">body</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
+              <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+            <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+          <span class="nt">&lt;/div&gt;</span>
+        <span class="nt">&lt;/div&gt;</span>
+      <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+    <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+
+<span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s2">"New post"</span><span class="p">,</span> <span class="n">new_post_path</span> <span class="cp">%&gt;</span>
+
 </code></pre></div>
-<p></div><br>
-&lt;% end %&gt;</p>
+<p>Edit <code>app/controllers/posts_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">PostsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="vi">@posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:comments</span><span class="p">).</span><span class="nf">all</span>
+  <span class="k">end</span>
 
-<p>&lt;%= link_to &quot;New post&quot;, new_post_path %&gt;<br>
-```</p>
+  <span class="c1"># ... rest of controller</span>
+<span class="k">end</span>
 
-<p>Edit <code>app/controllers/posts_controller.rb</code>:<br>
-```ruby<br>
-class PostsController &lt; ApplicationController<br>
-  def index<br>
-    @posts = Post.includes(:comments).all<br>
-  end</p>
-
-<p># ... rest of controller<br>
-end<br>
-```</p>
-
+</code></pre></div>
 <h3>Step 6: Test Cache Invalidation</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails console
+
 </code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Test touch: true</span>
 <span class="n">post</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">first</span>
 <span class="nb">puts</span> <span class="s2">"Before: </span><span class="si">#{</span><span class="n">post</span><span class="p">.</span><span class="nf">cache_key_with_version</span><span class="si">}</span><span class="s2">"</span>
@@ -1122,177 +1098,167 @@ end<br>
 <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">clear</span>
 <span class="no">ApplicationController</span><span class="p">.</span><span class="nf">render</span><span class="p">(</span><span class="ss">partial: </span><span class="s2">"posts/post"</span><span class="p">,</span> <span class="ss">locals: </span><span class="p">{</span> <span class="ss">post: </span><span class="n">post</span> <span class="p">})</span>
 <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">exist?</span><span class="p">(</span><span class="n">post</span><span class="p">.</span><span class="nf">cache_key_with_version</span><span class="p">)</span> <span class="c1"># =&gt; true</span>
+
 </code></pre></div>
 <h3>Step 7: Add Cache Stampede Prevention</h3>
 
-<p>Create <code>app/models/statistics.rb</code>:<br>
-```ruby<br>
-class Statistics<br>
-  def self.total_comments<br>
-    # Without prevention: cache stampede on expiration<br>
-    Rails.cache.fetch(&quot;stats/total_comments&quot;, expires_in: 1.hour) do<br>
-      sleep 2 # Simulate expensive query<br>
-      Comment.count<br>
-    end<br>
-  end</p>
+<p>Create <code>app/models/statistics.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Statistics</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">total_comments</span>
+    <span class="c1"># Without prevention: cache stampede on expiration</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"stats/total_comments"</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">1</span><span class="p">.</span><span class="nf">hour</span><span class="p">)</span> <span class="k">do</span>
+      <span class="nb">sleep</span> <span class="mi">2</span> <span class="c1"># Simulate expensive query</span>
+      <span class="no">Comment</span><span class="p">.</span><span class="nf">count</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
 
-<p>def self.total_comments_safe<br>
-    # With race_condition_ttl: serves stale data during regeneration<br>
-    Rails.cache.fetch(<br>
-      &quot;stats/total_comments_safe&quot;,<br>
-      expires_in: 1.hour,<br>
-      race_condition_ttl: 10.seconds<br>
-    ) do<br>
-      sleep 2 # Simulate expensive query<br>
-      Comment.count<br>
-    end<br>
-  end<br>
-end<br>
-```</p>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">total_comments_safe</span>
+    <span class="c1"># With race_condition_ttl: serves stale data during regeneration</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span>
+      <span class="s2">"stats/total_comments_safe"</span><span class="p">,</span>
+      <span class="ss">expires_in: </span><span class="mi">1</span><span class="p">.</span><span class="nf">hour</span><span class="p">,</span>
+      <span class="ss">race_condition_ttl: </span><span class="mi">10</span><span class="p">.</span><span class="nf">seconds</span>
+    <span class="p">)</span> <span class="k">do</span>
+      <span class="nb">sleep</span> <span class="mi">2</span> <span class="c1"># Simulate expensive query</span>
+      <span class="no">Comment</span><span class="p">.</span><span class="nf">count</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>Test stampede scenario:<br>
-```ruby</p>
-
-<h1>Clear cache</h1>
-
-<p>Rails.cache.delete(&quot;stats/total_comments&quot;)</p>
-
-<h1>Simulate 10 concurrent requests (all will regenerate)</h1>
-
-<p>threads = 10.times.map do<br>
-  Thread.new { Statistics.total_comments }<br>
-end<br>
-threads.each(&amp;:join)</p>
-
-<h1>Logs show all 10 threads ran the slow query</h1>
-
-<h1>With race_condition_ttl</h1>
-
-<p>Rails.cache.delete(&quot;stats/total_comments_safe&quot;)<br>
-threads = 10.times.map do<br>
-  Thread.new { Statistics.total_comments_safe }<br>
-end<br>
-threads.each(&amp;:join)</p>
-
-<h1>Only 1-2 threads regenerate, others use stale data</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-### Step 8: Manual Invalidation
-
-Add method to clear post caches:
-
-`app/models/post.rb`:
-```ruby
-class Post &lt; ApplicationRecord
-  has_many :comments, dependent: :destroy
-
-  def self.clear_all_caches
-    # Manual invalidation for batch operations
-    Rails.cache.delete_matched("posts/*")
-    Rails.logger.info "Cleared all post caches"
-  end
-
-  after_commit :clear_stats_cache, on: [:create, :destroy]
-
-  private
-
-  def clear_stats_cache
-    Rails.cache.delete("stats/total_posts")
-  end
-end
 </code></pre></div>
-<p>Test:<br>
-<code>ruby<br>
-Post.clear_all_caches<br>
-</code></p>
+<p>Test stampede scenario:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Clear cache</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="s2">"stats/total_comments"</span><span class="p">)</span>
 
+<span class="c1"># Simulate 10 concurrent requests (all will regenerate)</span>
+<span class="n">threads</span> <span class="o">=</span> <span class="mi">10</span><span class="p">.</span><span class="nf">times</span><span class="p">.</span><span class="nf">map</span> <span class="k">do</span>
+  <span class="no">Thread</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="no">Statistics</span><span class="p">.</span><span class="nf">total_comments</span> <span class="p">}</span>
+<span class="k">end</span>
+<span class="n">threads</span><span class="p">.</span><span class="nf">each</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:join</span><span class="p">)</span>
+<span class="c1"># Logs show all 10 threads ran the slow query</span>
+
+<span class="c1"># With race_condition_ttl</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="s2">"stats/total_comments_safe"</span><span class="p">)</span>
+<span class="n">threads</span> <span class="o">=</span> <span class="mi">10</span><span class="p">.</span><span class="nf">times</span><span class="p">.</span><span class="nf">map</span> <span class="k">do</span>
+  <span class="no">Thread</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="no">Statistics</span><span class="p">.</span><span class="nf">total_comments_safe</span> <span class="p">}</span>
+<span class="k">end</span>
+<span class="n">threads</span><span class="p">.</span><span class="nf">each</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:join</span><span class="p">)</span>
+<span class="c1"># Only 1-2 threads regenerate, others use stale data</span>
+
+</code></pre></div>
+<h3>Step 8: Manual Invalidation</h3>
+
+<p>Add method to clear post caches:</p>
+
+<p><code>app/models/post.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Post</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_many</span> <span class="ss">:comments</span><span class="p">,</span> <span class="ss">dependent: :destroy</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">clear_all_caches</span>
+    <span class="c1"># Manual invalidation for batch operations</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">delete_matched</span><span class="p">(</span><span class="s2">"posts/*"</span><span class="p">)</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Cleared all post caches"</span>
+  <span class="k">end</span>
+
+  <span class="n">after_commit</span> <span class="ss">:clear_stats_cache</span><span class="p">,</span> <span class="ss">on: </span><span class="p">[</span><span class="ss">:create</span><span class="p">,</span> <span class="ss">:destroy</span><span class="p">]</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">clear_stats_cache</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="s2">"stats/total_posts"</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Test:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Post</span><span class="p">.</span><span class="nf">clear_all_caches</span>
+
+</code></pre></div>
 <h3>Step 9: Benchmark Cache Efficiency</h3>
 
-<p>Create <code>lib/tasks/cache_stats.rake</code>:<br>
-```ruby<br>
-namespace :cache do<br>
-  desc &quot;Test Russian-doll cache efficiency&quot;<br>
-  task test_efficiency: :environment do<br>
-    Rails.cache.clear<br>
-    posts = Post.includes(:comments).limit(5)</p>
-<div class="highlight"><pre class="highlight plaintext"><code># First render: all misses
-puts "\n=== First Render (All Misses) ==="
-ApplicationController.render(partial: "posts/post", collection: posts)
+<p>Create <code>lib/tasks/cache_stats.rake</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">namespace</span> <span class="ss">:cache</span> <span class="k">do</span>
+  <span class="n">desc</span> <span class="s2">"Test Russian-doll cache efficiency"</span>
+  <span class="n">task</span> <span class="ss">test_efficiency: :environment</span> <span class="k">do</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">clear</span>
+    <span class="n">posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:comments</span><span class="p">).</span><span class="nf">limit</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 
-# Second render: all hits
-puts "\n=== Second Render (All Hits) ==="
-ApplicationController.render(partial: "posts/post", collection: posts)
+    <span class="c1"># First render: all misses</span>
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== First Render (All Misses) ==="</span>
+    <span class="no">ApplicationController</span><span class="p">.</span><span class="nf">render</span><span class="p">(</span><span class="ss">partial: </span><span class="s2">"posts/post"</span><span class="p">,</span> <span class="ss">collection: </span><span class="n">posts</span><span class="p">)</span>
 
-# Update one comment
-posts.first.comments.first.update(body: "Updated comment")
+    <span class="c1"># Second render: all hits</span>
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== Second Render (All Hits) ==="</span>
+    <span class="no">ApplicationController</span><span class="p">.</span><span class="nf">render</span><span class="p">(</span><span class="ss">partial: </span><span class="s2">"posts/post"</span><span class="p">,</span> <span class="ss">collection: </span><span class="n">posts</span><span class="p">)</span>
 
-# Third render: outer + one post + one comment miss, rest hit
-puts "\n=== After Updating One Comment ==="
-ApplicationController.render(partial: "posts/post", collection: posts)
+    <span class="c1"># Update one comment</span>
+    <span class="n">posts</span><span class="p">.</span><span class="nf">first</span><span class="p">.</span><span class="nf">comments</span><span class="p">.</span><span class="nf">first</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="ss">body: </span><span class="s2">"Updated comment"</span><span class="p">)</span>
+
+    <span class="c1"># Third render: outer + one post + one comment miss, rest hit</span>
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== After Updating One Comment ==="</span>
+    <span class="no">ApplicationController</span><span class="p">.</span><span class="nf">render</span><span class="p">(</span><span class="ss">partial: </span><span class="s2">"posts/post"</span><span class="p">,</span> <span class="ss">collection: </span><span class="n">posts</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
+<p>Run:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails cache:test_efficiency
 
-<p>Run:<br>
-<code>bash<br>
-bin/rails cache:test_efficiency<br>
-</code></p>
-
+</code></pre></div>
 <h3>Step 10: Cache Hit Rate Tracking</h3>
 
 <p>Add to application controller:</p>
 
-<p><code>app/controllers/application_controller.rb</code>:<br>
-```ruby<br>
-class ApplicationController &lt; ActionController::Base<br>
-  around_action :track_cache_stats</p>
+<p><code>app/controllers/application_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ApplicationController</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">around_action</span> <span class="ss">:track_cache_stats</span>
 
-<p>private</p>
+  <span class="kp">private</span>
 
-<p>def track_cache_stats<br>
-    @cache_hits = 0<br>
-    @cache_misses = 0</p>
-<div class="highlight"><pre class="highlight plaintext"><code>subscriber = ActiveSupport::Notifications.subscribe("cache_read.active_support") do |*args|
-  event = ActiveSupport::Notifications::Event.new(*args)
-  if event.payload[:hit]
-    @cache_hits += 1
-  else
-    @cache_misses += 1
-  end
-end
+  <span class="k">def</span> <span class="nf">track_cache_stats</span>
+    <span class="vi">@cache_hits</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="vi">@cache_misses</span> <span class="o">=</span> <span class="mi">0</span>
 
-yield
+    <span class="n">subscriber</span> <span class="o">=</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="p">.</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">"cache_read.active_support"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|*</span><span class="n">args</span><span class="o">|</span>
+      <span class="n">event</span> <span class="o">=</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="o">::</span><span class="no">Event</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">event</span><span class="p">.</span><span class="nf">payload</span><span class="p">[</span><span class="ss">:hit</span><span class="p">]</span>
+        <span class="vi">@cache_hits</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="k">else</span>
+        <span class="vi">@cache_misses</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
 
-total = @cache_hits + @cache_misses
-rate = total &gt; 0 ? (@cache_hits.to_f / total * 100).round(2) : 0
-logger.info "Cache Stats: #{@cache_hits} hits, #{@cache_misses} misses (#{rate}% hit rate)"
+    <span class="k">yield</span>
+
+    <span class="n">total</span> <span class="o">=</span> <span class="vi">@cache_hits</span> <span class="o">+</span> <span class="vi">@cache_misses</span>
+    <span class="n">rate</span> <span class="o">=</span> <span class="n">total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">?</span> <span class="p">(</span><span class="vi">@cache_hits</span><span class="p">.</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="p">:</span> <span class="mi">0</span>
+    <span class="n">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Cache Stats: </span><span class="si">#{</span><span class="vi">@cache_hits</span><span class="si">}</span><span class="s2"> hits, </span><span class="si">#{</span><span class="vi">@cache_misses</span><span class="si">}</span><span class="s2"> misses (</span><span class="si">#{</span><span class="n">rate</span><span class="si">}</span><span class="s2">% hit rate)"</span>
+  <span class="k">ensure</span>
+    <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="p">.</span><span class="nf">unsubscribe</span><span class="p">(</span><span class="n">subscriber</span><span class="p">)</span> <span class="k">if</span> <span class="n">subscriber</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>ensure<br>
-    ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber<br>
-  end<br>
-end<br>
-```</p>
-
 <h2>Stretch (Optional)</h2>
 
 <ol>
-<li><p>Implement cache versioning:<br>
-```ruby</p>
-
-<h1>Invalidate all product caches by bumping version</h1>
-
-<p>Rails.cache.fetch(&quot;products/v2&quot;) { Product.all.to_a }<br>
-```</p></li>
-<li><p>Add distributed lock with Redlock:<br>
-<code>bash<br>
-bundle add redlock<br>
-</code></p></li>
+<li>Implement cache versioning:</li>
 </ol>
-<div class="highlight"><pre class="highlight ruby"><code><span class="n">lock_manager</span> <span class="o">=</span> <span class="no">Redlock</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">([</span><span class="no">ENV</span><span class="p">[</span><span class="s1">'REDIS_URL'</span><span class="p">]])</span>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Invalidate all product caches by bumping version</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"products/v2"</span><span class="p">)</span> <span class="p">{</span> <span class="no">Product</span><span class="p">.</span><span class="nf">all</span><span class="p">.</span><span class="nf">to_a</span> <span class="p">}</span>
+
+</code></pre></div>
+<ol>
+<li>Add distributed lock with Redlock:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code>bundle add redlock
+
+</code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="n">lock_manager</span> <span class="o">=</span> <span class="no">Redlock</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">([</span><span class="no">ENV</span><span class="p">[</span><span class="s1">'REDIS_URL'</span><span class="p">]])</span>
 <span class="n">lock_manager</span><span class="p">.</span><span class="nf">lock</span><span class="p">(</span><span class="s2">"expensive_calc"</span><span class="p">,</span> <span class="mi">5000</span><span class="p">)</span> <span class="k">do</span>
   <span class="c1"># Only one process enters this block</span>
   <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"expensive_data"</span><span class="p">)</span> <span class="p">{</span> <span class="n">expensive_calculation</span> <span class="p">}</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <ol>
 <li>Test cache invalidation cascade with 3 levels (posts → comments → likes).</li>

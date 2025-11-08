@@ -658,32 +658,27 @@
 
 <h2>RED Metrics Explained</h2>
 
-<p><strong>Rate:</strong> Requests per second (throughput)<br>
-```ruby</p>
+<p><strong>Rate:</strong> Requests per second (throughput)</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Track with StatsD or Prometheus</span>
+<span class="no">StatsD</span><span class="p">.</span><span class="nf">increment</span><span class="p">(</span><span class="s1">'requests.count'</span><span class="p">)</span>
 
-<h1>Track with StatsD or Prometheus</h1>
+</code></pre></div>
+<p><strong>Errors:</strong> Percentage of requests returning 5xx status</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Track error rate</span>
+<span class="k">if</span> <span class="n">response</span><span class="p">.</span><span class="nf">status</span> <span class="o">&gt;=</span> <span class="mi">500</span>
+  <span class="no">StatsD</span><span class="p">.</span><span class="nf">increment</span><span class="p">(</span><span class="s1">'requests.errors'</span><span class="p">)</span>
+<span class="k">end</span>
 
-<p>StatsD.increment(&#39;requests.count&#39;)<br>
-```</p>
+<span class="c1"># Calculate: errors / total_requests * 100</span>
 
-<p><strong>Errors:</strong> Percentage of requests returning 5xx status<br>
-```ruby</p>
+</code></pre></div>
+<p><strong>Duration:</strong> Request latency (P50, P95, P99)</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Track response time</span>
+<span class="n">start</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+<span class="n">process_request</span>
+<span class="n">duration_ms</span> <span class="o">=</span> <span class="p">(</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span>
+<span class="no">StatsD</span><span class="p">.</span><span class="nf">measure</span><span class="p">(</span><span class="s1">'requests.duration'</span><span class="p">,</span> <span class="n">duration_ms</span><span class="p">)</span>
 
-<h1>Track error rate</h1>
-
-<p>if response.status &gt;= 500<br>
-  StatsD.increment(&#39;requests.errors&#39;)<br>
-end</p>
-
-<h1>Calculate: errors / total_requests * 100</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Duration:** Request latency (P50, P95, P99)
-```ruby
-# Track response time
-start = Time.current
-process_request
-duration_ms = (Time.current - start) * 1000
-StatsD.measure('requests.duration', duration_ms)
 </code></pre></div>
 <p>These three metrics reveal most service problems.</p>
 
@@ -780,19 +775,18 @@ StatsD.measure('requests.duration', duration_ms)
 
 <p>Effective dashboards answer: &quot;Is the service healthy?&quot;</p>
 
-<p><strong>Layout:</strong><br>
-<code><br>
-┌─────────────────────────────────────┐<br>
-│ Service Health: ✓ All SLOs Met     │<br>
-├─────────────────────────────────────┤<br>
-│ Rate:     1,240 req/s  (normal)    │<br>
-│ Errors:   0.03%        (SLO: &lt;0.1%)│<br>
-│ Duration: P99 = 380ms  (SLO: &lt;500ms)│<br>
-├─────────────────────────────────────┤<br>
-│ Error Budget: 67% remaining        │<br>
-└─────────────────────────────────────┘<br>
-</code></p>
+<p><strong>Layout:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>┌─────────────────────────────────────┐
+│ Service Health: ✓ All SLOs Met     │
+├─────────────────────────────────────┤
+│ Rate:     1,240 req/s  (normal)    │
+│ Errors:   0.03%        (SLO: &lt;0.1%)│
+│ Duration: P99 = 380ms  (SLO: &lt;500ms)│
+├─────────────────────────────────────┤
+│ Error Budget: 67% remaining        │
+└─────────────────────────────────────┘
 
+</code></pre></div>
 <p><strong>Design principles:</strong><br>
 - RED metrics on every dashboard<br>
 - Show current value vs SLO threshold<br>
@@ -812,23 +806,20 @@ StatsD.measure('requests.duration', duration_ms)
 <span class="k">if</span> <span class="n">p99_latency</span> <span class="o">&gt;</span> <span class="mi">500</span><span class="p">.</span><span class="nf">ms</span> <span class="k">for</span> <span class="mi">10</span><span class="p">.</span><span class="nf">minutes</span>
   <span class="n">page_oncall</span><span class="p">(</span><span class="s2">"Latency SLO violated"</span><span class="p">)</span>
 <span class="k">end</span>
+
 </code></pre></div>
-<p><strong>Bad alerts:</strong><br>
-```ruby</p>
+<p><strong>Bad alerts:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Don't alert on single errors</span>
+<span class="k">if</span> <span class="n">single_request</span><span class="p">.</span><span class="nf">status</span> <span class="o">==</span> <span class="mi">500</span>
+  <span class="n">page_oncall</span>  <span class="c1"># TOO NOISY</span>
+<span class="k">end</span>
 
-<h1>Don&#39;t alert on single errors</h1>
+<span class="c1"># Don't alert on arbitrary thresholds</span>
+<span class="k">if</span> <span class="n">error_rate</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="o">%</span>  <span class="c1"># Why 1%? Is it tied to user impact?</span>
+  <span class="n">page_oncall</span>
+<span class="k">end</span>
 
-<p>if single_request.status == 500<br>
-  page_oncall  # TOO NOISY<br>
-end</p>
-
-<h1>Don&#39;t alert on arbitrary thresholds</h1>
-
-<p>if error_rate &gt; 1%  # Why 1%? Is it tied to user impact?<br>
-  page_oncall<br>
-end<br>
-```</p>
-
+</code></pre></div>
 <p>Every alert should answer: &quot;Does this require immediate human action?&quot;</p>
 
 <hr>
@@ -846,6 +837,7 @@ end<br>
 
 <span class="c1"># config/application.rb</span>
 <span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">use</span><span class="p">(</span><span class="no">StatsD</span><span class="o">::</span><span class="no">Instrument</span><span class="o">::</span><span class="no">Middleware</span><span class="p">)</span>
+
 </code></pre></div>
 <p>Metrics sent automatically:<br>
 - Request rate: <code>requests.count</code><br>
@@ -937,6 +929,7 @@ end<br>
 bundle add statsd-instrument
 
 bundle <span class="nb">install</span>
+
 </code></pre></div>
 <h3>Step 2: Configure StatsD</h3>
 
@@ -954,6 +947,7 @@ bundle <span class="nb">install</span>
 
 <span class="no">StatsD</span><span class="p">.</span><span class="nf">prefix</span> <span class="o">=</span> <span class="s1">'myapp'</span>
 <span class="no">StatsD</span><span class="p">.</span><span class="nf">default_sample_rate</span> <span class="o">=</span> <span class="mf">1.0</span>
+
 </code></pre></div>
 <h3>Step 3: Add Metrics Middleware</h3>
 
@@ -970,6 +964,7 @@ bundle <span class="nb">install</span>
     <span class="p">)</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h3>Step 4: Create Metrics Store</h3>
 
@@ -1025,6 +1020,7 @@ bundle <span class="nb">install</span>
     <span class="vi">@requests</span> <span class="o">=</span> <span class="p">[]</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h3>Step 5: Track Metrics in ApplicationController</h3>
 
@@ -1051,11 +1047,13 @@ bundle <span class="nb">install</span>
     <span class="k">end</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h3>Step 6: Create Dashboard Controller</h3>
 
 <p>Generate controller:</p>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails generate controller Dashboard index
+
 </code></pre></div>
 <p>Edit <code>app/controllers/dashboard_controller.rb</code>:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">DashboardController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
@@ -1090,6 +1088,7 @@ bundle <span class="nb">install</span>
     <span class="p">}</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h3>Step 7: Create Dashboard View</h3>
 
@@ -1147,6 +1146,7 @@ bundle <span class="nb">install</span>
   <span class="nt">&lt;li&gt;</span><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s1">'Error endpoint (500)'</span><span class="p">,</span> <span class="n">error_test_path</span> <span class="cp">%&gt;</span><span class="nt">&lt;/li&gt;</span>
   <span class="nt">&lt;li&gt;</span><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s1">'Reset metrics'</span><span class="p">,</span> <span class="n">reset_metrics_path</span><span class="p">,</span> <span class="ss">method: :post</span> <span class="cp">%&gt;</span><span class="nt">&lt;/li&gt;</span>
 <span class="nt">&lt;/ul&gt;</span>
+
 </code></pre></div>
 <h3>Step 8: Create Test Endpoints</h3>
 
@@ -1169,6 +1169,7 @@ bundle <span class="nb">install</span>
   <span class="no">MetricsStore</span><span class="p">.</span><span class="nf">reset!</span>
   <span class="n">redirect_to</span> <span class="n">dashboard_index_path</span><span class="p">,</span> <span class="ss">notice: </span><span class="s1">'Metrics reset'</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Update <code>config/routes.rb</code>:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
@@ -1178,11 +1179,13 @@ bundle <span class="nb">install</span>
   <span class="n">get</span> <span class="s1">'dashboard/error'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'dashboard#error_test'</span><span class="p">,</span> <span class="ss">as: :error_test</span>
   <span class="n">post</span> <span class="s1">'dashboard/reset'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'dashboard#reset_metrics'</span><span class="p">,</span> <span class="ss">as: :reset_metrics</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h3>Step 9: Test the Dashboard</h3>
 
 <p>Start Rails server:</p>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails server
+
 </code></pre></div>
 <ol>
 <li>Visit <a href="http://localhost:3000/dashboard" target="_blank">http://localhost:3000/dashboard</a></li>
@@ -1202,6 +1205,7 @@ bundle <span class="nb">install</span>
 <div class="highlight"><pre class="highlight plaintext"><code>[StatsD] myapp.requests.count:1|c
 [StatsD] myapp.requests.status.200:1|c
 [StatsD] myapp.requests.duration:52.3|ms
+
 </code></pre></div>
 <p>In production, these would be sent to actual StatsD server.</p>
 
@@ -1223,6 +1227,7 @@ bundle <span class="nb">install</span>
     <span class="ss">budget_remaining_percent: </span><span class="mi">100</span> <span class="o">-</span> <span class="n">budget_used</span>
   <span class="p">}</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <ol>
 <li>Add request rate (requests/sec):</li>
@@ -1232,11 +1237,13 @@ bundle <span class="nb">install</span>
   <span class="n">rate_per_second</span> <span class="o">=</span> <span class="p">(</span><span class="n">total</span><span class="p">.</span><span class="nf">to_f</span> <span class="o">/</span> <span class="no">WINDOW_SIZE</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
   <span class="p">{</span> <span class="ss">rate_per_second: </span><span class="n">rate_per_second</span><span class="p">,</span> <span class="o">...</span> <span class="p">}</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <ol>
 <li>Track per-endpoint metrics:</li>
 </ol>
 <div class="highlight"><pre class="highlight ruby"><code><span class="no">StatsD</span><span class="p">.</span><span class="nf">increment</span><span class="p">(</span><span class="s2">"requests.endpoint.</span><span class="si">#{</span><span class="n">controller_name</span><span class="si">}</span><span class="s2">.</span><span class="si">#{</span><span class="n">action_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
 </code></pre></div>
 <h2>Time Estimate</h2>
 

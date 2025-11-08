@@ -22,23 +22,29 @@ In a Rails app with `User` and `Post` models:
 ## Verification Steps
 
 1. Run in console:
+
 ```ruby
 users = User.active.joins(:posts).where(posts: { published: true, created_at: 7.days.ago.. }).distinct
 puts users.to_sql
 # Verify SQL has JOIN and WHERE clauses
+
 ```
 
 2. Check N+1 prevention:
+
 ```ruby
 users = User.includes(:posts).limit(5)
 users.each { |u| puts "#{u.name}: #{u.posts.count} posts" }
 # Check log: should show 2 queries, not 6
+
 ```
 
 3. Test scopes:
+
 ```ruby
 User.active.count
 Post.recent.count
+
 ```
 
 ## Setup Code
@@ -51,11 +57,13 @@ cd relations_demo
 bin/rails generate model User name:string email:string active:boolean role:string
 bin/rails generate model Post title:string body:text published:boolean user:references
 bin/rails db:migrate
+
 ```
 
 ### Step 2: Add Scopes
 
 Edit `app/models/user.rb`:
+
 ```ruby
 class User < ApplicationRecord
   has_many :posts
@@ -64,9 +72,11 @@ class User < ApplicationRecord
   scope :admins, -> { where(role: "admin") }
   scope :with_posts, -> { joins(:posts).distinct }
 end
+
 ```
 
 Edit `app/models/post.rb`:
+
 ```ruby
 class Post < ApplicationRecord
   belongs_to :user
@@ -74,12 +84,14 @@ class Post < ApplicationRecord
   scope :published, -> { where(published: true) }
   scope :recent, -> { where("created_at > ?", 7.days.ago) }
 end
+
 ```
 
 ### Step 3: Seed Data
 
 ```bash
 bin/rails console
+
 ```
 
 ```ruby
@@ -100,6 +112,7 @@ User.all.each do |user|
     )
   end
 end
+
 ```
 
 ### Step 4: Test Chaining
@@ -113,22 +126,27 @@ puts users.to_sql
 # SELECT DISTINCT users.* FROM users
 # INNER JOIN posts ON posts.user_id = users.id
 # WHERE users.active = true AND posts.published = true
+
 ```
 
 ### Step 5: Prevent N+1
 
 **Bad (N+1):**
+
 ```ruby
 users = User.limit(3)
 users.each { |u| puts "#{u.name}: #{u.posts.count}" }
 # Check log: 1 query for users + 3 queries for posts = 4 total
+
 ```
 
 **Good (eager loading):**
+
 ```ruby
 users = User.includes(:posts).limit(3)
 users.each { |u| puts "#{u.name}: #{u.posts.count}" }
 # Check log: 1 query for users + 1 query for posts = 2 total
+
 ```
 
 ### Step 6: Aggregations
@@ -140,26 +158,33 @@ User.group(:role).count
 
 # Average posts per user
 User.joins(:posts).group("users.id").count.values.sum / User.count.to_f
+
 ```
 
 ## Stretch (Optional)
 
 1. Create a scope that combines multiple conditions:
+
 ```ruby
 scope :active_admins_with_recent_posts, -> {
   active.admins.joins(:posts).where(posts: { created_at: 7.days.ago.. }).distinct
 }
+
 ```
 
 2. Use `pluck` to extract emails efficiently:
+
 ```ruby
 User.active.pluck(:email)
 # Returns array of emails without instantiating User objects
+
 ```
 
 3. Add an `or` condition:
+
 ```ruby
 User.where(role: "admin").or(User.where(active: true))
+
 ```
 
 ## Time Estimate

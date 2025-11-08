@@ -25,14 +25,17 @@ In a Rails app with posts and comments:
 ## Verification Steps
 
 1. Check cache key changes on child update:
+
 ```ruby
 post = Post.first
 old_key = post.cache_key_with_version
 Comment.create(post: post, body: "New comment")
 post.reload.cache_key_with_version # Should differ from old_key
+
 ```
 
 2. Verify Russian-doll caching in logs:
+
 ```
 # First render: all misses
 Cache MISS: posts/all-20250108120000
@@ -46,6 +49,7 @@ Cache MISS: posts/all-20250108120100
 Cache MISS: posts/1-20250108120100
 Cache MISS: comments/1-20250108120100
 Cache HIT: comments/2-20250108120000
+
 ```
 
 3. Test race_condition_ttl prevents stampede (simulate concurrent requests)
@@ -60,40 +64,49 @@ cd cache_invalidation_demo
 bin/rails generate scaffold Post title:string body:text
 bin/rails generate model Comment body:text post:references
 bin/rails db:migrate
+
 ```
 
 **Add associations:**
 
 `app/models/post.rb`:
+
 ```ruby
 class Post < ApplicationRecord
   has_many :comments, dependent: :destroy
 end
+
 ```
 
 `app/models/comment.rb`:
+
 ```ruby
 class Comment < ApplicationRecord
   belongs_to :post, touch: true  # ← Auto-invalidate post cache
 end
+
 ```
 
 ### Step 2: Configure Cache Store
 
 ```bash
 bundle add redis
+
 ```
 
 Edit `config/environments/development.rb`:
+
 ```ruby
 Rails.application.configure do
   config.cache_store = :redis_cache_store, { url: "redis://localhost:6379/1" }
 end
+
 ```
 
 ### Step 3: Enable Cache Instrumentation
 
 Create `config/initializers/cache_instrumentation.rb`:
+
 ```ruby
 ActiveSupport::Notifications.subscribe("cache_read.active_support") do |*args|
   event = ActiveSupport::Notifications::Event.new(*args)
@@ -104,12 +117,14 @@ ActiveSupport::Notifications.subscribe("cache_read.active_support") do |*args|
   short_key = key.to_s.split("/").last(2).join("/")
   Rails.logger.info "CACHE #{hit ? 'HIT' : 'MISS'}: #{short_key}"
 end
+
 ```
 
 ### Step 4: Seed Data
 
 ```bash
 bin/rails console
+
 ```
 
 ```ruby
@@ -121,11 +136,13 @@ bin/rails console
 end
 
 puts "Created #{Post.count} posts, #{Comment.count} comments"
+
 ```
 
 ### Step 5: Implement Russian-Doll Caching
 
 Edit `app/views/posts/index.html.erb`:
+
 ```erb
 <h1>Posts</h1>
 
@@ -155,9 +172,11 @@ Edit `app/views/posts/index.html.erb`:
 <% end %>
 
 <%= link_to "New post", new_post_path %>
+
 ```
 
 Edit `app/controllers/posts_controller.rb`:
+
 ```ruby
 class PostsController < ApplicationController
   def index
@@ -166,12 +185,14 @@ class PostsController < ApplicationController
 
   # ... rest of controller
 end
+
 ```
 
 ### Step 6: Test Cache Invalidation
 
 ```bash
 bin/rails console
+
 ```
 
 ```ruby
@@ -189,11 +210,13 @@ puts "After: #{post.cache_key_with_version}"
 Rails.cache.clear
 ApplicationController.render(partial: "posts/post", locals: { post: post })
 Rails.cache.exist?(post.cache_key_with_version) # => true
+
 ```
 
 ### Step 7: Add Cache Stampede Prevention
 
 Create `app/models/statistics.rb`:
+
 ```ruby
 class Statistics
   def self.total_comments
@@ -216,9 +239,11 @@ class Statistics
     end
   end
 end
+
 ```
 
 Test stampede scenario:
+
 ```ruby
 # Clear cache
 Rails.cache.delete("stats/total_comments")
@@ -237,6 +262,7 @@ threads = 10.times.map do
 end
 threads.each(&:join)
 # Only 1-2 threads regenerate, others use stale data
+
 ```
 
 ### Step 8: Manual Invalidation
@@ -244,6 +270,7 @@ threads.each(&:join)
 Add method to clear post caches:
 
 `app/models/post.rb`:
+
 ```ruby
 class Post < ApplicationRecord
   has_many :comments, dependent: :destroy
@@ -262,16 +289,20 @@ class Post < ApplicationRecord
     Rails.cache.delete("stats/total_posts")
   end
 end
+
 ```
 
 Test:
+
 ```ruby
 Post.clear_all_caches
+
 ```
 
 ### Step 9: Benchmark Cache Efficiency
 
 Create `lib/tasks/cache_stats.rake`:
+
 ```ruby
 namespace :cache do
   desc "Test Russian-doll cache efficiency"
@@ -295,11 +326,14 @@ namespace :cache do
     ApplicationController.render(partial: "posts/post", collection: posts)
   end
 end
+
 ```
 
 Run:
+
 ```bash
 bin/rails cache:test_efficiency
+
 ```
 
 ### Step 10: Cache Hit Rate Tracking
@@ -307,6 +341,7 @@ bin/rails cache:test_efficiency
 Add to application controller:
 
 `app/controllers/application_controller.rb`:
+
 ```ruby
 class ApplicationController < ActionController::Base
   around_action :track_cache_stats
@@ -335,19 +370,24 @@ class ApplicationController < ActionController::Base
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end
 end
+
 ```
 
 ## Stretch (Optional)
 
 1. Implement cache versioning:
+
 ```ruby
 # Invalidate all product caches by bumping version
 Rails.cache.fetch("products/v2") { Product.all.to_a }
+
 ```
 
 2. Add distributed lock with Redlock:
+
 ```bash
 bundle add redlock
+
 ```
 
 ```ruby
@@ -356,6 +396,7 @@ lock_manager.lock("expensive_calc", 5000) do
   # Only one process enters this block
   Rails.cache.fetch("expensive_data") { expensive_calculation }
 end
+
 ```
 
 3. Test cache invalidation cascade with 3 levels (posts → comments → likes).

@@ -43,6 +43,7 @@ class ChargeCustomerJob < ApplicationJob
     Redis.current.setex(idempotency_key, 7.days.to_i, result.id)
   end
 end
+
 ```
 
 **Key composition:** Include record ID + timestamp or version to allow re-processing if the record changes.
@@ -84,6 +85,7 @@ class CreateInvoiceJob < ApplicationJob
     Rails.logger.info "Invoice already exists for order #{order_id}"
   end
 end
+
 ```
 
 Database constraints are more reliable than application-level checks (no race conditions).
@@ -104,6 +106,7 @@ class EmailWorker
     UserMailer.welcome_email(user).deliver_now
   end
 end
+
 ```
 
 **Default backoff schedule (in seconds):**
@@ -118,6 +121,7 @@ Disable retries for jobs that should never retry:
 
 ```ruby
 sidekiq_options retry: false
+
 ```
 
 ---
@@ -152,6 +156,7 @@ class ApiWorker
     end
   end
 end
+
 ```
 
 **Callbacks:**
@@ -183,6 +188,7 @@ Sidekiq::DeadSet.new.retry_all
 
 # Clear DLQ (permanent deletion)
 Sidekiq::DeadSet.new.clear
+
 ```
 
 **DLQ monitoring:** Alert when `Sidekiq::DeadSet.new.size > threshold`. Investigate patterns: same error, same job class, or data quality issues.
@@ -204,6 +210,7 @@ class ProcessOrderJob < ApplicationJob
     PaymentService.charge(order)
   end
 end
+
 ```
 
 ActiveJob provides `retry_on` and `discard_on` for declarative retry policies.

@@ -53,6 +53,7 @@ class Api::V2::UsersController < ApplicationController
     render json: User.all.select(:id, :email, :full_name)  # New field
   end
 end
+
 ```
 
 Pros: Easy to test (just change URL). Cons: Pollutes URL space; caching treats v1 and v2 as separate resources.
@@ -84,6 +85,7 @@ class ApiVersion
     @default || request.headers['API-Version'] == @version.to_s
   end
 end
+
 ```
 
 Clients send `API-Version: 2`. Requires custom routing logic.
@@ -103,6 +105,7 @@ Add fields instead of removing. Ignore unknown params.
 def as_json(options = {})
   super.merge(name: full_name)  # Maintain 'name' for v1 clients
 end
+
 ```
 
 Use feature flags or serializers to conditionally include fields.
@@ -119,6 +122,7 @@ def set_sunset_header
   response.set_header('Sunset', 'Sat, 31 Dec 2025 23:59:59 GMT')
   response.set_header('Link', '<https://api.example.com/docs/migration>; rel="sunset"')
 end
+
 ```
 
 Clients parse `Sunset` to know the shutdown date. `Link` points to migration docs.
@@ -134,6 +138,7 @@ after_action :deprecation_warning, if: -> { request.path.start_with?('/api/v1') 
 def deprecation_warning
   response.set_header('Warning', '299 - "API v1 is deprecated. Migrate to v2 by 2025-12-31."')
 end
+
 ```
 
 Log which clients hit deprecated endpoints to prioritize migration outreach.

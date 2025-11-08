@@ -33,6 +33,7 @@ Post.includes(:author).limit(10)
 # Switches to eager_load (LEFT JOIN) when WHERE references association
 Post.includes(:author).where(users: { verified: true })
 # SELECT posts.*, users.* FROM posts LEFT JOIN users ON users.id = posts.user_id WHERE users.verified = true
+
 ```
 
 Use `includes` as the default. Rails chooses efficiently unless you need explicit control.
@@ -48,6 +49,7 @@ Use `includes` as the default. Rails chooses efficiently unless you need explici
 Post.preload(:author).where(title: "Rails Guide")
 # SELECT * FROM posts WHERE title = 'Rails Guide'
 # SELECT * FROM users WHERE id IN (...)
+
 ```
 
 **When to use:**
@@ -56,9 +58,11 @@ Post.preload(:author).where(title: "Rails Guide")
 - Database indexes favor separate queries over JOINs
 
 **Cannot do:**
+
 ```ruby
 # ERROR: users table not in FROM clause
 Post.preload(:author).where(users: { verified: true })
+
 ```
 
 Use `eager_load` or `joins` for filtering on associations.
@@ -75,6 +79,7 @@ Post.eager_load(:author).where(users: { verified: true })
 # FROM posts
 # LEFT OUTER JOIN users ON users.id = posts.user_id
 # WHERE users.verified = true
+
 ```
 
 **When to use:**
@@ -97,6 +102,7 @@ Post.joins(:author).where(users: { verified: true })
 
 # Accessing author still triggers N+1
 @posts.each { |post| post.author.name } # N queries!
+
 ```
 
 **When to use:**
@@ -105,9 +111,11 @@ Post.joins(:author).where(users: { verified: true })
 - Reducing data transfer when associations are large
 
 **Combine with includes for best of both:**
+
 ```ruby
 # Filter + eager load
 Post.joins(:author).includes(:author).where(users: { verified: true })
+
 ```
 
 ---
@@ -134,15 +142,18 @@ Post.includes(author: :company)
 # Only load what you use
 Post.includes(:author, :tags) # authors AND tags
 Post.includes(author: [:company, :certifications]) # nested
+
 ```
 
 **Avoid over-fetching:**
+
 ```ruby
 # BAD: loads all comments even if you only show authors
 Post.includes(author: :comments)
 
 # GOOD: only load what the view iterates
 Post.includes(:author)
+
 ```
 
 Profile memory usage with `ObjectSpace` or `memory_profiler` gem to catch bloated includes.
@@ -158,9 +169,11 @@ Load associations only when needed:
 query = Post.all
 query = query.includes(:author) if params[:show_author]
 query = query.includes(:tags) if params[:show_tags]
+
 ```
 
 **Use scopes:**
+
 ```ruby
 class Post < ApplicationRecord
   scope :with_author, -> { includes(:author) }
@@ -169,6 +182,7 @@ end
 
 # Clean controller
 @posts = Post.with_author.limit(20)
+
 ```
 
 ---
@@ -183,6 +197,7 @@ Post.all.each { |p| p.author.name } # 51 queries
 
 # After
 Post.includes(:author).each { |p| p.author.name } # 2 queries
+
 ```
 
 Check memory usage:
@@ -195,6 +210,7 @@ report = MemoryProfiler.report do
 end
 
 report.pretty_print
+
 ```
 
 Use `EXPLAIN ANALYZE` to compare JOIN vs separate queries performance.

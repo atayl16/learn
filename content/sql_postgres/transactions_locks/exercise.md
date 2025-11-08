@@ -7,6 +7,7 @@ Practice using transactions, SELECT FOR UPDATE, and isolation levels to prevent 
 You're building a ticket reservation system. Multiple users can simultaneously attempt to reserve the same ticket. Implement locking to ensure only one user successfully reserves each ticket.
 
 **Setup:**
+
 ```ruby
 class Ticket < ApplicationRecord
   # status: 'available', 'reserved', 'sold'
@@ -19,6 +20,7 @@ create_table :tickets do |t|
   t.references :user, foreign_key: true
   t.timestamps
 end
+
 ```
 
 **Scenario:**

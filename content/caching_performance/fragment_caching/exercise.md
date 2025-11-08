@@ -25,23 +25,29 @@ In a Rails app with posts and comments:
 ## Verification Steps
 
 1. First request (cache miss):
+
 ```
 Cache MISS: views/posts/123-20250108120000/...
 Post Load (15.2ms)
 Rendered posts/_post.html.erb (25.3ms)
 Completed 200 OK in 150ms
+
 ```
 
 2. Second request (cache hit):
+
 ```
 Cache HIT: views/posts/123-20250108120000/...
 Completed 200 OK in 12ms
+
 ```
 
 3. After updating post:
+
 ```
 Cache MISS: views/posts/123-20250108130000/...
 (New cache key due to updated_at change)
+
 ```
 
 ## Setup Code
@@ -54,31 +60,38 @@ cd caching_demo
 bin/rails generate scaffold Post title:string body:text
 bin/rails generate model Comment body:text post:references
 bin/rails db:migrate
+
 ```
 
 **Add associations:**
 
 `app/models/post.rb`:
+
 ```ruby
 class Post < ApplicationRecord
   has_many :comments
 end
+
 ```
 
 `app/models/comment.rb`:
+
 ```ruby
 class Comment < ApplicationRecord
   belongs_to :post
 end
+
 ```
 
 ### Step 2: Configure Redis Cache Store
 
 ```bash
 bundle add redis
+
 ```
 
 Edit `config/environments/development.rb`:
+
 ```ruby
 Rails.application.configure do
   # ... existing config
@@ -88,19 +101,23 @@ Rails.application.configure do
     expires_in: 1.hour
   }
 end
+
 ```
 
 Start Redis (if not running):
+
 ```bash
 # macOS: brew services start redis
 # Linux: sudo systemctl start redis
 # Or use Docker: docker run -p 6379:6379 redis
+
 ```
 
 ### Step 3: Seed Data
 
 ```bash
 bin/rails console
+
 ```
 
 ```ruby
@@ -112,11 +129,13 @@ bin/rails console
 end
 
 puts "Created #{Post.count} posts, #{Comment.count} comments"
+
 ```
 
 ### Step 4: Add Fragment Caching
 
 Edit `app/views/posts/index.html.erb`:
+
 ```erb
 <h1>Posts</h1>
 
@@ -129,9 +148,11 @@ Edit `app/views/posts/index.html.erb`:
 </div>
 
 <%= link_to "New post", new_post_path %>
+
 ```
 
 Edit `app/views/posts/_post.html.erb`:
+
 ```erb
 <div class="post">
   <h2><%= link_to post.title, post %></h2>
@@ -141,11 +162,13 @@ Edit `app/views/posts/_post.html.erb`:
     | Created <%= time_ago_in_words(post.created_at) %> ago
   </small>
 </div>
+
 ```
 
 ### Step 5: Add Low-Level Caching
 
 Create `app/models/post_statistics.rb`:
+
 ```ruby
 class PostStatistics
   def self.total_comments_today
@@ -160,19 +183,23 @@ class PostStatistics
     end
   end
 end
+
 ```
 
 Add to `app/views/posts/index.html.erb`:
+
 ```erb
 <div class="stats">
   <p>Comments today: <%= PostStatistics.total_comments_today %></p>
   <p>Avg comments/post: <%= PostStatistics.average_comments_per_post %></p>
 </div>
+
 ```
 
 ### Step 6: Instrument Cache Hits/Misses
 
 Create `config/initializers/cache_instrumentation.rb`:
+
 ```ruby
 ActiveSupport::Notifications.subscribe("cache_read.active_support") do |*args|
   event = ActiveSupport::Notifications::Event.new(*args)
@@ -181,6 +208,7 @@ ActiveSupport::Notifications.subscribe("cache_read.active_support") do |*args|
 
   Rails.logger.info "CACHE #{hit ? 'HIT' : 'MISS'}: #{key}"
 end
+
 ```
 
 Restart server to load initializer.
@@ -188,6 +216,7 @@ Restart server to load initializer.
 ### Step 7: Benchmark Performance
 
 Create `lib/tasks/benchmark_caching.rake`:
+
 ```ruby
 require 'benchmark'
 
@@ -217,17 +246,21 @@ namespace :cache do
     end
   end
 end
+
 ```
 
 Run benchmark:
+
 ```bash
 bin/rails cache:benchmark
+
 ```
 
 ### Step 8: Test Cache Invalidation
 
 ```bash
 bin/rails console
+
 ```
 
 ```ruby
@@ -251,6 +284,7 @@ puts post.cache_key_with_version
 
 # New render will miss cache with new key
 ApplicationController.render(partial: "posts/post", locals: { post: post })
+
 ```
 
 ### Step 9: Manual Cache Operations
@@ -273,11 +307,13 @@ Rails.cache.delete("my_key")
 
 # Clear all
 Rails.cache.clear
+
 ```
 
 ## Stretch (Optional)
 
 1. Implement Russian-doll caching:
+
 ```erb
 <% cache ["posts", @posts.maximum(:updated_at)] do %>
   <% @posts.each do |post| %>
@@ -286,14 +322,17 @@ Rails.cache.clear
     <% end %>
   <% end %>
 <% end %>
+
 ```
 
 2. Add cache hit rate tracking to a dashboard:
+
 ```ruby
 # Track in Redis
 hits = Rails.cache.redis.get("cache_hits").to_i
 misses = Rails.cache.redis.get("cache_misses").to_i
 rate = (hits.to_f / (hits + misses) * 100).round(2)
+
 ```
 
 3. Compare memory vs Redis cache stores by benchmarking 1000 reads.

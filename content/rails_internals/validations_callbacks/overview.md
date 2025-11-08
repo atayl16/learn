@@ -31,18 +31,22 @@ class User < ApplicationRecord
   validates :role, inclusion: { in: %w[admin user guest] }
   validates :username, format: { with: /\A[a-zA-Z0-9_]+\z/ }
 end
+
 ```
 
 **Conditional validations:**
+
 ```ruby
 validates :ssn, presence: true, if: :us_resident?
 
 def us_resident?
   country == "US"
 end
+
 ```
 
 **Custom validations:**
+
 ```ruby
 validate :email_domain_allowed
 
@@ -51,6 +55,7 @@ def email_domain_allowed
   domain = email.split("@").last
   errors.add(:email, "domain not allowed") unless %w[example.com mycompany.com].include?(domain)
 end
+
 ```
 
 ---
@@ -63,10 +68,12 @@ Validations run:
 - **Skipped by:** `update_attribute`, `save(validate: false)`, `update_column`
 
 Check validity:
+
 ```ruby
 user = User.new(email: "")
 user.valid?  # => false
 user.errors.full_messages  # => ["Email can't be blank"]
+
 ```
 
 ---
@@ -105,6 +112,7 @@ class Order < ApplicationRecord
     subscriptions.each(&:cancel!)
   end
 end
+
 ```
 
 **Callback order:**
@@ -135,6 +143,7 @@ end
 ## Callback Dangers
 
 ### Callback Hell
+
 ```ruby
 # BAD: Nested side effects
 class User < ApplicationRecord
@@ -149,11 +158,13 @@ class Profile < ApplicationRecord
   after_create :generate_avatar
   after_create :set_defaults
 end
+
 ```
 
 **Problem:** Creating a user triggers 6+ callbacks across models. Hard to debug and test.
 
 **Solution:** Use service objects:
+
 ```ruby
 class UserRegistration
   def call(params)
@@ -164,19 +175,24 @@ class UserRegistration
     user
   end
 end
+
 ```
 
 ### Callbacks Break Expectations
+
 ```ruby
 user = User.new(email: "test@example.com")
 user.save  # Triggers 5 callbacks, sends email, calls API
+
 ```
 
 **Problem:** `save` is expected to be a database operation. Hidden side effects surprise developers.
 
 **Solution:** Explicit service methods:
+
 ```ruby
 UserService.register(user)  # Clear intent
+
 ```
 
 ---
@@ -209,6 +225,7 @@ end
 class Article < ApplicationRecord
   include Taggable
 end
+
 ```
 
 **What `ActiveSupport::Concern` does:**

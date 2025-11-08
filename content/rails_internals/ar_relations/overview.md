@@ -30,6 +30,7 @@ users = User.where(active: true)
 # Query executes here
 users.each { |u| puts u.name }
 # SQL: SELECT * FROM users WHERE active = true
+
 ```
 
 **When queries execute:**
@@ -39,9 +40,11 @@ users.each { |u| puts u.name }
 - `.exists?`, `.any?`, `.none?` (boolean checks)
 
 **Check generated SQL:**
+
 ```ruby
 User.where(active: true).to_sql
 # => "SELECT \"users\".* FROM \"users\" WHERE \"users\".\"active\" = TRUE"
+
 ```
 
 ---
@@ -59,24 +62,31 @@ User
 # SELECT * FROM users
 # WHERE active = true AND created_at > '2024-01-01'
 # ORDER BY created_at DESC LIMIT 10
+
 ```
 
 **Hash conditions:**
+
 ```ruby
 User.where(role: "admin", active: true)
 # WHERE role = 'admin' AND active = true
+
 ```
 
 **SQL fragments (use placeholders to prevent SQL injection):**
+
 ```ruby
 User.where("age > ?", 18)
 User.where("name LIKE ?", "%John%")
+
 ```
 
 **Arrays for IN clauses:**
+
 ```ruby
 User.where(id: [1, 2, 3])
 # WHERE id IN (1, 2, 3)
+
 ```
 
 ---
@@ -95,16 +105,20 @@ end
 User.active.recent.admins
 # SELECT * FROM users
 # WHERE active = true AND created_at > '2024-10-01' AND role = 'admin'
+
 ```
 
 **Scopes with arguments:**
+
 ```ruby
 scope :created_after, ->(date) { where("created_at > ?", date) }
 
 User.created_after(1.month.ago)
+
 ```
 
 **Class methods (alternative):**
+
 ```ruby
 class User < ApplicationRecord
   def self.active
@@ -113,6 +127,7 @@ class User < ApplicationRecord
 end
 
 User.active  # same as scope
+
 ```
 
 ---
@@ -120,26 +135,33 @@ User.active  # same as scope
 ## Joins and Includes
 
 ### Inner Join (only users with posts)
+
 ```ruby
 User.joins(:posts)
 # SELECT users.* FROM users INNER JOIN posts ON posts.user_id = users.id
+
 ```
 
 ### Left Outer Join (all users, with/without posts)
+
 ```ruby
 User.left_joins(:posts)
 # SELECT users.* FROM users LEFT OUTER JOIN posts ON posts.user_id = users.id
+
 ```
 
 ### Filtering joined tables
+
 ```ruby
 User.joins(:posts).where(posts: { published: true })
 # SELECT users.* FROM users
 # INNER JOIN posts ON posts.user_id = users.id
 # WHERE posts.published = true
+
 ```
 
 ### Preloading (avoid N+1)
+
 ```ruby
 # Bad: N+1 queries
 users = User.all
@@ -152,6 +174,7 @@ users = User.includes(:posts)
 users.each { |u| puts u.posts.count }
 # Query 1: SELECT * FROM users
 # Query 2: SELECT * FROM posts WHERE user_id IN (1,2,3,...)
+
 ```
 
 **Difference:**
@@ -175,6 +198,7 @@ User.average(:age)
 User.group(:role).count
 # SELECT role, COUNT(*) FROM users GROUP BY role
 # => {"admin" => 5, "user" => 120}
+
 ```
 
 ---
@@ -182,12 +206,15 @@ User.group(:role).count
 ## Select and Pluck
 
 **Select specific columns:**
+
 ```ruby
 User.select(:id, :name)
 # SELECT id, name FROM users
+
 ```
 
 **Pluck (returns array, not ActiveRecord objects):**
+
 ```ruby
 User.pluck(:email)
 # => ["alice@ex.com", "bob@ex.com"]
@@ -195,6 +222,7 @@ User.pluck(:email)
 
 User.pluck(:id, :name)
 # => [[1, "Alice"], [2, "Bob"]]
+
 ```
 
 **Performance:** `pluck` is faster than `map` because it skips object instantiation.
@@ -204,15 +232,19 @@ User.pluck(:id, :name)
 ## Or and Not
 
 **Or:**
+
 ```ruby
 User.where(role: "admin").or(User.where(active: true))
 # WHERE (role = 'admin') OR (active = true)
+
 ```
 
 **Not:**
+
 ```ruby
 User.where.not(role: "guest")
 # WHERE role != 'guest'
+
 ```
 
 ---
@@ -225,6 +257,7 @@ User.order(:created_at).reverse_order
 
 User.reorder(name: :asc)
 # Replaces existing order
+
 ```
 
 ---

@@ -30,6 +30,7 @@ class SimpleApp
     [200, {"Content-Type" => "text/plain"}, ["Hello World"]]
   end
 end
+
 ```
 
 Rails wraps this in layers of middleware before your controller code runs.
@@ -42,9 +43,11 @@ View your app's middleware:
 
 ```bash
 bin/rails middleware
+
 ```
 
 Output (simplified):
+
 ```
 use Rack::Sendfile
 use ActionDispatch::Static
@@ -65,6 +68,7 @@ use Rack::ConditionalGet
 use Rack::ETag
 use ActionDispatch::ParamsParser  # ← Parses JSON/XML into params
 run MyApp::Application.routes
+
 ```
 
 **Key middleware roles:**
@@ -116,6 +120,7 @@ class UsersController < ApplicationController
     Rails.logger.info "User #{@user.id} viewed by #{current_user.id}"
   end
 end
+
 ```
 
 **Filter chain halting:**
@@ -133,6 +138,7 @@ gem 'rack-mini-profiler'
 
 # config/environments/development.rb
 config.middleware.use Rack::MiniProfiler
+
 ```
 
 Visit any page; a speed badge appears in the top-left corner. Click it to see:

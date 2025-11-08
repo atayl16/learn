@@ -7,6 +7,7 @@ Practice using Common Table Expressions and window functions to solve analytics 
 You have an e-commerce database with orders and products. Write queries using CTEs and window functions to answer business questions.
 
 **Setup:**
+
 ```ruby
 # Schema
 create_table :orders do |t|
@@ -22,6 +23,7 @@ create_table :products do |t|
   t.decimal :price, precision: 10, scale: 2
   t.timestamps
 end
+
 ```
 
 **Business questions:**

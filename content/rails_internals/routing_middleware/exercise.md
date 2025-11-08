@@ -24,9 +24,11 @@ In a Rails app:
 1. Run `bin/rails routes | grep comments` and see nested routes
 2. Visit `/admin/posts` and see admin controller response
 3. Check `log/development.log` for middleware output:
+
 ```
 Request: GET /posts
 Response: 200 in 45ms
+
 ```
 4. Test subdomain constraint (if using `lvh.me` or similar)
 
@@ -40,11 +42,13 @@ cd routing_demo
 bin/rails generate scaffold Post title:string body:text
 bin/rails generate model Comment body:text post:references
 bin/rails db:migrate
+
 ```
 
 ### Step 2: Define Routes
 
 Edit `config/routes.rb`:
+
 ```ruby
 Rails.application.routes.draw do
   root 'posts#index'
@@ -68,11 +72,13 @@ Rails.application.routes.draw do
     end
   end
 end
+
 ```
 
 ### Step 3: Create Admin Controller
 
 Create `app/controllers/admin/posts_controller.rb`:
+
 ```ruby
 module Admin
   class PostsController < ApplicationController
@@ -102,11 +108,13 @@ module Admin
     end
   end
 end
+
 ```
 
 ### Step 4: Create API Controller
 
 Create `app/controllers/api/v1/posts_controller.rb`:
+
 ```ruby
 module Api
   module V1
@@ -123,11 +131,13 @@ module Api
     end
   end
 end
+
 ```
 
 ### Step 5: Create Custom Middleware
 
 Create `app/middleware/request_timer.rb`:
+
 ```ruby
 class RequestTimer
   def initialize(app)
@@ -148,9 +158,11 @@ class RequestTimer
     [status, headers, response]
   end
 end
+
 ```
 
 Add to `config/application.rb`:
+
 ```ruby
 module RoutingDemo
   class Application < Rails::Application
@@ -158,6 +170,7 @@ module RoutingDemo
     config.middleware.use RequestTimer
   end
 end
+
 ```
 
 ### Step 6: Test Routes
@@ -174,12 +187,14 @@ bin/rails routes -c api/v1/posts
 # Test in console
 Rails.application.routes.recognize_path("/posts/1/comments", method: :get)
 # => { controller: "comments", action: "index", post_id: "1" }
+
 ```
 
 ### Step 7: Create Sample Data and Test
 
 ```bash
 bin/rails console
+
 ```
 
 ```ruby
@@ -193,24 +208,30 @@ Rails.application.routes.url_helpers.post_comments_path(post)
 
 Rails.application.routes.url_helpers.admin_posts_path
 # => "/admin/posts"
+
 ```
 
 Start server and test:
+
 ```bash
 bin/rails server
 # Visit http://localhost:3000/posts
 # Visit http://localhost:3000/admin/posts
 # Check log/development.log for timing output
+
 ```
 
 ## Stretch (Optional)
 
 1. Add route constraints for format:
+
 ```ruby
 resources :posts, constraints: { format: 'json' }
+
 ```
 
 2. Create a custom constraint class for API versioning:
+
 ```ruby
 # lib/constraints/api_version.rb
 class ApiVersion
@@ -233,9 +254,11 @@ namespace :api do
     resources :posts, controller: 'v2/posts'
   end
 end
+
 ```
 
 3. Add middleware to reject requests without API key for /api routes:
+
 ```ruby
 class ApiKeyCheck
   def initialize(app)
@@ -255,6 +278,7 @@ class ApiKeyCheck
     @app.call(env)
   end
 end
+
 ```
 
 ## Time Estimate

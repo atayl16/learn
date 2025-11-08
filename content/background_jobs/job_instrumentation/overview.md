@@ -42,12 +42,15 @@ class ReportGeneratorWorker
     raise
   end
 end
+
 ```
 
 **Log output:**
+
 ```
 [ReportGenerator] [user:123] [type:monthly] Starting report generation
 [ReportGenerator] [user:123] [type:monthly] Report generated successfully: 456
+
 ```
 
 Search logs: `grep "user:123" log/sidekiq.log`
@@ -79,6 +82,7 @@ ActiveSupport::Notifications.subscribe('perform.active_job') do |name, start, fi
     StatsD.histogram('sidekiq.job.duration', duration, tags: ["job:#{job_name}"])
   end
 end
+
 ```
 
 Metrics exposed:
@@ -137,6 +141,7 @@ Sidekiq.configure_server do |config|
     chain.add JobMetricsMiddleware
   end
 end
+
 ```
 
 Middleware runs for every job, providing centralized instrumentation.
@@ -187,6 +192,7 @@ class ApiWorker
 
   class RateLimitError < StandardError; end
 end
+
 ```
 
 **Backoff patterns:**
@@ -223,6 +229,7 @@ Sidekiq.configure_server do |config|
     chain.add QueueLatencyMiddleware
   end
 end
+
 ```
 
 Alert when latency exceeds thresholds (queue backlog).
@@ -263,6 +270,7 @@ class EmailWorker
     # Send email
   end
 end
+
 ```
 
 Dashboard queries (Datadog example):

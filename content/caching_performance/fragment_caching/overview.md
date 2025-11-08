@@ -35,11 +35,14 @@ Wrap expensive partials with `cache` block:
     </div>
   <% end %>
 <% end %>
+
 ```
 
 **Generated cache key:**
+
 ```
 views/posts/123-20250108120000/a3f2b1c4d5e6f7
+
 ```
 
 Cache expires automatically when `post.updated_at` changes (Rails uses `cache_key_with_version`).
@@ -60,6 +63,7 @@ class Statistics
     end
   end
 end
+
 ```
 
 **First call:** Runs query, stores result in cache.
@@ -72,24 +76,30 @@ end
 Rails supports multiple backends:
 
 **Memory store (development):**
+
 ```ruby
 # config/environments/development.rb
 config.cache_store = :memory_store, { size: 64.megabytes }
+
 ```
 
 **Redis (production):**
+
 ```ruby
 # Gemfile
 gem 'redis'
 
 # config/environments/production.rb
 config.cache_store = :redis_cache_store, { url: ENV['REDIS_URL'], expires_in: 1.day }
+
 ```
 
 **Memcached:**
+
 ```ruby
 gem 'dalli'
 config.cache_store = :mem_cache_store, "cache1.example.com", "cache2.example.com"
+
 ```
 
 **Comparison:**
@@ -116,6 +126,7 @@ end
 Rails.cache.fetch([@user, "posts", @user.posts.maximum(:updated_at)]) do
   @user.posts.to_a
 end
+
 ```
 
 **Array keys:** Rails joins with `/` to create string key.
@@ -125,25 +136,31 @@ end
 ## Expiration Strategies
 
 **Time-based:**
+
 ```ruby
 Rails.cache.fetch("trending_posts", expires_in: 15.minutes) do
   Post.order(views: :desc).limit(10)
 end
+
 ```
 
 **Version-based (auto-expire on model change):**
+
 ```erb
 <% cache ["sidebar", @user] do %>
   <%= render "shared/sidebar" %>
 <% end %>
+
 ```
 
 If `@user.updated_at` changes, cache key changes → cache miss → re-render.
 
 **Manual deletion:**
+
 ```ruby
 Rails.cache.delete("user_posts/#{@user.id}")
 Rails.cache.delete_matched("user_posts/*") # Delete all matching
+
 ```
 
 ---
@@ -159,6 +176,7 @@ ActiveSupport::Notifications.subscribe("cache_read.active_support") do |*args|
   hit = event.payload[:hit]
   Rails.logger.info "Cache #{hit ? 'HIT' : 'MISS'}: #{event.payload[:key]}"
 end
+
 ```
 
 **Rack Mini Profiler** shows cache hits in speed badge.
@@ -170,6 +188,7 @@ end
 ## Fragment Caching Best Practices
 
 **Cache the expensive part:**
+
 ```erb
 <!-- DON'T cache entire page with user-specific header -->
 <% cache do %>
@@ -182,16 +201,20 @@ end
 <% cache "posts_list" do %>
   <%= render "posts" %>
 <% end %>
+
 ```
 
 **Scope by user when needed:**
+
 ```erb
 <% cache [current_user, "dashboard"] do %>
   Welcome <%= current_user.name %>
 <% end %>
+
 ```
 
 **Nest caches (Russian-doll pattern):**
+
 ```erb
 <% cache ["posts", @posts.maximum(:updated_at)] do %>
   <% @posts.each do |post| %>
@@ -200,6 +223,7 @@ end
     <% end %>
   <% end %>
 <% end %>
+
 ```
 
 Outer cache expires when any post changes. Inner caches allow partial reuse.

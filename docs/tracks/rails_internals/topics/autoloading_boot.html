@@ -661,6 +661,7 @@
 <div class="highlight"><pre class="highlight plaintext"><code>app/models/user.rb           → User
 app/models/billing/invoice.rb → Billing::Invoice
 app/services/pdf_generator.rb → PdfGenerator
+
 </code></pre></div>
 <p><strong>Convention:</strong><br>
 - <code>snake_case</code> file names → <code>CamelCase</code> constants<br>
@@ -698,27 +699,20 @@ app/services/pdf_generator.rb → PdfGenerator
 </tr>
 </tbody></table>
 
-<p><strong>Development:</strong><br>
-```ruby</p>
+<p><strong>Development:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/environments/development.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">eager_load</span> <span class="o">=</span> <span class="kp">false</span>  <span class="c1"># autoload instead</span>
 
-<h1>config/environments/development.rb</h1>
+</code></pre></div>
+<p><strong>Production:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/environments/production.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">eager_load</span> <span class="o">=</span> <span class="kp">true</span>  <span class="c1"># load everything upfront</span>
 
-<p>config.eager_load = false  # autoload instead<br>
-```</p>
+</code></pre></div>
+<p><strong>Check which files will eager-load:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">autoloaders</span><span class="p">.</span><span class="nf">main</span><span class="p">.</span><span class="nf">all_expected_cpaths</span>
 
-<p><strong>Production:</strong><br>
-```ruby</p>
-
-<h1>config/environments/production.rb</h1>
-
-<p>config.eager_load = true  # load everything upfront<br>
-```</p>
-
-<p><strong>Check which files will eager-load:</strong><br>
-<code>ruby<br>
-Rails.autoloaders.main.all_expected_cpaths<br>
-</code></p>
-
+</code></pre></div>
 <hr>
 
 <h2>Rails Boot Sequence</h2>
@@ -734,11 +728,10 @@ Rails.autoloaders.main.all_expected_cpaths<br>
 <li><strong>Application ready</strong> — server/console starts</li>
 </ol>
 
-<p><strong>Profile boot time:</strong><br>
-<code>bash<br>
-RAILS_ENV=production time bin/rails runner &#39;puts &quot;Booted&quot;&#39;<br>
-</code></p>
+<p><strong>Profile boot time:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nv">RAILS_ENV</span><span class="o">=</span>production <span class="nb">time </span>bin/rails runner <span class="s1">'puts "Booted"'</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Autoload Paths</h2>
@@ -751,19 +744,15 @@ RAILS_ENV=production time bin/rails runner &#39;puts &quot;Booted&quot;&#39;<br>
 - <code>app/mailers</code><br>
 - etc.</p>
 
-<p><strong>Add custom autoload paths:</strong><br>
-```ruby</p>
+<p><strong>Add custom autoload paths:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/application.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">autoload_paths</span> <span class="o">+=</span> <span class="sx">%W[</span><span class="si">#{</span><span class="n">config</span><span class="p">.</span><span class="nf">root</span><span class="si">}</span><span class="sx">/app/services </span><span class="si">#{</span><span class="n">config</span><span class="p">.</span><span class="nf">root</span><span class="si">}</span><span class="sx">/app/presenters]</span>
 
-<h1>config/application.rb</h1>
+</code></pre></div>
+<p><strong>Check current paths:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">autoloaders</span><span class="p">.</span><span class="nf">main</span><span class="p">.</span><span class="nf">dirs</span>
 
-<p>config.autoload_paths += %W[#{config.root}/app/services #{config.root}/app/presenters]<br>
-```</p>
-
-<p><strong>Check current paths:</strong><br>
-<code>ruby<br>
-Rails.autoloaders.main.dirs<br>
-</code></p>
-
+</code></pre></div>
 <hr>
 
 <h2>Debugging Autoload Errors</h2>
@@ -778,99 +767,84 @@ Rails.autoloaders.main.dirs<br>
 
 <h3>Error: &quot;Circular dependency detected&quot;</h3>
 
-<p><strong>Cause:</strong><br>
-```ruby</p>
+<p><strong>Cause:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/models/user.rb</span>
+<span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_many</span> <span class="ss">:orders</span>  <span class="c1"># triggers Order load</span>
+<span class="k">end</span>
 
-<h1>app/models/user.rb</h1>
+<span class="c1"># app/models/order.rb</span>
+<span class="k">class</span> <span class="nc">Order</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:user</span>  <span class="c1"># triggers User load → infinite loop</span>
+<span class="k">end</span>
 
-<p>class User &lt; ApplicationRecord<br>
-  has_many :orders  # triggers Order load<br>
-end</p>
-
-<h1>app/models/order.rb</h1>
-
-<p>class Order &lt; ApplicationRecord<br>
-  belongs_to :user  # triggers User load → infinite loop<br>
-end<br>
-```</p>
-
+</code></pre></div>
 <p><strong>Fix:</strong><br>
-Use strings to defer loading:<br>
-<code>ruby<br>
-class User &lt; ApplicationRecord<br>
-  has_many :orders, class_name: &quot;Order&quot;<br>
-end<br>
-</code></p>
+Use strings to defer loading:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_many</span> <span class="ss">:orders</span><span class="p">,</span> <span class="ss">class_name: </span><span class="s2">"Order"</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <p>Or extract shared logic to a concern.</p>
 
 <h3>Error: &quot;Expected app/models/user.rb to define User, but did not&quot;</h3>
 
-<p><strong>Cause:</strong><br>
-```ruby</p>
+<p><strong>Cause:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/models/user.rb</span>
+<span class="k">class</span> <span class="nc">UserModel</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>  <span class="c1"># wrong name</span>
+<span class="k">end</span>
 
-<h1>app/models/user.rb</h1>
-
-<p>class UserModel &lt; ApplicationRecord  # wrong name<br>
-end<br>
-```</p>
-
+</code></pre></div>
 <p><strong>Fix:</strong><br>
-Match file name to class name:<br>
-<code>ruby<br>
-class User &lt; ApplicationRecord<br>
-end<br>
-</code></p>
+Match file name to class name:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Zeitwerk Check</h2>
 
 <p>Before deploying, verify all constants:</p>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails zeitwerk:check
+
 </code></pre></div>
-<p>Output:<br>
-<code><br>
-Hold on, I am eager loading the application.<br>
-All is good!<br>
-</code></p>
+<p>Output:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>Hold on, I am eager loading the application.
+All is good!
 
-<p>If errors appear:<br>
-<code><br>
-expected file app/models/user.rb to define constant User, but didn&#39;t<br>
-</code></p>
+</code></pre></div>
+<p>If errors appear:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>expected file app/models/user.rb to define constant User, but didn't
 
+</code></pre></div>
 <p>Fix the mismatch.</p>
 
 <hr>
 
 <h2>Optimizing Boot Time</h2>
 
-<p><strong>Measure:</strong><br>
-<code>bash<br>
-time bin/rails runner &#39;puts &quot;Booted&quot;&#39;<br>
-</code></p>
+<p><strong>Measure:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">time </span>bin/rails runner <span class="s1">'puts "Booted"'</span>
 
+</code></pre></div>
 <p><strong>Common slow spots:</strong><br>
 1. <strong>Too many gems:</strong> remove unused gems from Gemfile<br>
 2. <strong>Heavy initializers:</strong> defer non-critical setup (e.g., external API clients)<br>
 3. <strong>Database seeds:</strong> don&#39;t run in initializers<br>
 4. <strong>Eager loading in dev:</strong> set <code>config.eager_load = false</code></p>
 
-<p><strong>Profile initializers:</strong><br>
-```ruby</p>
+<p><strong>Profile initializers:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/environments/development.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">after_initialize</span> <span class="k">do</span>
+  <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Boot completed in </span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span> <span class="o">-</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">config</span><span class="p">.</span><span class="nf">beginning_time</span><span class="si">}</span><span class="s2">s"</span>
+<span class="k">end</span>
 
-<h1>config/environments/development.rb</h1>
+<span class="c1"># config/application.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">beginning_time</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">now</span>
 
-<p>config.after_initialize do<br>
-  Rails.logger.info &quot;Boot completed in #{Time.now - Rails.application.config.beginning_time}s&quot;<br>
-end</p>
-
-<h1>config/application.rb</h1>
-
-<p>config.beginning_time = Time.now<br>
-```</p>
-
+</code></pre></div>
 <hr>
 
 <h2>Trade-offs Box</h2>
@@ -947,169 +921,146 @@ end</p>
 <h2>Verification Steps</h2>
 
 <ol>
-<li><p>Run <code>bin/rails console</code> and execute:<br>
-```ruby<br>
-PdfGenerator.new.generate</p>
-
-<h1>Should output &quot;Generating PDF...&quot;</h1>
-<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
-<li><p>Run <code>bin/rails zeitwerk:check</code> — should see &quot;All is good!&quot;</p></li>
-<li><p>Check boot time output:<br>
-```bash<br>
-bin/rails runner &#39;puts &quot;Ready&quot;&#39;</p>
-
-<h1>Should show: &quot;Boot time: 2.3s&quot;</h1>
-<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
+<li>Run <code>bin/rails console</code> and execute:</li>
 </ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">PdfGenerator</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">generate</span>
+<span class="c1"># Should output "Generating PDF..."</span>
 
+</code></pre></div>
+<ol>
+<li><p>Run <code>bin/rails zeitwerk:check</code> — should see &quot;All is good!&quot;</p></li>
+<li><p>Check boot time output:</p></li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails runner <span class="s1">'puts "Ready"'</span>
+<span class="c"># Should show: "Boot time: 2.3s"</span>
+
+</code></pre></div>
 <h2>Setup Code</h2>
 
 <h3>Step 1: Add Custom Autoload Path</h3>
 
-<p>Edit <code>config/application.rb</code>:<br>
-<code>ruby<br>
-module YourApp<br>
-  class Application &lt; Rails::Application<br>
-    config.autoload_paths += %W[#{config.root}/app/services]<br>
-  end<br>
-end<br>
-</code></p>
+<p>Edit <code>config/application.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">YourApp</span>
+  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="no">Rails</span><span class="o">::</span><span class="no">Application</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">autoload_paths</span> <span class="o">+=</span> <span class="sx">%W[</span><span class="si">#{</span><span class="n">config</span><span class="p">.</span><span class="nf">root</span><span class="si">}</span><span class="sx">/app/services]</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 2: Create Service Object</h3>
 
-<p>Create <code>app/services/pdf_generator.rb</code>:<br>
-<code>ruby<br>
-class PdfGenerator<br>
-  def generate<br>
-    puts &quot;Generating PDF...&quot;<br>
-  end<br>
-end<br>
-</code></p>
+<p>Create <code>app/services/pdf_generator.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">PdfGenerator</span>
+  <span class="k">def</span> <span class="nf">generate</span>
+    <span class="nb">puts</span> <span class="s2">"Generating PDF..."</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>Test in console:<br>
-```bash<br>
-bin/rails console</p>
+</code></pre></div>
+<p>Test in console:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails console
+<span class="o">&gt;</span> PdfGenerator.new.generate
+<span class="c"># Output: "Generating PDF..."</span>
 
-<blockquote>
-<p>PdfGenerator.new.generate</p>
-
-<h1>Output: &quot;Generating PDF...&quot;</h1>
-<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></blockquote>
-
+</code></pre></div>
 <h3>Step 3: Create Naming Mismatch (Debugging Practice)</h3>
 
 <p>Rename file to <code>app/services/pdf_creator.rb</code> (but keep class name <code>PdfGenerator</code>):</p>
 <div class="highlight"><pre class="highlight shell"><code><span class="nb">mv </span>app/services/pdf_generator.rb app/services/pdf_creator.rb
+
 </code></pre></div>
-<p>Try loading:<br>
-```bash<br>
-bin/rails console</p>
+<p>Try loading:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails console
+<span class="o">&gt;</span> PdfGenerator.new
+<span class="c"># Error: uninitialized constant PdfGenerator</span>
 
-<blockquote>
-<p>PdfGenerator.new</p>
-
-<h1>Error: uninitialized constant PdfGenerator</h1>
-<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></blockquote>
-
-<p>Run Zeitwerk check:<br>
-```bash<br>
-bin/rails zeitwerk:check</p>
-
-<h1>Error: expected file app/services/pdf_creator.rb to define constant PdfCreator, but didn&#39;t</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Fix:** Rename file back to `pdf_generator.rb`.
-
-### Step 4: Measure Boot Time
-
-Edit `config/application.rb`:
-```ruby
-module YourApp
-  class Application &lt; Rails::Application
-    config.boot_start_time = Time.now
-
-    config.after_initialize do
-      boot_time = Time.now - config.boot_start_time
-      puts "Boot time: #{boot_time.round(2)}s"
-    end
-  end
-end
 </code></pre></div>
-<p>Run:<br>
-```bash<br>
-bin/rails runner &#39;puts &quot;Ready&quot;&#39;</p>
+<p>Run Zeitwerk check:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails zeitwerk:check
+<span class="c"># Error: expected file app/services/pdf_creator.rb to define constant PdfCreator, but didn't</span>
 
-<h1>Output: Boot time: 1.8s</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-### Step 5: Create Nested Module
+</code></pre></div>
+<p><strong>Fix:</strong> Rename file back to <code>pdf_generator.rb</code>.</p>
 
-Create `app/services/billing/invoice_generator.rb`:
-```ruby
-module Billing
-  class InvoiceGenerator
-    def generate
-      puts "Generating invoice..."
-    end
-  end
-end
+<h3>Step 4: Measure Boot Time</h3>
+
+<p>Edit <code>config/application.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">YourApp</span>
+  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="no">Rails</span><span class="o">::</span><span class="no">Application</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">boot_start_time</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">now</span>
+
+    <span class="n">config</span><span class="p">.</span><span class="nf">after_initialize</span> <span class="k">do</span>
+      <span class="n">boot_time</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">now</span> <span class="o">-</span> <span class="n">config</span><span class="p">.</span><span class="nf">boot_start_time</span>
+      <span class="nb">puts</span> <span class="s2">"Boot time: </span><span class="si">#{</span><span class="n">boot_time</span><span class="p">.</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">s"</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Run:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails runner <span class="s1">'puts "Ready"'</span>
+<span class="c"># Output: Boot time: 1.8s</span>
+
+</code></pre></div>
+<h3>Step 5: Create Nested Module</h3>
+
+<p>Create <code>app/services/billing/invoice_generator.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">Billing</span>
+  <span class="k">class</span> <span class="nc">InvoiceGenerator</span>
+    <span class="k">def</span> <span class="nf">generate</span>
+      <span class="nb">puts</span> <span class="s2">"Generating invoice..."</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
 <p><strong>Note:</strong> Zeitwerk automatically infers the <code>Billing</code> module from the directory. No <code>billing.rb</code> needed unless you want custom module code.</p>
 
-<p>Test:<br>
-```bash<br>
-bin/rails console</p>
+<p>Test:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails console
+<span class="o">&gt;</span> Billing::InvoiceGenerator.new.generate
+<span class="c"># Output: "Generating invoice..."</span>
 
-<blockquote>
-<p>Billing::InvoiceGenerator.new.generate</p>
-
-<h1>Output: &quot;Generating invoice...&quot;</h1>
-<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></blockquote>
-
+</code></pre></div>
 <h2>Stretch (Optional)</h2>
 
 <ol>
 <li>Add a circular dependency between two service objects and fix it:</li>
 </ol>
 
-<p>Create <code>app/services/order_processor.rb</code>:<br>
-<code>ruby<br>
-class OrderProcessor<br>
-  def process<br>
-    PaymentHandler.new.charge  # loads PaymentHandler<br>
-  end<br>
-end<br>
-</code></p>
+<p>Create <code>app/services/order_processor.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">OrderProcessor</span>
+  <span class="k">def</span> <span class="nf">process</span>
+    <span class="no">PaymentHandler</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">charge</span>  <span class="c1"># loads PaymentHandler</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>Create <code>app/services/payment_handler.rb</code>:<br>
-<code>ruby<br>
-class PaymentHandler<br>
-  def charge<br>
-    OrderProcessor.new.process  # circular!<br>
-  end<br>
-end<br>
-</code></p>
+</code></pre></div>
+<p>Create <code>app/services/payment_handler.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">PaymentHandler</span>
+  <span class="k">def</span> <span class="nf">charge</span>
+    <span class="no">OrderProcessor</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">process</span>  <span class="c1"># circular!</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>Try loading:<br>
-```bash<br>
-bin/rails console</p>
+</code></pre></div>
+<p>Try loading:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails console
+<span class="o">&gt;</span> OrderProcessor.new.process
+<span class="c"># Error: stack level too deep (circular dependency)</span>
 
-<blockquote>
-<p>OrderProcessor.new.process</p>
-
-<h1>Error: stack level too deep (circular dependency)</h1>
-<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></blockquote>
-
+</code></pre></div>
 <p><strong>Fix:</strong> Use dependency injection or extract shared logic to a third class.</p>
 
 <ol>
 <li>Profile which initializers are slow:</li>
 </ol>
 
-<p>Edit <code>config/initializers/example.rb</code>:<br>
-<code>ruby<br>
-puts &quot;Loading example initializer...&quot;<br>
-sleep 0.5  # simulate slow initializer<br>
-</code></p>
+<p>Edit <code>config/initializers/example.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">puts</span> <span class="s2">"Loading example initializer..."</span>
+<span class="nb">sleep</span> <span class="mf">0.5</span>  <span class="c1"># simulate slow initializer</span>
 
+</code></pre></div>
 <p>Run <code>bin/rails runner &#39;puts &quot;Ready&quot;&#39;</code> and see boot time increase.</p>
 
 <h2>Time Estimate</h2>

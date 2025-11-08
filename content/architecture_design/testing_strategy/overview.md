@@ -57,6 +57,7 @@ RSpec.describe "checkout flow", type: :system do
     expect(page).to have_content("Order complete")
   end
 end
+
 ```
 
 Unit tests run in milliseconds. Request tests take seconds. System tests take 10+ seconds each.
@@ -81,6 +82,7 @@ end
 # In test
 user = create(:user)  # writes to database
 admin = build(:user, :admin)  # no database write
+
 ```
 
 Use factories for tests requiring specific attributes. Use fixtures for shared reference data (countries, currencies) loaded once per suite.
@@ -104,6 +106,7 @@ RSpec.describe StripePaymentService do
     expect(result.success?).to be true
   end
 end
+
 ```
 
 First run records the request to `spec/fixtures/vcr_cassettes/`. Subsequent runs replay it instantly. The `:vcr` tag wraps the test in a cassette.
@@ -130,6 +133,7 @@ RSpec.describe WeatherService do
     expect(WeatherService.current_temperature).to eq(72)
   end
 end
+
 ```
 
 WebMock gives full control over response bodies, status codes, and network errors.
@@ -151,6 +155,7 @@ RSpec.describe "checkout", type: :system do
     expect(page).to have_content("Total: $30.00")  # updated via JS
   end
 end
+
 ```
 
 System tests are slow. Limit them to critical user flows and use request tests for API coverage.
@@ -169,6 +174,7 @@ end
 
 # After running tests
 # open coverage/index.html
+
 ```
 
 Aim for 80%+ coverage on models and services. Skip coverage for views and configuration. High coverage doesn't guarantee bug-free code; it shows untested areas.

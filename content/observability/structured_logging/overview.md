@@ -30,12 +30,14 @@ Processing by UsersController#show as HTML
   Parameters: {"id"=>"123"}
   User Load (0.5ms)  SELECT "users".* FROM "users" WHERE "users"."id" = $1 LIMIT $2
 Completed 200 OK in 45ms (Views: 32.1ms | ActiveRecord: 0.5ms)
+
 ```
 
 Lograge condenses this to one JSON line:
 
 ```json
 {"method":"GET","path":"/users/123","format":"html","controller":"UsersController","action":"show","status":200,"duration":45.2,"view":32.1,"db":0.5}
+
 ```
 
 Queryable fields enable fast filtering: `status:500`, `duration:>1000`, `path:/api/*`.
@@ -61,6 +63,7 @@ config.lograge.custom_options = lambda do |event|
     request_id: event.payload[:headers]['action_dispatch.request_id']
   }
 end
+
 ```
 
 Every request now logs one JSON line with structured fields.
@@ -91,6 +94,7 @@ def append_info_to_payload(payload)
   payload[:tenant_id] = current_tenant&.id
   payload[:ip] = request.remote_ip
 end
+
 ```
 
 Now search logs by `user_id:123` to see all requests from one user.
@@ -112,6 +116,7 @@ config.lograge.ignore_custom = lambda do |event|
   # Skip logging health check requests
   event.payload[:path] == '/health'
 end
+
 ```
 
 Filtered params appear as `[FILTERED]` in logs. Health checks reduce log noise.
@@ -123,6 +128,7 @@ Filtered params appear as `[FILTERED]` in logs. Health checks reduce log noise.
 Ship JSON logs to centralized storage:
 
 **CloudWatch Logs (AWS):**
+
 ```ruby
 # Gemfile
 gem 'aws-sdk-cloudwatchlogs'
@@ -131,9 +137,11 @@ gem 'aws-sdk-cloudwatchlogs'
 logger = ActiveSupport::Logger.new(STDOUT)
 logger.formatter = ->(severity, time, progname, msg) { "#{msg}\n" }
 config.logger = logger
+
 ```
 
 **Datadog:**
+
 ```ruby
 # Gemfile
 gem 'ddtrace'
@@ -142,6 +150,7 @@ gem 'ddtrace'
 Datadog.configure do |c|
   c.tracing.instrument :rails
 end
+
 ```
 
 Both parse JSON logs automatically. Build dashboards with queries like `status:>=500` or `duration:>2000`.

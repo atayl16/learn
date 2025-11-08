@@ -664,6 +664,7 @@
 <span class="c1"># Query executes here</span>
 <span class="n">users</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">u</span><span class="o">|</span> <span class="nb">puts</span> <span class="n">u</span><span class="p">.</span><span class="nf">name</span> <span class="p">}</span>
 <span class="c1"># SQL: SELECT * FROM users WHERE active = true</span>
+
 </code></pre></div>
 <p><strong>When queries execute:</strong><br>
 - <code>.each</code>, <code>.map</code>, <code>.to_a</code> (enumeration)<br>
@@ -671,80 +672,73 @@
 - <code>.count</code>, <code>.sum</code>, <code>.average</code> (aggregates)<br>
 - <code>.exists?</code>, <code>.any?</code>, <code>.none?</code> (boolean checks)</p>
 
-<p><strong>Check generated SQL:</strong><br>
-```ruby<br>
-User.where(active: true).to_sql</p>
+<p><strong>Check generated SQL:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">active: </span><span class="kp">true</span><span class="p">).</span><span class="nf">to_sql</span>
+<span class="c1"># =&gt; "SELECT \"users\".* FROM \"users\" WHERE \"users\".\"active\" = TRUE"</span>
 
-<h1>=&gt; &quot;SELECT \&quot;users\&quot;.* FROM \&quot;users\&quot; WHERE \&quot;users\&quot;.\&quot;active\&quot; = TRUE&quot;</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
----
-
-## Chaining Methods
-
-Build queries step-by-step:
-
-```ruby
-User
-  .where(active: true)
-  .where("created_at &gt; ?", 1.year.ago)
-  .order(created_at: :desc)
-  .limit(10)
-# SELECT * FROM users
-# WHERE active = true AND created_at &gt; '2024-01-01'
-# ORDER BY created_at DESC LIMIT 10
 </code></pre></div>
-<p><strong>Hash conditions:</strong><br>
-```ruby<br>
-User.where(role: &quot;admin&quot;, active: true)</p>
+<hr>
 
-<h1>WHERE role = &#39;admin&#39; AND active = true</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**SQL fragments (use placeholders to prevent SQL injection):**
-```ruby
-User.where("age &gt; ?", 18)
-User.where("name LIKE ?", "%John%")
+<h2>Chaining Methods</h2>
+
+<p>Build queries step-by-step:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span>
+  <span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">active: </span><span class="kp">true</span><span class="p">)</span>
+  <span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"created_at &gt; ?"</span><span class="p">,</span> <span class="mi">1</span><span class="p">.</span><span class="nf">year</span><span class="p">.</span><span class="nf">ago</span><span class="p">)</span>
+  <span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="ss">created_at: :desc</span><span class="p">)</span>
+  <span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="c1"># SELECT * FROM users</span>
+<span class="c1"># WHERE active = true AND created_at &gt; '2024-01-01'</span>
+<span class="c1"># ORDER BY created_at DESC LIMIT 10</span>
+
 </code></pre></div>
-<p><strong>Arrays for IN clauses:</strong><br>
-```ruby<br>
-User.where(id: [1, 2, 3])</p>
+<p><strong>Hash conditions:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">role: </span><span class="s2">"admin"</span><span class="p">,</span> <span class="ss">active: </span><span class="kp">true</span><span class="p">)</span>
+<span class="c1"># WHERE role = 'admin' AND active = true</span>
 
-<h1>WHERE id IN (1, 2, 3)</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
----
-
-## Scopes
-
-Encapsulate reusable query logic:
-
-```ruby
-class User &lt; ApplicationRecord
-  scope :active, -&gt; { where(active: true) }
-  scope :recent, -&gt; { where("created_at &gt; ?", 1.week.ago) }
-  scope :admins, -&gt; { where(role: "admin") }
-end
-
-User.active.recent.admins
-# SELECT * FROM users
-# WHERE active = true AND created_at &gt; '2024-10-01' AND role = 'admin'
 </code></pre></div>
-<p><strong>Scopes with arguments:</strong><br>
-```ruby<br>
-scope :created_after, -&gt;(date) { where(&quot;created_at &gt; ?&quot;, date) }</p>
+<p><strong>SQL fragments (use placeholders to prevent SQL injection):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"age &gt; ?"</span><span class="p">,</span> <span class="mi">18</span><span class="p">)</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"name LIKE ?"</span><span class="p">,</span> <span class="s2">"%John%"</span><span class="p">)</span>
 
-<p>User.created_after(1.month.ago)<br>
-```</p>
+</code></pre></div>
+<p><strong>Arrays for IN clauses:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">id: </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="c1"># WHERE id IN (1, 2, 3)</span>
 
-<p><strong>Class methods (alternative):</strong><br>
-```ruby<br>
-class User &lt; ApplicationRecord<br>
-  def self.active<br>
-    where(active: true)<br>
-  end<br>
-end</p>
+</code></pre></div>
+<hr>
 
-<p>User.active  # same as scope<br>
-```</p>
+<h2>Scopes</h2>
 
+<p>Encapsulate reusable query logic:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">scope</span> <span class="ss">:active</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="ss">active: </span><span class="kp">true</span><span class="p">)</span> <span class="p">}</span>
+  <span class="n">scope</span> <span class="ss">:recent</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="s2">"created_at &gt; ?"</span><span class="p">,</span> <span class="mi">1</span><span class="p">.</span><span class="nf">week</span><span class="p">.</span><span class="nf">ago</span><span class="p">)</span> <span class="p">}</span>
+  <span class="n">scope</span> <span class="ss">:admins</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="ss">role: </span><span class="s2">"admin"</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
+
+<span class="no">User</span><span class="p">.</span><span class="nf">active</span><span class="p">.</span><span class="nf">recent</span><span class="p">.</span><span class="nf">admins</span>
+<span class="c1"># SELECT * FROM users</span>
+<span class="c1"># WHERE active = true AND created_at &gt; '2024-10-01' AND role = 'admin'</span>
+
+</code></pre></div>
+<p><strong>Scopes with arguments:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">scope</span> <span class="ss">:created_after</span><span class="p">,</span> <span class="o">-&gt;</span><span class="p">(</span><span class="n">date</span><span class="p">)</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="s2">"created_at &gt; ?"</span><span class="p">,</span> <span class="n">date</span><span class="p">)</span> <span class="p">}</span>
+
+<span class="no">User</span><span class="p">.</span><span class="nf">created_after</span><span class="p">(</span><span class="mi">1</span><span class="p">.</span><span class="nf">month</span><span class="p">.</span><span class="nf">ago</span><span class="p">)</span>
+
+</code></pre></div>
+<p><strong>Class methods (alternative):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">active</span>
+    <span class="n">where</span><span class="p">(</span><span class="ss">active: </span><span class="kp">true</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="no">User</span><span class="p">.</span><span class="nf">active</span>  <span class="c1"># same as scope</span>
+
+</code></pre></div>
 <hr>
 
 <h2>Joins and Includes</h2>
@@ -752,16 +746,19 @@ end</p>
 <h3>Inner Join (only users with posts)</h3>
 <div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">joins</span><span class="p">(</span><span class="ss">:posts</span><span class="p">)</span>
 <span class="c1"># SELECT users.* FROM users INNER JOIN posts ON posts.user_id = users.id</span>
+
 </code></pre></div>
 <h3>Left Outer Join (all users, with/without posts)</h3>
 <div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">left_joins</span><span class="p">(</span><span class="ss">:posts</span><span class="p">)</span>
 <span class="c1"># SELECT users.* FROM users LEFT OUTER JOIN posts ON posts.user_id = users.id</span>
+
 </code></pre></div>
 <h3>Filtering joined tables</h3>
 <div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">joins</span><span class="p">(</span><span class="ss">:posts</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="ss">posts: </span><span class="p">{</span> <span class="ss">published: </span><span class="kp">true</span> <span class="p">})</span>
 <span class="c1"># SELECT users.* FROM users</span>
 <span class="c1"># INNER JOIN posts ON posts.user_id = users.id</span>
 <span class="c1"># WHERE posts.published = true</span>
+
 </code></pre></div>
 <h3>Preloading (avoid N+1)</h3>
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Bad: N+1 queries</span>
@@ -775,6 +772,7 @@ end</p>
 <span class="n">users</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">u</span><span class="o">|</span> <span class="nb">puts</span> <span class="n">u</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">count</span> <span class="p">}</span>
 <span class="c1"># Query 1: SELECT * FROM users</span>
 <span class="c1"># Query 2: SELECT * FROM posts WHERE user_id IN (1,2,3,...)</span>
+
 </code></pre></div>
 <p><strong>Difference:</strong><br>
 - <code>joins</code>: SQL JOIN, filters users, no preloading<br>
@@ -795,25 +793,25 @@ end</p>
 <span class="no">User</span><span class="p">.</span><span class="nf">group</span><span class="p">(</span><span class="ss">:role</span><span class="p">).</span><span class="nf">count</span>
 <span class="c1"># SELECT role, COUNT(*) FROM users GROUP BY role</span>
 <span class="c1"># =&gt; {"admin" =&gt; 5, "user" =&gt; 120}</span>
+
 </code></pre></div>
 <hr>
 
 <h2>Select and Pluck</h2>
 
-<p><strong>Select specific columns:</strong><br>
-```ruby<br>
-User.select(:id, :name)</p>
+<p><strong>Select specific columns:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="ss">:id</span><span class="p">,</span> <span class="ss">:name</span><span class="p">)</span>
+<span class="c1"># SELECT id, name FROM users</span>
 
-<h1>SELECT id, name FROM users</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Pluck (returns array, not ActiveRecord objects):**
-```ruby
-User.pluck(:email)
-# =&gt; ["alice@ex.com", "bob@ex.com"]
-# SELECT email FROM users
+</code></pre></div>
+<p><strong>Pluck (returns array, not ActiveRecord objects):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:email</span><span class="p">)</span>
+<span class="c1"># =&gt; ["alice@ex.com", "bob@ex.com"]</span>
+<span class="c1"># SELECT email FROM users</span>
 
-User.pluck(:id, :name)
-# =&gt; [[1, "Alice"], [2, "Bob"]]
+<span class="no">User</span><span class="p">.</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:id</span><span class="p">,</span> <span class="ss">:name</span><span class="p">)</span>
+<span class="c1"># =&gt; [[1, "Alice"], [2, "Bob"]]</span>
+
 </code></pre></div>
 <p><strong>Performance:</strong> <code>pluck</code> is faster than <code>map</code> because it skips object instantiation.</p>
 
@@ -821,16 +819,15 @@ User.pluck(:id, :name)
 
 <h2>Or and Not</h2>
 
-<p><strong>Or:</strong><br>
-```ruby<br>
-User.where(role: &quot;admin&quot;).or(User.where(active: true))</p>
+<p><strong>Or:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">role: </span><span class="s2">"admin"</span><span class="p">).</span><span class="nf">or</span><span class="p">(</span><span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">active: </span><span class="kp">true</span><span class="p">))</span>
+<span class="c1"># WHERE (role = 'admin') OR (active = true)</span>
 
-<h1>WHERE (role = &#39;admin&#39;) OR (active = true)</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Not:**
-```ruby
-User.where.not(role: "guest")
-# WHERE role != 'guest'
+</code></pre></div>
+<p><strong>Not:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">.</span><span class="nf">not</span><span class="p">(</span><span class="ss">role: </span><span class="s2">"guest"</span><span class="p">)</span>
+<span class="c1"># WHERE role != 'guest'</span>
+
 </code></pre></div>
 <hr>
 
@@ -840,6 +837,7 @@ User.where.not(role: "guest")
 
 <span class="no">User</span><span class="p">.</span><span class="nf">reorder</span><span class="p">(</span><span class="ss">name: :asc</span><span class="p">)</span>
 <span class="c1"># Replaces existing order</span>
+
 </code></pre></div>
 <hr>
 
@@ -918,27 +916,28 @@ User.where.not(role: "guest")
 <h2>Verification Steps</h2>
 
 <ol>
-<li><p>Run in console:<br>
-```ruby<br>
-users = User.active.joins(:posts).where(posts: { published: true, created_at: 7.days.ago.. }).distinct<br>
-puts users.to_sql</p>
-
-<h1>Verify SQL has JOIN and WHERE clauses</h1>
-<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
-<li><p>Check N+1 prevention:<br>
-```ruby<br>
-users = User.includes(:posts).limit(5)<br>
-users.each { |u| puts &quot;#{u.name}: #{u.posts.count} posts&quot; }</p>
-
-<h1>Check log: should show 2 queries, not 6</h1>
-<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
-<li><p>Test scopes:<br>
-<code>ruby<br>
-User.active.count<br>
-Post.recent.count<br>
-</code></p></li>
+<li>Run in console:</li>
 </ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">active</span><span class="p">.</span><span class="nf">joins</span><span class="p">(</span><span class="ss">:posts</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="ss">posts: </span><span class="p">{</span> <span class="ss">published: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">created_at: </span><span class="mi">7</span><span class="p">.</span><span class="nf">days</span><span class="p">.</span><span class="nf">ago</span><span class="o">..</span> <span class="p">}).</span><span class="nf">distinct</span>
+<span class="nb">puts</span> <span class="n">users</span><span class="p">.</span><span class="nf">to_sql</span>
+<span class="c1"># Verify SQL has JOIN and WHERE clauses</span>
 
+</code></pre></div>
+<ol>
+<li>Check N+1 prevention:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:posts</span><span class="p">).</span><span class="nf">limit</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">users</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">u</span><span class="o">|</span> <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">u</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">u</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> posts"</span> <span class="p">}</span>
+<span class="c1"># Check log: should show 2 queries, not 6</span>
+
+</code></pre></div>
+<ol>
+<li>Test scopes:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">active</span><span class="p">.</span><span class="nf">count</span>
+<span class="no">Post</span><span class="p">.</span><span class="nf">recent</span><span class="p">.</span><span class="nf">count</span>
+
+</code></pre></div>
 <h2>Setup Code</h2>
 
 <h3>Step 1: Create Models</h3>
@@ -947,32 +946,32 @@ Post.recent.count<br>
 bin/rails generate model User name:string email:string active:boolean role:string
 bin/rails generate model Post title:string body:text published:boolean user:references
 bin/rails db:migrate
+
 </code></pre></div>
 <h3>Step 2: Add Scopes</h3>
 
-<p>Edit <code>app/models/user.rb</code>:<br>
-```ruby<br>
-class User &lt; ApplicationRecord<br>
-  has_many :posts</p>
+<p>Edit <code>app/models/user.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_many</span> <span class="ss">:posts</span>
 
-<p>scope :active, -&gt; { where(active: true) }<br>
-  scope :admins, -&gt; { where(role: &quot;admin&quot;) }<br>
-  scope :with_posts, -&gt; { joins(:posts).distinct }<br>
-end<br>
-```</p>
+  <span class="n">scope</span> <span class="ss">:active</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="ss">active: </span><span class="kp">true</span><span class="p">)</span> <span class="p">}</span>
+  <span class="n">scope</span> <span class="ss">:admins</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="ss">role: </span><span class="s2">"admin"</span><span class="p">)</span> <span class="p">}</span>
+  <span class="n">scope</span> <span class="ss">:with_posts</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">joins</span><span class="p">(</span><span class="ss">:posts</span><span class="p">).</span><span class="nf">distinct</span> <span class="p">}</span>
+<span class="k">end</span>
 
-<p>Edit <code>app/models/post.rb</code>:<br>
-```ruby<br>
-class Post &lt; ApplicationRecord<br>
-  belongs_to :user</p>
+</code></pre></div>
+<p>Edit <code>app/models/post.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Post</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:user</span>
 
-<p>scope :published, -&gt; { where(published: true) }<br>
-  scope :recent, -&gt; { where(&quot;created_at &gt; ?&quot;, 7.days.ago) }<br>
-end<br>
-```</p>
+  <span class="n">scope</span> <span class="ss">:published</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="ss">published: </span><span class="kp">true</span><span class="p">)</span> <span class="p">}</span>
+  <span class="n">scope</span> <span class="ss">:recent</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="s2">"created_at &gt; ?"</span><span class="p">,</span> <span class="mi">7</span><span class="p">.</span><span class="nf">days</span><span class="p">.</span><span class="nf">ago</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 3: Seed Data</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails console
+
 </code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Create users</span>
 <span class="mi">5</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
   <span class="no">User</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">name: </span><span class="s2">"User </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">email: </span><span class="s2">"user</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">@example.com"</span><span class="p">,</span> <span class="ss">active: </span><span class="n">i</span><span class="p">.</span><span class="nf">even?</span><span class="p">,</span> <span class="ss">role: </span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="p">?</span> <span class="s2">"admin"</span> <span class="p">:</span> <span class="s2">"user"</span><span class="p">)</span>
@@ -990,6 +989,7 @@ end<br>
     <span class="p">)</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <h3>Step 4: Test Chaining</h3>
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Active users with published posts</span>
@@ -1000,21 +1000,21 @@ end<br>
 <span class="c1"># SELECT DISTINCT users.* FROM users</span>
 <span class="c1"># INNER JOIN posts ON posts.user_id = users.id</span>
 <span class="c1"># WHERE users.active = true AND posts.published = true</span>
+
 </code></pre></div>
 <h3>Step 5: Prevent N+1</h3>
 
-<p><strong>Bad (N+1):</strong><br>
-```ruby<br>
-users = User.limit(3)<br>
-users.each { |u| puts &quot;#{u.name}: #{u.posts.count}&quot; }</p>
+<p><strong>Bad (N+1):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">users</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">u</span><span class="o">|</span> <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">u</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">u</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2">"</span> <span class="p">}</span>
+<span class="c1"># Check log: 1 query for users + 3 queries for posts = 4 total</span>
 
-<h1>Check log: 1 query for users + 3 queries for posts = 4 total</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Good (eager loading):**
-```ruby
-users = User.includes(:posts).limit(3)
-users.each { |u| puts "#{u.name}: #{u.posts.count}" }
-# Check log: 1 query for users + 1 query for posts = 2 total
+</code></pre></div>
+<p><strong>Good (eager loading):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:posts</span><span class="p">).</span><span class="nf">limit</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">users</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">u</span><span class="o">|</span> <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">u</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">u</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2">"</span> <span class="p">}</span>
+<span class="c1"># Check log: 1 query for users + 1 query for posts = 2 total</span>
+
 </code></pre></div>
 <h3>Step 6: Aggregations</h3>
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Count by role</span>
@@ -1023,28 +1023,31 @@ users.each { |u| puts "#{u.name}: #{u.posts.count}" }
 
 <span class="c1"># Average posts per user</span>
 <span class="no">User</span><span class="p">.</span><span class="nf">joins</span><span class="p">(</span><span class="ss">:posts</span><span class="p">).</span><span class="nf">group</span><span class="p">(</span><span class="s2">"users.id"</span><span class="p">).</span><span class="nf">count</span><span class="p">.</span><span class="nf">values</span><span class="p">.</span><span class="nf">sum</span> <span class="o">/</span> <span class="no">User</span><span class="p">.</span><span class="nf">count</span><span class="p">.</span><span class="nf">to_f</span>
+
 </code></pre></div>
 <h2>Stretch (Optional)</h2>
 
 <ol>
-<li><p>Create a scope that combines multiple conditions:<br>
-<code>ruby<br>
-scope :active_admins_with_recent_posts, -&gt; {<br>
-active.admins.joins(:posts).where(posts: { created_at: 7.days.ago.. }).distinct<br>
-}<br>
-</code></p></li>
-<li><p>Use <code>pluck</code> to extract emails efficiently:<br>
-```ruby<br>
-User.active.pluck(:email)</p>
-
-<h1>Returns array of emails without instantiating User objects</h1>
-<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
-<li><p>Add an <code>or</code> condition:<br>
-<code>ruby<br>
-User.where(role: &quot;admin&quot;).or(User.where(active: true))<br>
-</code></p></li>
+<li>Create a scope that combines multiple conditions:</li>
 </ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">scope</span> <span class="ss">:active_admins_with_recent_posts</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span>
+  <span class="n">active</span><span class="p">.</span><span class="nf">admins</span><span class="p">.</span><span class="nf">joins</span><span class="p">(</span><span class="ss">:posts</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="ss">posts: </span><span class="p">{</span> <span class="ss">created_at: </span><span class="mi">7</span><span class="p">.</span><span class="nf">days</span><span class="p">.</span><span class="nf">ago</span><span class="o">..</span> <span class="p">}).</span><span class="nf">distinct</span>
+<span class="p">}</span>
 
+</code></pre></div>
+<ol>
+<li>Use <code>pluck</code> to extract emails efficiently:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">active</span><span class="p">.</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:email</span><span class="p">)</span>
+<span class="c1"># Returns array of emails without instantiating User objects</span>
+
+</code></pre></div>
+<ol>
+<li>Add an <code>or</code> condition:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">role: </span><span class="s2">"admin"</span><span class="p">).</span><span class="nf">or</span><span class="p">(</span><span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">active: </span><span class="kp">true</span><span class="p">))</span>
+
+</code></pre></div>
 <h2>Time Estimate</h2>
 
 <p>20 minutes</p>

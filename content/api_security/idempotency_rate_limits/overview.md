@@ -47,6 +47,7 @@ def create
 
   render json: response[:body], status: response[:status]
 end
+
 ```
 
 If the client retries with the same key, the cached response is returned without creating a duplicate order.
@@ -73,6 +74,7 @@ def deduplicate(key)
     end
   end
 end
+
 ```
 
 Call `deduplicate(idempotency_key) { perform_operation }` to wrap the operation.
@@ -105,6 +107,7 @@ Rack::Attack.throttled_responder = lambda do |env|
     [{error: 'Too many requests', retry_after: retry_after}.to_json]
   ]
 end
+
 ```
 
 This limits each IP to 100 requests/minute and each user to 1000 requests/hour.
@@ -143,6 +146,7 @@ class TokenBucket
     end
   end
 end
+
 ```
 
 More flexible than fixed windows but requires custom code.
@@ -169,6 +173,7 @@ end
 def rate_limit_reset_time
   Time.now.beginning_of_hour + 1.hour
 end
+
 ```
 
 Clients read these to know when they can retry.

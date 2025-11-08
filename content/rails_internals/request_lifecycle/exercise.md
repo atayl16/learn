@@ -23,11 +23,13 @@ In a Rails app (create a new one if needed):
 1. Run `bin/rails middleware` and confirm your custom middleware appears
 
 2. Check `log/development.log` for:
+
 ```
 CustomMiddleware: Processing /posts
 Filter started
   Post Load (0.3ms)  SELECT "posts".* FROM "posts"
 Completed 200 OK in 15ms
+
 ```
 
 3. Open browser, click Rack Mini Profiler badge, screenshot showing:
@@ -44,19 +46,23 @@ Completed 200 OK in 15ms
 rails new profiler_demo --skip-javascript
 cd profiler_demo
 bundle add rack-mini-profiler
+
 ```
 
 Edit `config/environments/development.rb`:
+
 ```ruby
 Rails.application.configure do
   # ... existing config
   config.middleware.use Rack::MiniProfiler
 end
+
 ```
 
 ### Step 2: Create Custom Middleware
 
 Create `app/middleware/request_logger.rb`:
+
 ```ruby
 class RequestLogger
   def initialize(app)
@@ -69,9 +75,11 @@ class RequestLogger
     @app.call(env)
   end
 end
+
 ```
 
 Add to `config/application.rb`:
+
 ```ruby
 module ProfilerDemo
   class Application < Rails::Application
@@ -79,15 +87,18 @@ module ProfilerDemo
     config.middleware.use RequestLogger
   end
 end
+
 ```
 
 ### Step 3: Create Controller with Filters
 
 ```bash
 bin/rails generate controller Posts index
+
 ```
 
 Edit `app/controllers/posts_controller.rb`:
+
 ```ruby
 class PostsController < ApplicationController
   before_action :log_filter_start
@@ -103,6 +114,7 @@ class PostsController < ApplicationController
     Rails.logger.info "Filter started at #{Time.now}"
   end
 end
+
 ```
 
 ### Step 4: Create Sample Data
@@ -111,11 +123,14 @@ end
 bin/rails generate model Post title:string body:text
 bin/rails db:migrate
 bin/rails console
+
 ```
 
 In console:
+
 ```ruby
 5.times { |i| Post.create(title: "Post #{i}", body: "Body #{i}") }
+
 ```
 
 ### Step 5: Test Request
@@ -124,6 +139,7 @@ In console:
 bin/rails server
 # Visit http://localhost:3000/posts
 # Check Rack Mini Profiler badge in top-left
+
 ```
 
 ## Stretch (Optional)
@@ -138,6 +154,7 @@ private
 def log_response_status
   Rails.logger.info "Response status: #{response.status}"
 end
+
 ```
 
 Trigger a 404 by visiting `/posts/999` and verify the log shows `404`.

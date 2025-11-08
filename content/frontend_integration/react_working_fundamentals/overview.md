@@ -38,6 +38,7 @@ export default function UserCard({ name, email }) {
     </div>
   )
 }
+
 ```
 
 Render it with data:
@@ -48,6 +49,7 @@ import UserCard from './UserCard'
 function App() {
   return <UserCard name="Alice" email="alice@example.com" />
 }
+
 ```
 
 Props are read-only. To change data, lift state up to a parent component.
@@ -71,6 +73,7 @@ export default function Counter() {
     </div>
   )
 }
+
 ```
 
 Updating state triggers a re-render. Never mutate state directly; always call the setter function.
@@ -99,6 +102,7 @@ export default function PostList() {
     </ul>
   )
 }
+
 ```
 
 Add cleanup to avoid memory leaks:
@@ -116,6 +120,7 @@ useEffect(() => {
 
   return () => controller.abort() // Cleanup on unmount
 }, [])
+
 ```
 
 ---
@@ -142,6 +147,7 @@ export default function PostList() {
     </ul>
   )
 }
+
 ```
 
 React Query handles caching, background refetching, and deduplication automatically. Install with `npm install @tanstack/react-query`.
@@ -176,6 +182,7 @@ export default function PostForm() {
     </form>
   )
 }
+
 ```
 
 Every keystroke updates state and re-renders. For large forms, consider uncontrolled inputs with refs.
@@ -190,6 +197,7 @@ The `react-rails` gem renders React components in Rails views:
 bundle add react-rails
 rails webpacker:install:react
 rails generate react:install
+
 ```
 
 Create a component:
@@ -199,12 +207,14 @@ Create a component:
 export default function HelloWorld({ name }) {
   return <h1>Hello, {name}!</h1>
 }
+
 ```
 
 Render in a view:
 
 ```erb
 <%= react_component("HelloWorld", { name: "World" }) %>
+
 ```
 
 This server-renders React components for initial page load, then hydrates client-side.
@@ -222,6 +232,7 @@ class Api::PostsController < ApplicationController
     render json: Post.all
   end
 end
+
 ```
 
 Fetch from React:
@@ -232,6 +243,7 @@ useEffect(() => {
     .then(res => res.json())
     .then(setPosts)
 }, [])
+
 ```
 
 Include CSRF token for POST requests:
@@ -244,6 +256,7 @@ fetch('/api/posts', {
   headers: { 'X-CSRF-Token': csrfToken, 'Content-Type': 'application/json' },
   body: JSON.stringify({ title: 'New Post' })
 })
+
 ```
 
 ---

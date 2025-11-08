@@ -32,6 +32,7 @@ ReportWorker.perform_at(Time.now + 2.days, user.id)
 # ActiveJob syntax
 ReportJob.set(wait: 1.hour).perform_later(user.id)
 ReportJob.set(wait_until: Date.tomorrow.noon).perform_later(user.id)
+
 ```
 
 **Use cases:**
@@ -45,6 +46,7 @@ ReportJob.set(wait_until: Date.tomorrow.noon).perform_later(user.id)
 # Send at 9 AM in user's timezone
 send_time = Time.zone.parse("#{user.timezone} 9:00 AM tomorrow")
 NotificationJob.set(wait_until: send_time).perform_later(user.id)
+
 ```
 
 ---
@@ -56,6 +58,7 @@ Install sidekiq-cron:
 ```ruby
 # Gemfile
 gem 'sidekiq-cron'
+
 ```
 
 Configure recurring jobs in `config/initializers/sidekiq.rb`:
@@ -81,9 +84,11 @@ schedule = {
 }
 
 Sidekiq::Cron::Job.load_from_hash(schedule)
+
 ```
 
 **Cron syntax quick reference:**
+
 ```
 * * * * *
 | | | | |
@@ -92,6 +97,7 @@ Sidekiq::Cron::Job.load_from_hash(schedule)
 | | └───── Day of month (1-31)
 | └─────── Hour (0-23)
 └───────── Minute (0-59)
+
 ```
 
 **Examples:**
@@ -108,6 +114,7 @@ Install sidekiq-unique-jobs:
 ```ruby
 # Gemfile
 gem 'sidekiq-unique-jobs'
+
 ```
 
 Configure in `config/initializers/sidekiq.rb`:
@@ -118,6 +125,7 @@ require 'sidekiq-unique-jobs/web'
 SidekiqUniqueJobs.configure do |config|
   config.enabled = true
 end
+
 ```
 
 Use in workers:
@@ -134,6 +142,7 @@ class ExportReportWorker
     # Generate and send report
   end
 end
+
 ```
 
 **Lock strategies:**
@@ -158,6 +167,7 @@ end
 # DON'T DO THIS
 user = User.find(123)
 EmailJob.perform_later(user)  # Serializes entire User object
+
 ```
 
 **Problems:**
@@ -178,6 +188,7 @@ def perform(user_id)
 rescue ActiveRecord::RecordNotFound
   Rails.logger.warn "User #{user_id} not found, skipping email"
 end
+
 ```
 
 **Serializable types:**
@@ -195,6 +206,7 @@ def perform(user_id, report_type, start_date_str, end_date_str)
   end_date = Date.parse(end_date_str)
   # ...
 end
+
 ```
 
 ---
@@ -230,6 +242,7 @@ TrialExpirationWorker.perform_at(user.trial_end_date - 7.days, user.id, user.tri
 # If user extends trial, old job is replaced
 user.trial_end_date = 30.days.from_now
 TrialExpirationWorker.perform_at(user.trial_end_date - 7.days, user.id, user.trial_end_date)
+
 ```
 
 ---

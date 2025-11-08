@@ -667,6 +667,7 @@
 
 <span class="c1"># Allocates: N User objects + attributes (strings, integers)</span>
 <span class="n">users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="mi">1000</span><span class="p">).</span><span class="nf">to_a</span>
+
 </code></pre></div>
 <p>Use <code>ObjectSpace</code> to count allocations:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="n">before</span> <span class="o">=</span> <span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:total_allocated_objects</span><span class="p">)</span>
@@ -675,6 +676,7 @@
 
 <span class="n">after</span> <span class="o">=</span> <span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:total_allocated_objects</span><span class="p">)</span>
 <span class="nb">puts</span> <span class="s2">"Allocated: </span><span class="si">#{</span><span class="n">after</span> <span class="o">-</span> <span class="n">before</span><span class="si">}</span><span class="s2"> objects"</span> <span class="c1"># ~1000 strings</span>
+
 </code></pre></div>
 <hr>
 
@@ -690,6 +692,7 @@
 <span class="c1">#   total_allocated_objects: 1200000,</span>
 <span class="c1">#   malloc_increase_bytes: 500000</span>
 <span class="c1"># }</span>
+
 </code></pre></div>
 <p><strong>Key metrics:</strong><br>
 - <code>count</code>: GC runs (high count = frequent pauses)<br>
@@ -697,14 +700,11 @@
 - <code>total_allocated_objects</code>: Cumulative allocations<br>
 - <code>malloc_increase_bytes</code>: Memory from C extensions</p>
 
-<p><strong>Monitor in production:</strong><br>
-```ruby</p>
+<p><strong>Monitor in production:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Log GC stats per request</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"GC count: </span><span class="si">#{</span><span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:count</span><span class="p">)</span><span class="si">}</span><span class="s2">, Live objects: </span><span class="si">#{</span><span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:heap_live_slots</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
 
-<h1>Log GC stats per request</h1>
-
-<p>Rails.logger.info &quot;GC count: #{GC.stat(:count)}, Live objects: #{GC.stat(:heap_live_slots)}&quot;<br>
-```</p>
-
+</code></pre></div>
 <hr>
 
 <h2>Memory Profiler Gem</h2>
@@ -720,21 +720,21 @@
 <span class="k">end</span>
 
 <span class="n">report</span><span class="p">.</span><span class="nf">pretty_print</span>
+
 </code></pre></div>
-<p><strong>Output:</strong><br>
-```<br>
-Total allocated: 50.2 MB (500,000 objects)<br>
-Total retained: 12.5 MB (125,000 objects)</p>
+<p><strong>Output:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>Total allocated: 50.2 MB (500,000 objects)
+Total retained: 12.5 MB (125,000 objects)
 
-<p>allocated memory by gem:<br>
-  activerecord-7.0.0: 30.1 MB<br>
-  app/models: 15.0 MB</p>
+allocated memory by gem:
+  activerecord-7.0.0: 30.1 MB
+  app/models: 15.0 MB
 
-<p>allocated objects by location:<br>
-  app/models/user.rb:10: 250,000 objects<br>
-  activerecord/lib/connection.rb:42: 100,000 objects<br>
-```</p>
+allocated objects by location:
+  app/models/user.rb:10: 250,000 objects
+  activerecord/lib/connection.rb:42: 100,000 objects
 
+</code></pre></div>
 <p><strong>Allocated vs Retained:</strong><br>
 - Allocated: total objects created during profiling<br>
 - Retained: objects still in memory after GC (potential leaks)</p>
@@ -754,28 +754,26 @@ Total retained: 12.5 MB (125,000 objects)</p>
 
   <span class="n">render</span> <span class="ss">:index</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Check <code>tmp/memory_profile.txt</code> for allocation hotspots.</p>
 
-<p><strong>Automate profiling in tests:</strong><br>
-```ruby</p>
+<p><strong>Automate profiling in tests:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># test/performance/memory_test.rb</span>
+<span class="nb">require</span> <span class="s1">'test_helper'</span>
+<span class="nb">require</span> <span class="s1">'memory_profiler'</span>
 
-<h1>test/performance/memory_test.rb</h1>
+<span class="k">class</span> <span class="nc">MemoryTest</span> <span class="o">&lt;</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">TestCase</span>
+  <span class="nb">test</span> <span class="s2">"posts index memory usage"</span> <span class="k">do</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="no">MemoryProfiler</span><span class="p">.</span><span class="nf">report</span> <span class="k">do</span>
+      <span class="n">get</span> <span class="n">posts_path</span>
+    <span class="k">end</span>
 
-<p>require &#39;test_helper&#39;<br>
-require &#39;memory_profiler&#39;</p>
+    <span class="n">assert</span> <span class="n">report</span><span class="p">.</span><span class="nf">total_allocated_memsize</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">.</span><span class="nf">megabytes</span><span class="p">,</span> <span class="s2">"Allocates too much memory"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>class MemoryTest &lt; ActiveSupport::TestCase<br>
-  test &quot;posts index memory usage&quot; do<br>
-    report = MemoryProfiler.report do<br>
-      get posts_path<br>
-    end</p>
-<div class="highlight"><pre class="highlight plaintext"><code>assert report.total_allocated_memsize &lt; 10.megabytes, "Allocates too much memory"
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
-
 <hr>
 
 <h2>Object Allocation Tracking</h2>
@@ -797,6 +795,7 @@ end<br>
 <span class="n">allocations</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">file</span><span class="p">,</span> <span class="n">objs</span><span class="o">|</span>
   <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">file</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">objs</span><span class="p">.</span><span class="nf">size</span><span class="si">}</span><span class="s2"> objects"</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Use for debugging which gems or lines allocate heavily.</p>
 
@@ -804,46 +803,34 @@ end<br>
 
 <h2>Common Memory Bloat Patterns</h2>
 
-<p><strong>1. Loading all records:</strong><br>
-```ruby</p>
+<p><strong>1. Loading all records:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># BAD: loads 100k records into memory</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">all</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span> <span class="n">process</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="p">}</span>
 
-<h1>BAD: loads 100k records into memory</h1>
+<span class="c1"># GOOD: batches in 1k chunks</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">find_each</span><span class="p">(</span><span class="ss">batch_size: </span><span class="mi">1000</span><span class="p">)</span> <span class="p">{</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span> <span class="n">process</span><span class="p">(</span><span class="n">user</span><span class="p">)</span> <span class="p">}</span>
 
-<p>User.all.each { |user| process(user) }</p>
+</code></pre></div>
+<p><strong>2. N+1 allocations:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># BAD: allocates 1 User object per post</span>
+<span class="n">posts</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">post</span><span class="o">|</span> <span class="n">post</span><span class="p">.</span><span class="nf">user</span><span class="p">.</span><span class="nf">name</span> <span class="p">}</span>
 
-<h1>GOOD: batches in 1k chunks</h1>
+<span class="c1"># GOOD: allocates N users once</span>
+<span class="n">posts</span> <span class="o">=</span> <span class="no">Post</span><span class="p">.</span><span class="nf">includes</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span>
+<span class="n">posts</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">post</span><span class="o">|</span> <span class="n">post</span><span class="p">.</span><span class="nf">user</span><span class="p">.</span><span class="nf">name</span> <span class="p">}</span>
 
-<p>User.find_each(batch_size: 1000) { |user| process(user) }<br>
-```</p>
+</code></pre></div>
+<p><strong>3. String concatenation in loops:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># BAD: creates N string objects</span>
+<span class="n">result</span> <span class="o">=</span> <span class="s2">""</span>
+<span class="mi">1000</span><span class="p">.</span><span class="nf">times</span> <span class="p">{</span> <span class="n">result</span> <span class="o">+=</span> <span class="s2">"x"</span> <span class="p">}</span>
 
-<p><strong>2. N+1 allocations:</strong><br>
-```ruby</p>
+<span class="c1"># GOOD: single array + join</span>
+<span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="mi">1000</span><span class="p">.</span><span class="nf">times</span> <span class="p">{</span> <span class="n">result</span> <span class="o">&lt;&lt;</span> <span class="s2">"x"</span> <span class="p">}</span>
+<span class="n">result</span><span class="p">.</span><span class="nf">join</span>
 
-<h1>BAD: allocates 1 User object per post</h1>
-
-<p>posts.each { |post| post.user.name }</p>
-
-<h1>GOOD: allocates N users once</h1>
-
-<p>posts = Post.includes(:user)<br>
-posts.each { |post| post.user.name }<br>
-```</p>
-
-<p><strong>3. String concatenation in loops:</strong><br>
-```ruby</p>
-
-<h1>BAD: creates N string objects</h1>
-
-<p>result = &quot;&quot;<br>
-1000.times { result += &quot;x&quot; }</p>
-
-<h1>GOOD: single array + join</h1>
-
-<p>result = []<br>
-1000.times { result &lt;&lt; &quot;x&quot; }<br>
-result.join<br>
-```</p>
-
+</code></pre></div>
 <hr>
 
 <h2>GC Tuning (Advanced)</h2>
@@ -855,21 +842,18 @@ result.join<br>
 <span class="nb">export </span><span class="nv">RUBY_GC_MALLOC_LIMIT</span><span class="o">=</span>16000000
 
 bin/rails server
+
 </code></pre></div>
 <p><strong>Trade-off:</strong> Larger heaps reduce GC pauses but consume more memory.</p>
 
-<p><strong>Monitor impact:</strong><br>
-```ruby</p>
+<p><strong>Monitor impact:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Before tuning</span>
+<span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:count</span><span class="p">)</span> <span class="c1"># =&gt; 150 (many GC runs)</span>
 
-<h1>Before tuning</h1>
+<span class="c1"># After tuning</span>
+<span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:count</span><span class="p">)</span> <span class="c1"># =&gt; 50 (fewer GC runs, but higher RAM usage)</span>
 
-<p>GC.stat(:count) # =&gt; 150 (many GC runs)</p>
-
-<h1>After tuning</h1>
-
-<p>GC.stat(:count) # =&gt; 50 (fewer GC runs, but higher RAM usage)<br>
-```</p>
-
+</code></pre></div>
 <p>Test in staging before production. Over-tuning can cause OOM.</p>
 
 <hr>
@@ -878,24 +862,20 @@ bin/rails server
 
 <p>Memory leak: memory grows over time, never released.</p>
 
-<p><strong>Test for leaks:</strong><br>
-```ruby</p>
+<p><strong>Test for leaks:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Run in production console</span>
+<span class="n">before</span> <span class="o">=</span> <span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:heap_live_slots</span><span class="p">)</span>
+<span class="no">GC</span><span class="p">.</span><span class="nf">start</span> <span class="c1"># Force GC</span>
 
-<h1>Run in production console</h1>
+<span class="c1"># Perform actions</span>
+<span class="mi">100</span><span class="p">.</span><span class="nf">times</span> <span class="p">{</span> <span class="n">get</span> <span class="s1">'/posts'</span> <span class="p">}</span>
 
-<p>before = GC.stat(:heap_live_slots)<br>
-GC.start # Force GC</p>
+<span class="no">GC</span><span class="p">.</span><span class="nf">start</span>
+<span class="n">after</span> <span class="o">=</span> <span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:heap_live_slots</span><span class="p">)</span>
 
-<h1>Perform actions</h1>
+<span class="nb">puts</span> <span class="s2">"Leaked objects: </span><span class="si">#{</span><span class="n">after</span> <span class="o">-</span> <span class="n">before</span><span class="si">}</span><span class="s2">"</span>
 
-<p>100.times { get &#39;/posts&#39; }</p>
-
-<p>GC.start<br>
-after = GC.stat(:heap_live_slots)</p>
-
-<p>puts &quot;Leaked objects: #{after - before}&quot;<br>
-```</p>
-
+</code></pre></div>
 <p>If <code>after</code> significantly exceeds <code>before</code>, investigate retained objects.</p>
 
 <p><strong>Common leak sources:</strong><br>
@@ -922,6 +902,7 @@ after = GC.stat(:heap_live_slots)</p>
     <span class="k">end</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p><strong>APM tools (preferred):</strong><br>
 - New Relic: memory per transaction<br>
@@ -1011,27 +992,25 @@ after = GC.stat(:heap_live_slots)</p>
 <h2>Verification Steps</h2>
 
 <ol>
-<li>Unoptimized code profile:
-```
-Total allocated: 250 MB (2,500,000 objects)
-Total retained: 50 MB (500,000 objects)</li>
+<li>Unoptimized code profile:</li>
 </ol>
+<div class="highlight"><pre class="highlight plaintext"><code>Total allocated: 250 MB (2,500,000 objects)
+Total retained: 50 MB (500,000 objects)
 
-<p>allocated memory by location:<br>
-  app/controllers/reports_controller.rb:10: 100 MB<br>
-```</p>
+allocated memory by location:
+  app/controllers/reports_controller.rb:10: 100 MB
 
+</code></pre></div>
 <ol>
-<li>After optimization:
-```
-Total allocated: 50 MB (500,000 objects)
-Total retained: 10 MB (100,000 objects)</li>
+<li>After optimization:</li>
 </ol>
+<div class="highlight"><pre class="highlight plaintext"><code>Total allocated: 50 MB (500,000 objects)
+Total retained: 10 MB (100,000 objects)
 
-<p>allocated memory by location:<br>
-  app/controllers/reports_controller.rb:10: 20 MB<br>
-```</p>
+allocated memory by location:
+  app/controllers/reports_controller.rb:10: 20 MB
 
+</code></pre></div>
 <ol>
 <li>GC stats comparison showing fewer live objects after optimization</li>
 </ol>
@@ -1044,12 +1023,12 @@ Total retained: 10 MB (100,000 objects)</li>
 bin/rails generate model User name:string email:string
 bin/rails generate model Post title:string body:text user:references
 bin/rails db:migrate
+
 </code></pre></div>
-<p><strong>Seed data:</strong><br>
-<code>bash<br>
-bin/rails console<br>
-</code></p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Create test data</span>
+<p><strong>Seed data:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails console
+
+</code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Create test data</span>
 <span class="mi">500</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
   <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">name: </span><span class="s2">"User </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">email: </span><span class="s2">"user</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">@example.com"</span><span class="p">)</span>
   <span class="mi">20</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">j</span><span class="o">|</span>
@@ -1062,156 +1041,151 @@ bin/rails console<br>
 <span class="k">end</span>
 
 <span class="nb">puts</span> <span class="s2">"Created </span><span class="si">#{</span><span class="no">User</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> users, </span><span class="si">#{</span><span class="no">Post</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> posts"</span>
+
 </code></pre></div>
 <h3>Step 2: Install Memory Profiler</h3>
 <div class="highlight"><pre class="highlight shell"><code>bundle add memory_profiler
+
 </code></pre></div>
 <h3>Step 3: Create Memory-Heavy Endpoint (Before Optimization)</h3>
 
-<p>Generate controller:<br>
-<code>bash<br>
-bin/rails generate controller Reports index<br>
-</code></p>
+<p>Generate controller:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate controller Reports index
 
-<p>Edit <code>app/controllers/reports_controller.rb</code>:<br>
-```ruby<br>
-class ReportsController &lt; ApplicationController<br>
-  def index<br>
-    # BEFORE: Memory-intensive implementation<br>
-    report = generate_report_unoptimized</p>
-<div class="highlight"><pre class="highlight plaintext"><code>render plain: report
 </code></pre></div>
-<p>end</p>
+<p>Edit <code>app/controllers/reports_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ReportsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="c1"># BEFORE: Memory-intensive implementation</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="n">generate_report_unoptimized</span>
 
-<p>def optimized<br>
-    # AFTER: Optimized implementation<br>
-    report = generate_report_optimized</p>
-<div class="highlight"><pre class="highlight plaintext"><code>render plain: report
+    <span class="n">render</span> <span class="ss">plain: </span><span class="n">report</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">optimized</span>
+    <span class="c1"># AFTER: Optimized implementation</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="n">generate_report_optimized</span>
+
+    <span class="n">render</span> <span class="ss">plain: </span><span class="n">report</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">generate_report_unoptimized</span>
+    <span class="c1"># Problem 1: Loads all records into memory</span>
+    <span class="n">users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">all</span><span class="p">.</span><span class="nf">to_a</span>
+
+    <span class="c1"># Problem 2: String concatenation in loop</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="n">users</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span>
+      <span class="c1"># Problem 3: N+1 query</span>
+      <span class="n">report</span> <span class="o">+=</span> <span class="s2">"</span><span class="si">#{</span><span class="n">user</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">user</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> posts</span><span class="se">\n</span><span class="s2">"</span>
+    <span class="k">end</span>
+
+    <span class="n">report</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">generate_report_optimized</span>
+    <span class="c1"># Solution 1: Batch processing</span>
+    <span class="n">report_lines</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="no">User</span><span class="p">.</span><span class="nf">find_each</span><span class="p">(</span><span class="ss">batch_size: </span><span class="mi">100</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span>
+      <span class="c1"># Solution 2: Array append + join</span>
+      <span class="c1"># Solution 3: Eager load counter cache</span>
+      <span class="n">report_lines</span> <span class="o">&lt;&lt;</span> <span class="s2">"</span><span class="si">#{</span><span class="n">user</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">user</span><span class="p">.</span><span class="nf">posts</span><span class="p">.</span><span class="nf">size</span><span class="si">}</span><span class="s2"> posts"</span>
+    <span class="k">end</span>
+
+    <span class="n">report_lines</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end</p>
+<p>Add routes in <code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">get</span> <span class="s1">'reports'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'reports#index'</span>
+  <span class="n">get</span> <span class="s1">'reports/optimized'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'reports#optimized'</span>
+<span class="k">end</span>
 
-<p>private</p>
-
-<p>def generate_report_unoptimized<br>
-    # Problem 1: Loads all records into memory<br>
-    users = User.all.to_a</p>
-<div class="highlight"><pre class="highlight plaintext"><code># Problem 2: String concatenation in loop
-report = ""
-users.each do |user|
-  # Problem 3: N+1 query
-  report += "#{user.name}: #{user.posts.count} posts\n"
-end
-
-report
 </code></pre></div>
-<p>end</p>
-
-<p>def generate_report_optimized<br>
-    # Solution 1: Batch processing<br>
-    report_lines = []</p>
-<div class="highlight"><pre class="highlight plaintext"><code>User.find_each(batch_size: 100) do |user|
-  # Solution 2: Array append + join
-  # Solution 3: Eager load counter cache
-  report_lines &lt;&lt; "#{user.name}: #{user.posts.size} posts"
-end
-
-report_lines.join("\n")
-</code></pre></div>
-<p>end<br>
-end<br>
-```</p>
-
-<p>Add routes in <code>config/routes.rb</code>:<br>
-<code>ruby<br>
-Rails.application.routes.draw do<br>
-  get &#39;reports&#39;, to: &#39;reports#index&#39;<br>
-  get &#39;reports/optimized&#39;, to: &#39;reports#optimized&#39;<br>
-end<br>
-</code></p>
-
 <h3>Step 4: Profile Unoptimized Endpoint</h3>
 
-<p>Create <code>lib/tasks/profile_memory.rake</code>:<br>
-```ruby<br>
-require &#39;memory_profiler&#39;</p>
+<p>Create <code>lib/tasks/profile_memory.rake</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s1">'memory_profiler'</span>
 
-<p>namespace :profile do<br>
-  desc &quot;Profile memory usage of reports endpoint&quot;<br>
-  task memory: :environment do<br>
-    puts &quot;\n=== Profiling UNOPTIMIZED endpoint ===&quot;</p>
-<div class="highlight"><pre class="highlight plaintext"><code># Clear GC state
-GC.start
-before_gc = GC.stat(:heap_live_slots)
+<span class="n">namespace</span> <span class="ss">:profile</span> <span class="k">do</span>
+  <span class="n">desc</span> <span class="s2">"Profile memory usage of reports endpoint"</span>
+  <span class="n">task</span> <span class="ss">memory: :environment</span> <span class="k">do</span>
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== Profiling UNOPTIMIZED endpoint ==="</span>
 
-report = MemoryProfiler.report do
-  ReportsController.new.send(:generate_report_unoptimized)
-end
+    <span class="c1"># Clear GC state</span>
+    <span class="no">GC</span><span class="p">.</span><span class="nf">start</span>
+    <span class="n">before_gc</span> <span class="o">=</span> <span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:heap_live_slots</span><span class="p">)</span>
 
-GC.start
-after_gc = GC.stat(:heap_live_slots)
+    <span class="n">report</span> <span class="o">=</span> <span class="no">MemoryProfiler</span><span class="p">.</span><span class="nf">report</span> <span class="k">do</span>
+      <span class="no">ReportsController</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="ss">:generate_report_unoptimized</span><span class="p">)</span>
+    <span class="k">end</span>
 
-puts "\n--- Memory Report ---"
-report.pretty_print(scale_bytes: true)
+    <span class="no">GC</span><span class="p">.</span><span class="nf">start</span>
+    <span class="n">after_gc</span> <span class="o">=</span> <span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:heap_live_slots</span><span class="p">)</span>
 
-puts "\n--- GC Stats ---"
-puts "Live objects before: #{before_gc}"
-puts "Live objects after: #{after_gc}"
-puts "Leaked objects: #{after_gc - before_gc}"
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">--- Memory Report ---"</span>
+    <span class="n">report</span><span class="p">.</span><span class="nf">pretty_print</span><span class="p">(</span><span class="ss">scale_bytes: </span><span class="kp">true</span><span class="p">)</span>
 
-puts "\n=== Profiling OPTIMIZED endpoint ==="
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">--- GC Stats ---"</span>
+    <span class="nb">puts</span> <span class="s2">"Live objects before: </span><span class="si">#{</span><span class="n">before_gc</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"Live objects after: </span><span class="si">#{</span><span class="n">after_gc</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"Leaked objects: </span><span class="si">#{</span><span class="n">after_gc</span> <span class="o">-</span> <span class="n">before_gc</span><span class="si">}</span><span class="s2">"</span>
 
-GC.start
-before_gc = GC.stat(:heap_live_slots)
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== Profiling OPTIMIZED endpoint ==="</span>
 
-report = MemoryProfiler.report do
-  ReportsController.new.send(:generate_report_optimized)
-end
+    <span class="no">GC</span><span class="p">.</span><span class="nf">start</span>
+    <span class="n">before_gc</span> <span class="o">=</span> <span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:heap_live_slots</span><span class="p">)</span>
 
-GC.start
-after_gc = GC.stat(:heap_live_slots)
+    <span class="n">report</span> <span class="o">=</span> <span class="no">MemoryProfiler</span><span class="p">.</span><span class="nf">report</span> <span class="k">do</span>
+      <span class="no">ReportsController</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="ss">:generate_report_optimized</span><span class="p">)</span>
+    <span class="k">end</span>
 
-puts "\n--- Memory Report ---"
-report.pretty_print(scale_bytes: true)
+    <span class="no">GC</span><span class="p">.</span><span class="nf">start</span>
+    <span class="n">after_gc</span> <span class="o">=</span> <span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:heap_live_slots</span><span class="p">)</span>
 
-puts "\n--- GC Stats ---"
-puts "Live objects before: #{before_gc}"
-puts "Live objects after: #{after_gc}"
-puts "Leaked objects: #{after_gc - before_gc}"
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">--- Memory Report ---"</span>
+    <span class="n">report</span><span class="p">.</span><span class="nf">pretty_print</span><span class="p">(</span><span class="ss">scale_bytes: </span><span class="kp">true</span><span class="p">)</span>
+
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">--- GC Stats ---"</span>
+    <span class="nb">puts</span> <span class="s2">"Live objects before: </span><span class="si">#{</span><span class="n">before_gc</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"Live objects after: </span><span class="si">#{</span><span class="n">after_gc</span><span class="si">}</span><span class="s2">"</span>
+    <span class="nb">puts</span> <span class="s2">"Leaked objects: </span><span class="si">#{</span><span class="n">after_gc</span> <span class="o">-</span> <span class="n">before_gc</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
+<p>Run profile:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails profile:memory
 
-<p>Run profile:<br>
-<code>bash<br>
-bin/rails profile:memory<br>
-</code></p>
-
+</code></pre></div>
 <h3>Step 5: Add GC Instrumentation</h3>
 
-<p>Create <code>config/initializers/gc_stats.rb</code>:<br>
-```ruby</p>
+<p>Create <code>config/initializers/gc_stats.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Log GC stats on each request</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">config</span><span class="p">.</span><span class="nf">after_initialize</span> <span class="k">do</span>
+  <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="p">.</span><span class="nf">subscribe</span><span class="p">(</span><span class="s2">"process_action.action_controller"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|*</span><span class="n">args</span><span class="o">|</span>
+    <span class="n">event</span> <span class="o">=</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="o">::</span><span class="no">Event</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
 
-<h1>Log GC stats on each request</h1>
+    <span class="n">gc_stats</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="ss">count: </span><span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:count</span><span class="p">),</span>
+      <span class="ss">live_slots: </span><span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:heap_live_slots</span><span class="p">),</span>
+      <span class="ss">free_slots: </span><span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:heap_free_slots</span><span class="p">),</span>
+      <span class="ss">total_allocated: </span><span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:total_allocated_objects</span><span class="p">)</span>
+    <span class="p">}</span>
 
-<p>Rails.application.config.after_initialize do<br>
-  ActiveSupport::Notifications.subscribe(&quot;process_action.action_controller&quot;) do |*args|<br>
-    event = ActiveSupport::Notifications::Event.new(*args)</p>
-<div class="highlight"><pre class="highlight plaintext"><code>gc_stats = {
-  count: GC.stat(:count),
-  live_slots: GC.stat(:heap_live_slots),
-  free_slots: GC.stat(:heap_free_slots),
-  total_allocated: GC.stat(:total_allocated_objects)
-}
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"GC Stats after </span><span class="si">#{</span><span class="n">event</span><span class="p">.</span><span class="nf">payload</span><span class="p">[</span><span class="ss">:action</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">gc_stats</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-Rails.logger.info "GC Stats after #{event.payload[:action]}: #{gc_stats}"
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
-
 <h3>Step 6: Test Manual GC Stats</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails console
+
 </code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Check GC stats</span>
 <span class="nb">puts</span> <span class="no">GC</span><span class="p">.</span><span class="nf">stat</span>
 
@@ -1226,167 +1200,163 @@ end<br>
 <span class="c1"># Force GC</span>
 <span class="no">GC</span><span class="p">.</span><span class="nf">start</span>
 <span class="nb">puts</span> <span class="s2">"After forced GC: </span><span class="si">#{</span><span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:heap_live_slots</span><span class="p">)</span><span class="si">}</span><span class="s2"> live objects"</span>
+
 </code></pre></div>
 <h3>Step 7: Object Allocation Tracking</h3>
 
-<p>Create <code>lib/tasks/track_allocations.rake</code>:<br>
-```ruby<br>
-namespace :profile do<br>
-  desc &quot;Track object allocations by location&quot;<br>
-  task allocations: :environment do<br>
-    require &#39;objspace&#39;</p>
-<div class="highlight"><pre class="highlight plaintext"><code>ObjectSpace.trace_object_allocations_start
+<p>Create <code>lib/tasks/track_allocations.rake</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">namespace</span> <span class="ss">:profile</span> <span class="k">do</span>
+  <span class="n">desc</span> <span class="s2">"Track object allocations by location"</span>
+  <span class="n">task</span> <span class="ss">allocations: :environment</span> <span class="k">do</span>
+    <span class="nb">require</span> <span class="s1">'objspace'</span>
 
-# Run code to profile
-ReportsController.new.send(:generate_report_unoptimized)
+    <span class="no">ObjectSpace</span><span class="p">.</span><span class="nf">trace_object_allocations_start</span>
 
-ObjectSpace.trace_object_allocations_stop
+    <span class="c1"># Run code to profile</span>
+    <span class="no">ReportsController</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="ss">:generate_report_unoptimized</span><span class="p">)</span>
 
-# Group by allocation location
-allocations = Hash.new(0)
+    <span class="no">ObjectSpace</span><span class="p">.</span><span class="nf">trace_object_allocations_stop</span>
 
-ObjectSpace.each_object do |obj|
-  next unless ObjectSpace.allocation_sourcefile(obj)
-  location = "#{ObjectSpace.allocation_sourcefile(obj)}:#{ObjectSpace.allocation_sourceline(obj)}"
-  allocations[location] += 1
-end
+    <span class="c1"># Group by allocation location</span>
+    <span class="n">allocations</span> <span class="o">=</span> <span class="no">Hash</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
-# Show top 20 allocation locations
-puts "\n=== Top 20 Allocation Hotspots ==="
-allocations.sort_by { |k, v| -v }.first(20).each do |location, count|
-  puts "#{count.to_s.rjust(8)} objects: #{location}"
-end
+    <span class="no">ObjectSpace</span><span class="p">.</span><span class="nf">each_object</span> <span class="k">do</span> <span class="o">|</span><span class="n">obj</span><span class="o">|</span>
+      <span class="k">next</span> <span class="k">unless</span> <span class="no">ObjectSpace</span><span class="p">.</span><span class="nf">allocation_sourcefile</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+      <span class="n">location</span> <span class="o">=</span> <span class="s2">"</span><span class="si">#{</span><span class="no">ObjectSpace</span><span class="p">.</span><span class="nf">allocation_sourcefile</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="si">}</span><span class="s2">:</span><span class="si">#{</span><span class="no">ObjectSpace</span><span class="p">.</span><span class="nf">allocation_sourceline</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+      <span class="n">allocations</span><span class="p">[</span><span class="n">location</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">end</span>
+
+    <span class="c1"># Show top 20 allocation locations</span>
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== Top 20 Allocation Hotspots ==="</span>
+    <span class="n">allocations</span><span class="p">.</span><span class="nf">sort_by</span> <span class="p">{</span> <span class="o">|</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="o">|</span> <span class="o">-</span><span class="n">v</span> <span class="p">}.</span><span class="nf">first</span><span class="p">(</span><span class="mi">20</span><span class="p">).</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">location</span><span class="p">,</span> <span class="n">count</span><span class="o">|</span>
+      <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">count</span><span class="p">.</span><span class="nf">to_s</span><span class="p">.</span><span class="nf">rjust</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="si">}</span><span class="s2"> objects: </span><span class="si">#{</span><span class="n">location</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
+<p>Run:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails profile:allocations
 
-<p>Run:<br>
-<code>bash<br>
-bin/rails profile:allocations<br>
-</code></p>
-
+</code></pre></div>
 <h3>Step 8: Benchmark Memory Impact</h3>
 
-<p>Create <code>lib/tasks/benchmark_memory.rake</code>:<br>
-```ruby<br>
-require &#39;benchmark&#39;</p>
+<p>Create <code>lib/tasks/benchmark_memory.rake</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s1">'benchmark'</span>
 
-<p>namespace :benchmark do<br>
-  desc &quot;Benchmark memory and time for reports&quot;<br>
-  task memory: :environment do<br>
-    controller = ReportsController.new</p>
-<div class="highlight"><pre class="highlight plaintext"><code>puts "\n=== Benchmarking Unoptimized ==="
-Benchmark.bm(20) do |x|
-  x.report("Unoptimized:") do
-    controller.send(:generate_report_unoptimized)
-  end
-end
+<span class="n">namespace</span> <span class="ss">:benchmark</span> <span class="k">do</span>
+  <span class="n">desc</span> <span class="s2">"Benchmark memory and time for reports"</span>
+  <span class="n">task</span> <span class="ss">memory: :environment</span> <span class="k">do</span>
+    <span class="n">controller</span> <span class="o">=</span> <span class="no">ReportsController</span><span class="p">.</span><span class="nf">new</span>
 
-puts "\n=== Benchmarking Optimized ==="
-Benchmark.bm(20) do |x|
-  x.report("Optimized:") do
-    controller.send(:generate_report_optimized)
-  end
-end
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== Benchmarking Unoptimized ==="</span>
+    <span class="no">Benchmark</span><span class="p">.</span><span class="nf">bm</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+      <span class="n">x</span><span class="p">.</span><span class="nf">report</span><span class="p">(</span><span class="s2">"Unoptimized:"</span><span class="p">)</span> <span class="k">do</span>
+        <span class="n">controller</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="ss">:generate_report_unoptimized</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
 
-# Memory comparison
-puts "\n=== Memory Comparison ==="
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== Benchmarking Optimized ==="</span>
+    <span class="no">Benchmark</span><span class="p">.</span><span class="nf">bm</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+      <span class="n">x</span><span class="p">.</span><span class="nf">report</span><span class="p">(</span><span class="s2">"Optimized:"</span><span class="p">)</span> <span class="k">do</span>
+        <span class="n">controller</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="ss">:generate_report_optimized</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
 
-GC.start
-before = `ps -o rss= -p #{Process.pid}`.to_i
+    <span class="c1"># Memory comparison</span>
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== Memory Comparison ==="</span>
 
-controller.send(:generate_report_unoptimized)
+    <span class="no">GC</span><span class="p">.</span><span class="nf">start</span>
+    <span class="n">before</span> <span class="o">=</span> <span class="sb">`ps -o rss= -p </span><span class="si">#{</span><span class="no">Process</span><span class="p">.</span><span class="nf">pid</span><span class="si">}</span><span class="sb">`</span><span class="p">.</span><span class="nf">to_i</span>
 
-after_unopt = `ps -o rss= -p #{Process.pid}`.to_i
+    <span class="n">controller</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="ss">:generate_report_unoptimized</span><span class="p">)</span>
 
-GC.start
-controller.send(:generate_report_optimized)
+    <span class="n">after_unopt</span> <span class="o">=</span> <span class="sb">`ps -o rss= -p </span><span class="si">#{</span><span class="no">Process</span><span class="p">.</span><span class="nf">pid</span><span class="si">}</span><span class="sb">`</span><span class="p">.</span><span class="nf">to_i</span>
 
-after_opt = `ps -o rss= -p #{Process.pid}`.to_i
+    <span class="no">GC</span><span class="p">.</span><span class="nf">start</span>
+    <span class="n">controller</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="ss">:generate_report_optimized</span><span class="p">)</span>
 
-puts "Unoptimized RSS increase: #{after_unopt - before} KB"
-puts "Optimized RSS increase: #{after_opt - after_unopt} KB"
+    <span class="n">after_opt</span> <span class="o">=</span> <span class="sb">`ps -o rss= -p </span><span class="si">#{</span><span class="no">Process</span><span class="p">.</span><span class="nf">pid</span><span class="si">}</span><span class="sb">`</span><span class="p">.</span><span class="nf">to_i</span>
+
+    <span class="nb">puts</span> <span class="s2">"Unoptimized RSS increase: </span><span class="si">#{</span><span class="n">after_unopt</span> <span class="o">-</span> <span class="n">before</span><span class="si">}</span><span class="s2"> KB"</span>
+    <span class="nb">puts</span> <span class="s2">"Optimized RSS increase: </span><span class="si">#{</span><span class="n">after_opt</span> <span class="o">-</span> <span class="n">after_unopt</span><span class="si">}</span><span class="s2"> KB"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
+<p>Run:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails benchmark:memory
 
-<p>Run:<br>
-<code>bash<br>
-bin/rails benchmark:memory<br>
-</code></p>
-
+</code></pre></div>
 <h3>Step 9: Add Counter Cache (Further Optimization)</h3>
 
 <p>Optimize N+1 counting with counter cache:</p>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails generate migration AddPostsCountToUsers posts_count:integer
+
 </code></pre></div>
-<p>Edit migration:<br>
-```ruby<br>
-class AddPostsCountToUsers &lt; ActiveRecord::Migration[7.0]<br>
-  def change<br>
-    add_column :users, :posts_count, :integer, default: 0, null: false</p>
-<div class="highlight"><pre class="highlight plaintext"><code># Backfill existing counts
-reversible do |dir|
-  dir.up do
-    User.find_each do |user|
-      User.reset_counters(user.id, :posts)
-    end
-  end
-end
+<p>Edit migration:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">AddPostsCountToUsers</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">add_column</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:posts_count</span><span class="p">,</span> <span class="ss">:integer</span><span class="p">,</span> <span class="ss">default: </span><span class="mi">0</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+
+    <span class="c1"># Backfill existing counts</span>
+    <span class="n">reversible</span> <span class="k">do</span> <span class="o">|</span><span class="n">dir</span><span class="o">|</span>
+      <span class="n">dir</span><span class="p">.</span><span class="nf">up</span> <span class="k">do</span>
+        <span class="no">User</span><span class="p">.</span><span class="nf">find_each</span> <span class="k">do</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span>
+          <span class="no">User</span><span class="p">.</span><span class="nf">reset_counters</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="ss">:posts</span><span class="p">)</span>
+        <span class="k">end</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div><div class="highlight"><pre class="highlight shell"><code>bin/rails db:migrate
+
 </code></pre></div>
-<p>end<br>
-end<br>
-```</p>
-<div class="highlight"><pre class="highlight shell"><code>bin/rails db:migrate
+<p>Update model:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/models/post.rb</span>
+<span class="k">class</span> <span class="nc">Post</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:user</span><span class="p">,</span> <span class="ss">counter_cache: </span><span class="kp">true</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p>Update model:<br>
-```ruby</p>
+<p>Update optimized report:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">generate_report_optimized</span>
+  <span class="n">report_lines</span> <span class="o">=</span> <span class="p">[]</span>
 
-<h1>app/models/post.rb</h1>
+  <span class="no">User</span><span class="p">.</span><span class="nf">find_each</span><span class="p">(</span><span class="ss">batch_size: </span><span class="mi">100</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span>
+    <span class="c1"># Now uses cached count (no query)</span>
+    <span class="n">report_lines</span> <span class="o">&lt;&lt;</span> <span class="s2">"</span><span class="si">#{</span><span class="n">user</span><span class="p">.</span><span class="nf">name</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">user</span><span class="p">.</span><span class="nf">posts_count</span><span class="si">}</span><span class="s2"> posts"</span>
+  <span class="k">end</span>
 
-<p>class Post &lt; ApplicationRecord<br>
-  belongs_to :user, counter_cache: true<br>
-end<br>
-```</p>
+  <span class="n">report_lines</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">end</span>
 
-<p>Update optimized report:<br>
-```ruby<br>
-def generate_report_optimized<br>
-  report_lines = []</p>
-
-<p>User.find_each(batch_size: 100) do |user|<br>
-    # Now uses cached count (no query)<br>
-    report_lines &lt;&lt; &quot;#{user.name}: #{user.posts_count} posts&quot;<br>
-  end</p>
-
-<p>report_lines.join(&quot;\n&quot;)<br>
-end<br>
-```</p>
-
+</code></pre></div>
 <p>Re-run profile to see further memory reduction.</p>
 
 <h2>Stretch (Optional)</h2>
 
 <ol>
-<li><p>Tune GC settings and measure impact:<br>
-<code>bash<br>
-RUBY_GC_HEAP_GROWTH_FACTOR=1.2 bin/rails server<br>
-</code></p></li>
-<li><p>Create a memory leak detector:<br>
-```ruby</p>
+<li>Tune GC settings and measure impact:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code><span class="nv">RUBY_GC_HEAP_GROWTH_FACTOR</span><span class="o">=</span>1.2 bin/rails server
 
-<h1>Detect leaks by tracking live objects over requests</h1>
+</code></pre></div>
+<ol>
+<li>Create a memory leak detector:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Detect leaks by tracking live objects over requests</span>
+<span class="n">leaked</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="mi">10</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span>
+  <span class="no">GC</span><span class="p">.</span><span class="nf">start</span>
+  <span class="n">leaked</span> <span class="o">&lt;&lt;</span> <span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="ss">:heap_live_slots</span><span class="p">)</span>
+<span class="k">end</span>
+<span class="nb">puts</span> <span class="s2">"Leak trend: </span><span class="si">#{</span><span class="n">leaked</span><span class="si">}</span><span class="s2">"</span> <span class="c1"># Should be stable, not growing</span>
 
-<p>leaked = []<br>
-10.times do<br>
-GC.start<br>
-leaked &lt;&lt; GC.stat(:heap_live_slots)<br>
-end<br>
-puts &quot;Leak trend: #{leaked}&quot; # Should be stable, not growing<br>
-```</p></li>
-<li><p>Profile different batch sizes (100 vs 500 vs 1000) for optimal memory/speed trade-off.</p></li>
+</code></pre></div>
+<ol>
+<li>Profile different batch sizes (100 vs 500 vs 1000) for optimal memory/speed trade-off.</li>
 </ol>
 
 <h2>Time Estimate</h2>

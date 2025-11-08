@@ -657,74 +657,66 @@
 
 <h2>Environment Configuration</h2>
 
-<p><code>config/application.rb</code> (all environments):<br>
-<code>ruby<br>
-module MyApp<br>
-  class Application &lt; Rails::Application<br>
-    config.load_defaults 7.0<br>
-    config.time_zone = &quot;Pacific Time (US &amp; Canada)&quot;<br>
-    config.active_record.default_timezone = :utc<br>
-    config.autoload_paths += %W[#{config.root}/app/services]<br>
-    config.generators.system_tests = nil<br>
-  end<br>
-end<br>
-</code></p>
+<p><code>config/application.rb</code> (all environments):</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">MyApp</span>
+  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="no">Rails</span><span class="o">::</span><span class="no">Application</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">load_defaults</span> <span class="mf">7.0</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">time_zone</span> <span class="o">=</span> <span class="s2">"Pacific Time (US &amp; Canada)"</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">active_record</span><span class="p">.</span><span class="nf">default_timezone</span> <span class="o">=</span> <span class="ss">:utc</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">autoload_paths</span> <span class="o">+=</span> <span class="sx">%W[</span><span class="si">#{</span><span class="n">config</span><span class="p">.</span><span class="nf">root</span><span class="si">}</span><span class="sx">/app/services]</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">generators</span><span class="p">.</span><span class="nf">system_tests</span> <span class="o">=</span> <span class="kp">nil</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p><code>config/environments/development.rb</code>:<br>
-<code>ruby<br>
-Rails.application.configure do<br>
-  config.cache_classes = false<br>
-  config.eager_load = false<br>
-  config.consider_all_requests_local = true<br>
-  config.action_controller.perform_caching = false<br>
-  config.active_record.verbose_query_logs = true<br>
-end<br>
-</code></p>
+</code></pre></div>
+<p><code>config/environments/development.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">cache_classes</span> <span class="o">=</span> <span class="kp">false</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">eager_load</span> <span class="o">=</span> <span class="kp">false</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">consider_all_requests_local</span> <span class="o">=</span> <span class="kp">true</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">action_controller</span><span class="p">.</span><span class="nf">perform_caching</span> <span class="o">=</span> <span class="kp">false</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">active_record</span><span class="p">.</span><span class="nf">verbose_query_logs</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="k">end</span>
 
-<p><code>config/environments/production.rb</code>:<br>
-<code>ruby<br>
-Rails.application.configure do<br>
-  config.cache_classes = true<br>
-  config.eager_load = true<br>
-  config.consider_all_requests_local = false<br>
-  config.action_controller.perform_caching = true<br>
-  config.log_level = :info<br>
-  config.force_ssl = true<br>
-end<br>
-</code></p>
+</code></pre></div>
+<p><code>config/environments/production.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">cache_classes</span> <span class="o">=</span> <span class="kp">true</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">eager_load</span> <span class="o">=</span> <span class="kp">true</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">consider_all_requests_local</span> <span class="o">=</span> <span class="kp">false</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">action_controller</span><span class="p">.</span><span class="nf">perform_caching</span> <span class="o">=</span> <span class="kp">true</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">log_level</span> <span class="o">=</span> <span class="ss">:info</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">force_ssl</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Common Configuration Options</h2>
 
-<p><strong>Caching:</strong><br>
-<code>ruby<br>
-config.cache_store = :redis_cache_store, { url: ENV[&#39;REDIS_URL&#39;] }<br>
-</code></p>
+<p><strong>Caching:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span><span class="p">.</span><span class="nf">cache_store</span> <span class="o">=</span> <span class="ss">:redis_cache_store</span><span class="p">,</span> <span class="p">{</span> <span class="ss">url: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'REDIS_URL'</span><span class="p">]</span> <span class="p">}</span>
 
-<p><strong>Logging:</strong><br>
-<code>ruby<br>
-config.log_level = :debug  # :debug, :info, :warn, :error<br>
-config.log_formatter = ::Logger::Formatter.new<br>
-</code></p>
+</code></pre></div>
+<p><strong>Logging:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span><span class="p">.</span><span class="nf">log_level</span> <span class="o">=</span> <span class="ss">:debug</span>  <span class="c1"># :debug, :info, :warn, :error</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">log_formatter</span> <span class="o">=</span> <span class="o">::</span><span class="no">Logger</span><span class="o">::</span><span class="no">Formatter</span><span class="p">.</span><span class="nf">new</span>
 
-<p><strong>Asset pipeline:</strong><br>
-<code>ruby<br>
-config.assets.compile = false  # precompile in production<br>
-config.assets.digest = true    # fingerprint assets<br>
-</code></p>
+</code></pre></div>
+<p><strong>Asset pipeline:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span><span class="p">.</span><span class="nf">assets</span><span class="p">.</span><span class="nf">compile</span> <span class="o">=</span> <span class="kp">false</span>  <span class="c1"># precompile in production</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">assets</span><span class="p">.</span><span class="nf">digest</span> <span class="o">=</span> <span class="kp">true</span>    <span class="c1"># fingerprint assets</span>
 
-<p><strong>Database:</strong><br>
-<code>ruby<br>
-config.active_record.schema_format = :sql  # use SQL instead of schema.rb<br>
-</code></p>
+</code></pre></div>
+<p><strong>Database:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span><span class="p">.</span><span class="nf">active_record</span><span class="p">.</span><span class="nf">schema_format</span> <span class="o">=</span> <span class="ss">:sql</span>  <span class="c1"># use SQL instead of schema.rb</span>
 
-<p><strong>Time zone:</strong><br>
-<code>ruby<br>
-config.time_zone = &quot;Eastern Time (US &amp; Canada)&quot;<br>
-config.active_record.default_timezone = :local  # or :utc<br>
-</code></p>
+</code></pre></div>
+<p><strong>Time zone:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span><span class="p">.</span><span class="nf">time_zone</span> <span class="o">=</span> <span class="s2">"Eastern Time (US &amp; Canada)"</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">active_record</span><span class="p">.</span><span class="nf">default_timezone</span> <span class="o">=</span> <span class="ss">:local</span>  <span class="c1"># or :utc</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Initializers</h2>
@@ -733,87 +725,79 @@ config.active_record.default_timezone = :local  # or :utc<br>
 
 <p><strong>Example: Sidekiq setup</strong></p>
 
-<p><code>config/initializers/sidekiq.rb</code>:<br>
-```ruby<br>
-Sidekiq.configure_server do |config|<br>
-  config.redis = { url: ENV[&#39;REDIS_URL&#39;], network_timeout: 5 }<br>
-end</p>
+<p><code>config/initializers/sidekiq.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Sidekiq</span><span class="p">.</span><span class="nf">configure_server</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">redis</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">url: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'REDIS_URL'</span><span class="p">],</span> <span class="ss">network_timeout: </span><span class="mi">5</span> <span class="p">}</span>
+<span class="k">end</span>
 
-<p>Sidekiq.configure_client do |config|<br>
-  config.redis = { url: ENV[&#39;REDIS_URL&#39;], network_timeout: 5 }<br>
-end<br>
-```</p>
+<span class="no">Sidekiq</span><span class="p">.</span><span class="nf">configure_client</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">redis</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">url: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'REDIS_URL'</span><span class="p">],</span> <span class="ss">network_timeout: </span><span class="mi">5</span> <span class="p">}</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <p><strong>Example: Custom constants</strong></p>
 
-<p><code>config/initializers/constants.rb</code>:<br>
-<code>ruby<br>
-SUPPORT_EMAIL = &quot;support@example.com&quot;<br>
-MAX_UPLOAD_SIZE = 10.megabytes<br>
-ALLOWED_DOMAINS = %w[example.com mycompany.com]<br>
-</code></p>
+<p><code>config/initializers/constants.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">SUPPORT_EMAIL</span> <span class="o">=</span> <span class="s2">"support@example.com"</span>
+<span class="no">MAX_UPLOAD_SIZE</span> <span class="o">=</span> <span class="mi">10</span><span class="p">.</span><span class="nf">megabytes</span>
+<span class="no">ALLOWED_DOMAINS</span> <span class="o">=</span> <span class="sx">%w[example.com mycompany.com]</span>
 
+</code></pre></div>
 <p><strong>Example: Middleware</strong></p>
 
-<p><code>config/initializers/rack_attack.rb</code>:<br>
-```ruby<br>
-class Rack::Attack<br>
-  throttle(&#39;req/ip&#39;, limit: 300, period: 5.minutes) do |req|<br>
-    req.ip<br>
-  end</p>
+<p><code>config/initializers/rack_attack.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Rack::Attack</span>
+  <span class="n">throttle</span><span class="p">(</span><span class="s1">'req/ip'</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">300</span><span class="p">,</span> <span class="ss">period: </span><span class="mi">5</span><span class="p">.</span><span class="nf">minutes</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">req</span><span class="o">|</span>
+    <span class="n">req</span><span class="p">.</span><span class="nf">ip</span>
+  <span class="k">end</span>
 
-<p>throttle(&#39;api/ip&#39;, limit: 100, period: 1.minute) do |req|<br>
-    req.ip if req.path.start_with?(&#39;/api&#39;)<br>
-  end<br>
-end</p>
+  <span class="n">throttle</span><span class="p">(</span><span class="s1">'api/ip'</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">100</span><span class="p">,</span> <span class="ss">period: </span><span class="mi">1</span><span class="p">.</span><span class="nf">minute</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">req</span><span class="o">|</span>
+    <span class="n">req</span><span class="p">.</span><span class="nf">ip</span> <span class="k">if</span> <span class="n">req</span><span class="p">.</span><span class="nf">path</span><span class="p">.</span><span class="nf">start_with?</span><span class="p">(</span><span class="s1">'/api'</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>Rails.application.config.middleware.use Rack::Attack<br>
-```</p>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">use</span> <span class="no">Rack</span><span class="o">::</span><span class="no">Attack</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Credentials and Secrets</h2>
 
-<p><strong>Edit credentials:</strong><br>
-<code>bash<br>
-EDITOR=nano bin/rails credentials:edit<br>
-</code></p>
+<p><strong>Edit credentials:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nv">EDITOR</span><span class="o">=</span>nano bin/rails credentials:edit
 
-<p><strong>Structure (<code>config/credentials.yml.enc</code>):</strong><br>
-<code>yaml<br>
-secret_key_base: abc123...<br>
-aws:<br>
-  access_key_id: AKIAIOSFODNN7EXAMPLE<br>
-  secret_access_key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY<br>
-stripe:<br>
-  secret_key: sk_test_abc123<br>
-  publishable_key: pk_test_xyz789<br>
-</code></p>
-
-<p><strong>Access in code:</strong><br>
-```ruby<br>
-Rails.application.credentials.aws[:access_key_id]</p>
-
-<h1>=&gt; &quot;AKIAIOSFODNN7EXAMPLE&quot;</h1>
-
-<p>Rails.application.credentials.stripe[:secret_key]</p>
-
-<h1>=&gt; &quot;sk_test_abc123&quot;</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-**Master key:**
-Stored in `config/master.key` (gitignored). On production, set via ENV var:
-```bash
-RAILS_MASTER_KEY=abc123...
 </code></pre></div>
-<p><strong>Per-environment credentials (Rails 6+):</strong><br>
-```bash<br>
-bin/rails credentials:edit --environment production</p>
+<p><strong>Structure (<code>config/credentials.yml.enc</code>):</strong></p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">secret_key_base</span><span class="pi">:</span> <span class="s">abc123...</span>
+<span class="na">aws</span><span class="pi">:</span>
+  <span class="na">access_key_id</span><span class="pi">:</span> <span class="s">AKIAIOSFODNN7EXAMPLE</span>
+  <span class="na">secret_access_key</span><span class="pi">:</span> <span class="s">wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</span>
+<span class="na">stripe</span><span class="pi">:</span>
+  <span class="na">secret_key</span><span class="pi">:</span> <span class="s">sk_test_abc123</span>
+  <span class="na">publishable_key</span><span class="pi">:</span> <span class="s">pk_test_xyz789</span>
 
-<h1>Creates config/credentials/production.yml.enc</h1>
-<div class="highlight"><pre class="highlight plaintext"><code>
-Access:
-```ruby
-Rails.application.credentials.secret_key
+</code></pre></div>
+<p><strong>Access in code:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">credentials</span><span class="p">.</span><span class="nf">aws</span><span class="p">[</span><span class="ss">:access_key_id</span><span class="p">]</span>
+<span class="c1"># =&gt; "AKIAIOSFODNN7EXAMPLE"</span>
+
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">credentials</span><span class="p">.</span><span class="nf">stripe</span><span class="p">[</span><span class="ss">:secret_key</span><span class="p">]</span>
+<span class="c1"># =&gt; "sk_test_abc123"</span>
+
+</code></pre></div>
+<p><strong>Master key:</strong><br>
+Stored in <code>config/master.key</code> (gitignored). On production, set via ENV var:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nv">RAILS_MASTER_KEY</span><span class="o">=</span>abc123...
+
+</code></pre></div>
+<p><strong>Per-environment credentials (Rails 6+):</strong></p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails credentials:edit <span class="nt">--environment</span> production
+<span class="c"># Creates config/credentials/production.yml.enc</span>
+
+</code></pre></div>
+<p>Access:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">credentials</span><span class="p">.</span><span class="nf">secret_key</span>
+
 </code></pre></div>
 <hr>
 
@@ -824,17 +808,16 @@ Rails.application.credentials.secret_key
 <span class="nv">DATABASE_URL</span><span class="o">=</span>postgres://localhost/myapp_development
 <span class="nv">REDIS_URL</span><span class="o">=</span>redis://localhost:6379/0
 <span class="nv">STRIPE_SECRET_KEY</span><span class="o">=</span>sk_test_abc123
+
 </code></pre></div>
-<p>Load in <code>Gemfile</code>:<br>
-<code>ruby<br>
-gem &#39;dotenv-rails&#39;, groups: [:development, :test]<br>
-</code></p>
+<p>Load in <code>Gemfile</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">gem</span> <span class="s1">'dotenv-rails'</span><span class="p">,</span> <span class="ss">groups: </span><span class="p">[</span><span class="ss">:development</span><span class="p">,</span> <span class="ss">:test</span><span class="p">]</span>
 
-<p>Access:<br>
-<code>ruby<br>
-ENV[&#39;STRIPE_SECRET_KEY&#39;]<br>
-</code></p>
+</code></pre></div>
+<p>Access:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">ENV</span><span class="p">[</span><span class="s1">'STRIPE_SECRET_KEY'</span><span class="p">]</span>
 
+</code></pre></div>
 <p><strong>Production:</strong> Set ENV vars via hosting platform (Heroku config vars, AWS Secrets Manager, etc.).</p>
 
 <hr>
@@ -846,23 +829,20 @@ ENV[&#39;STRIPE_SECRET_KEY&#39;]<br>
   01_redis.rb
   02_sidekiq.rb    # depends on Redis being configured
   03_rack_attack.rb
+
 </code></pre></div>
-<p><strong>Check load order:</strong><br>
-<code>ruby<br>
-Dir[&quot;config/initializers/*.rb&quot;].sort<br>
-</code></p>
+<p><strong>Check load order:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Dir</span><span class="p">[</span><span class="s2">"config/initializers/*.rb"</span><span class="p">].</span><span class="nf">sort</span>
 
-<p><strong>Alternative:</strong> Use <code>config.after_initialize</code>:<br>
-```ruby</p>
+</code></pre></div>
+<p><strong>Alternative:</strong> Use <code>config.after_initialize</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/application.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">after_initialize</span> <span class="k">do</span>
+  <span class="c1"># Runs after all initializers</span>
+  <span class="no">SomeService</span><span class="p">.</span><span class="nf">setup</span>
+<span class="k">end</span>
 
-<h1>config/application.rb</h1>
-
-<p>config.after_initialize do<br>
-  # Runs after all initializers<br>
-  SomeService.setup<br>
-end<br>
-```</p>
-
+</code></pre></div>
 <hr>
 
 <h2>Trade-offs Box</h2>
@@ -941,102 +921,95 @@ end<br>
 <h2>Verification Steps</h2>
 
 <ol>
-<li><p>Run in console:<br>
-```ruby<br>
-MAX_UPLOAD_SIZE</p>
-
-<h1>=&gt; 10485760 (10 megabytes)</h1>
-<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
-<li><p>Check cache store:<br>
-```ruby<br>
-Rails.cache.class.name</p>
-
-<h1>Dev: ActiveSupport::Cache::MemoryStore</h1>
-
-<h1>Prod: ActiveSupport::Cache::RedisCacheStore</h1>
-<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
-<li><p>Access credential:<br>
-```ruby<br>
-Rails.application.credentials.sendgrid_api_key</p>
-
-<h1>=&gt; &quot;SG.abc123...&quot;</h1>
-<div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
+<li>Run in console:</li>
 </ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">MAX_UPLOAD_SIZE</span>
+<span class="c1"># =&gt; 10485760 (10 megabytes)</span>
 
+</code></pre></div>
+<ol>
+<li>Check cache store:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">class</span><span class="p">.</span><span class="nf">name</span>
+<span class="c1"># Dev: ActiveSupport::Cache::MemoryStore</span>
+<span class="c1"># Prod: ActiveSupport::Cache::RedisCacheStore</span>
+
+</code></pre></div>
+<ol>
+<li>Access credential:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">credentials</span><span class="p">.</span><span class="nf">sendgrid_api_key</span>
+<span class="c1"># =&gt; "SG.abc123..."</span>
+
+</code></pre></div>
 <h2>Setup Code</h2>
 
 <h3>Step 1: Add Custom Autoload Path</h3>
 
-<p>Edit <code>config/application.rb</code>:<br>
-<code>ruby<br>
-module MyApp<br>
-  class Application &lt; Rails::Application<br>
-    config.load_defaults 7.0<br>
-    config.autoload_paths += %W[#{config.root}/app/services]<br>
-    config.time_zone = &quot;Pacific Time (US &amp; Canada)&quot;<br>
-  end<br>
-end<br>
-</code></p>
+<p>Edit <code>config/application.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">MyApp</span>
+  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="no">Rails</span><span class="o">::</span><span class="no">Application</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">load_defaults</span> <span class="mf">7.0</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">autoload_paths</span> <span class="o">+=</span> <span class="sx">%W[</span><span class="si">#{</span><span class="n">config</span><span class="p">.</span><span class="nf">root</span><span class="si">}</span><span class="sx">/app/services]</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">time_zone</span> <span class="o">=</span> <span class="s2">"Pacific Time (US &amp; Canada)"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 2: Create Initializer</h3>
 
-<p>Create <code>config/initializers/constants.rb</code>:<br>
-```ruby<br>
-MAX_UPLOAD_SIZE = 10.megabytes<br>
-SUPPORT_EMAIL = &quot;<a href="mailto:support@example.com" target="_blank">support@example.com</a>&quot;<br>
-ALLOWED_FILE_TYPES = %w[jpg png pdf]</p>
+<p>Create <code>config/initializers/constants.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">MAX_UPLOAD_SIZE</span> <span class="o">=</span> <span class="mi">10</span><span class="p">.</span><span class="nf">megabytes</span>
+<span class="no">SUPPORT_EMAIL</span> <span class="o">=</span> <span class="s2">"support@example.com"</span>
+<span class="no">ALLOWED_FILE_TYPES</span> <span class="o">=</span> <span class="sx">%w[jpg png pdf]</span>
 
-<p>Rails.logger.info &quot;Loaded constants: MAX_UPLOAD_SIZE=#{MAX_UPLOAD_SIZE}&quot;<br>
-```</p>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Loaded constants: MAX_UPLOAD_SIZE=</span><span class="si">#{</span><span class="no">MAX_UPLOAD_SIZE</span><span class="si">}</span><span class="s2">"</span>
 
+</code></pre></div>
 <h3>Step 3: Configure Caching by Environment</h3>
 
-<p>Edit <code>config/environments/development.rb</code>:<br>
-<code>ruby<br>
-Rails.application.configure do<br>
-  # ... existing config<br>
-  config.cache_store = :memory_store, { size: 64.megabytes }<br>
-  config.action_controller.perform_caching = true  # enable to test<br>
-end<br>
-</code></p>
+<p>Edit <code>config/environments/development.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span>
+  <span class="c1"># ... existing config</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">cache_store</span> <span class="o">=</span> <span class="ss">:memory_store</span><span class="p">,</span> <span class="p">{</span> <span class="ss">size: </span><span class="mi">64</span><span class="p">.</span><span class="nf">megabytes</span> <span class="p">}</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">action_controller</span><span class="p">.</span><span class="nf">perform_caching</span> <span class="o">=</span> <span class="kp">true</span>  <span class="c1"># enable to test</span>
+<span class="k">end</span>
 
-<p>Edit <code>config/environments/production.rb</code>:<br>
-<code>ruby<br>
-Rails.application.configure do<br>
-  # ... existing config<br>
-  config.cache_store = :redis_cache_store, {<br>
-    url: ENV[&#39;REDIS_URL&#39;] || &#39;redis://localhost:6379/0&#39;,<br>
-    expires_in: 1.hour<br>
-  }<br>
-end<br>
-</code></p>
+</code></pre></div>
+<p>Edit <code>config/environments/production.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span>
+  <span class="c1"># ... existing config</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">cache_store</span> <span class="o">=</span> <span class="ss">:redis_cache_store</span><span class="p">,</span> <span class="p">{</span>
+    <span class="ss">url: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'REDIS_URL'</span><span class="p">]</span> <span class="o">||</span> <span class="s1">'redis://localhost:6379/0'</span><span class="p">,</span>
+    <span class="ss">expires_in: </span><span class="mi">1</span><span class="p">.</span><span class="nf">hour</span>
+  <span class="p">}</span>
+<span class="k">end</span>
 
+</code></pre></div>
 <h3>Step 4: Add Credentials</h3>
 <div class="highlight"><pre class="highlight shell"><code><span class="c"># Edit credentials (will create if not exists)</span>
 <span class="nv">EDITOR</span><span class="o">=</span>nano bin/rails credentials:edit
-</code></pre></div>
-<p>Add:<br>
-<code>yaml<br>
-sendgrid_api_key: SG.abc123example<br>
-aws:<br>
-  access_key_id: AKIAIOSFODNN7EXAMPLE<br>
-  secret_access_key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY<br>
-</code></p>
 
+</code></pre></div>
+<p>Add:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">sendgrid_api_key</span><span class="pi">:</span> <span class="s">SG.abc123example</span>
+<span class="na">aws</span><span class="pi">:</span>
+  <span class="na">access_key_id</span><span class="pi">:</span> <span class="s">AKIAIOSFODNN7EXAMPLE</span>
+  <span class="na">secret_access_key</span><span class="pi">:</span> <span class="s">wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</span>
+
+</code></pre></div>
 <p>Save and exit. The file is encrypted; master key is in <code>config/master.key</code> (gitignored).</p>
 
-<p>Access in code:<br>
-```ruby</p>
+<p>Access in code:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/initializers/sendgrid.rb</span>
+<span class="k">if</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">credentials</span><span class="p">.</span><span class="nf">sendgrid_api_key</span>
+  <span class="no">SendGrid</span><span class="p">.</span><span class="nf">api_key</span> <span class="o">=</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">credentials</span><span class="p">.</span><span class="nf">sendgrid_api_key</span>
+<span class="k">end</span>
 
-<h1>config/initializers/sendgrid.rb</h1>
-
-<p>if Rails.application.credentials.sendgrid_api_key<br>
-  SendGrid.api_key = Rails.application.credentials.sendgrid_api_key<br>
-end<br>
-```</p>
-
+</code></pre></div>
 <h3>Step 5: Test in Console</h3>
 <div class="highlight"><pre class="highlight shell"><code>bin/rails console
+
 </code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Check constants</span>
 <span class="no">MAX_UPLOAD_SIZE</span>  <span class="c1"># =&gt; 10485760</span>
 <span class="no">SUPPORT_EMAIL</span>    <span class="c1"># =&gt; "support@example.com"</span>
@@ -1055,70 +1028,63 @@ end<br>
 <span class="c1"># Test caching</span>
 <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">write</span><span class="p">(</span><span class="s1">'test_key'</span><span class="p">,</span> <span class="s1">'hello'</span><span class="p">)</span>
 <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">read</span><span class="p">(</span><span class="s1">'test_key'</span><span class="p">)</span>  <span class="c1"># =&gt; "hello"</span>
+
 </code></pre></div>
 <h3>Step 6: Create a Service Object</h3>
 
-<p>Create <code>app/services/uploader.rb</code>:<br>
-```ruby<br>
-class Uploader<br>
-  def self.max_size<br>
-    MAX_UPLOAD_SIZE<br>
-  end</p>
+<p>Create <code>app/services/uploader.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Uploader</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">max_size</span>
+    <span class="no">MAX_UPLOAD_SIZE</span>
+  <span class="k">end</span>
 
-<p>def self.allowed_types<br>
-    ALLOWED_FILE_TYPES<br>
-  end<br>
-end<br>
-```</p>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">allowed_types</span>
+    <span class="no">ALLOWED_FILE_TYPES</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>Test:<br>
-<code>ruby<br>
-Uploader.max_size  # =&gt; 10485760<br>
-Uploader.allowed_types  # =&gt; [&quot;jpg&quot;, &quot;png&quot;, &quot;pdf&quot;]<br>
-</code></p>
+</code></pre></div>
+<p>Test:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Uploader</span><span class="p">.</span><span class="nf">max_size</span>  <span class="c1"># =&gt; 10485760</span>
+<span class="no">Uploader</span><span class="p">.</span><span class="nf">allowed_types</span>  <span class="c1"># =&gt; ["jpg", "png", "pdf"]</span>
 
+</code></pre></div>
 <h2>Stretch (Optional)</h2>
 
 <ol>
-<li>Create environment-specific credentials:
-<code>bash
-bin/rails credentials:edit --environment production
-</code></li>
+<li>Create environment-specific credentials:</li>
 </ol>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails credentials:edit <span class="nt">--environment</span> production
 
+</code></pre></div>
 <p>Add production-specific secrets (different API keys, DB passwords).</p>
 
 <ol>
 <li>Add an initializer with dependencies:</li>
 </ol>
 
-<p><code>config/initializers/01_redis.rb</code>:<br>
-<code>ruby<br>
-REDIS = Redis.new(url: ENV[&#39;REDIS_URL&#39;] || &#39;redis://localhost:6379/0&#39;)<br>
-</code></p>
+<p><code>config/initializers/01_redis.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">REDIS</span> <span class="o">=</span> <span class="no">Redis</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">url: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'REDIS_URL'</span><span class="p">]</span> <span class="o">||</span> <span class="s1">'redis://localhost:6379/0'</span><span class="p">)</span>
 
-<p><code>config/initializers/02_sidekiq.rb</code>:<br>
-```ruby</p>
+</code></pre></div>
+<p><code>config/initializers/02_sidekiq.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Depends on Redis being initialized</span>
+<span class="no">Sidekiq</span><span class="p">.</span><span class="nf">configure_server</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">redis</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">url: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'REDIS_URL'</span><span class="p">]</span> <span class="p">}</span>
+<span class="k">end</span>
 
-<h1>Depends on Redis being initialized</h1>
-
-<p>Sidekiq.configure_server do |config|<br>
-  config.redis = { url: ENV[&#39;REDIS_URL&#39;] }<br>
-end<br>
-```</p>
-
+</code></pre></div>
 <ol>
 <li>Profile initializer load time:</li>
 </ol>
 
-<p>Edit <code>config/initializers/constants.rb</code>:<br>
-<code>ruby<br>
-start = Time.now<br>
-MAX_UPLOAD_SIZE = 10.megabytes<br>
-SUPPORT_EMAIL = &quot;support@example.com&quot;<br>
-puts &quot;Constants loaded in #{(Time.now - start) * 1000}ms&quot;<br>
-</code></p>
+<p>Edit <code>config/initializers/constants.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">start</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">now</span>
+<span class="no">MAX_UPLOAD_SIZE</span> <span class="o">=</span> <span class="mi">10</span><span class="p">.</span><span class="nf">megabytes</span>
+<span class="no">SUPPORT_EMAIL</span> <span class="o">=</span> <span class="s2">"support@example.com"</span>
+<span class="nb">puts</span> <span class="s2">"Constants loaded in </span><span class="si">#{</span><span class="p">(</span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="si">}</span><span class="s2">ms"</span>
 
+</code></pre></div>
 <p>Run <code>bin/rails runner &#39;puts &quot;Ready&quot;&#39;</code> and check output.</p>
 
 <h2>Time Estimate</h2>

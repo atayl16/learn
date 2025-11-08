@@ -660,57 +660,51 @@
 
 <p>B-tree indexes support equality and range queries. Postgres creates B-tree indexes by default.</p>
 
-<p><strong>Migration:</strong><br>
-<code>ruby<br>
-class AddIndexToUsersEmail &lt; ActiveRecord::Migration[7.0]<br>
-  def change<br>
-    add_index :users, :email<br>
-  end<br>
-end<br>
-</code></p>
+<p><strong>Migration:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">AddIndexToUsersEmail</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">add_index</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p><strong>SQL generated:</strong><br>
-<code>sql<br>
-CREATE INDEX index_users_on_email ON users USING btree (email);<br>
-</code></p>
+</code></pre></div>
+<p><strong>SQL generated:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">index_users_on_email</span> <span class="k">ON</span> <span class="n">users</span> <span class="k">USING</span> <span class="n">btree</span> <span class="p">(</span><span class="n">email</span><span class="p">);</span>
 
+</code></pre></div>
 <p><strong>Use cases:</strong><br>
 - Equality: <code>WHERE email = &#39;user@example.com&#39;</code><br>
 - Range: <code>WHERE created_at &gt; &#39;2024-01-01&#39;</code><br>
 - Sorting: <code>ORDER BY created_at DESC</code></p>
 
-<p><strong>Verification:</strong><br>
-<code>sql<br>
-EXPLAIN SELECT * FROM users WHERE email = &#39;user@example.com&#39;;<br>
--- Index Scan using index_users_on_email on users<br>
-</code></p>
+<p><strong>Verification:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">EXPLAIN</span> <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">users</span> <span class="k">WHERE</span> <span class="n">email</span> <span class="o">=</span> <span class="s1">'user@example.com'</span><span class="p">;</span>
+<span class="c1">-- Index Scan using index_users_on_email on users</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Composite Indexes (Multi-Column)</h2>
 
 <p>Index multiple columns together. Column order determines which queries benefit.</p>
 
-<p><strong>Migration:</strong><br>
-<code>ruby<br>
-add_index :posts, [:user_id, :published_at]<br>
-</code></p>
+<p><strong>Migration:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">add_index</span> <span class="ss">:posts</span><span class="p">,</span> <span class="p">[</span><span class="ss">:user_id</span><span class="p">,</span> <span class="ss">:published_at</span><span class="p">]</span>
 
-<p><strong>Effective queries:</strong><br>
-```sql<br>
--- Uses index: starts with user_id<br>
-SELECT * FROM posts WHERE user_id = 5 ORDER BY published_at DESC;</p>
+</code></pre></div>
+<p><strong>Effective queries:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="c1">-- Uses index: starts with user_id</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">posts</span> <span class="k">WHERE</span> <span class="n">user_id</span> <span class="o">=</span> <span class="mi">5</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">published_at</span> <span class="k">DESC</span><span class="p">;</span>
 
-<p>-- Uses index: filters user_id, sorts published_at<br>
-SELECT * FROM posts WHERE user_id = 5 AND published_at &gt; &#39;2024-01-01&#39;;<br>
-```</p>
+<span class="c1">-- Uses index: filters user_id, sorts published_at</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">posts</span> <span class="k">WHERE</span> <span class="n">user_id</span> <span class="o">=</span> <span class="mi">5</span> <span class="k">AND</span> <span class="n">published_at</span> <span class="o">&gt;</span> <span class="s1">'2024-01-01'</span><span class="p">;</span>
 
-<p><strong>Ineffective queries:</strong><br>
-<code>sql<br>
--- Ignores index: doesn&#39;t filter user_id<br>
-SELECT * FROM posts WHERE published_at &gt; &#39;2024-01-01&#39;;<br>
-</code></p>
+</code></pre></div>
+<p><strong>Ineffective queries:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="c1">-- Ignores index: doesn't filter user_id</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">posts</span> <span class="k">WHERE</span> <span class="n">published_at</span> <span class="o">&gt;</span> <span class="s1">'2024-01-01'</span><span class="p">;</span>
 
+</code></pre></div>
 <p><strong>Rule:</strong> Composite index <code>(a, b, c)</code> helps queries filtering <code>a</code>, <code>a + b</code>, or <code>a + b + c</code>, but not <code>b</code> or <code>c</code> alone.</p>
 
 <hr>
@@ -719,28 +713,22 @@ SELECT * FROM posts WHERE published_at &gt; &#39;2024-01-01&#39;;<br>
 
 <p>Index only rows matching a condition. Smaller, faster, and more efficient for filtered queries.</p>
 
-<p><strong>Migration:</strong><br>
-<code>ruby<br>
-add_index :users, :email, where: &quot;deleted_at IS NULL&quot;, name: &quot;index_active_users_on_email&quot;<br>
-</code></p>
+<p><strong>Migration:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">add_index</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">where: </span><span class="s2">"deleted_at IS NULL"</span><span class="p">,</span> <span class="ss">name: </span><span class="s2">"index_active_users_on_email"</span>
 
-<p><strong>SQL:</strong><br>
-<code>sql<br>
-CREATE INDEX index_active_users_on_email ON users (email) WHERE deleted_at IS NULL;<br>
-</code></p>
+</code></pre></div>
+<p><strong>SQL:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">index_active_users_on_email</span> <span class="k">ON</span> <span class="n">users</span> <span class="p">(</span><span class="n">email</span><span class="p">)</span> <span class="k">WHERE</span> <span class="n">deleted_at</span> <span class="k">IS</span> <span class="k">NULL</span><span class="p">;</span>
 
-<p><strong>Use case:</strong><br>
-```ruby</p>
+</code></pre></div>
+<p><strong>Use case:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Uses partial index</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">deleted_at: </span><span class="kp">nil</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="ss">email: </span><span class="s2">"user@example.com"</span><span class="p">)</span>
 
-<h1>Uses partial index</h1>
+<span class="c1"># Ignores partial index</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">email: </span><span class="s2">"user@example.com"</span><span class="p">)</span>  <span class="c1"># doesn't filter deleted_at</span>
 
-<p>User.where(deleted_at: nil).where(email: &quot;<a href="mailto:user@example.com" target="_blank">user@example.com</a>&quot;)</p>
-
-<h1>Ignores partial index</h1>
-
-<p>User.where(email: &quot;<a href="mailto:user@example.com" target="_blank">user@example.com</a>&quot;)  # doesn&#39;t filter deleted_at<br>
-```</p>
-
+</code></pre></div>
 <p><strong>Common patterns:</strong><br>
 - Boolean flags: <code>WHERE active = true</code><br>
 - Soft deletes: <code>WHERE deleted_at IS NULL</code><br>
@@ -756,15 +744,16 @@ CREATE INDEX index_active_users_on_email ON users (email) WHERE deleted_at IS NU
 
 <span class="c1"># Array column</span>
 <span class="n">add_index</span> <span class="ss">:posts</span><span class="p">,</span> <span class="ss">:tag_ids</span><span class="p">,</span> <span class="ss">using: :gin</span>
-</code></pre></div>
-<p><strong>Query:</strong><br>
-<code>ruby<br>
-Event.where(&quot;metadata @&gt; ?&quot;, {source: &quot;web&quot;}.to_json)  # JSONB containment<br>
-Post.where(&quot;tag_ids &amp;&amp; ARRAY[?]::integer[]&quot;, [1, 2])  # Array overlap<br>
-</code></p>
 
+</code></pre></div>
+<p><strong>Query:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Event</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"metadata @&gt; ?"</span><span class="p">,</span> <span class="p">{</span><span class="ss">source: </span><span class="s2">"web"</span><span class="p">}.</span><span class="nf">to_json</span><span class="p">)</span>  <span class="c1"># JSONB containment</span>
+<span class="no">Post</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"tag_ids &amp;&amp; ARRAY[?]::integer[]"</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>  <span class="c1"># Array overlap</span>
+
+</code></pre></div>
 <p><strong>GiST (Generalized Search Tree):</strong> For geometric data, ranges, full-text.</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="n">execute</span> <span class="s2">"CREATE INDEX index_locations_on_coords ON locations USING gist (coords);"</span>
+
 </code></pre></div>
 <hr>
 
@@ -772,22 +761,19 @@ Post.where(&quot;tag_ids &amp;&amp; ARRAY[?]::integer[]&quot;, [1, 2])  # Array 
 
 <p>Include extra columns so Postgres reads only the index, not the table.</p>
 
-<p><strong>Postgres 11+:</strong><br>
-<code>ruby<br>
-add_index :users, :email, include: [:name, :created_at]<br>
-</code></p>
+<p><strong>Postgres 11+:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">add_index</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">include: </span><span class="p">[</span><span class="ss">:name</span><span class="p">,</span> <span class="ss">:created_at</span><span class="p">]</span>
 
-<p><strong>SQL:</strong><br>
-<code>sql<br>
-CREATE INDEX index_users_on_email_covering ON users (email) INCLUDE (name, created_at);<br>
-</code></p>
+</code></pre></div>
+<p><strong>SQL:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">index_users_on_email_covering</span> <span class="k">ON</span> <span class="n">users</span> <span class="p">(</span><span class="n">email</span><span class="p">)</span> <span class="n">INCLUDE</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">created_at</span><span class="p">);</span>
 
-<p><strong>Benefit:</strong><br>
-<code>sql<br>
--- Index-only scan: no table lookup<br>
-SELECT name, created_at FROM users WHERE email = &#39;user@example.com&#39;;<br>
-</code></p>
+</code></pre></div>
+<p><strong>Benefit:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="c1">-- Index-only scan: no table lookup</span>
+<span class="k">SELECT</span> <span class="n">name</span><span class="p">,</span> <span class="n">created_at</span> <span class="k">FROM</span> <span class="n">users</span> <span class="k">WHERE</span> <span class="n">email</span> <span class="o">=</span> <span class="s1">'user@example.com'</span><span class="p">;</span>
 
+</code></pre></div>
 <hr>
 
 <h2>When Indexes Hurt Performance</h2>
@@ -796,20 +782,16 @@ SELECT name, created_at FROM users WHERE email = &#39;user@example.com&#39;;<br>
 
 <p><strong>Index maintenance overhead:</strong> Postgres must keep indexes sorted. Large bulk imports are faster with indexes dropped and rebuilt afterward.</p>
 
-<p><strong>Example:</strong><br>
-```ruby</p>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Slow: 1M inserts with indexes</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">email: </span><span class="s2">"user</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">@example.com"</span><span class="p">)</span>
 
-<h1>Slow: 1M inserts with indexes</h1>
+<span class="c1"># Fast: disable indexes, bulk insert, rebuild</span>
+<span class="n">remove_index</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">insert_all</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+<span class="n">add_index</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span>
 
-<p>User.create!(email: &quot;user#{i}@example.com&quot;)</p>
-
-<h1>Fast: disable indexes, bulk insert, rebuild</h1>
-
-<p>remove_index :users, :email<br>
-User.insert_all(records)<br>
-add_index :users, :email<br>
-```</p>
-
+</code></pre></div>
 <hr>
 
 <h2>Trade-offs Box</h2>
@@ -866,37 +848,29 @@ add_index :users, :email<br>
 
 <p>You have a posts table with millions of rows. Users frequently query posts by author, publication status, and creation date. Add indexes to optimize these queries, then use EXPLAIN to verify Postgres uses them.</p>
 
-<p><strong>Setup:</strong><br>
-```ruby</p>
+<p><strong>Setup:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Assume this schema</span>
+<span class="n">create_table</span> <span class="ss">:posts</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">references</span> <span class="ss">:user</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">text</span> <span class="ss">:body</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:status</span>  <span class="c1"># 'draft', 'published', 'archived'</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">datetime</span> <span class="ss">:published_at</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">timestamps</span>
+<span class="k">end</span>
 
-<h1>Assume this schema</h1>
+</code></pre></div>
+<p><strong>Common queries:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Query 1: User's published posts sorted by date</span>
+<span class="no">Post</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">user_id: </span><span class="mi">5</span><span class="p">,</span> <span class="ss">status: </span><span class="s1">'published'</span><span class="p">).</span><span class="nf">order</span><span class="p">(</span><span class="ss">published_at: :desc</span><span class="p">).</span><span class="nf">limit</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
 
-<p>create_table :posts do |t|<br>
-  t.references :user, null: false<br>
-  t.string :title, null: false<br>
-  t.text :body<br>
-  t.string :status  # &#39;draft&#39;, &#39;published&#39;, &#39;archived&#39;<br>
-  t.datetime :published_at<br>
-  t.timestamps<br>
-end<br>
-```</p>
+<span class="c1"># Query 2: Recently published posts (homepage)</span>
+<span class="no">Post</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">status: </span><span class="s1">'published'</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="s1">'published_at &gt; ?'</span><span class="p">,</span> <span class="mi">1</span><span class="p">.</span><span class="nf">week</span><span class="p">.</span><span class="nf">ago</span><span class="p">).</span><span class="nf">order</span><span class="p">(</span><span class="ss">published_at: :desc</span><span class="p">)</span>
 
-<p><strong>Common queries:</strong><br>
-```ruby</p>
+<span class="c1"># Query 3: User's drafts</span>
+<span class="no">Post</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">user_id: </span><span class="mi">5</span><span class="p">,</span> <span class="ss">status: </span><span class="s1">'draft'</span><span class="p">)</span>
 
-<h1>Query 1: User&#39;s published posts sorted by date</h1>
-
-<p>Post.where(user_id: 5, status: &#39;published&#39;).order(published_at: :desc).limit(20)</p>
-
-<h1>Query 2: Recently published posts (homepage)</h1>
-
-<p>Post.where(status: &#39;published&#39;).where(&#39;published_at &gt; ?&#39;, 1.week.ago).order(published_at: :desc)</p>
-
-<h1>Query 3: User&#39;s drafts</h1>
-
-<p>Post.where(user_id: 5, status: &#39;draft&#39;)<br>
-```</p>
-
+</code></pre></div>
 <h2>Acceptance Criteria</h2>
 
 <ul>

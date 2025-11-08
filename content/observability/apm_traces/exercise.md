@@ -31,6 +31,7 @@ bundle add memory_profiler --group development
 bundle add stackprof --group development
 
 bundle install
+
 ```
 
 ### Step 2: Configure rack-mini-profiler
@@ -44,6 +45,7 @@ if Rails.env.development?
   # Memory profiling
   Rack::MiniProfiler.config.enable_advanced_debugging_tools = true
 end
+
 ```
 
 ### Step 3: Create Models
@@ -54,26 +56,31 @@ Generate Author and Book models:
 bin/rails generate model Author name:string bio:text
 bin/rails generate model Book title:string author:references published_year:integer
 bin/rails db:migrate
+
 ```
 
 Edit models:
 
 `app/models/author.rb`:
+
 ```ruby
 class Author < ApplicationRecord
   has_many :books
 
   validates :name, presence: true
 end
+
 ```
 
 `app/models/book.rb`:
+
 ```ruby
 class Book < ApplicationRecord
   belongs_to :author
 
   validates :title, presence: true
 end
+
 ```
 
 ### Step 4: Seed Test Data
@@ -98,12 +105,14 @@ puts "Creating authors and books..."
 end
 
 puts "Created #{Author.count} authors with #{Book.count} books"
+
 ```
 
 Run seeds:
 
 ```bash
 bin/rails db:seed
+
 ```
 
 ### Step 5: Create Controller with N+1
@@ -112,6 +121,7 @@ Generate controller:
 
 ```bash
 bin/rails generate controller Authors index
+
 ```
 
 Edit `app/controllers/authors_controller.rb`:
@@ -129,6 +139,7 @@ class AuthorsController < ApplicationController
     render :index
   end
 end
+
 ```
 
 ### Step 6: Create View
@@ -159,6 +170,7 @@ Edit `app/views/authors/index.html.erb`:
 <p>
   Compare this page to the <%= link_to 'optimized version', authors_optimized_path %>
 </p>
+
 ```
 
 ### Step 7: Update Routes
@@ -170,6 +182,7 @@ Rails.application.routes.draw do
   resources :authors, only: [:index]
   get 'authors_optimized', to: 'authors#index_optimized'
 end
+
 ```
 
 ### Step 8: Test and Profile
@@ -178,6 +191,7 @@ Start Rails server:
 
 ```bash
 bin/rails server
+
 ```
 
 Visit http://localhost:3000/authors
@@ -190,6 +204,7 @@ Visit http://localhost:3000/authors
 Click the badge to see detailed breakdown:
 
 **Expected N+1 pattern:**
+
 ```
 SQL (21 queries - 180ms)
 ├─ SELECT "authors".* FROM "authors"  (1.2ms)
@@ -199,6 +214,7 @@ SQL (21 queries - 180ms)
 ... (repeated for each author)
 ├─ SELECT "books".* FROM "books" WHERE "books"."author_id" = 1 LIMIT 3  (2.1ms)
 ... (repeated for each author)
+
 ```
 
 ### Step 9: Compare with Optimized Version
@@ -206,10 +222,12 @@ SQL (21 queries - 180ms)
 Visit http://localhost:3000/authors_optimized
 
 **rack-mini-profiler should show:**
+
 ```
 SQL (2 queries - 15ms)
 ├─ SELECT "authors".* FROM "authors"  (1.2ms)
 └─ SELECT "books".* FROM "books" WHERE "books"."author_id" IN (1,2,3,4,5...)  (13.8ms)
+
 ```
 
 **Improvement:** 21 queries → 2 queries, ~170ms saved
@@ -237,6 +255,7 @@ authors.each { |a| puts a.books.count }
 authors = Author.includes(:books).all
 authors.each { |a| puts a.books.size }  # Use size, not count!
 # Only 2 queries total
+
 ```
 
 ## Stretch (Optional)
@@ -246,6 +265,7 @@ authors.each { |a| puts a.books.size }  # Use size, not count!
 ```bash
 bin/rails generate migration AddBooksCountToAuthors books_count:integer
 bin/rails db:migrate
+
 ```
 
 ```ruby
@@ -254,6 +274,7 @@ belongs_to :author, counter_cache: true
 
 # Reset counter cache for existing records
 Author.find_each { |a| Author.reset_counters(a.id, :books) }
+
 ```
 
 Now `author.books_count` requires zero queries.
@@ -270,6 +291,7 @@ def index_optimized
     render :index
   end
 end
+
 ```
 
 3. Profile memory usage (click "memory" in rack-mini-profiler):
@@ -281,6 +303,7 @@ def index
     @authors = Author.includes(:books).all
   end.pretty_print
 end
+
 ```
 
 ## Time Estimate

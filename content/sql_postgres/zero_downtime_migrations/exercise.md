@@ -7,6 +7,7 @@ Practice writing safe, zero-downtime migrations for adding columns, indexes, and
 You have a `posts` table with 5 million rows in production. You need to add an `author_name` column with a default value, create an index, and enforce NOT NULL. Write migrations that won't lock the table or cause downtime.
 
 **Current schema:**
+
 ```ruby
 create_table :posts do |t|
   t.references :user, null: false, foreign_key: true
@@ -14,6 +15,7 @@ create_table :posts do |t|
   t.text :body
   t.timestamps
 end
+
 ```
 
 **Requirements:**

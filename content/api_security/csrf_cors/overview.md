@@ -42,6 +42,7 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
       credentials: true
   end
 end
+
 ```
 
 `origins` whitelists domains. `credentials: true` allows cookies. Never use `origins '*'` with `credentials: true`.
@@ -55,6 +56,7 @@ OPTIONS /api/users HTTP/1.1
 Origin: https://myapp.com
 Access-Control-Request-Method: POST
 Access-Control-Request-Headers: Authorization
+
 ```
 
 Rails responds with:
@@ -65,6 +67,7 @@ Access-Control-Allow-Origin: https://myapp.com
 Access-Control-Allow-Methods: POST, GET, PUT, DELETE
 Access-Control-Allow-Headers: Authorization, Content-Type
 Access-Control-Max-Age: 86400
+
 ```
 
 `Max-Age` caches preflight for 24 hours, reducing overhead.
@@ -86,6 +89,7 @@ end
 class SessionsController < ApplicationController
   protect_from_forgery with: :null_session  # Returns 422 on invalid token
 end
+
 ```
 
 Token-based APIs (JWT, bearer tokens) skip CSRF since attackers can't steal tokens from cookies.
@@ -107,6 +111,7 @@ private
 def user_params
   params.require(:user).permit(:email, :password, :full_name)
 end
+
 ```
 
 Prevents attackers from passing `{admin: true}` to escalate privileges.
@@ -127,6 +132,7 @@ User.where("email = ?", params[:email])
 
 # Dangerous (SQL injection)
 User.where("email = '#{params[:email]}'")  # DON'T DO THIS
+
 ```
 
 ActiveRecord escapes params automatically. Avoid raw SQL strings.
@@ -142,6 +148,7 @@ Escape user content when rendering. Rails escapes ERB by default.
 <!-- Unsafe: Renders raw HTML -->
 <p><%= raw @user.bio %></p>
 <p><%== @user.bio %></p>
+
 ```
 
 For JSON APIs, don't use `html_safe` on user input. Return plain text; let clients escape.
@@ -158,6 +165,7 @@ Post.where("status = ?", params[:status])
 # Unsafe
 Post.where("status = '#{params[:status]}'")
 # Attack: params[:status] = "'; DROP TABLE posts--"
+
 ```
 
 Use `Arel` or scopes for complex queries. Never interpolate user input.

@@ -657,103 +657,96 @@
 
 <h2>Common Table Expressions (CTEs)</h2>
 
-<p><strong>Basic syntax:</strong><br>
-<code>sql<br>
-WITH cte_name AS (<br>
-  SELECT ...<br>
-)<br>
-SELECT * FROM cte_name;<br>
-</code></p>
+<p><strong>Basic syntax:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">WITH</span> <span class="n">cte_name</span> <span class="k">AS</span> <span class="p">(</span>
+  <span class="k">SELECT</span> <span class="p">...</span>
+<span class="p">)</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">cte_name</span><span class="p">;</span>
 
-<p><strong>Example: Find users with above-average orders:</strong><br>
-<code>sql<br>
-WITH avg_orders AS (<br>
-  SELECT AVG(total) AS avg_total FROM orders<br>
-)<br>
-SELECT users.*<br>
-FROM users<br>
-JOIN orders ON orders.user_id = users.id<br>
-JOIN avg_orders ON orders.total &gt; avg_orders.avg_total;<br>
-</code></p>
+</code></pre></div>
+<p><strong>Example: Find users with above-average orders:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">WITH</span> <span class="n">avg_orders</span> <span class="k">AS</span> <span class="p">(</span>
+  <span class="k">SELECT</span> <span class="k">AVG</span><span class="p">(</span><span class="n">total</span><span class="p">)</span> <span class="k">AS</span> <span class="n">avg_total</span> <span class="k">FROM</span> <span class="n">orders</span>
+<span class="p">)</span>
+<span class="k">SELECT</span> <span class="n">users</span><span class="p">.</span><span class="o">*</span>
+<span class="k">FROM</span> <span class="n">users</span>
+<span class="k">JOIN</span> <span class="n">orders</span> <span class="k">ON</span> <span class="n">orders</span><span class="p">.</span><span class="n">user_id</span> <span class="o">=</span> <span class="n">users</span><span class="p">.</span><span class="n">id</span>
+<span class="k">JOIN</span> <span class="n">avg_orders</span> <span class="k">ON</span> <span class="n">orders</span><span class="p">.</span><span class="n">total</span> <span class="o">&gt;</span> <span class="n">avg_orders</span><span class="p">.</span><span class="n">avg_total</span><span class="p">;</span>
 
-<p><strong>Rails (raw SQL):</strong><br>
-```ruby<br>
-sql = &lt;&lt;-SQL<br>
-  WITH avg_orders AS (<br>
-    SELECT AVG(total) AS avg_total FROM orders<br>
-  )<br>
-  SELECT users.*<br>
-  FROM users<br>
-  JOIN orders ON orders.user_id = users.id<br>
-  CROSS JOIN avg_orders<br>
-  WHERE orders.total &gt; avg_orders.avg_total<br>
-SQL</p>
+</code></pre></div>
+<p><strong>Rails (raw SQL):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">sql</span> <span class="o">=</span> <span class="o">&lt;&lt;-</span><span class="no">SQL</span><span class="sh">
+  WITH avg_orders AS (
+    SELECT AVG(total) AS avg_total FROM orders
+  )
+  SELECT users.*
+  FROM users
+  JOIN orders ON orders.user_id = users.id
+  CROSS JOIN avg_orders
+  WHERE orders.total &gt; avg_orders.avg_total
+</span><span class="no">SQL</span>
 
-<p>User.find_by_sql(sql)<br>
-```</p>
+<span class="no">User</span><span class="p">.</span><span class="nf">find_by_sql</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
 
-<p><strong>Multiple CTEs:</strong><br>
-<code>sql<br>
-WITH active_users AS (<br>
-  SELECT id FROM users WHERE last_login &gt; NOW() - INTERVAL &#39;30 days&#39;<br>
-),<br>
-recent_orders AS (<br>
-  SELECT user_id, SUM(total) AS total_spent<br>
-  FROM orders<br>
-  WHERE created_at &gt; NOW() - INTERVAL &#39;30 days&#39;<br>
-  GROUP BY user_id<br>
-)<br>
-SELECT users.*, recent_orders.total_spent<br>
-FROM users<br>
-JOIN active_users ON active_users.id = users.id<br>
-JOIN recent_orders ON recent_orders.user_id = users.id;<br>
-</code></p>
+</code></pre></div>
+<p><strong>Multiple CTEs:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">WITH</span> <span class="n">active_users</span> <span class="k">AS</span> <span class="p">(</span>
+  <span class="k">SELECT</span> <span class="n">id</span> <span class="k">FROM</span> <span class="n">users</span> <span class="k">WHERE</span> <span class="n">last_login</span> <span class="o">&gt;</span> <span class="n">NOW</span><span class="p">()</span> <span class="o">-</span> <span class="n">INTERVAL</span> <span class="s1">'30 days'</span>
+<span class="p">),</span>
+<span class="n">recent_orders</span> <span class="k">AS</span> <span class="p">(</span>
+  <span class="k">SELECT</span> <span class="n">user_id</span><span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">total</span><span class="p">)</span> <span class="k">AS</span> <span class="n">total_spent</span>
+  <span class="k">FROM</span> <span class="n">orders</span>
+  <span class="k">WHERE</span> <span class="n">created_at</span> <span class="o">&gt;</span> <span class="n">NOW</span><span class="p">()</span> <span class="o">-</span> <span class="n">INTERVAL</span> <span class="s1">'30 days'</span>
+  <span class="k">GROUP</span> <span class="k">BY</span> <span class="n">user_id</span>
+<span class="p">)</span>
+<span class="k">SELECT</span> <span class="n">users</span><span class="p">.</span><span class="o">*</span><span class="p">,</span> <span class="n">recent_orders</span><span class="p">.</span><span class="n">total_spent</span>
+<span class="k">FROM</span> <span class="n">users</span>
+<span class="k">JOIN</span> <span class="n">active_users</span> <span class="k">ON</span> <span class="n">active_users</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">users</span><span class="p">.</span><span class="n">id</span>
+<span class="k">JOIN</span> <span class="n">recent_orders</span> <span class="k">ON</span> <span class="n">recent_orders</span><span class="p">.</span><span class="n">user_id</span> <span class="o">=</span> <span class="n">users</span><span class="p">.</span><span class="n">id</span><span class="p">;</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Recursive CTEs</h2>
 
 <p>Query hierarchical data (org charts, category trees).</p>
 
-<p><strong>Schema:</strong><br>
-<code>ruby<br>
-create_table :categories do |t|<br>
-  t.string :name<br>
-  t.references :parent, foreign_key: { to_table: :categories }<br>
-end<br>
-</code></p>
+<p><strong>Schema:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">create_table</span> <span class="ss">:categories</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:name</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">references</span> <span class="ss">:parent</span><span class="p">,</span> <span class="ss">foreign_key: </span><span class="p">{</span> <span class="ss">to_table: :categories</span> <span class="p">}</span>
+<span class="k">end</span>
 
-<p><strong>Recursive query:</strong><br>
-```sql<br>
-WITH RECURSIVE category_tree AS (<br>
-  -- Base case: root categories<br>
-  SELECT id, name, parent_id, 1 AS level<br>
-  FROM categories<br>
-  WHERE parent_id IS NULL</p>
+</code></pre></div>
+<p><strong>Recursive query:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">WITH</span> <span class="k">RECURSIVE</span> <span class="n">category_tree</span> <span class="k">AS</span> <span class="p">(</span>
+  <span class="c1">-- Base case: root categories</span>
+  <span class="k">SELECT</span> <span class="n">id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">parent_id</span><span class="p">,</span> <span class="mi">1</span> <span class="k">AS</span> <span class="k">level</span>
+  <span class="k">FROM</span> <span class="n">categories</span>
+  <span class="k">WHERE</span> <span class="n">parent_id</span> <span class="k">IS</span> <span class="k">NULL</span>
 
-<p>UNION ALL</p>
+  <span class="k">UNION</span> <span class="k">ALL</span>
 
-<p>-- Recursive case: children<br>
-  SELECT c.id, c.name, c.parent_id, ct.level + 1<br>
-  FROM categories c<br>
-  JOIN category_tree ct ON c.parent_id = ct.id<br>
-)<br>
-SELECT * FROM category_tree ORDER BY level, name;<br>
-```</p>
+  <span class="c1">-- Recursive case: children</span>
+  <span class="k">SELECT</span> <span class="k">c</span><span class="p">.</span><span class="n">id</span><span class="p">,</span> <span class="k">c</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="k">c</span><span class="p">.</span><span class="n">parent_id</span><span class="p">,</span> <span class="n">ct</span><span class="p">.</span><span class="k">level</span> <span class="o">+</span> <span class="mi">1</span>
+  <span class="k">FROM</span> <span class="n">categories</span> <span class="k">c</span>
+  <span class="k">JOIN</span> <span class="n">category_tree</span> <span class="n">ct</span> <span class="k">ON</span> <span class="k">c</span><span class="p">.</span><span class="n">parent_id</span> <span class="o">=</span> <span class="n">ct</span><span class="p">.</span><span class="n">id</span>
+<span class="p">)</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">category_tree</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="k">level</span><span class="p">,</span> <span class="n">name</span><span class="p">;</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Window Functions Basics</h2>
 
-<p><strong>Syntax:</strong><br>
-<code>sql<br>
-function_name() OVER (<br>
-  PARTITION BY column<br>
-  ORDER BY column<br>
-  ROWS/RANGE frame_clause<br>
-)<br>
-</code></p>
+<p><strong>Syntax:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="n">function_name</span><span class="p">()</span> <span class="n">OVER</span> <span class="p">(</span>
+  <span class="k">PARTITION</span> <span class="k">BY</span> <span class="k">column</span>
+  <span class="k">ORDER</span> <span class="k">BY</span> <span class="k">column</span>
+  <span class="k">ROWS</span><span class="o">/</span><span class="k">RANGE</span> <span class="n">frame_clause</span>
+<span class="p">)</span>
 
+</code></pre></div>
 <p><strong>Without PARTITION BY:</strong> Operates on entire result set.<br>
 <strong>With PARTITION BY:</strong> Operates within each partition (group).</p>
 
@@ -763,31 +756,29 @@ function_name() OVER (<br>
 
 <p>Assign unique sequential numbers to rows.</p>
 
-<p><strong>Find top 3 products per category:</strong><br>
-<code>sql<br>
-WITH ranked_products AS (<br>
-  SELECT<br>
-    products.*,<br>
-    ROW_NUMBER() OVER (PARTITION BY category_id ORDER BY sales DESC) AS rank<br>
-  FROM products<br>
-)<br>
-SELECT * FROM ranked_products WHERE rank &lt;= 3;<br>
-</code></p>
+<p><strong>Find top 3 products per category:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">WITH</span> <span class="n">ranked_products</span> <span class="k">AS</span> <span class="p">(</span>
+  <span class="k">SELECT</span>
+    <span class="n">products</span><span class="p">.</span><span class="o">*</span><span class="p">,</span>
+    <span class="n">ROW_NUMBER</span><span class="p">()</span> <span class="n">OVER</span> <span class="p">(</span><span class="k">PARTITION</span> <span class="k">BY</span> <span class="n">category_id</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">sales</span> <span class="k">DESC</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
+  <span class="k">FROM</span> <span class="n">products</span>
+<span class="p">)</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">ranked_products</span> <span class="k">WHERE</span> <span class="n">rank</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">;</span>
 
-<p><strong>Rails:</strong><br>
-```ruby<br>
-sql = &lt;&lt;-SQL<br>
-  WITH ranked_products AS (<br>
-    SELECT products.*,<br>
-           ROW_NUMBER() OVER (PARTITION BY category_id ORDER BY sales DESC) AS rank<br>
-    FROM products<br>
-  )<br>
-  SELECT * FROM ranked_products WHERE rank &lt;= 3<br>
-SQL</p>
+</code></pre></div>
+<p><strong>Rails:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">sql</span> <span class="o">=</span> <span class="o">&lt;&lt;-</span><span class="no">SQL</span><span class="sh">
+  WITH ranked_products AS (
+    SELECT products.*,
+           ROW_NUMBER() OVER (PARTITION BY category_id ORDER BY sales DESC) AS rank
+    FROM products
+  )
+  SELECT * FROM ranked_products WHERE rank &lt;= 3
+</span><span class="no">SQL</span>
 
-<p>Product.find_by_sql(sql)<br>
-```</p>
+<span class="no">Product</span><span class="p">.</span><span class="nf">find_by_sql</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
 
+</code></pre></div>
 <hr>
 
 <h2>RANK and DENSE_RANK</h2>
@@ -800,136 +791,126 @@ SQL</p>
   <span class="n">RANK</span><span class="p">()</span> <span class="n">OVER</span> <span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">score</span> <span class="k">DESC</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span><span class="p">,</span>
   <span class="n">DENSE_RANK</span><span class="p">()</span> <span class="n">OVER</span> <span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">score</span> <span class="k">DESC</span><span class="p">)</span> <span class="k">AS</span> <span class="n">dense_rank</span>
 <span class="k">FROM</span> <span class="n">students</span><span class="p">;</span>
-</code></pre></div>
-<p><strong>Result:</strong><br>
-<code><br>
-name    | score | rank | dense_rank<br>
---------|-------|------|------------<br>
-Alice   | 100   | 1    | 1<br>
-Bob     | 95    | 2    | 2<br>
-Charlie | 95    | 2    | 2<br>
-David   | 90    | 4    | 3<br>
-</code></p>
 
+</code></pre></div>
+<p><strong>Result:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>name    | score | rank | dense_rank
+--------|-------|------|------------
+Alice   | 100   | 1    | 1
+Bob     | 95    | 2    | 2
+Charlie | 95    | 2    | 2
+David   | 90    | 4    | 3
+
+</code></pre></div>
 <hr>
 
 <h2>LAG and LEAD</h2>
 
 <p>Access previous or next row within partition.</p>
 
-<p><strong>Calculate price changes:</strong><br>
-<code>sql<br>
-SELECT<br>
-  date,<br>
-  price,<br>
-  LAG(price) OVER (ORDER BY date) AS prev_price,<br>
-  price - LAG(price) OVER (ORDER BY date) AS price_change<br>
-FROM stock_prices;<br>
-</code></p>
+<p><strong>Calculate price changes:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">SELECT</span>
+  <span class="nb">date</span><span class="p">,</span>
+  <span class="n">price</span><span class="p">,</span>
+  <span class="n">LAG</span><span class="p">(</span><span class="n">price</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="nb">date</span><span class="p">)</span> <span class="k">AS</span> <span class="n">prev_price</span><span class="p">,</span>
+  <span class="n">price</span> <span class="o">-</span> <span class="n">LAG</span><span class="p">(</span><span class="n">price</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="nb">date</span><span class="p">)</span> <span class="k">AS</span> <span class="n">price_change</span>
+<span class="k">FROM</span> <span class="n">stock_prices</span><span class="p">;</span>
 
-<p><strong>Result:</strong><br>
-<code><br>
-date       | price | prev_price | price_change<br>
------------|-------|------------|-------------<br>
-2024-01-01 | 100   | NULL       | NULL<br>
-2024-01-02 | 105   | 100        | 5<br>
-2024-01-03 | 102   | 105        | -3<br>
-</code></p>
+</code></pre></div>
+<p><strong>Result:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>date       | price | prev_price | price_change
+-----------|-------|------------|-------------
+2024-01-01 | 100   | NULL       | NULL
+2024-01-02 | 105   | 100        | 5
+2024-01-03 | 102   | 105        | -3
 
-<p><strong>Rails:</strong><br>
-```ruby<br>
-sql = &lt;&lt;-SQL<br>
-  SELECT<br>
-    date,<br>
-    price,<br>
-    LAG(price) OVER (ORDER BY date) AS prev_price,<br>
-    price - LAG(price) OVER (ORDER BY date) AS price_change<br>
-  FROM stock_prices<br>
-SQL</p>
+</code></pre></div>
+<p><strong>Rails:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">sql</span> <span class="o">=</span> <span class="o">&lt;&lt;-</span><span class="no">SQL</span><span class="sh">
+  SELECT
+    date,
+    price,
+    LAG(price) OVER (ORDER BY date) AS prev_price,
+    price - LAG(price) OVER (ORDER BY date) AS price_change
+  FROM stock_prices
+</span><span class="no">SQL</span>
 
-<p>StockPrice.find_by_sql(sql)<br>
-```</p>
+<span class="no">StockPrice</span><span class="p">.</span><span class="nf">find_by_sql</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
 
+</code></pre></div>
 <hr>
 
 <h2>Running Totals and Moving Averages</h2>
 
-<p><strong>Running total:</strong><br>
-<code>sql<br>
-SELECT<br>
-  date,<br>
-  amount,<br>
-  SUM(amount) OVER (ORDER BY date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_total<br>
-FROM transactions;<br>
-</code></p>
+<p><strong>Running total:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">SELECT</span>
+  <span class="nb">date</span><span class="p">,</span>
+  <span class="n">amount</span><span class="p">,</span>
+  <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="nb">date</span> <span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="n">UNBOUNDED</span> <span class="k">PRECEDING</span> <span class="k">AND</span> <span class="k">CURRENT</span> <span class="k">ROW</span><span class="p">)</span> <span class="k">AS</span> <span class="n">running_total</span>
+<span class="k">FROM</span> <span class="n">transactions</span><span class="p">;</span>
 
-<p><strong>3-day moving average:</strong><br>
-<code>sql<br>
-SELECT<br>
-  date,<br>
-  value,<br>
-  AVG(value) OVER (ORDER BY date ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS moving_avg_3day<br>
-FROM metrics;<br>
-</code></p>
+</code></pre></div>
+<p><strong>3-day moving average:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">SELECT</span>
+  <span class="nb">date</span><span class="p">,</span>
+  <span class="n">value</span><span class="p">,</span>
+  <span class="k">AVG</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="nb">date</span> <span class="k">ROWS</span> <span class="k">BETWEEN</span> <span class="mi">2</span> <span class="k">PRECEDING</span> <span class="k">AND</span> <span class="k">CURRENT</span> <span class="k">ROW</span><span class="p">)</span> <span class="k">AS</span> <span class="n">moving_avg_3day</span>
+<span class="k">FROM</span> <span class="n">metrics</span><span class="p">;</span>
 
+</code></pre></div>
 <hr>
 
 <h2>CTEs vs Subqueries</h2>
 
-<p><strong>Subquery (less readable):</strong><br>
-<code>sql<br>
-SELECT *<br>
-FROM users<br>
-WHERE id IN (<br>
-  SELECT user_id<br>
-  FROM orders<br>
-  WHERE total &gt; (SELECT AVG(total) FROM orders)<br>
-);<br>
-</code></p>
+<p><strong>Subquery (less readable):</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="n">users</span>
+<span class="k">WHERE</span> <span class="n">id</span> <span class="k">IN</span> <span class="p">(</span>
+  <span class="k">SELECT</span> <span class="n">user_id</span>
+  <span class="k">FROM</span> <span class="n">orders</span>
+  <span class="k">WHERE</span> <span class="n">total</span> <span class="o">&gt;</span> <span class="p">(</span><span class="k">SELECT</span> <span class="k">AVG</span><span class="p">(</span><span class="n">total</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">orders</span><span class="p">)</span>
+<span class="p">);</span>
 
-<p><strong>CTE (more readable):</strong><br>
-<code>sql<br>
-WITH avg_total AS (<br>
-  SELECT AVG(total) AS avg FROM orders<br>
-),<br>
-high_value_orders AS (<br>
-  SELECT user_id FROM orders, avg_total WHERE total &gt; avg_total.avg<br>
-)<br>
-SELECT * FROM users WHERE id IN (SELECT user_id FROM high_value_orders);<br>
-</code></p>
+</code></pre></div>
+<p><strong>CTE (more readable):</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">WITH</span> <span class="n">avg_total</span> <span class="k">AS</span> <span class="p">(</span>
+  <span class="k">SELECT</span> <span class="k">AVG</span><span class="p">(</span><span class="n">total</span><span class="p">)</span> <span class="k">AS</span> <span class="k">avg</span> <span class="k">FROM</span> <span class="n">orders</span>
+<span class="p">),</span>
+<span class="n">high_value_orders</span> <span class="k">AS</span> <span class="p">(</span>
+  <span class="k">SELECT</span> <span class="n">user_id</span> <span class="k">FROM</span> <span class="n">orders</span><span class="p">,</span> <span class="n">avg_total</span> <span class="k">WHERE</span> <span class="n">total</span> <span class="o">&gt;</span> <span class="n">avg_total</span><span class="p">.</span><span class="k">avg</span>
+<span class="p">)</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">users</span> <span class="k">WHERE</span> <span class="n">id</span> <span class="k">IN</span> <span class="p">(</span><span class="k">SELECT</span> <span class="n">user_id</span> <span class="k">FROM</span> <span class="n">high_value_orders</span><span class="p">);</span>
 
+</code></pre></div>
 <p><strong>Performance:</strong> Postgres 12+ inlines CTEs like subqueries. Use MATERIALIZED to force evaluation once.</p>
 <div class="highlight"><pre class="highlight sql"><code><span class="k">WITH</span> <span class="n">materialized_cte</span> <span class="k">AS</span> <span class="n">MATERIALIZED</span> <span class="p">(</span>
   <span class="k">SELECT</span> <span class="n">expensive_computation</span><span class="p">()</span> <span class="k">AS</span> <span class="k">result</span>
 <span class="p">)</span>
 <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">materialized_cte</span><span class="p">;</span>
+
 </code></pre></div>
 <hr>
 
 <h2>Window Functions in Rails</h2>
 
-<p><strong>Arel:</strong><br>
-```ruby</p>
+<p><strong>Arel:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># ROW_NUMBER with partition</span>
+<span class="n">window</span> <span class="o">=</span> <span class="no">Arel</span><span class="o">::</span><span class="no">Nodes</span><span class="o">::</span><span class="no">Window</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">partition</span><span class="p">(</span><span class="no">Product</span><span class="p">.</span><span class="nf">arel_table</span><span class="p">[</span><span class="ss">:category_id</span><span class="p">]).</span><span class="nf">order</span><span class="p">(</span><span class="no">Product</span><span class="p">.</span><span class="nf">arel_table</span><span class="p">[</span><span class="ss">:sales</span><span class="p">].</span><span class="nf">desc</span><span class="p">)</span>
+<span class="n">row_number</span> <span class="o">=</span> <span class="no">Arel</span><span class="o">::</span><span class="no">Nodes</span><span class="o">::</span><span class="no">NamedFunction</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s1">'ROW_NUMBER'</span><span class="p">,</span> <span class="p">[]).</span><span class="nf">over</span><span class="p">(</span><span class="n">window</span><span class="p">)</span>
 
-<h1>ROW_NUMBER with partition</h1>
+<span class="no">Product</span><span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="no">Product</span><span class="p">.</span><span class="nf">arel_table</span><span class="p">[</span><span class="no">Arel</span><span class="p">.</span><span class="nf">star</span><span class="p">],</span> <span class="n">row_number</span><span class="p">.</span><span class="nf">as</span><span class="p">(</span><span class="s1">'rank'</span><span class="p">))</span>
 
-<p>window = Arel::Nodes::Window.new.partition(Product.arel_table[:category_id]).order(Product.arel_table[:sales].desc)<br>
-row_number = Arel::Nodes::NamedFunction.new(&#39;ROW_NUMBER&#39;, []).over(window)</p>
+</code></pre></div>
+<p><strong>Raw SQL (simpler):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">sql</span> <span class="o">=</span> <span class="o">&lt;&lt;-</span><span class="no">SQL</span><span class="sh">
+  SELECT products.*,
+         ROW_NUMBER() OVER (PARTITION BY category_id ORDER BY sales DESC) AS rank
+  FROM products
+</span><span class="no">SQL</span>
 
-<p>Product.select(Product.arel_table[Arel.star], row_number.as(&#39;rank&#39;))<br>
-```</p>
+<span class="no">Product</span><span class="p">.</span><span class="nf">find_by_sql</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
 
-<p><strong>Raw SQL (simpler):</strong><br>
-```ruby<br>
-sql = &lt;&lt;-SQL<br>
-  SELECT products.*,<br>
-         ROW_NUMBER() OVER (PARTITION BY category_id ORDER BY sales DESC) AS rank<br>
-  FROM products<br>
-SQL</p>
-
-<p>Product.find_by_sql(sql)<br>
-```</p>
-
+</code></pre></div>
 <hr>
 
 <h2>Trade-offs Box</h2>
@@ -986,26 +967,23 @@ SQL</p>
 
 <p>You have an e-commerce database with orders and products. Write queries using CTEs and window functions to answer business questions.</p>
 
-<p><strong>Setup:</strong><br>
-```ruby</p>
+<p><strong>Setup:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Schema</span>
+<span class="n">create_table</span> <span class="ss">:orders</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">references</span> <span class="ss">:user</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">decimal</span> <span class="ss">:total</span><span class="p">,</span> <span class="ss">precision: </span><span class="mi">10</span><span class="p">,</span> <span class="ss">scale: </span><span class="mi">2</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">timestamps</span>
+<span class="k">end</span>
 
-<h1>Schema</h1>
+<span class="n">create_table</span> <span class="ss">:products</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:name</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:category</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">integer</span> <span class="ss">:sales_count</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">decimal</span> <span class="ss">:price</span><span class="p">,</span> <span class="ss">precision: </span><span class="mi">10</span><span class="p">,</span> <span class="ss">scale: </span><span class="mi">2</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">timestamps</span>
+<span class="k">end</span>
 
-<p>create_table :orders do |t|<br>
-  t.references :user, null: false<br>
-  t.decimal :total, precision: 10, scale: 2<br>
-  t.timestamps<br>
-end</p>
-
-<p>create_table :products do |t|<br>
-  t.string :name<br>
-  t.string :category<br>
-  t.integer :sales_count<br>
-  t.decimal :price, precision: 10, scale: 2<br>
-  t.timestamps<br>
-end<br>
-```</p>
-
+</code></pre></div>
 <p><strong>Business questions:</strong><br>
 1. Find the top 3 products by sales in each category<br>
 2. Calculate each order&#39;s total and the running total of all orders by date<br>

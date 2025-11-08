@@ -50,6 +50,7 @@ class ApplicationController < ActionController::API
 
   attr_reader :current_user
 end
+
 ```
 
 Generate tokens with `JWT.encode({user_id: user.id}, secret, 'HS256')`. Send them as `Authorization: Bearer <token>`.
@@ -81,6 +82,7 @@ def update
   @post.update!(post_params)
   render json: @post
 end
+
 ```
 
 `authorize @post` raises `Pundit::NotAuthorizedError` if `update?` returns false. Rescue and render 403.
@@ -108,6 +110,7 @@ def index
   @posts = policy_scope(Post)
   render json: @posts
 end
+
 ```
 
 Guests see only published posts; owners see their drafts; admins see all.
@@ -127,6 +130,7 @@ private
 def user_not_authorized
   render json: {error: 'Forbidden'}, status: :forbidden
 end
+
 ```
 
 Optionally log the attempt for audit trails.
@@ -157,6 +161,7 @@ RSpec.describe PostPolicy do
     it { is_expected.not_to permit_action(:destroy) }
   end
 end
+
 ```
 
 Use `pundit-matchers` gem for `permit_action` matcher.
@@ -178,6 +183,7 @@ def show
   authorize @post  # Calls PostPolicy#show?
   render json: @post
 end
+
 ```
 
 Attacker changes `/api/posts/123` to `/api/posts/124` and sees another user's draft. `authorize` prevents this.

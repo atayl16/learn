@@ -39,6 +39,7 @@ render json: {error: "Too many requests"}, status: :too_many_requests          #
 
 # 5xx Server Errors
 render json: {error: "Internal server error"}, status: :internal_server_error  # 500
+
 ```
 
 Use 400 for malformed requests, 401 for missing auth, 403 for denied access, 422 for validation failures.
@@ -67,6 +68,7 @@ render_error(
   detail: 'Email must be a valid format',
   instance: "/api/users/#{params[:id]}"
 )
+
 ```
 
 `type` is a URI identifying the error category. `instance` is the specific resource URL.
@@ -90,6 +92,7 @@ JSON:API uses an `errors` array with `status`, `code`, `title`, `detail`, `sourc
     }
   ]
 }
+
 ```
 
 `source.pointer` uses JSON Pointer syntax (`/data/attributes/email`) to identify the exact field.
@@ -116,6 +119,7 @@ def create
     }, status: :unprocessable_entity
   end
 end
+
 ```
 
 Returns `[{field: "email", message: "is invalid", code: "invalid"}]`. Clients can map to form fields.
@@ -137,6 +141,7 @@ rescue_from StandardError do |exception|
     support_message: "Please contact support with ID: #{error_id}"
   }, status: :internal_server_error
 end
+
 ```
 
 Users report the `error_id`, support searches logs for the full trace.
@@ -157,6 +162,7 @@ rescue_from ActiveRecord::RecordNotFound do |exception|
     render json: {error: exception.message, backtrace: exception.backtrace.first(5)}, status: :not_found
   end
 end
+
 ```
 
 In production, return generic messages. In development, include traces for debugging.

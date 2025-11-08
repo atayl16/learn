@@ -655,6 +655,7 @@
 </span>    <span class="o">&lt;</span><span class="sr">/div</span><span class="err">&gt;
 </span>  <span class="p">)</span>
 <span class="p">}</span>
+
 </code></pre></div>
 <p>Render it with data:</p>
 <div class="highlight"><pre class="highlight javascript"><code><span class="k">import</span> <span class="nx">UserCard</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">./UserCard</span><span class="dl">'</span>
@@ -662,6 +663,7 @@
 <span class="kd">function</span> <span class="nf">App</span><span class="p">()</span> <span class="p">{</span>
   <span class="k">return</span> <span class="o">&lt;</span><span class="nx">UserCard</span> <span class="nx">name</span><span class="o">=</span><span class="dl">"</span><span class="s2">Alice</span><span class="dl">"</span> <span class="nx">email</span><span class="o">=</span><span class="dl">"</span><span class="s2">alice@example.com</span><span class="dl">"</span> <span class="o">/&gt;</span>
 <span class="p">}</span>
+
 </code></pre></div>
 <p>Props are read-only. To change data, lift state up to a parent component.</p>
 
@@ -682,6 +684,7 @@
 </span>    <span class="o">&lt;</span><span class="sr">/div</span><span class="err">&gt;
 </span>  <span class="p">)</span>
 <span class="p">}</span>
+
 </code></pre></div>
 <p>Updating state triggers a re-render. Never mutate state directly; always call the setter function.</p>
 
@@ -707,6 +710,7 @@
 </span>    <span class="o">&lt;</span><span class="sr">/ul</span><span class="err">&gt;
 </span>  <span class="p">)</span>
 <span class="p">}</span>
+
 </code></pre></div>
 <p>Add cleanup to avoid memory leaks:</p>
 <div class="highlight"><pre class="highlight javascript"><code><span class="nf">useEffect</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
@@ -721,6 +725,7 @@
 
   <span class="k">return </span><span class="p">()</span> <span class="o">=&gt;</span> <span class="nx">controller</span><span class="p">.</span><span class="nf">abort</span><span class="p">()</span> <span class="c1">// Cleanup on unmount</span>
 <span class="p">},</span> <span class="p">[])</span>
+
 </code></pre></div>
 <hr>
 
@@ -744,6 +749,7 @@
 </span>    <span class="o">&lt;</span><span class="sr">/ul</span><span class="err">&gt;
 </span>  <span class="p">)</span>
 <span class="p">}</span>
+
 </code></pre></div>
 <p>React Query handles caching, background refetching, and deduplication automatically. Install with <code>npm install @tanstack/react-query</code>.</p>
 
@@ -775,6 +781,7 @@
 </span>    <span class="o">&lt;</span><span class="sr">/form</span><span class="err">&gt;
 </span>  <span class="p">)</span>
 <span class="p">}</span>
+
 </code></pre></div>
 <p>Every keystroke updates state and re-renders. For large forms, consider uncontrolled inputs with refs.</p>
 
@@ -786,15 +793,18 @@
 <div class="highlight"><pre class="highlight shell"><code>bundle add react-rails
 rails webpacker:install:react
 rails generate react:install
+
 </code></pre></div>
 <p>Create a component:</p>
 <div class="highlight"><pre class="highlight javascript"><code><span class="c1">// app/javascript/components/HelloWorld.jsx</span>
 <span class="k">export</span> <span class="k">default</span> <span class="kd">function</span> <span class="nf">HelloWorld</span><span class="p">({</span> <span class="nx">name</span> <span class="p">})</span> <span class="p">{</span>
   <span class="k">return</span> <span class="o">&lt;</span><span class="nx">h1</span><span class="o">&gt;</span><span class="nx">Hello</span><span class="p">,</span> <span class="p">{</span><span class="nx">name</span><span class="p">}</span><span class="o">!&lt;</span><span class="sr">/h1</span><span class="err">&gt;
 </span><span class="p">}</span>
+
 </code></pre></div>
 <p>Render in a view:</p>
 <div class="highlight"><pre class="highlight erb"><code><span class="cp">&lt;%=</span> <span class="n">react_component</span><span class="p">(</span><span class="s2">"HelloWorld"</span><span class="p">,</span> <span class="p">{</span> <span class="ss">name: </span><span class="s2">"World"</span> <span class="p">})</span> <span class="cp">%&gt;</span>
+
 </code></pre></div>
 <p>This server-renders React components for initial page load, then hydrates client-side.</p>
 
@@ -809,6 +819,7 @@ rails generate react:install
     <span class="n">render</span> <span class="ss">json: </span><span class="no">Post</span><span class="p">.</span><span class="nf">all</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Fetch from React:</p>
 <div class="highlight"><pre class="highlight javascript"><code><span class="nf">useEffect</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
@@ -816,6 +827,7 @@ rails generate react:install
     <span class="p">.</span><span class="nf">then</span><span class="p">(</span><span class="nx">res</span> <span class="o">=&gt;</span> <span class="nx">res</span><span class="p">.</span><span class="nf">json</span><span class="p">())</span>
     <span class="p">.</span><span class="nf">then</span><span class="p">(</span><span class="nx">setPosts</span><span class="p">)</span>
 <span class="p">},</span> <span class="p">[])</span>
+
 </code></pre></div>
 <p>Include CSRF token for POST requests:</p>
 <div class="highlight"><pre class="highlight javascript"><code><span class="kd">const</span> <span class="nx">csrfToken</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nf">querySelector</span><span class="p">(</span><span class="dl">'</span><span class="s1">[name=csrf-token]</span><span class="dl">'</span><span class="p">).</span><span class="nx">content</span>
@@ -825,6 +837,7 @@ rails generate react:install
   <span class="na">headers</span><span class="p">:</span> <span class="p">{</span> <span class="dl">'</span><span class="s1">X-CSRF-Token</span><span class="dl">'</span><span class="p">:</span> <span class="nx">csrfToken</span><span class="p">,</span> <span class="dl">'</span><span class="s1">Content-Type</span><span class="dl">'</span><span class="p">:</span> <span class="dl">'</span><span class="s1">application/json</span><span class="dl">'</span> <span class="p">},</span>
   <span class="na">body</span><span class="p">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nf">stringify</span><span class="p">({</span> <span class="na">title</span><span class="p">:</span> <span class="dl">'</span><span class="s1">New Post</span><span class="dl">'</span> <span class="p">})</span>
 <span class="p">})</span>
+
 </code></pre></div>
 <hr>
 

@@ -676,6 +676,7 @@
 <span class="k">else</span>
   <span class="n">render</span> <span class="ss">:old_checkout</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Flipper checks <code>current_user</code> against the flag&#39;s rules. If enabled, the new path runs.</p>
 
@@ -687,6 +688,7 @@
 
 <span class="c1"># Affects 10% of users deterministically (same user always sees same state)</span>
 <span class="no">Flipper</span><span class="p">.</span><span class="nf">enabled?</span><span class="p">(</span><span class="ss">:new_checkout</span><span class="p">,</span> <span class="n">current_user</span><span class="p">)</span>
+
 </code></pre></div>
 <p>Increase percentage as confidence grows: 10% → 25% → 50% → 100%.</p>
 
@@ -703,6 +705,7 @@
 
 <span class="c1"># Check returns true for admins</span>
 <span class="no">Flipper</span><span class="p">.</span><span class="nf">enabled?</span><span class="p">(</span><span class="ss">:new_checkout</span><span class="p">,</span> <span class="n">current_user</span><span class="p">)</span>
+
 </code></pre></div>
 <p>Groups let you dogfood features internally before public launch.</p>
 
@@ -714,6 +717,7 @@
 
 <span class="c1"># Check</span>
 <span class="no">Flipper</span><span class="p">.</span><span class="nf">enabled?</span><span class="p">(</span><span class="ss">:new_checkout</span><span class="p">,</span> <span class="n">current_user</span><span class="p">)</span>  <span class="c1"># true if current_user.id == 123</span>
+
 </code></pre></div>
 <p>Useful for debugging production issues with specific accounts.</p>
 
@@ -728,6 +732,7 @@
   <span class="no">StatsD</span><span class="p">.</span><span class="nf">increment</span><span class="p">(</span><span class="s2">"checkout.old.started"</span><span class="p">)</span>
   <span class="n">render</span> <span class="ss">:old_checkout</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Compare error rates, conversion rates, and latency between branches. If the new branch degrades, disable the flag instantly.</p>
 
@@ -753,6 +758,7 @@
     <span class="k">end</span>
   <span class="k">end</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Alternatively, default flags to one state in CI and document that the other branch is tested manually or in staging.</p>
 
@@ -768,6 +774,7 @@
 
 <span class="c1"># After cleanup (flag permanently enabled)</span>
 <span class="n">render</span> <span class="ss">:new_checkout</span>
+
 </code></pre></div>
 <p>Delete the flag from Flipper, remove conditional logic, and delete the old code path. Set a reminder (30 days post-launch) to clean up.</p>
 
@@ -786,6 +793,7 @@
 <span class="k">else</span>
   <span class="n">render</span> <span class="ss">:old_checkout</span>
 <span class="k">end</span>
+
 </code></pre></div>
 <p>Unleash adds an admin UI for non-engineers to toggle flags, useful for product managers running experiments.</p>
 
