@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Docker Documentation — Getting Started"
+    url: "https://docs.docker.com/get-started/"
+    why: "Official Docker documentation covering fundamentals: containers, images, volumes, networking, and Docker Compose."
+
+  - title: "Rails on Docker (GoRails Guide)"
+    url: "https://gorails.com/guides/using-docker-for-rails-development"
+    why: "Practical guide to setting up Rails development environment with Docker, including Docker Compose configuration."
+
+  - title: "Docker Official Images — Ruby"
+    url: "https://hub.docker.com/_/ruby"
+    why: "Best practices for Ruby Docker images, version tags, and production-ready base images for Rails apps."
+
+  - title: "Multi-stage Builds in Docker"
+    url: "https://docs.docker.com/build/building/multi-stage/"
+    why: "Official guide to optimizing image sizes and build performance using multi-stage Dockerfiles."
+
+  - title: "Production Best Practices for Containers (Docker)"
+    url: "https://docs.docker.com/develop/dev-best-practices/"
+    why: "Security, optimization, and operational best practices for running containers in production."
+
+  - title: "Container Structure Tests"
+    url: "https://github.com/GoogleContainerTools/container-structure-test"
+    why: "Framework for testing Docker image structure, contents, and behavior to ensure reproducibility."
+
+  - title: "GitHub Actions — Building and Pushing Docker Images"
+    url: "https://docs.github.com/en/actions/publishing-packages/publishing-docker-images"
+    why: "CI/CD integration patterns for automating Docker image builds, tests, and deployment."

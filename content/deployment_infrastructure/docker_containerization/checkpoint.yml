@@ -1,65 +1,113 @@
 ---
 checkpoint:
-  topic_key: docker_containerization
-  title: Docker & Containerization Basics Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 2
+      prompt: "How do Docker layers enable build caching?"
+      choices:
+        - "Each RUN command creates a new layer; Docker skips rebuilding unchanged layers when dependencies haven't changed"
+        - "Docker automatically deduplicates identical files across all containers on the system"
+        - "Build caching only works with the --no-cache flag"
+        - "Layers are cached in RAM during the build process and discarded after"
+      correct: "Each RUN command creates a new layer; Docker skips rebuilding unchanged layers when dependencies haven't changed"
+      why: "Docker's layer caching is based on command history. When input hasn't changed, Docker reuses the cached layer, avoiding expensive re-execution. This is why ordering RUN commands matters—expensive operations should come after frequently-changing steps."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary benefit of multi-stage Docker builds?"
+      choices:
+        - "They allow you to use different base images for different services"
+        - "Build dependencies and compiler tools can be discarded in the final image, reducing size and attack surface"
+        - "They automatically parallelize building on multi-core systems"
+        - "Multi-stage builds enable simultaneous development by multiple team members"
+      correct: "Build dependencies and compiler tools can be discarded in the final image, reducing size and attack surface"
+      why: "Multi-stage builds let you compile or prepare assets in an intermediate stage, then copy only the necessary artifacts to a minimal final image. This eliminates build tools, headers, and source code from production images."
+
+    - kind: mcq
+      points: 1
+      prompt: "In a Rails Dockerfile, where should asset precompilation typically occur?"
+      choices:
+        - "In the final stage, using a RUN command before starting the Rails server"
+        - "As a separate Docker command run after container startup"
+        - "Using a Docker volume mount to precompile from the host machine"
+        - "During the multi-stage build in an intermediate builder stage before the COPY command"
+      correct: "During the multi-stage build in an intermediate builder stage before the COPY command"
+      why: "Asset precompilation requires source files but the compiled assets are all you need in production. Using a builder stage lets you precompile, then COPY only public/assets/ to the final stage. This keeps the final image small and avoids recompiling on every deployment."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why is running applications as a non-root user important in Docker?"
+      choices:
+        - "Non-root users execute containers faster"
+        - "It limits the damage if a container is compromised; root access inside a container can potentially escape to the host"
+        - "Docker automatically restricts root users from accessing the network"
+        - "Non-root users allow container-to-container communication"
+      correct: "It limits the damage if a container is compromised; root access inside a container can potentially escape to the host"
+      why: "Running as non-root follows the principle of least privilege. While container isolation provides protection, using root increases risk. If an attacker gains code execution, non-root privileges limit what they can do locally within and potentially outside the container."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the correct approach to add a non-root user in a Dockerfile?"
+      choices:
+        - "Use the USER directive after creating a user with RUN addgroup and RUN adduser"
+        - "Modify /etc/sudoers in the Dockerfile to create a non-root account"
+        - "Specify the non-root user when running 'docker run' with the --user flag only"
+        - "Create a group but no specific user; Docker automatically runs as a pseudo-user"
+      correct: "Use the USER directive after creating a user with RUN addgroup and RUN adduser"
+      why: "Create the user/group with RUN commands (using base image tools), then switch to that user with USER appuser. This ensures all subsequent commands and the container's main process run as that user, not root."
+
+    - kind: mcq
+      points: 2
+      prompt: "What should .dockerignore include to optimize Docker builds?"
+      choices:
+        - "Only git-related files and directories like .git"
+        - "build/ dist/ node_modules/ .git .gitignore .env .env.* log/ tmp/ and other non-essential files"
+        - "All source code files, since Docker builds from compiled artifacts only"
+        - "Nothing; .dockerignore slows down Docker builds"
+      correct: "build/ dist/ node_modules/ .git .gitignore .env .env.* log/ tmp/ and other non-essential files"
+      why: ".dockerignore prevents unnecessary files from being sent to the Docker daemon, reducing build context size and speeding up builds. Exclude version control, logs, temporary files, and development dependencies that you'll reinstall in the image."
+
+    - kind: mcq
+      points: 1
+      prompt: "How do you debug a Dockerfile build failure when a RUN command fails?"
+      choices:
+        - "You must rewrite the entire Dockerfile and rebuild"
+        - "Use docker run on the previous layer's image to interactively debug the environment and commands"
+        - "Add verbose output flags to the docker build command"
+        - "Docker automatically logs all failures to a debug.log file"
+      correct: "Use docker run on the previous layer's image to interactively debug the environment and commands"
+      why: "If RUN command X fails, Docker has successfully cached the previous layer. You can run a container from that layer (docker run -it <layer-id> bash) to test commands in the exact environment where the build failed."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is a common cause of Docker layer caching being bypassed?"
+      choices:
+        - "Using COPY or ADD commands that bring in frequently-changing files before stable dependencies"
+        - "Installing dependencies before copying source code"
+        - "Using a base image with a specific version tag (not 'latest')"
+        - "Running with the --cache flag instead of --no-cache"
+      correct: "Using COPY or ADD commands that bring in frequently-changing files before stable dependencies"
+      why: "If COPY . . comes before RUN npm install, every source code change invalidates the dependency layer's cache, forcing a rebuild. The best practice is to COPY only dependency files (package.json, Gemfile) before RUN install commands, then COPY source code later."
+
+    - kind: mcq
+      points: 2
+      prompt: "How should you manage secrets (API keys, database passwords) in Docker builds?"
+      choices:
+        - "Build them into the image using ENV statements in the Dockerfile"
+        - "Use Docker secrets or BuildKit secrets; never hardcode or use ENV for production secrets"
+        - "Store secrets in .env files and COPY them into the image"
+        - "Always pass secrets as ARG values during build time"
+      correct: "Use Docker secrets or BuildKit secrets; never hardcode or use ENV for production secrets"
+      why: "Secrets hardcoded in images are permanently exposed in the layer history. Use Docker's secret management, BuildKit --secret mounts, or supply secrets at runtime via environment variables or external vaults. Never COPY .env files into images."
+
+    - kind: mcq
+      points: 1
+      prompt: "When debugging a running container, which approach is most effective for accessing logs?"
+      choices:
+        - "Use docker logs <container-id> to view the stdout/stderr of the main process"
+        - "Open an SSH connection to the running container"
+        - "Use docker inspect to directly read memory"
+        - "Restart the container with verbose flags to re-generate logs"
+      correct: "Use docker logs <container-id> to view the stdout/stderr of the main process"
+      why: "docker logs captures the main process output (PID 1), which is the most reliable way to debug running containers. You can also use docker exec -it <container> bash to get an interactive shell inside the container for further debugging."
