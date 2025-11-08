@@ -1,0 +1,14 @@
+topic:
+  key: legacy_code
+  name: Working with Legacy Code
+  track_key: code_quality
+  depth_target: Strong
+  prerequisites: ["testing_basics", "refactoring_patterns"]
+  objectives:
+    - Add tests to untested code using characterization tests
+    - Break dependencies to make code testable
+    - Apply the Strangler Fig pattern for rewrites
+  key_terms: ["characterization tests", "seams", "Strangler Fig", "legacy code", "refactoring"]
+  est_minutes_read: 12
+  est_minutes_exercise: 25
+  tags: ["legacy-code", "testing", "refactoring", "patterns"]

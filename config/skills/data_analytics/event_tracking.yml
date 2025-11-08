@@ -1,0 +1,14 @@
+topic:
+  key: event_tracking
+  name: Event Tracking & Analytics
+  track_key: data_analytics
+  depth_target: Working
+  prerequisites: ["rails_basics", "api_basics"]
+  objectives:
+    - Design event schemas for product analytics
+    - Implement client-side and server-side tracking
+    - Build dashboards and funnels from event data
+  key_terms: ["event tracking", "analytics", "funnels", "user behavior", "event schema"]
+  est_minutes_read: 10
+  est_minutes_exercise: 20
+  tags: ["analytics", "tracking", "product", "metrics"]

@@ -1,0 +1,14 @@
+topic:
+  key: data_warehouses
+  name: Working with Data Warehouses
+  track_key: data_analytics
+  depth_target: Working
+  prerequisites: ["sql_basics", "api_basics"]
+  objectives:
+    - Connect Rails to Snowflake/BigQuery for analytics
+    - Design data sync strategies (full vs. incremental)
+    - Query data warehouses efficiently from Rails
+  key_terms: ["data warehouse", "Snowflake", "BigQuery", "OLAP", "data sync"]
+  est_minutes_read: 10
+  est_minutes_exercise: 20
+  tags: ["data-warehouse", "snowflake", "bigquery", "analytics"]

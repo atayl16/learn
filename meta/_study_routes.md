@@ -261,20 +261,25 @@ If none of the above fit, prioritize based on your **current gaps**:
 - request_lifecycle, ar_relations, indexing, explain_analyze
 - n_plus_one, eager_preload, sidekiq_basics, idempotency_retries
 - rest_design, authn_authz, testing_strategy
+- docker_containerization, ci_cd_pipelines, deployment_strategies
 
 ### Priority 2 (Needed for production work)
 - validations_callbacks, transactions_locks, zero_downtime_migrations
 - fragment_caching, cache_keys_invalidations, structured_logging
 - pagination_filtering, error_shapes, hotwire_frames_streams
+- config_secrets, health_checks_graceful, refactoring_patterns, legacy_code
 
 ### Priority 3 (Rounding out skills)
 - autoloading_boot, routing_middleware, config_initializers
 - ctes_windows, scheduling, job_instrumentation, memory_gc_basics
 - error_tracking_model, apm_traces, metrics_slos, versioning, csrf_cors
 - stimulus_patterns, forms_progressive, layering_services, feature_flags_rollouts, adrs
+- asset_pipeline_cdn, technical_debt, code_review
 
 ### Priority 4 (Nice to have)
 - react_working_fundamentals, microservices_when_not
+- metaprogramming_patterns, memory_model, concurrency_primitives, dsl_design
+- etl_patterns, event_tracking, report_generation, data_warehouses
 
 **Custom study plan:** Pick 2-3 from Priority 1 each week until complete, then move to Priority 2.
 
@@ -341,6 +346,32 @@ Use this checklist to track completion:
 - [ ] adrs
 - [ ] microservices_when_not
 
+### Deployment & Infrastructure (6 topics)
+- [ ] docker_containerization
+- [ ] ci_cd_pipelines
+- [ ] deployment_strategies
+- [ ] asset_pipeline_cdn
+- [ ] config_secrets
+- [ ] health_checks_graceful
+
+### Advanced Ruby Internals (4 topics)
+- [ ] metaprogramming_patterns
+- [ ] memory_model
+- [ ] concurrency_primitives
+- [ ] dsl_design
+
+### Code Quality & Refactoring (4 topics)
+- [ ] refactoring_patterns
+- [ ] legacy_code
+- [ ] technical_debt
+- [ ] code_review
+
+### Data & Analytics (4 topics)
+- [ ] etl_patterns
+- [ ] event_tracking
+- [ ] report_generation
+- [ ] data_warehouses
+
 ---
 
 ## Study Tips
@@ -400,8 +431,8 @@ A: Yes, but take the checkpoint quiz first. If you score 80%+, skip it. If not, 
 **Q: What if I fall behind?**
 A: Adjust your route. Switch from 12-week to weekends-only, or focus on Priority 1 topics only.
 
-**Q: Should I do all 41 topics?**
-A: For senior IC roles, aim for all Priority 1 + Priority 2 topics (30 total). Priority 3/4 are optional.
+**Q: Should I do all 59 topics?**
+A: For senior IC roles, aim for all Priority 1 + Priority 2 topics (40+ total). Priority 3/4 are optional but recommended for well-rounded expertise.
 
 **Q: Can I use this for interview prep?**
 A: Yes. Focus on Priority 1 topics + rest_design + testing_strategy. 4-6 weeks is enough for most senior Rails interviews.

@@ -1,0 +1,14 @@
+topic:
+  key: code_review
+  name: Code Review Techniques
+  track_key: code_quality
+  depth_target: Strong
+  prerequisites: ["git_basics", "pull_requests"]
+  objectives:
+    - Give constructive, actionable code review feedback
+    - Identify critical issues vs. style preferences
+    - Build a code review culture on your team
+  key_terms: ["code review", "pull requests", "constructive feedback", "nitpicks", "blocking issues"]
+  est_minutes_read: 10
+  est_minutes_exercise: 20
+  tags: ["code-review", "collaboration", "communication", "best-practices"]

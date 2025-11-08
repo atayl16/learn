@@ -1,0 +1,14 @@
+topic:
+  key: asset_pipeline_cdn
+  name: Asset Pipeline & CDN
+  track_key: deployment_infrastructure
+  depth_target: Working
+  prerequisites: ["rails_basics", "http_caching"]
+  objectives:
+    - Configure Propshaft/Sprockets for production asset compilation
+    - Integrate CDN for static asset delivery
+    - Optimize asset loading and cache headers
+  key_terms: ["Propshaft", "Sprockets", "CDN", "asset fingerprinting", "precompilation"]
+  est_minutes_read: 10
+  est_minutes_exercise: 20
+  tags: ["assets", "cdn", "performance", "rails"]

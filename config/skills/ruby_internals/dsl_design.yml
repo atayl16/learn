@@ -1,0 +1,14 @@
+topic:
+  key: dsl_design
+  name: DSL Design Patterns
+  track_key: ruby_internals
+  depth_target: Working
+  prerequisites: ["metaprogramming_patterns", "ruby_blocks"]
+  objectives:
+    - Design clean, readable domain-specific languages
+    - Use instance_eval and class_eval appropriately
+    - Balance DSL magic vs explicit code
+  key_terms: ["DSL", "instance_eval", "class_eval", "builder pattern", "fluent interface"]
+  est_minutes_read: 10
+  est_minutes_exercise: 20
+  tags: ["ruby", "dsl", "api-design", "patterns"]

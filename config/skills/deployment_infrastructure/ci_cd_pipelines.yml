@@ -1,0 +1,14 @@
+topic:
+  key: ci_cd_pipelines
+  name: CI/CD Pipelines
+  track_key: deployment_infrastructure
+  depth_target: Strong
+  prerequisites: ["git_basics", "test_basics"]
+  objectives:
+    - Build GitHub Actions workflows for test, lint, and deploy
+    - Implement parallel test execution and caching
+    - Handle secrets and deployment credentials safely
+  key_terms: ["GitHub Actions", "CI/CD", "workflows", "test automation", "deployment pipelines"]
+  est_minutes_read: 12
+  est_minutes_exercise: 25
+  tags: ["ci-cd", "github-actions", "automation", "testing"]

@@ -1,0 +1,14 @@
+topic:
+  key: deployment_strategies
+  name: Deployment Strategies
+  track_key: deployment_infrastructure
+  depth_target: Strong
+  prerequisites: ["http_basics", "load_balancer_basics"]
+  objectives:
+    - Compare blue-green, canary, and rolling deployment strategies
+    - Implement zero-downtime deployments
+    - Roll back failed deployments safely
+  key_terms: ["blue-green", "canary", "rolling deployment", "zero-downtime", "rollback"]
+  est_minutes_read: 12
+  est_minutes_exercise: 20
+  tags: ["deployment", "devops", "availability", "operations"]

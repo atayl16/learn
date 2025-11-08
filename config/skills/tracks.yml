@@ -54,3 +54,31 @@ tracks:
     depth_target: Strong
     color: "#455A64"
     icon: "🏛️"
+
+  - key: deployment_infrastructure
+    name: "Deployment & Infrastructure"
+    description: "Master Docker, CI/CD, deployment strategies, asset pipelines, and production operations."
+    depth_target: "Working→Strong"
+    color: "#00897B"
+    icon: "🚀"
+
+  - key: ruby_internals
+    name: "Advanced Ruby Internals"
+    description: "Deep dive into metaprogramming, memory model, and concurrency primitives."
+    depth_target: Working
+    color: "#C2185B"
+    icon: "🔬"
+
+  - key: code_quality
+    name: "Code Quality & Refactoring"
+    description: "Refactor legacy code, manage technical debt, and elevate code review skills."
+    depth_target: Strong
+    color: "#5E35B1"
+    icon: "✨"
+
+  - key: data_analytics
+    name: "Data & Analytics"
+    description: "Build ETL pipelines, implement event tracking, and generate reports at scale."
+    depth_target: Working
+    color: "#0277BD"
+    icon: "📊"

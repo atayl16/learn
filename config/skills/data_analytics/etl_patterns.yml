@@ -1,0 +1,14 @@
+topic:
+  key: etl_patterns
+  name: ETL Patterns in Rails
+  track_key: data_analytics
+  depth_target: Working
+  prerequisites: ["sql_basics", "background_jobs"]
+  objectives:
+    - Design extract, transform, load pipelines in Rails
+    - Handle data validation and error recovery
+    - Implement incremental vs. full refresh strategies
+  key_terms: ["ETL", "data pipeline", "incremental refresh", "idempotency", "data validation"]
+  est_minutes_read: 12
+  est_minutes_exercise: 25
+  tags: ["etl", "data", "pipelines", "background-jobs"]

@@ -1,0 +1,14 @@
+topic:
+  key: metaprogramming_patterns
+  name: Metaprogramming Patterns
+  track_key: ruby_internals
+  depth_target: Working
+  prerequisites: ["ruby_basics", "object_model"]
+  objectives:
+    - Use method_missing and define_method effectively
+    - Build clean DSLs with class macros
+    - Understand when NOT to use metaprogramming
+  key_terms: ["method_missing", "define_method", "class macros", "DSL", "send"]
+  est_minutes_read: 12
+  est_minutes_exercise: 25
+  tags: ["ruby", "metaprogramming", "dsl", "patterns"]

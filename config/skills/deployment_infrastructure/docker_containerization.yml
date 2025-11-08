@@ -1,0 +1,14 @@
+topic:
+  key: docker_containerization
+  name: Docker & Containerization Basics
+  track_key: deployment_infrastructure
+  depth_target: Strong
+  prerequisites: ["linux_basics", "shell_basics"]
+  objectives:
+    - Write production-ready Dockerfiles with multi-stage builds
+    - Optimize image size and build caching
+    - Debug containerized Rails applications
+  key_terms: ["Dockerfile", "multi-stage builds", "layers", "docker-compose", "image optimization"]
+  est_minutes_read: 12
+  est_minutes_exercise: 25
+  tags: ["docker", "containers", "deployment", "devops"]

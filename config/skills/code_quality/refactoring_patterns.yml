@@ -1,0 +1,14 @@
+topic:
+  key: refactoring_patterns
+  name: Refactoring Patterns in Rails
+  track_key: code_quality
+  depth_target: Strong
+  prerequisites: ["rails_basics", "testing_basics"]
+  objectives:
+    - Apply Extract Service, Replace Conditional, and other patterns
+    - Refactor fat models and controllers safely
+    - Use tests to verify behavior preservation
+  key_terms: ["Extract Service", "Replace Conditional", "refactoring", "fat models", "SOLID"]
+  est_minutes_read: 12
+  est_minutes_exercise: 25
+  tags: ["refactoring", "patterns", "rails", "clean-code"]

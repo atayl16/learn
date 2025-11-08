@@ -1,0 +1,14 @@
+topic:
+  key: report_generation
+  name: Report Generation Strategies
+  track_key: data_analytics
+  depth_target: Working
+  prerequisites: ["sql_basics", "caching_basics"]
+  objectives:
+    - Generate CSV and Excel reports efficiently
+    - Implement streaming for large datasets
+    - Cache expensive report queries appropriately
+  key_terms: ["CSV", "Excel", "streaming", "report generation", "data export"]
+  est_minutes_read: 10
+  est_minutes_exercise: 20
+  tags: ["reports", "csv", "excel", "data-export"]

@@ -13,9 +13,25 @@ This repository contains **YAML metadata** and **Markdown content** organized in
 
 ## Quick Start
 
-### Option 1: Web Viewer (Recommended)
+### Option 1: GitHub Pages (Recommended)
 
-A lightweight Sinatra-based web application for browsing content with a nice UI:
+Browse the curriculum online with a fully-featured web interface:
+
+**[https://atayl16.github.io/learn/](https://atayl16.github.io/learn/)**
+
+**Features:**
+- Browse all tracks and topics with a clean, responsive interface
+- Read content in tabbed views (Overview, Exercise, Checkpoint, References)
+- Take checkpoint quizzes with instant client-side scoring
+- Full-text search across all topics
+- Dark mode support
+- Progress tracking (saved in browser)
+- Markdown rendering with syntax highlighting
+- No login required
+
+### Option 2: Local Development Server
+
+Run the Sinatra viewer locally for development or offline use:
 
 ```bash
 cd viewer
@@ -25,16 +41,9 @@ bundle exec ruby app.rb
 # Visit http://localhost:4567
 ```
 
-**Features:**
-- Browse all tracks and topics with a clean interface
-- Read content in tabbed views (Overview, Exercise, Checkpoint, References)
-- Take checkpoint quizzes with instant client-side scoring
-- Markdown rendering with syntax highlighting
-- No database or authentication required
-
 See **[viewer/README.md](viewer/README.md)** for full documentation.
 
-### Option 2: Browse Content Locally
+### Option 3: Browse Content Locally
 
 **Markdown Preview**
 ```bash
@@ -295,9 +304,9 @@ This content is provided as-is for learning purposes. All references point to pu
 
 ## Questions?
 
-- **What is this?** A content-first Rails learning curriculum (no viewer app included)
-- **How do I browse it?** Use any Markdown viewer or text editor
-- **Can I build a viewer?** Yes! Parse the YAML/Markdown and build a web app
+- **What is this?** A content-first Rails learning curriculum with a web viewer
+- **How do I browse it?** Visit https://atayl16.github.io/learn/ or run the local server
+- **Can I use it offline?** Yes! Run the Sinatra viewer locally or browse markdown files directly
 - **What order should I follow?** See **[meta/_study_routes.md](meta/_study_routes.md)**
 - **How long will it take?** 12 weeks at 3-4 hours/week (standard pace)
 - **Is this for beginners?** No, it assumes mid-level Rails experience

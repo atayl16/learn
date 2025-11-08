@@ -1,0 +1,14 @@
+topic:
+  key: concurrency_primitives
+  name: Concurrency Primitives (Ractor, Fiber, Thread)
+  track_key: ruby_internals
+  depth_target: Working
+  prerequisites: ["ruby_basics", "parallelism_basics"]
+  objectives:
+    - Compare Thread, Fiber, and Ractor use cases
+    - Implement thread-safe code with Mutex
+    - Understand GVL limitations and workarounds
+  key_terms: ["Thread", "Fiber", "Ractor", "GVL", "Mutex", "thread-safety"]
+  est_minutes_read: 12
+  est_minutes_exercise: 20
+  tags: ["ruby", "concurrency", "threading", "parallelism"]

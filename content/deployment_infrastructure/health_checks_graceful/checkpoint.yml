@@ -1,0 +1,65 @@
+---
+checkpoint:
+  topic_key: health_checks_graceful
+  title: Health Checks & Graceful Shutdowns Quiz
+  questions:
+  - id: 1
+    question: "[Question 1 to be added]"
+    type: multiple_choice
+    options:
+    - "[Option A]"
+    - "[Option B]"
+    - "[Option C]"
+    - "[Option D]"
+    correct_answer: 0
+    explanation: "[Explanation to be added]"
+  - id: 2
+    question: "[Question 2 to be added]"
+    type: multiple_choice
+    options:
+    - "[Option A]"
+    - "[Option B]"
+    - "[Option C]"
+    - "[Option D]"
+    correct_answer: 0
+    explanation: "[Explanation to be added]"
+  - id: 3
+    question: "[Question 3 to be added]"
+    type: multiple_choice
+    options:
+    - "[Option A]"
+    - "[Option B]"
+    - "[Option C]"
+    - "[Option D]"
+    correct_answer: 0
+    explanation: "[Explanation to be added]"
+  - id: 4
+    question: "[Question 4 to be added]"
+    type: multiple_choice
+    options:
+    - "[Option A]"
+    - "[Option B]"
+    - "[Option C]"
+    - "[Option D]"
+    correct_answer: 0
+    explanation: "[Explanation to be added]"
+  - id: 5
+    question: "[Question 5 to be added]"
+    type: multiple_choice
+    options:
+    - "[Option A]"
+    - "[Option B]"
+    - "[Option C]"
+    - "[Option D]"
+    correct_answer: 0
+    explanation: "[Explanation to be added]"
+  - id: 6
+    question: "[Question 6 to be added]"
+    type: multiple_choice
+    options:
+    - "[Option A]"
+    - "[Option B]"
+    - "[Option C]"
+    - "[Option D]"
+    correct_answer: 0
+    explanation: "[Explanation to be added]"

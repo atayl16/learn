@@ -1,0 +1,14 @@
+topic:
+  key: technical_debt
+  name: Technical Debt Assessment & Management
+  track_key: code_quality
+  depth_target: Strong
+  prerequisites: ["software_engineering_basics"]
+  objectives:
+    - Assess technical debt impact vs. effort to fix
+    - Communicate debt trade-offs to non-technical stakeholders
+    - Create actionable remediation plans
+  key_terms: ["technical debt", "code smells", "debt quadrant", "refactoring budget", "trade-offs"]
+  est_minutes_read: 10
+  est_minutes_exercise: 20
+  tags: ["technical-debt", "management", "planning", "communication"]

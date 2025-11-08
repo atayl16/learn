@@ -1,0 +1,14 @@
+topic:
+  key: memory_model
+  name: Ruby Memory Model & Object Allocation
+  track_key: ruby_internals
+  depth_target: Working
+  prerequisites: ["ruby_basics", "gc_basics"]
+  objectives:
+    - Trace object allocation and identify memory leaks
+    - Understand Ruby's garbage collection phases
+    - Use memory profiling tools effectively
+  key_terms: ["object allocation", "garbage collection", "memory bloat", "profiling", "heap"]
+  est_minutes_read: 12
+  est_minutes_exercise: 20
+  tags: ["ruby", "memory", "performance", "profiling"]

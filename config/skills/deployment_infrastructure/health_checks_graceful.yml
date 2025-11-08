@@ -1,0 +1,14 @@
+topic:
+  key: health_checks_graceful
+  name: Health Checks & Graceful Shutdowns
+  track_key: deployment_infrastructure
+  depth_target: Strong
+  prerequisites: ["http_basics", "signals_basics"]
+  objectives:
+    - Implement readiness and liveness health check endpoints
+    - Handle SIGTERM for graceful shutdowns
+    - Design zero-downtime deployment workflows
+  key_terms: ["health checks", "readiness probe", "liveness probe", "graceful shutdown", "SIGTERM"]
+  est_minutes_read: 10
+  est_minutes_exercise: 20
+  tags: ["deployment", "operations", "availability", "kubernetes"]

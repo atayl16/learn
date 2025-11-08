@@ -1,0 +1,26 @@
+---
+references:
+- title: "[Official Documentation - to be added]"
+  url: https://example.com
+  type: docs
+  notes: Official documentation
+- title: "[Guide/Tutorial - to be added]"
+  url: https://example.com
+  type: guide
+  notes: Comprehensive guide
+- title: "[Book Chapter - to be added]"
+  url: https://example.com
+  type: book
+  notes: Book reference
+- title: "[Conference Talk - to be added]"
+  url: https://example.com
+  type: video
+  notes: Conference presentation
+- title: "[Blog Post - to be added]"
+  url: https://example.com
+  type: article
+  notes: Detailed article
+- title: "[GitHub Repository - to be added]"
+  url: https://github.com/example/repo
+  type: code
+  notes: Example implementation
