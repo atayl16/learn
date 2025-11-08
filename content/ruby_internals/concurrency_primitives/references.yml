@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Ruby Documentation — Thread"
+    url: "https://ruby-doc.org/core-3.1.0/Thread.html"
+    why: "Official Thread API documentation covering synchronization, thread locals, and lifecycle."
+
+  - title: "Ruby Documentation — Ractor"
+    url: "https://ruby-doc.org/core-3.1.0/Ractor.html"
+    why: "Official Ractor documentation explaining parallel execution, message passing, and isolation."
+
+  - title: "Ruby Documentation — Fiber"
+    url: "https://ruby-doc.org/core-3.1.0/Fiber.html"
+    why: "Official Fiber API for cooperative multitasking and manual scheduling."
+
+  - title: "Concurrency in Ruby 3 with Guilds (Koichi Sasada)"
+    url: "https://www.youtube.com/watch?v=uvHF7NHwOME"
+    why: "Talk by Ruby core team member on GVL, Ractor design, and parallelism in Ruby 3."
+
+  - title: "Working with Ruby Threads (Book by Jesse Storimer)"
+    url: "https://www.jstorimer.com/products/working-with-ruby-threads"
+    why: "Comprehensive guide to thread safety, GVL behavior, and concurrency patterns."
+
+  - title: "Sidekiq Documentation — Concurrency"
+    url: "https://github.com/mperham/sidekiq/wiki/Advanced-Options#concurrency"
+    why: "Real-world thread usage in production background job processor, including thread safety tips."
+
+  - title: "Understanding the Ruby Global VM Lock (GVL)"
+    url: "https://www.speedshop.co/2020/05/11/the-ruby-gvl-and-scaling.html"
+    why: "In-depth article on GVL behavior, I/O concurrency, and when threads provide speedup."

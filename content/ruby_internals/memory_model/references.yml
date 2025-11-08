@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Ruby Garbage Collection Deep Dive (Jemma Issroff)"
+    url: "https://jemma.dev/blog/gc-mark-and-sweep"
+    why: "Comprehensive explanation of Ruby's tri-color mark-and-sweep algorithm with visual diagrams and code examples."
+
+  - title: "memory_profiler Gem — GitHub Repository"
+    url: "https://github.com/SamSaffron/memory_profiler"
+    why: "Official documentation for the memory_profiler gem, including usage patterns and interpreting profiling reports."
+
+  - title: "Ruby Under a Microscope (Book by Pat Shaughnessy)"
+    url: "https://patshaughnessy.net/ruby-under-a-microscope"
+    why: "Chapter 4 covers Ruby's heap structure, object slots, and garbage collection implementation in detail."
+
+  - title: "derailed_benchmarks — Memory Profiling for Rails"
+    url: "https://github.com/schneems/derailed_benchmarks"
+    why: "Created by Richard Schneeman, this tool profiles memory usage across entire Rails request paths and dependencies."
+
+  - title: "RubyConf 2018 — Compacting GC for MRI (Aaron Patterson)"
+    url: "https://www.youtube.com/watch?v=8Q7M513vewk"
+    why: "Aaron Patterson introduces compaction feature in Ruby 2.7, explaining heap fragmentation and performance impact."
+
+  - title: "Debugging Memory Leaks in Ruby (Honeybadger Blog)"
+    url: "https://www.honeybadger.io/blog/ruby-memory-leaks/"
+    why: "Practical guide to identifying memory leaks using ObjectSpace, heap dumps, and profiling tools in production Rails apps."
+
+  - title: "Ruby GC Tuning Guide (Nate Berkopec)"
+    url: "https://www.speedshop.co/2017/12/04/malloc-doubles-ruby-memory.html"
+    why: "Explains MALLOC_ARENA_MAX and Ruby GC environment variables with benchmarks showing memory usage impact in production."

@@ -1,65 +1,94 @@
----
 checkpoint:
-  topic_key: dsl_design
-  title: DSL Design Patterns Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 1
+      prompt: "What does instance_eval do?"
+      choices:
+        - "Evaluates a block in the context of an instance, changing self"
+        - "Creates a new instance of a class"
+        - "Evaluates code at the class level"
+        - "Freezes an object's state"
+      correct: "Evaluates a block in the context of an instance, changing self"
+      why: "instance_eval executes the block with self set to the receiver object."
+
+    - kind: mcq
+      points: 2
+      prompt: "What's the main trade-off when using instance_eval for DSLs?"
+      choices:
+        - "It's slower than regular method calls"
+        - "It changes self, making outer scope variables inaccessible"
+        - "It doesn't work with blocks"
+        - "It only works in Rails"
+      correct: "It changes self, making outer scope variables inaccessible"
+      why: "instance_eval changes self inside the block, so instance variables and methods from the outer scope aren't available."
+
+    - kind: mcq
+      points: 1
+      prompt: "What makes a fluent interface?"
+      choices:
+        - "Using descriptive method names"
+        - "Methods that return self to enable chaining"
+        - "Using inheritance"
+        - "Dynamic method generation"
+      correct: "Methods that return self to enable chaining"
+      why: "Fluent interfaces chain methods by returning self, enabling query.where(...).order(...).limit(...)."
+
+    - kind: short
+      points: 2
+      prompt: "Write a builder method that sets a 'timeout' value and returns self for chaining."
+      sample_answer: "def timeout(value)\n  @timeout = value\n  self\nend"
+
+    - kind: mcq
+      points: 2
+      prompt: "Why are block parameters (do |config|) often preferred over instance_eval in DSL design?"
+      choices:
+        - "They're faster"
+        - "They keep self unchanged, making scope and debugging clearer"
+        - "They work with more Ruby versions"
+        - "They allow private methods"
+      correct: "They keep self unchanged, making scope and debugging clearer"
+      why: "Block parameters make the receiver explicit (c.method vs method), preserving outer scope access and reducing confusion."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which Ruby gem is a well-known example of a testing DSL?"
+      choices:
+        - "ActiveRecord"
+        - "RSpec"
+        - "Puma"
+        - "Sidekiq"
+      correct: "RSpec"
+      why: "RSpec uses describe, it, expect to create a fluent testing DSL."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is a key characteristic of a well-designed DSL?"
+      choices:
+        - "It hides all implementation details"
+        - "It balances readability with an escape hatch to plain Ruby"
+        - "It uses as much metaprogramming as possible"
+        - "It never requires documentation"
+      correct: "It balances readability with an escape hatch to plain Ruby"
+      why: "Good DSLs improve readability but allow dropping to plain Ruby for edge cases, avoiding too much magic."
+
+    - kind: short
+      points: 2
+      prompt: "What method would you use to add instance methods to a class dynamically at runtime?"
+      sample_answer: "class_eval or define_method"
+
+    - kind: mcq
+      points: 1
+      prompt: "In FactoryBot, what does 'define' do when you write FactoryBot.define { factory :user }?"
+      choices:
+        - "Creates a User class"
+        - "Registers factory definitions for later use"
+        - "Immediately creates a user record"
+        - "Defines a database table"
+      correct: "Registers factory definitions for later use"
+      why: "FactoryBot.define stores factory blueprints in memory; create(:user) later builds objects from those definitions."
+
+    - kind: short
+      points: 1
+      prompt: "What is the primary advantage of using a DSL over plain Ruby code?"
+      sample_answer: "Improved readability and expressing domain concepts more naturally with less boilerplate"

@@ -1,65 +1,103 @@
----
 checkpoint:
-  topic_key: concurrency_primitives
-  title: Concurrency Primitives (Ractor, Fiber, Thread) Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 1
+      prompt: "What does Ruby's Global VM Lock (GVL) prevent?"
+      choices:
+        - "All concurrent execution"
+        - "Parallel execution of Ruby code across threads"
+        - "I/O operations from running concurrently"
+        - "Ractors from running in parallel"
+      correct: "Parallel execution of Ruby code across threads"
+      why: "The GVL ensures only one thread executes Ruby code at a time, but releases during I/O."
+
+    - kind: mcq
+      points: 2
+      prompt: "When is the GVL released, allowing concurrent thread execution?"
+      choices:
+        - "During pure Ruby computation (loops, method calls)"
+        - "During I/O operations (HTTP, DB queries, file reads)"
+        - "During garbage collection"
+        - "Never, threads always block each other"
+      correct: "During I/O operations (HTTP, DB queries, file reads)"
+      why: "I/O operations release the GVL, enabling threads to run concurrently."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why do you need Mutex when multiple threads access shared state?"
+      choices:
+        - "Threads automatically copy instance variables"
+        - "Without Mutex, read-modify-write operations cause race conditions"
+        - "Mutex speeds up thread execution"
+        - "Ruby's GVL prevents race conditions"
+      correct: "Without Mutex, read-modify-write operations cause race conditions"
+      why: "Operations like @count += 1 are not atomic. Mutex serializes access to prevent lost updates."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the primary difference between Thread and Ractor?"
+      choices:
+        - "Threads share memory; Ractors isolate memory and copy data"
+        - "Threads are faster than Ractors"
+        - "Ractors are deprecated in Ruby 3"
+        - "Threads require Mutex; Ractors don't"
+      correct: "Threads share memory; Ractors isolate memory and copy data"
+      why: "Ractors achieve parallelism by isolating memory and copying/moving data between actors."
+
+    - kind: mcq
+      points: 1
+      prompt: "When should you use Fiber instead of Thread?"
+      choices:
+        - "For I/O-bound background jobs"
+        - "For building custom schedulers or event-driven systems"
+        - "For parallel CPU-bound processing"
+        - "For database queries"
+      correct: "For building custom schedulers or event-driven systems"
+      why: "Fibers provide manual control over task switching, useful for event loops and custom schedulers."
+
+    - kind: short
+      points: 2
+      prompt: "Explain why 10 threads doing CPU-bound work won't run faster than 1 thread in Ruby."
+      sample_answer: "Ruby's GVL prevents parallel Ruby code execution. Only one thread can execute Ruby code at a time, so CPU-bound work doesn't benefit from threads."
+
+    - kind: short
+      points: 3
+      prompt: "Write code showing how to protect a shared counter from race conditions using Mutex."
+      sample_answer: |
+        class Counter
+          def initialize
+            @count = 0
+            @mutex = Mutex.new
+          end
+          def increment
+            @mutex.synchronize { @count += 1 }
+          end
+        end
+
+    - kind: mcq
+      points: 1
+      prompt: "What happens if you pass a mutable object to a Ractor?"
+      choices:
+        - "The object is shared between Ractors"
+        - "The object is deep-copied"
+        - "Ractor raises Ractor::IsolationError"
+        - "The Ractor freezes the object"
+      correct: "The object is deep-copied"
+      why: "Ractors copy most objects to maintain isolation, unless they are frozen and shareable."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which concurrency primitive bypasses the GVL to achieve true parallelism?"
+      choices:
+        - "Thread"
+        - "Fiber"
+        - "Ractor"
+        - "Mutex"
+      correct: "Ractor"
+      why: "Ractors run in parallel on multiple CPU cores, bypassing the GVL."
+
+    - kind: short
+      points: 2
+      prompt: "When would you choose Ractor over forking processes for parallelism?"
+      sample_answer: "Use Ractors when you need to share frozen data efficiently or avoid the memory overhead of forking entire process space. Ractors are lighter than forks."

@@ -1,65 +1,94 @@
----
 checkpoint:
-  topic_key: metaprogramming_patterns
-  title: Metaprogramming Patterns Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 2
+      prompt: "What must you always implement when using method_missing?"
+      choices:
+        - "define_method for the missing methods"
+        - "respond_to_missing? to maintain introspection"
+        - "super in the method_missing implementation"
+        - "send to forward the calls"
+      correct: "respond_to_missing? to maintain introspection"
+      why: "respond_to_missing? ensures respond_to? works correctly with method_missing, maintaining Ruby's introspection contract."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why is define_method preferred over method_missing for known method names?"
+      choices:
+        - "It's easier to write"
+        - "It creates real methods that appear in .methods and are 5-10x faster"
+        - "method_missing is deprecated"
+        - "define_method works in more Ruby versions"
+      correct: "It creates real methods that appear in .methods and are 5-10x faster"
+      why: "define_method creates actual methods that show up in introspection and avoid the performance cost of walking the ancestor chain."
+
+    - kind: short
+      points: 3
+      prompt: "Write a simple class macro that defines both a getter and setter for an attribute using define_method."
+      sample_answer: "def self.my_attr(name)\n  define_method(name) { instance_variable_get(\"@#{name}\") }\n  define_method(\"#{name}=\") { |val| instance_variable_set(\"@#{name}\", val) }\nend"
+
+    - kind: mcq
+      points: 2
+      prompt: "What's the key difference between send and public_send?"
+      choices:
+        - "send is faster"
+        - "public_send is newer syntax"
+        - "send bypasses privacy; public_send respects private/protected"
+        - "They are aliases"
+      correct: "send bypasses privacy; public_send respects private/protected"
+      why: "send can call private methods, breaking encapsulation. public_send raises NoMethodError for private methods, respecting visibility."
+
+    - kind: mcq
+      points: 1
+      prompt: "How does Rails' has_many macro work internally?"
+      choices:
+        - "It uses method_missing to create association methods"
+        - "It uses define_method to generate multiple association methods"
+        - "It manually defines each method in C"
+        - "It uses module prepending"
+      correct: "It uses define_method to generate multiple association methods"
+      why: "has_many uses define_method to create posts, posts=, post_ids, posts.build, etc. at class definition time."
+
+    - kind: short
+      points: 2
+      prompt: "What method would you call on an object to see if a dynamically defined method exists?"
+      sample_answer: "obj.methods.grep(/pattern/) or obj.respond_to?(:method_name)"
+
+    - kind: mcq
+      points: 2
+      prompt: "When should you avoid metaprogramming?"
+      choices:
+        - "Never, it's always better"
+        - "When explicit code is clearer, performance matters, or it breaks tooling"
+        - "Only in production"
+        - "When using Rails"
+      correct: "When explicit code is clearer, performance matters, or it breaks tooling"
+      why: "Metaprogramming trades clarity for brevity. If it makes debugging harder, confuses editors, or hurts performance, explicit code is better."
+
+    - kind: mcq
+      points: 1
+      prompt: "What does instance_eval do?"
+      choices:
+        - "Evaluates code in the context of an instance"
+        - "Creates a new instance"
+        - "Evaluates instance variables"
+        - "Calls instance methods"
+      correct: "Evaluates code in the context of an instance"
+      why: "instance_eval executes a block with self set to the receiver, giving access to instance variables and private methods."
+
+    - kind: mcq
+      points: 2
+      prompt: "What debugging technique helps find where metaprogrammed methods are defined?"
+      choices:
+        - "puts in every method"
+        - "obj.method(:name).source_location"
+        - "binding.pry"
+        - "raise to get a stack trace"
+      correct: "obj.method(:name).source_location"
+      why: "source_location returns the file and line number where a method was defined, helping trace dynamically created methods."
+
+    - kind: short
+      points: 3
+      prompt: "How would you make a DSL method chainable (e.g., query.where(...).order(...))"
+      sample_answer: "Return self from each method so it can be chained"

@@ -1,65 +1,94 @@
----
 checkpoint:
-  topic_key: memory_model
-  title: Ruby Memory Model & Object Allocation Quiz
+  passing_score: 7
   questions:
-  - id: 1
-    question: "[Question 1 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 2
-    question: "[Question 2 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 3
-    question: "[Question 3 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 4
-    question: "[Question 4 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 5
-    question: "[Question 5 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
-  - id: 6
-    question: "[Question 6 to be added]"
-    type: multiple_choice
-    options:
-    - "[Option A]"
-    - "[Option B]"
-    - "[Option C]"
-    - "[Option D]"
-    correct_answer: 0
-    explanation: "[Explanation to be added]"
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary purpose of Ruby's garbage collector mark phase?"
+      choices:
+        - "Free unreachable objects immediately"
+        - "Traverse references from GC roots and mark reachable objects"
+        - "Compact heap memory to reduce fragmentation"
+        - "Count total memory usage across all objects"
+      correct: "Traverse references from GC roots and mark reachable objects"
+      why: "The mark phase identifies reachable objects by traversing from GC roots (stack variables, globals, constants); unreachable objects are freed in the sweep phase."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why does string concatenation with + in a loop cause high memory allocation?"
+      choices:
+        - "Strings are always immutable and require heap allocation"
+        - "Each + operation creates a new String object instead of modifying in-place"
+        - "The loop prevents garbage collection from running"
+        - "Ruby uses copy-on-write which duplicates strings"
+      correct: "Each + operation creates a new String object instead of modifying in-place"
+      why: "String concatenation allocates a new string for each + operation. Use string interpolation or << for better performance."
+
+    - kind: short
+      points: 2
+      prompt: "What command would you run to check how many heap pages are currently allocated in a running Ruby process?"
+      sample_answer: "GC.stat[:heap_allocated_pages] or GC.stat in a Rails console"
+
+    - kind: mcq
+      points: 1
+      prompt: "What does memory_profiler's total_retained metric measure?"
+      choices:
+        - "All objects allocated during profiling"
+        - "Objects still in memory after GC runs"
+        - "Memory leaked by the application"
+        - "Size of the Ruby heap in bytes"
+      correct: "Objects still in memory after GC runs"
+      why: "Retained objects survive GC and remain in memory, indicating they're still referenced. High retention suggests potential memory leaks."
+
+    - kind: mcq
+      points: 2
+      prompt: "Which scenario is most likely to cause a memory leak in a Rails application?"
+      choices:
+        - "Using local variables inside a controller action"
+        - "Storing user session data in a class variable without expiration"
+        - "Creating temporary arrays in a background job"
+        - "Loading ActiveRecord objects with .find_each"
+      correct: "Storing user session data in a class variable without expiration"
+      why: "Class variables are GC roots that persist forever. Without eviction policies, they accumulate objects that can't be garbage collected."
+
+    - kind: short
+      points: 2
+      prompt: "What method would you use to measure the memory size of a specific Ruby object including its referenced data?"
+      sample_answer: "ObjectSpace.memsize_of(object) after requiring 'objspace'"
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the purpose of GC.compact in Ruby 2.7+?"
+      choices:
+        - "Force immediate garbage collection"
+        - "Reduce heap fragmentation by moving live objects together"
+        - "Clear all unreachable objects from memory"
+        - "Disable garbage collection temporarily"
+      correct: "Reduce heap fragmentation by moving live objects together"
+      why: "Compaction moves live objects to reduce memory fragmentation, improving memory locality. It's expensive but useful for long-running processes."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the recommended way to pass data to background jobs to avoid stale object issues?"
+      choices:
+        - "Pass the entire ActiveRecord object"
+        - "Pass the object ID and fetch fresh data in the job"
+        - "Serialize the object to JSON first"
+        - "Use a global variable to share state"
+      correct: "Pass the object ID and fetch fresh data in the job"
+      why: "Passing IDs ensures the job fetches current data from the database. Serialized objects contain stale state from enqueue time."
+
+    - kind: short
+      points: 2
+      prompt: "Name two Ruby GC environment variables you can tune to control garbage collection behavior."
+      sample_answer: "RUBY_GC_HEAP_GROWTH_FACTOR and RUBY_GC_HEAP_INIT_SLOTS (or MALLOC_ARENA_MAX)"
+
+    - kind: mcq
+      points: 1
+      prompt: "What tool would you use to profile memory usage of an entire Rails request path including all dependencies?"
+      choices:
+        - "memory_profiler gem"
+        - "ObjectSpace.count_objects"
+        - "derailed_benchmarks gem"
+        - "GC.stat method"
+      correct: "derailed_benchmarks gem"
+      why: "derailed_benchmarks profiles complete request paths including framework overhead, while memory_profiler focuses on specific code blocks."

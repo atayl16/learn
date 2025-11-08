@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Metaprogramming Ruby (Paolo Perrotta)"
+    url: "https://pragprog.com/titles/ppmetr2/metaprogramming-ruby-2/"
+    why: "Comprehensive book covering instance_eval, class_eval, and DSL design patterns in depth."
+
+  - title: "Ruby DSLs — Martin Fowler's Guide"
+    url: "https://martinfowler.com/bliki/DomainSpecificLanguage.html"
+    why: "Foundational article on DSL design philosophy and when to use them."
+
+  - title: "RSpec Core — GitHub Repository"
+    url: "https://github.com/rspec/rspec-core"
+    why: "Study RSpec's source code to see a production DSL using describe, it, and expect."
+
+  - title: "FactoryBot Documentation"
+    url: "https://github.com/thoughtbot/factory_bot/blob/master/GETTING_STARTED.md"
+    why: "Learn how FactoryBot's DSL uses traits, associations, and sequences elegantly."
+
+  - title: "Building DSLs in Ruby (RailsConf Talk)"
+    url: "https://www.youtube.com/watch?v=4A3tgSxTmtU"
+    why: "Conference talk demonstrating real-world DSL patterns and trade-offs."
+
+  - title: "Ruby instance_eval and class_eval (BigBinary Blog)"
+    url: "https://www.bigbinary.com/blog/ruby-instance-eval-and-class-eval"
+    why: "Clear examples showing differences between instance_eval, class_eval, and module_eval."
+
+  - title: "Designing Fluent Interfaces (Thoughtbot)"
+    url: "https://thoughtbot.com/blog/designing-a-ruby-dsl"
+    why: "Practical guide to building chainable builder patterns and avoiding common DSL pitfalls."

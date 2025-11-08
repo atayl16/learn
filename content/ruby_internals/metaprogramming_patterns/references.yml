@@ -1,26 +1,28 @@
----
 references:
-- title: "[Official Documentation - to be added]"
-  url: https://example.com
-  type: docs
-  notes: Official documentation
-- title: "[Guide/Tutorial - to be added]"
-  url: https://example.com
-  type: guide
-  notes: Comprehensive guide
-- title: "[Book Chapter - to be added]"
-  url: https://example.com
-  type: book
-  notes: Book reference
-- title: "[Conference Talk - to be added]"
-  url: https://example.com
-  type: video
-  notes: Conference presentation
-- title: "[Blog Post - to be added]"
-  url: https://example.com
-  type: article
-  notes: Detailed article
-- title: "[GitHub Repository - to be added]"
-  url: https://github.com/example/repo
-  type: code
-  notes: Example implementation
+  - title: "Metaprogramming Ruby 2 (Paolo Perrotta)"
+    url: "https://pragprog.com/titles/ppmetr2/metaprogramming-ruby-2/"
+    why: "The definitive guide to Ruby metaprogramming. Covers method_missing, define_method, eval family, and Rails internals with clear examples and exercises."
+
+  - title: "Ruby Documentation - Method Missing"
+    url: "https://ruby-doc.org/core-3.2.0/BasicObject.html#method-i-method_missing"
+    why: "Official Ruby docs for method_missing and respond_to_missing?, including best practices and warnings about performance."
+
+  - title: "Rails Source - ActiveRecord::Associations::ClassMethods"
+    url: "https://github.com/rails/rails/blob/main/activerecord/lib/active_record/associations.rb"
+    why: "Read how Rails implements has_many, belongs_to using define_method and class_eval. Great real-world metaprogramming example."
+
+  - title: "Confident Ruby - Metaprogramming (Avdi Grimm)"
+    url: "https://www.confidentruby.com/"
+    why: "Chapter on when to use and when to avoid metaprogramming. Covers trade-offs between clarity and cleverness."
+
+  - title: "Understanding Ruby Metaprogramming (Thoughtbot)"
+    url: "https://thoughtbot.com/blog/ruby-metaprogramming-a-real-world-example"
+    why: "Practical blog post showing real-world DSL building with instance_eval and define_method. Includes refactoring examples."
+
+  - title: "RailsConf - Metaprogramming for Dummies (Jim Weirich)"
+    url: "https://www.youtube.com/watch?v=l91Km6mBgFY"
+    why: "Classic conference talk explaining method_missing, define_method, and eval family. Great for visual learners."
+
+  - title: "Ruby Under a Microscope (Pat Shaughnessy)"
+    url: "https://patshaughnessy.net/ruby-under-a-microscope"
+    why: "Deep dive into Ruby internals including method lookup chain and why method_missing is slow. Includes performance benchmarks."
