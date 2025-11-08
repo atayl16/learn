@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,71 +656,270 @@
 
 <h2>What It Is</h2>
 
-<p>DSL Design Patterns is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>A Domain-Specific Language (DSL) is a mini-language tailored to a specific problem domain, making code read like natural instructions. Ruby&#39;s flexible syntax and metaprogramming features make it ideal for internal DSLs—code that looks like configuration but executes as Ruby. Common examples: RSpec&#39;s <code>describe/it</code>, FactoryBot&#39;s <code>factory :user do</code>, Rails routes, and Rake tasks.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Well-designed DSLs improve readability by hiding boilerplate and expressing intent clearly. They let developers think in domain terms (e.g., &quot;factory,&quot; &quot;route,&quot; &quot;test&quot;) instead of Ruby mechanics. But poorly designed DSLs become &quot;magic&quot;—hard to debug, test, or understand. Senior engineers balance expressiveness with transparency, knowing when to build a DSL versus plain Ruby classes.</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li><strong>Configuration:</strong> app settings, feature flags, test factories</li>
+<li><strong>Declarative APIs:</strong> routing (Rails), state machines, validation rules</li>
+<li><strong>Testing frameworks:</strong> RSpec&#39;s fluent assertions, Capybara&#39;s visit/click</li>
+<li><strong>Builder patterns:</strong> HTML/XML generation, query builders (ActiveRecord)</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><strong>Overusing <code>instance_eval</code> without context:</strong> <code>instance_eval</code> changes <code>self</code>, making instance variables and methods confusing. Prefer block parameters or builder objects for clarity.</li>
+<li><strong>Too much magic:</strong> If developers can&#39;t grep for method definitions or need a guide to understand code flow, the DSL is too implicit. Explicitness beats cleverness.</li>
+<li><strong>No escape hatch:</strong> DSLs should degrade gracefully to plain Ruby when edge cases arise. Always provide a way to drop down to explicit code.</li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>Core Building Blocks</h2>
 
-<h3>Key Concept 1</h3>
+<h3>1. <code>instance_eval</code> — Change Context</h3>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<p>Evaluates a block in the context of an object, changing <code>self</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ConfigBuilder</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@settings</span> <span class="o">=</span> <span class="p">{}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">setting</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="vi">@settings</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+    <span class="nb">instance_eval</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+    <span class="vi">@settings</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="no">ConfigBuilder</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">build</span> <span class="k">do</span>
+  <span class="n">setting</span> <span class="ss">:timeout</span><span class="p">,</span> <span class="mi">30</span>
+  <span class="n">setting</span> <span class="ss">:retries</span><span class="p">,</span> <span class="mi">3</span>
+<span class="k">end</span>
+<span class="c1"># =&gt; { timeout: 30, retries: 3 }</span>
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<p><strong>Trade-off:</strong> Clean syntax, but <code>self</code> changes. Instance variables like <code>@my_var</code> from outer scope won&#39;t be accessible inside the block.</p>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<p><strong>Better alternative (block parameter):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">build</span>
+  <span class="k">yield</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span>
+  <span class="vi">@settings</span>
+<span class="k">end</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="no">ConfigBuilder</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">build</span> <span class="k">do</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span>
+  <span class="n">c</span><span class="p">.</span><span class="nf">setting</span> <span class="ss">:timeout</span><span class="p">,</span> <span class="mi">30</span>
+<span class="k">end</span>
 </code></pre></div>
+<p>Block parameters make <code>self</code> explicit, avoiding confusion.</p>
+
 <hr>
 
-<h2>Best Practices</h2>
+<h3>2. <code>class_eval</code> — Define Methods Dynamically</h3>
+
+<p>Executes code in the context of a class, useful for monkey-patching or metaprogramming:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span><span class="p">;</span> <span class="k">end</span>
+
+<span class="no">User</span><span class="p">.</span><span class="nf">class_eval</span> <span class="k">do</span>
+  <span class="k">def</span> <span class="nf">greet</span>
+    <span class="s2">"Hello, </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">user</span><span class="p">.</span><span class="nf">greet</span>  <span class="c1"># method defined dynamically</span>
+</code></pre></div>
+<p><strong>Use case:</strong> Gems that extend ActiveRecord models (e.g., Devise adding <code>authenticatable</code> methods).</p>
+
+<hr>
+
+<h3>3. Builder Pattern — Fluent Chaining</h3>
+
+<p>Builders return <code>self</code> to enable method chaining:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">QueryBuilder</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@conditions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="vi">@order</span> <span class="o">=</span> <span class="kp">nil</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">where</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span>
+    <span class="vi">@conditions</span> <span class="o">&lt;&lt;</span> <span class="n">condition</span>
+    <span class="nb">self</span>  <span class="c1"># return self for chaining</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">order</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+    <span class="vi">@order</span> <span class="o">=</span> <span class="n">field</span>
+    <span class="nb">self</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">to_sql</span>
+    <span class="n">sql</span> <span class="o">=</span> <span class="s2">"SELECT * FROM users"</span>
+    <span class="n">sql</span> <span class="o">+=</span> <span class="s2">" WHERE </span><span class="si">#{</span><span class="vi">@conditions</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">' AND '</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="vi">@conditions</span><span class="p">.</span><span class="nf">any?</span>
+    <span class="n">sql</span> <span class="o">+=</span> <span class="s2">" ORDER BY </span><span class="si">#{</span><span class="vi">@order</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="vi">@order</span>
+    <span class="n">sql</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="no">QueryBuilder</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"active = true"</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="s2">"age &gt; 18"</span><span class="p">).</span><span class="nf">order</span><span class="p">(</span><span class="s2">"created_at"</span><span class="p">)</span>
+<span class="n">query</span><span class="p">.</span><span class="nf">to_sql</span>
+<span class="c1"># =&gt; "SELECT * FROM users WHERE active = true AND age &gt; 18 ORDER BY created_at"</span>
+</code></pre></div>
+<p><strong>Fluent interfaces</strong> make code read left-to-right like prose. ActiveRecord uses this pattern extensively.</p>
+
+<hr>
+
+<h2>Real-World DSL Examples</h2>
+
+<h3>FactoryBot</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">FactoryBot</span><span class="p">.</span><span class="nf">define</span> <span class="k">do</span>
+  <span class="n">factory</span> <span class="ss">:user</span> <span class="k">do</span>
+    <span class="nb">name</span> <span class="p">{</span> <span class="s2">"Alice"</span> <span class="p">}</span>
+    <span class="n">email</span> <span class="p">{</span> <span class="s2">"alice@example.com"</span> <span class="p">}</span>
+
+    <span class="n">trait</span> <span class="ss">:admin</span> <span class="k">do</span>
+      <span class="n">role</span> <span class="p">{</span> <span class="s2">"admin"</span> <span class="p">}</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">,</span> <span class="ss">:admin</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>How it works:</strong></p>
 
 <ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
+<li><code>define</code> takes a block and calls <code>instance_eval</code></li>
+<li><code>factory</code> registers a factory in a hash</li>
+<li>Methods like <code>name</code>, <code>email</code> store attribute definitions</li>
+<li><code>create</code> builds the object using stored definitions</li>
 </ol>
 
 <hr>
 
-<h2>Key Terms</h2>
+<h3>RSpec</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">describe</span> <span class="no">User</span> <span class="k">do</span>
+  <span class="n">it</span> <span class="s2">"validates email format"</span> <span class="k">do</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">email: </span><span class="s2">"invalid"</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">user</span><span class="p">).</span><span class="nf">not_to</span> <span class="n">be_valid</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>How it works:</strong></p>
+
+<ol>
+<li><code>describe</code> creates an <code>ExampleGroup</code> class</li>
+<li><code>it</code> defines a test method</li>
+<li><code>expect</code> builds a matcher object</li>
+<li><code>be_valid</code> delegates to <code>user.valid?</code></li>
+</ol>
+
+<p>RSpec&#39;s DSL hides class definitions and test harness setup, letting you focus on behavior.</p>
+
+<hr>
+
+<h2>Designing Your Own DSL</h2>
+
+<h3>Step 1: Define the Goal</h3>
+
+<p><strong>Bad DSL goal:</strong> &quot;Make Ruby look like JSON.&quot;<br>
+<strong>Good DSL goal:</strong> &quot;Let users configure caching rules without knowing Redis internals.&quot;</p>
+
+<h3>Step 2: Start with Plain Ruby</h3>
+
+<p>Before metaprogramming, write the desired usage in plain Ruby:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">cache</span> <span class="o">=</span> <span class="no">CacheConfig</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">cache</span><span class="p">.</span><span class="nf">add_rule</span><span class="p">(</span><span class="ss">:user_profile</span><span class="p">,</span> <span class="ss">ttl: </span><span class="mi">3600</span><span class="p">)</span>
+<span class="n">cache</span><span class="p">.</span><span class="nf">add_rule</span><span class="p">(</span><span class="ss">:session</span><span class="p">,</span> <span class="ss">ttl: </span><span class="mi">1800</span><span class="p">)</span>
+</code></pre></div>
+<h3>Step 3: Add Syntactic Sugar (If Needed)</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">CacheConfig</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span>
+  <span class="n">rule</span> <span class="ss">:user_profile</span><span class="p">,</span> <span class="ss">ttl: </span><span class="mi">3600</span>
+  <span class="n">rule</span> <span class="ss">:session</span><span class="p">,</span> <span class="ss">ttl: </span><span class="mi">1800</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>This is cleaner if you have many rules. Implement with:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CacheConfig</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">configure</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">new</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">instance_eval</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+    <span class="n">config</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">rule</span><span class="p">(</span><span class="nb">name</span><span class="p">,</span> <span class="n">ttl</span><span class="p">:)</span>
+    <span class="vi">@rules</span> <span class="o">||=</span> <span class="p">{}</span>
+    <span class="vi">@rules</span><span class="p">[</span><span class="nb">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ttl</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 4: Provide Escape Hatches</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">CacheConfig</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span>
+  <span class="n">rule</span> <span class="ss">:user_profile</span><span class="p">,</span> <span class="ss">ttl: </span><span class="mi">3600</span>
+
+  <span class="c1"># Drop to plain Ruby for complex logic</span>
+  <span class="k">if</span> <span class="no">ENV</span><span class="p">[</span><span class="s2">"PRODUCTION"</span><span class="p">]</span>
+    <span class="n">rule</span> <span class="ss">:session</span><span class="p">,</span> <span class="ss">ttl: </span><span class="mi">1800</span>
+  <span class="k">else</span>
+    <span class="n">rule</span> <span class="ss">:session</span><span class="p">,</span> <span class="ss">ttl: </span><span class="mi">60</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Balancing Magic vs. Explicitness</h2>
+
+<h3>Too Much Magic</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span> <span class="k">do</span>
+  <span class="n">setting</span> <span class="ss">:timeout</span>  <span class="c1"># where does this value come from?</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Implicit behavior (reading from ENV?) makes debugging hard.</p>
+
+<h3>Just Right</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span> <span class="k">do</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span>
+  <span class="n">c</span><span class="p">.</span><span class="nf">timeout</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"TIMEOUT"</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Explicit sources, clear flow.</p>
+
+<h3>Trade-offs Box</h3>
 
 <ul>
-<li><strong>DSL</strong></li>
-<li><strong>instance_eval</strong></li>
-<li><strong>class_eval</strong></li>
-<li><strong>builder pattern</strong></li>
-<li><strong>fluent interface</strong></li>
+<li><strong>Advantage:</strong> DSLs reduce boilerplate and improve readability for repetitive tasks.</li>
+<li><strong>Cost:</strong> Debugging is harder—stack traces go through metaprogramming layers. Requires documentation.</li>
+<li><strong>When to skip:</strong> For one-off logic or when plain Ruby is already clear. Don&#39;t DSL for the sake of DSL.</li>
 </ul>
 
 <hr>
 
-<h2>Summary</h2>
+<h2>Debugging Checklist</h2>
 
-<p>DSL Design Patterns is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
+<ol>
+<li><strong>Check <code>self</code>:</strong> If methods aren&#39;t found, verify what <code>self</code> is inside <code>instance_eval</code> blocks.</li>
+<li><strong>Inspect generated code:</strong> Use <code>method(:foo).source_location</code> to find where methods are defined.</li>
+<li><strong>Trace execution:</strong> <code>set_trace_func</code> or <code>TracePoint</code> shows method calls through DSL layers.</li>
+<li><strong>Avoid deep nesting:</strong> DSLs inside DSLs become unreadable. Keep it shallow.</li>
+<li><strong>Document the DSL:</strong> Include examples and explain the &quot;magic.&quot;</li>
+</ol>
 
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>DSLs make code expressive by using Ruby as a configuration language</li>
+<li><code>instance_eval</code> changes <code>self</code>; prefer block parameters for clarity</li>
+<li>Builder pattern chains methods via <code>return self</code></li>
+<li>RSpec and FactoryBot exemplify clean DSL design</li>
+<li>Balance magic vs. explicitness: readability &gt; cleverness</li>
+<li>Provide escape hatches to plain Ruby for edge cases</li>
+</ul>
 
     
   </div>
@@ -706,55 +931,353 @@
     
       <h1>Exercise: DSL Design Patterns</h1>
 
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
-
 <h2>Objective</h2>
 
-<p>Build hands-on experience with dsl design patterns through practical implementation.</p>
+<p>Build a configuration DSL using the builder pattern and <code>instance_eval</code>, then refactor it to use block parameters for better clarity. You&#39;ll create a database connection configuration DSL similar to Rails&#39; <code>database.yml</code>.</p>
 
-<h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new dsl_design_practice
-<span class="nb">cd </span>dsl_design_practice
+<h2>Task</h2>
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
+<p>Create a <code>DatabaseConfig</code> DSL that lets users configure database connections with a clean, readable syntax.</p>
+
+<h3>Desired Usage</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span> <span class="o">=</span> <span class="no">DatabaseConfig</span><span class="p">.</span><span class="nf">build</span> <span class="k">do</span>
+  <span class="n">database</span> <span class="s2">"myapp_production"</span>
+  <span class="n">host</span> <span class="s2">"db.example.com"</span>
+  <span class="n">port</span> <span class="mi">5432</span>
+  <span class="n">pool_size</span> <span class="mi">10</span>
+  <span class="n">timeout</span> <span class="mi">5000</span>
+
+  <span class="n">replica</span> <span class="k">do</span>
+    <span class="n">host</span> <span class="s2">"replica1.example.com"</span>
+    <span class="n">port</span> <span class="mi">5432</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">config</span><span class="p">.</span><span class="nf">to_h</span>
+<span class="c1"># =&gt; { database: "myapp_production", host: "db.example.com", port: 5432,</span>
+<span class="c1">#      pool_size: 10, timeout: 5000, replica: { host: "replica1.example.com", port: 5432 } }</span>
 </code></pre></div>
-<h2>Tasks</h2>
+<hr>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
+<h2>Part 1: Basic DSL (10 minutes)</h2>
 
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
+<h3>Task 1.1: Implement <code>DatabaseConfig</code> with <code>instance_eval</code></h3>
+
+<p>Create a file <code>database_config.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">DatabaseConfig</span>
+  <span class="nb">attr_reader</span> <span class="ss">:settings</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@settings</span> <span class="o">=</span> <span class="p">{}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">build</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">new</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">instance_eval</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+    <span class="n">config</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">database</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+    <span class="vi">@settings</span><span class="p">[</span><span class="ss">:database</span><span class="p">]</span> <span class="o">=</span> <span class="nb">name</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">host</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="vi">@settings</span><span class="p">[</span><span class="ss">:host</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">port</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="vi">@settings</span><span class="p">[</span><span class="ss">:port</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">pool_size</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="vi">@settings</span><span class="p">[</span><span class="ss">:pool_size</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">timeout</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="vi">@settings</span><span class="p">[</span><span class="ss">:timeout</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">to_h</span>
+    <span class="vi">@settings</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 </code></pre></div>
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
+<p><strong>Test it in IRB:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require_relative</span> <span class="s2">"database_config"</span>
 
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
+<span class="n">config</span> <span class="o">=</span> <span class="no">DatabaseConfig</span><span class="p">.</span><span class="nf">build</span> <span class="k">do</span>
+  <span class="n">database</span> <span class="s2">"myapp_production"</span>
+  <span class="n">host</span> <span class="s2">"db.example.com"</span>
+  <span class="n">port</span> <span class="mi">5432</span>
+  <span class="n">pool_size</span> <span class="mi">10</span>
+<span class="k">end</span>
 
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
-
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
-
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
-
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
+<span class="nb">puts</span> <span class="n">config</span><span class="p">.</span><span class="nf">to_h</span>
+<span class="c1"># =&gt; { database: "myapp_production", host: "db.example.com", port: 5432, pool_size: 10 }</span>
 </code></pre></div>
-<h2>Stretch Goals</h2>
+<p><strong>Acceptance Criteria:</strong></p>
 
 <ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
+<li>[ ] <code>DatabaseConfig.build</code> accepts a block</li>
+<li>[ ] Methods like <code>database</code>, <code>host</code>, <code>port</code> set configuration values</li>
+<li>[ ] <code>to_h</code> returns a hash of settings</li>
+<li>[ ] Chaining is not required (each method call is independent)</li>
 </ul>
+
+<hr>
+
+<h2>Part 2: Add Nested Configuration (10 minutes)</h2>
+
+<h3>Task 2.1: Support Nested <code>replica</code> Block</h3>
+
+<p>Add support for configuring replicas:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">replica</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+  <span class="n">replica_config</span> <span class="o">=</span> <span class="no">DatabaseConfig</span><span class="p">.</span><span class="nf">new</span>
+  <span class="n">replica_config</span><span class="p">.</span><span class="nf">instance_eval</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+  <span class="vi">@settings</span><span class="p">[</span><span class="ss">:replica</span><span class="p">]</span> <span class="o">=</span> <span class="n">replica_config</span><span class="p">.</span><span class="nf">to_h</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Test nested blocks:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span> <span class="o">=</span> <span class="no">DatabaseConfig</span><span class="p">.</span><span class="nf">build</span> <span class="k">do</span>
+  <span class="n">database</span> <span class="s2">"myapp_production"</span>
+  <span class="n">host</span> <span class="s2">"db.example.com"</span>
+
+  <span class="n">replica</span> <span class="k">do</span>
+    <span class="n">host</span> <span class="s2">"replica1.example.com"</span>
+    <span class="n">port</span> <span class="mi">5433</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="nb">puts</span> <span class="n">config</span><span class="p">.</span><span class="nf">to_h</span>
+<span class="c1"># =&gt; { database: "myapp_production", host: "db.example.com",</span>
+<span class="c1">#      replica: { host: "replica1.example.com", port: 5433 } }</span>
+</code></pre></div>
+<p><strong>Acceptance Criteria:</strong></p>
+
+<ul>
+<li>[ ] <code>replica</code> accepts a block</li>
+<li>[ ] Nested block sets replica-specific configuration</li>
+<li>[ ] <code>to_h</code> includes nested <code>:replica</code> key</li>
+</ul>
+
+<hr>
+
+<h2>Part 3: Refactor to Block Parameters (10 minutes)</h2>
+
+<h3>Task 3.1: Replace <code>instance_eval</code> with Explicit Block Parameter</h3>
+
+<p>Refactor to make <code>self</code> explicit:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">DatabaseConfig</span>
+  <span class="nb">attr_reader</span> <span class="ss">:settings</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@settings</span> <span class="o">=</span> <span class="p">{}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">build</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">new</span>
+    <span class="n">block</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>  <span class="c1"># Pass config as parameter instead of instance_eval</span>
+    <span class="n">config</span>
+  <span class="k">end</span>
+
+  <span class="c1"># ... same methods ...</span>
+
+  <span class="k">def</span> <span class="nf">replica</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+    <span class="n">replica_config</span> <span class="o">=</span> <span class="no">DatabaseConfig</span><span class="p">.</span><span class="nf">new</span>
+    <span class="n">block</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">replica_config</span><span class="p">)</span>
+    <span class="vi">@settings</span><span class="p">[</span><span class="ss">:replica</span><span class="p">]</span> <span class="o">=</span> <span class="n">replica_config</span><span class="p">.</span><span class="nf">to_h</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">to_h</span>
+    <span class="vi">@settings</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Updated usage:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span> <span class="o">=</span> <span class="no">DatabaseConfig</span><span class="p">.</span><span class="nf">build</span> <span class="k">do</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span>
+  <span class="n">c</span><span class="p">.</span><span class="nf">database</span> <span class="s2">"myapp_production"</span>
+  <span class="n">c</span><span class="p">.</span><span class="nf">host</span> <span class="s2">"db.example.com"</span>
+
+  <span class="n">c</span><span class="p">.</span><span class="nf">replica</span> <span class="k">do</span> <span class="o">|</span><span class="n">r</span><span class="o">|</span>
+    <span class="n">r</span><span class="p">.</span><span class="nf">host</span> <span class="s2">"replica1.example.com"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Acceptance Criteria:</strong></p>
+
+<ul>
+<li>[ ] Block receives <code>config</code> as a parameter (e.g., <code>do |c|</code>)</li>
+<li>[ ] <code>self</code> remains unchanged inside the block</li>
+<li>[ ] Behavior is identical to <code>instance_eval</code> version</li>
+</ul>
+
+<hr>
+
+<h2>Part 4: Add Method Chaining (5 minutes)</h2>
+
+<h3>Task 4.1: Enable Fluent Interface</h3>
+
+<p>Make methods return <code>self</code> for chaining:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">database</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+  <span class="vi">@settings</span><span class="p">[</span><span class="ss">:database</span><span class="p">]</span> <span class="o">=</span> <span class="nb">name</span>
+  <span class="nb">self</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">host</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+  <span class="vi">@settings</span><span class="p">[</span><span class="ss">:host</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+  <span class="nb">self</span>
+<span class="k">end</span>
+
+<span class="c1"># ... update all methods to return self ...</span>
+</code></pre></div>
+<p><strong>Test chaining:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span> <span class="o">=</span> <span class="no">DatabaseConfig</span><span class="p">.</span><span class="nf">new</span>
+  <span class="p">.</span><span class="nf">database</span><span class="p">(</span><span class="s2">"myapp_production"</span><span class="p">)</span>
+  <span class="p">.</span><span class="nf">host</span><span class="p">(</span><span class="s2">"db.example.com"</span><span class="p">)</span>
+  <span class="p">.</span><span class="nf">port</span><span class="p">(</span><span class="mi">5432</span><span class="p">)</span>
+
+<span class="nb">puts</span> <span class="n">config</span><span class="p">.</span><span class="nf">to_h</span>
+</code></pre></div>
+<p><strong>Acceptance Criteria:</strong></p>
+
+<ul>
+<li>[ ] All configuration methods return <code>self</code></li>
+<li>[ ] Methods can be chained in sequence</li>
+<li>[ ] Both block and chaining styles work</li>
+</ul>
+
+<hr>
+
+<h2>Stretch Goals</h2>
+
+<h3>1. Add Validation</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">port</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+  <span class="k">raise</span> <span class="no">ArgumentError</span><span class="p">,</span> <span class="s2">"Port must be between 1-65535"</span> <span class="k">unless</span> <span class="p">(</span><span class="mi">1</span><span class="o">..</span><span class="mi">65535</span><span class="p">).</span><span class="nf">cover?</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+  <span class="vi">@settings</span><span class="p">[</span><span class="ss">:port</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+  <span class="nb">self</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>2. Support Multiple Replicas</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">replica</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+  <span class="vi">@settings</span><span class="p">[</span><span class="ss">:replicas</span><span class="p">]</span> <span class="o">||=</span> <span class="p">[]</span>
+  <span class="n">replica_config</span> <span class="o">=</span> <span class="no">DatabaseConfig</span><span class="p">.</span><span class="nf">new</span>
+  <span class="n">block</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">replica_config</span><span class="p">)</span>
+  <span class="vi">@settings</span><span class="p">[</span><span class="ss">:replicas</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="n">replica_config</span><span class="p">.</span><span class="nf">to_h</span>
+  <span class="nb">self</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Usage:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span> <span class="o">=</span> <span class="no">DatabaseConfig</span><span class="p">.</span><span class="nf">build</span> <span class="k">do</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span>
+  <span class="n">c</span><span class="p">.</span><span class="nf">replica</span> <span class="p">{</span> <span class="o">|</span><span class="n">r</span><span class="o">|</span> <span class="n">r</span><span class="p">.</span><span class="nf">host</span> <span class="s2">"replica1.example.com"</span> <span class="p">}</span>
+  <span class="n">c</span><span class="p">.</span><span class="nf">replica</span> <span class="p">{</span> <span class="o">|</span><span class="n">r</span><span class="o">|</span> <span class="n">r</span><span class="p">.</span><span class="nf">host</span> <span class="s2">"replica2.example.com"</span> <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>3. Add <code>method_missing</code> for Dynamic Keys</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">method_missing</span><span class="p">(</span><span class="nb">method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">length</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="vi">@settings</span><span class="p">[</span><span class="nb">method</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="nf">first</span>
+    <span class="nb">self</span>
+  <span class="k">else</span>
+    <span class="k">super</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">respond_to_missing?</span><span class="p">(</span><span class="nb">method</span><span class="p">,</span> <span class="n">include_private</span> <span class="o">=</span> <span class="kp">false</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">length</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">||</span> <span class="k">super</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Usage:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span><span class="p">.</span><span class="nf">custom_setting</span> <span class="s2">"value"</span>  <span class="c1"># No need to define method explicitly</span>
+</code></pre></div>
+<hr>
+
+<h2>Verification Steps</h2>
+
+<h3>Test All Features</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Full test</span>
+<span class="n">config</span> <span class="o">=</span> <span class="no">DatabaseConfig</span><span class="p">.</span><span class="nf">build</span> <span class="k">do</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span>
+  <span class="n">c</span><span class="p">.</span><span class="nf">database</span> <span class="s2">"production_db"</span>
+  <span class="n">c</span><span class="p">.</span><span class="nf">host</span> <span class="s2">"primary.example.com"</span>
+  <span class="n">c</span><span class="p">.</span><span class="nf">port</span> <span class="mi">5432</span>
+  <span class="n">c</span><span class="p">.</span><span class="nf">pool_size</span> <span class="mi">20</span>
+
+  <span class="n">c</span><span class="p">.</span><span class="nf">replica</span> <span class="k">do</span> <span class="o">|</span><span class="n">r</span><span class="o">|</span>
+    <span class="n">r</span><span class="p">.</span><span class="nf">host</span> <span class="s2">"replica.example.com"</span>
+    <span class="n">r</span><span class="p">.</span><span class="nf">port</span> <span class="mi">5433</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">config</span><span class="p">.</span><span class="nf">to_h</span>
+<span class="nb">puts</span> <span class="n">result</span>
+
+<span class="c1"># Expected output:</span>
+<span class="c1"># {</span>
+<span class="c1">#   database: "production_db",</span>
+<span class="c1">#   host: "primary.example.com",</span>
+<span class="c1">#   port: 5432,</span>
+<span class="c1">#   pool_size: 20,</span>
+<span class="c1">#   replica: { host: "replica.example.com", port: 5433 }</span>
+<span class="c1"># }</span>
+</code></pre></div>
+<h3>Compare Both Approaches</h3>
+
+<p>Create a table comparing <code>instance_eval</code> vs block parameters:</p>
+
+<table><thead>
+<tr>
+<th>Aspect</th>
+<th><code>instance_eval</code></th>
+<th>Block Parameter</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>self</code> context</td>
+<td>Changes to config object</td>
+<td>Remains unchanged</td>
+</tr>
+<tr>
+<td>Syntax</td>
+<td><code>database &quot;value&quot;</code></td>
+<td><code>c.database &quot;value&quot;</code></td>
+</tr>
+<tr>
+<td>Access to outer scope</td>
+<td>Lost</td>
+<td>Maintained</td>
+</tr>
+<tr>
+<td>Debugging clarity</td>
+<td>Harder (different <code>self</code>)</td>
+<td>Easier (explicit receiver)</td>
+</tr>
+</tbody></table>
+
+<p><strong>Which is better?</strong> Block parameters are generally preferred for clarity, but <code>instance_eval</code> looks cleaner for pure DSLs (like RSpec).</p>
+
+<hr>
+
+<h2>Time Estimate</h2>
+
+<p>25 minutes total</p>
 
 <h2>Solution Notes</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p><strong>Common gotchas:</strong></p>
+
+<ol>
+<li><strong>Forgetting to return <code>self</code>:</strong> Without <code>self</code>, chaining breaks.</li>
+<li><strong>Scope confusion with <code>instance_eval</code>:</strong> Instance variables from outer scope aren&#39;t accessible.</li>
+<li><strong>No validation:</strong> Always validate inputs (port ranges, required fields).</li>
+</ol>
+
+<p><strong>Best practices:</strong></p>
+
+<ul>
+<li>Provide both DSL and plain Ruby interfaces</li>
+<li>Document expected usage with examples</li>
+<li>Keep DSLs shallow—avoid deeply nested blocks</li>
+<li>Use block parameters for clarity unless simplicity demands <code>instance_eval</code></li>
+</ul>
 
     
   </div>
@@ -766,74 +1289,311 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Evaluates a block in the context of an instance, changing self">
+          <h4>Question 1 (1 points)</h4>
+          <p style="margin: 10px 0;">What does instance_eval do?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  Evaluates a block in the context of an instance, changing self
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  Creates a new instance of a class
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  Evaluates code at the class level
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  Freezes an object's state
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> instance_eval executes the block with self set to the receiver object.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="It changes self, making outer scope variables inaccessible">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">What's the main trade-off when using instance_eval for DSLs?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  It's slower than regular method calls
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  It changes self, making outer scope variables inaccessible
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  It doesn't work with blocks
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  It only works in Rails
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> instance_eval changes self inside the block, so instance variables and methods from the outer scope aren't available.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Methods that return self to enable chaining">
+          <h4>Question 3 (1 points)</h4>
+          <p style="margin: 10px 0;">What makes a fluent interface?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  Using descriptive method names
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  Methods that return self to enable chaining
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  Using inheritance
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  Dynamic method generation
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Fluent interfaces chain methods by returning self, enabling query.where(...).order(...).limit(...).
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="2"
              >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 4 (2 points)</h4>
+          <p style="margin: 10px 0;">Write a builder method that sets a 'timeout' value and returns self for chaining.</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">def timeout(value)
+  @timeout = value
+  self
+end</p>
+            </div>
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="They keep self unchanged, making scope and debugging clearer">
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">Why are block parameters (do |config|) often preferred over instance_eval in DSL design?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  They're faster
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  They keep self unchanged, making scope and debugging clearer
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  They work with more Ruby versions
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  They allow private methods
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Block parameters make the receiver explicit (c.method vs method), preserving outer scope access and reducing confusion.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="RSpec">
+          <h4>Question 6 (1 points)</h4>
+          <p style="margin: 10px 0;">Which Ruby gem is a well-known example of a testing DSL?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  ActiveRecord
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  RSpec
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  Puma
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  Sidekiq
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> RSpec uses describe, it, expect to create a fluent testing DSL.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="It balances readability with an escape hatch to plain Ruby">
+          <h4>Question 7 (2 points)</h4>
+          <p style="margin: 10px 0;">What is a key characteristic of a well-designed DSL?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  It hides all implementation details
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  It balances readability with an escape hatch to plain Ruby
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  It uses as much metaprogramming as possible
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  It never requires documentation
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Good DSLs improve readability but allow dropping to plain Ruby for edge cases, avoiding too much magic.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 8 (2 points)</h4>
+          <p style="margin: 10px 0;">What method would you use to add instance methods to a class dynamically at runtime?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">class_eval or define_method</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Registers factory definitions for later use">
+          <h4>Question 9 (1 points)</h4>
+          <p style="margin: 10px 0;">In FactoryBot, what does 'define' do when you write FactoryBot.define { factory :user }?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(8, 0)">
+                  Creates a User class
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 1)">
+                  Registers factory definitions for later use
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 2)">
+                  Immediately creates a user record
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 3)">
+                  Defines a database table
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> FactoryBot.define stores factory blueprints in memory; create(:user) later builds objects from those definitions.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="short"
+             data-points="1"
+             >
+          <h4>Question 10 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the primary advantage of using a DSL over plain Ruby code?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Improved readability and expressing domain concepts more naturally with less boilerplate</p>
+            </div>
           
         </div>
       
@@ -847,7 +1607,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -863,33 +1623,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://pragprog.com/titles/ppmetr2/metaprogramming-ruby-2/" target="_blank">Metaprogramming Ruby (Paolo Perrotta)</a>
+            <div class="why">Comprehensive book covering instance_eval, class_eval, and DSL design patterns in depth.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://martinfowler.com/bliki/DomainSpecificLanguage.html" target="_blank">Ruby DSLs — Martin Fowler's Guide</a>
+            <div class="why">Foundational article on DSL design philosophy and when to use them.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/rspec/rspec-core" target="_blank">RSpec Core — GitHub Repository</a>
+            <div class="why">Study RSpec's source code to see a production DSL using describe, it, and expect.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/thoughtbot/factory_bot/blob/master/GETTING_STARTED.md" target="_blank">FactoryBot Documentation</a>
+            <div class="why">Learn how FactoryBot's DSL uses traits, associations, and sequences elegantly.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.youtube.com/watch?v=4A3tgSxTmtU" target="_blank">Building DSLs in Ruby (RailsConf Talk)</a>
+            <div class="why">Conference talk demonstrating real-world DSL patterns and trade-offs.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.bigbinary.com/blog/ruby-instance-eval-and-class-eval" target="_blank">Ruby instance_eval and class_eval (BigBinary Blog)</a>
+            <div class="why">Clear examples showing differences between instance_eval, class_eval, and module_eval.</div>
+          </li>
+        
+          <li>
+            <a href="https://thoughtbot.com/blog/designing-a-ruby-dsl" target="_blank">Designing Fluent Interfaces (Thoughtbot)</a>
+            <div class="why">Practical guide to building chainable builder patterns and avoiding common DSL pitfalls.</div>
           </li>
         
       </ul>

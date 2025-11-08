@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,71 +656,286 @@
 
 <h2>What It Is</h2>
 
-<p>Event Tracking &amp; Analytics is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>Event tracking captures user interactions (clicks, page views, purchases) as structured data points with consistent schemas. Each event contains a name, timestamp, user identifier, and custom properties. Ahoy is a Rails gem for first-party tracking; Segment is a third-party integration hub that routes events to analytics tools (Mixpanel, Amplitude, Google Analytics). Client-side JavaScript tracking fires events from browsers; server-side tracking records events from controllers or background jobs.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Product decisions require data on how users actually behave, not assumptions. Event tracking answers questions like &quot;What percentage of users complete checkout?&quot; or &quot;Which features drive retention?&quot; Funnels reveal drop-off points in multi-step workflows. Without structured schemas, events become inconsistent (user_id vs userId) and queries break. GDPR compliance requires consent management, data deletion, and anonymization. Production analytics is table stakes for data-driven teams.</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li>Building conversion funnels (signup → activation → purchase)</li>
+<li>A/B testing feature variants and measuring impact</li>
+<li>Tracking feature adoption across user segments</li>
+<li>Debugging user-reported issues with session replays</li>
+<li>Generating product dashboards and reports</li>
+<li>Meeting compliance requirements (GDPR, CCPA)</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><strong>Inconsistent event schemas:</strong> Developers add properties ad-hoc without a naming convention, creating events like <code>user_signup</code> and <code>UserSignedUp</code> with different property names. Establish a schema registry and lint events before they reach production.</li>
+<li><strong>Client-side only tracking:</strong> Ad blockers and browser extensions block JavaScript tracking, causing 20-30% data loss. Use server-side tracking for critical business events (purchases, subscriptions) that must be accurate.</li>
+<li><strong>Missing GDPR consent:</strong> Tracking users before consent violates GDPR and risks fines. Implement consent banners, respect Do Not Track, and provide data deletion endpoints. Use session storage instead of cookies before consent.</li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>Event Schema Design</h2>
 
-<h3>Key Concept 1</h3>
+<p>Define consistent naming and property types:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Good: Consistent snake_case schema</span>
+<span class="p">{</span>
+  <span class="ss">event: </span><span class="s2">"order_completed"</span><span class="p">,</span>
+  <span class="ss">user_id: </span><span class="mi">123</span><span class="p">,</span>
+  <span class="ss">properties: </span><span class="p">{</span>
+    <span class="ss">order_id: </span><span class="s2">"abc123"</span><span class="p">,</span>
+    <span class="ss">total_cents: </span><span class="mi">4999</span><span class="p">,</span>
+    <span class="ss">item_count: </span><span class="mi">3</span><span class="p">,</span>
+    <span class="ss">currency: </span><span class="s2">"USD"</span>
+  <span class="p">},</span>
+  <span class="ss">timestamp: </span><span class="s2">"2025-01-15T10:23:45Z"</span>
+<span class="p">}</span>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<span class="c1"># Bad: Inconsistent naming and types</span>
+<span class="p">{</span>
+  <span class="ss">event: </span><span class="s2">"OrderComplete"</span><span class="p">,</span>
+  <span class="ss">userID: </span><span class="s2">"123"</span><span class="p">,</span>
+  <span class="ss">total: </span><span class="s2">"$49.99"</span><span class="p">,</span>  <span class="c1"># String instead of integer</span>
+  <span class="ss">items: </span><span class="s2">"3"</span>        <span class="c1"># String instead of integer</span>
+<span class="p">}</span>
+
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<p>Use an event catalog to document every event name and property. Tools like Avo, Iteratively, or a simple YAML file enforce consistency.</p>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
-</code></pre></div>
 <hr>
 
-<h2>Best Practices</h2>
+<h2>Client-Side vs Server-Side Tracking</h2>
+
+<p><strong>Client-side JavaScript</strong> fires events from user browsers:</p>
+<div class="highlight"><pre class="highlight javascript"><code><span class="c1">// Using Segment.js</span>
+<span class="nx">analytics</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span><span class="dl">'</span><span class="s1">Button Clicked</span><span class="dl">'</span><span class="p">,</span> <span class="p">{</span>
+  <span class="na">button_name</span><span class="p">:</span> <span class="dl">'</span><span class="s1">signup</span><span class="dl">'</span><span class="p">,</span>
+  <span class="na">page</span><span class="p">:</span> <span class="dl">'</span><span class="s1">/pricing</span><span class="dl">'</span>
+<span class="p">});</span>
+
+</code></pre></div>
+<p><strong>Advantages:</strong> Captures DOM interactions, page views, and client context (screen size, browser).</p>
+
+<p><strong>Disadvantages:</strong> Blocked by ad blockers; unreliable for critical events.</p>
+
+<p><strong>Server-side Rails</strong> tracks events from controllers:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/orders_controller.rb</span>
+<span class="k">def</span> <span class="nf">create</span>
+  <span class="vi">@order</span> <span class="o">=</span> <span class="n">current_user</span><span class="p">.</span><span class="nf">orders</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="n">order_params</span><span class="p">)</span>
+
+  <span class="no">Analytics</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span>
+    <span class="ss">user_id: </span><span class="n">current_user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+    <span class="ss">event: </span><span class="s1">'order_completed'</span><span class="p">,</span>
+    <span class="ss">properties: </span><span class="p">{</span>
+      <span class="ss">order_id: </span><span class="vi">@order</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+      <span class="ss">total_cents: </span><span class="vi">@order</span><span class="p">.</span><span class="nf">total_cents</span>
+    <span class="p">}</span>
+  <span class="p">)</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Advantages:</strong> Cannot be blocked; accurate for business metrics; no PII in browser.</p>
+
+<p><strong>Disadvantages:</strong> Misses client-side interactions like hovers and scrolling.</p>
+
+<p><strong>Best practice:</strong> Use server-side for revenue events, client-side for engagement metrics.</p>
+
+<hr>
+
+<h2>Building Funnels</h2>
+
+<p>Funnels measure conversion through multi-step flows:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Track funnel steps</span>
+<span class="k">class</span> <span class="nc">CheckoutController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">start</span>
+    <span class="n">track_event</span><span class="p">(</span><span class="s1">'checkout_started'</span><span class="p">,</span> <span class="ss">cart_value: </span><span class="n">current_cart</span><span class="p">.</span><span class="nf">total</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">add_shipping</span>
+    <span class="n">track_event</span><span class="p">(</span><span class="s1">'shipping_info_added'</span><span class="p">,</span> <span class="ss">shipping_method: </span><span class="n">params</span><span class="p">[</span><span class="ss">:method</span><span class="p">])</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">add_payment</span>
+    <span class="n">track_event</span><span class="p">(</span><span class="s1">'payment_info_added'</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">complete</span>
+    <span class="n">track_event</span><span class="p">(</span><span class="s1">'order_completed'</span><span class="p">,</span> <span class="ss">order_id: </span><span class="vi">@order</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">track_event</span><span class="p">(</span><span class="nb">name</span><span class="p">,</span> <span class="n">properties</span> <span class="o">=</span> <span class="p">{})</span>
+    <span class="no">Analytics</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span>
+      <span class="ss">user_id: </span><span class="n">current_user</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">id</span> <span class="o">||</span> <span class="n">session</span><span class="p">[</span><span class="ss">:anonymous_id</span><span class="p">],</span>
+      <span class="ss">event: </span><span class="nb">name</span><span class="p">,</span>
+      <span class="ss">properties: </span><span class="n">properties</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Analyze with SQL or tools:</p>
+<div class="highlight"><pre class="highlight sql"><code><span class="c1">-- Calculate funnel drop-off</span>
+<span class="k">SELECT</span>
+  <span class="k">COUNT</span><span class="p">(</span><span class="k">DISTINCT</span> <span class="k">CASE</span> <span class="k">WHEN</span> <span class="n">event</span> <span class="o">=</span> <span class="s1">'checkout_started'</span> <span class="k">THEN</span> <span class="n">user_id</span> <span class="k">END</span><span class="p">)</span> <span class="k">as</span> <span class="n">started</span><span class="p">,</span>
+  <span class="k">COUNT</span><span class="p">(</span><span class="k">DISTINCT</span> <span class="k">CASE</span> <span class="k">WHEN</span> <span class="n">event</span> <span class="o">=</span> <span class="s1">'shipping_info_added'</span> <span class="k">THEN</span> <span class="n">user_id</span> <span class="k">END</span><span class="p">)</span> <span class="k">as</span> <span class="n">added_shipping</span><span class="p">,</span>
+  <span class="k">COUNT</span><span class="p">(</span><span class="k">DISTINCT</span> <span class="k">CASE</span> <span class="k">WHEN</span> <span class="n">event</span> <span class="o">=</span> <span class="s1">'order_completed'</span> <span class="k">THEN</span> <span class="n">user_id</span> <span class="k">END</span><span class="p">)</span> <span class="k">as</span> <span class="n">completed</span>
+<span class="k">FROM</span> <span class="n">events</span>
+<span class="k">WHERE</span> <span class="nb">timestamp</span> <span class="o">&gt;</span> <span class="n">NOW</span><span class="p">()</span> <span class="o">-</span> <span class="n">INTERVAL</span> <span class="s1">'7 days'</span><span class="p">;</span>
+
+</code></pre></div>
+<p>Mixpanel and Amplitude provide funnel UIs that calculate conversion rates automatically.</p>
+
+<hr>
+
+<h2>Ahoy Integration</h2>
+
+<p>Ahoy provides first-party tracking with visit and event models:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'ahoy_matey'</span>
+
+<span class="c1"># Install</span>
+<span class="n">rails</span> <span class="n">generate</span> <span class="n">ahoy</span><span class="ss">:install</span>
+<span class="n">rails</span> <span class="n">db</span><span class="ss">:migrate</span>
+
+<span class="c1"># Track events in controllers</span>
+<span class="n">ahoy</span><span class="p">.</span><span class="nf">track</span> <span class="s2">"Product Viewed"</span><span class="p">,</span> <span class="ss">product_id: </span><span class="vi">@product</span><span class="p">.</span><span class="nf">id</span>
+
+<span class="c1"># Query events</span>
+<span class="no">Ahoy</span><span class="o">::</span><span class="no">Event</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">name: </span><span class="s2">"Product Viewed"</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="s2">"properties-&gt;&gt;'product_id' = ?"</span><span class="p">,</span> <span class="s2">"123"</span><span class="p">)</span>
+
+<span class="c1"># Track visits</span>
+<span class="no">Ahoy</span><span class="o">::</span><span class="no">Visit</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">user: </span><span class="n">current_user</span><span class="p">).</span><span class="nf">last</span>
+
+</code></pre></div>
+<p>Ahoy stores data in PostgreSQL JSONB columns, enabling fast queries. It respects Do Not Track headers and provides data deletion for GDPR.</p>
+
+<hr>
+
+<h2>Segment/Mixpanel Integration</h2>
+
+<p><strong>Segment</strong> routes events to multiple destinations:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'analytics-ruby'</span>
+
+<span class="c1"># config/initializers/segment.rb</span>
+<span class="no">Analytics</span> <span class="o">=</span> <span class="no">Segment</span><span class="o">::</span><span class="no">Analytics</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span>
+  <span class="ss">write_key: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'SEGMENT_WRITE_KEY'</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="c1"># Track event</span>
+<span class="no">Analytics</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span>
+  <span class="ss">user_id: </span><span class="n">current_user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+  <span class="ss">event: </span><span class="s1">'Order Completed'</span><span class="p">,</span>
+  <span class="ss">properties: </span><span class="p">{</span> <span class="ss">revenue: </span><span class="mf">49.99</span> <span class="p">}</span>
+<span class="p">)</span>
+
+</code></pre></div>
+<p><strong>Mixpanel</strong> analyzes user behavior and retention:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'mixpanel-ruby'</span>
+
+<span class="c1"># config/initializers/mixpanel.rb</span>
+<span class="vg">$mixpanel</span> <span class="o">=</span> <span class="no">Mixpanel</span><span class="o">::</span><span class="no">Tracker</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="no">ENV</span><span class="p">[</span><span class="s1">'MIXPANEL_TOKEN'</span><span class="p">])</span>
+
+<span class="c1"># Track event</span>
+<span class="vg">$mixpanel</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span><span class="n">current_user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="s1">'Order Completed'</span><span class="p">,</span> <span class="ss">revenue: </span><span class="mf">49.99</span><span class="p">)</span>
+
+<span class="c1"># Set user properties</span>
+<span class="vg">$mixpanel</span><span class="p">.</span><span class="nf">people</span><span class="p">.</span><span class="nf">set</span><span class="p">(</span><span class="n">current_user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="p">{</span>
+  <span class="s1">'$email'</span><span class="p">:</span> <span class="n">current_user</span><span class="p">.</span><span class="nf">email</span><span class="p">,</span>
+  <span class="s1">'plan'</span><span class="p">:</span> <span class="s1">'premium'</span>
+<span class="p">})</span>
+
+</code></pre></div>
+<p>Both tools provide dashboards, funnels, and retention cohorts without writing SQL.</p>
+
+<hr>
+
+<h2>GDPR Considerations</h2>
+
+<p>Comply with privacy regulations:</p>
 
 <ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
+<li><strong>Obtain consent before tracking:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Only track if consent given</span>
+<span class="k">if</span> <span class="n">cookies</span><span class="p">[</span><span class="ss">:analytics_consent</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'true'</span>
+  <span class="n">ahoy</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span><span class="s2">"Page Viewed"</span><span class="p">,</span> <span class="ss">path: </span><span class="n">request</span><span class="p">.</span><span class="nf">path</span><span class="p">)</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Anonymize IP addresses:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/initializers/ahoy.rb</span>
+<span class="no">Ahoy</span><span class="p">.</span><span class="nf">mask_ips</span> <span class="o">=</span> <span class="kp">true</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Provide data deletion:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/privacy_controller.rb</span>
+<span class="k">def</span> <span class="nf">delete_data</span>
+  <span class="n">user</span> <span class="o">=</span> <span class="n">current_user</span>
+  <span class="no">Ahoy</span><span class="o">::</span><span class="no">Event</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">user: </span><span class="n">user</span><span class="p">).</span><span class="nf">delete_all</span>
+  <span class="no">Ahoy</span><span class="o">::</span><span class="no">Visit</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">user: </span><span class="n">user</span><span class="p">).</span><span class="nf">delete_all</span>
+  <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">success: </span><span class="kp">true</span> <span class="p">}</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<ol>
+<li><p><strong>Store minimal PII:</strong> Use hashed user IDs instead of emails in events.</p></li>
+<li><p><strong>Set data retention policies:</strong> Delete events older than required period.</p></li>
 </ol>
 
 <hr>
 
-<h2>Key Terms</h2>
+<h2>Trade-offs Box</h2>
 
 <ul>
-<li><strong>event tracking</strong></li>
-<li><strong>analytics</strong></li>
-<li><strong>funnels</strong></li>
-<li><strong>user behavior</strong></li>
-<li><strong>event schema</strong></li>
+<li><strong>Advantage:</strong> Event tracking quantifies user behavior for data-driven decisions and reveals product usage patterns invisible in server logs.</li>
+<li><strong>Cost:</strong> Schema drift creates inconsistent data; third-party tools add vendor dependencies and monthly costs; compliance overhead requires consent management.</li>
+<li><strong>When to skip:</strong> Internal tools with &lt; 10 users; prototypes where iteration speed matters more than metrics; apps with strict zero-tracking privacy requirements.</li>
 </ul>
 
 <hr>
 
-<h2>Summary</h2>
+<h2>Debugging Checklist</h2>
 
-<p>Event Tracking &amp; Analytics is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
+<p>When events are missing or incorrect:</p>
 
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<ol>
+<li>Check event name spelling: <code>Ahoy::Event.pluck(:name).uniq</code></li>
+<li>Verify user_id is set: <code>Ahoy::Event.where(user_id: nil).count</code></li>
+<li>Inspect event properties: <code>Ahoy::Event.last.properties</code></li>
+<li>Check ad blocker status: Test in incognito mode</li>
+<li>Verify API keys: <code>ENV[&#39;SEGMENT_WRITE_KEY&#39;]</code> is set</li>
+<li>Test with curl: Send test event to API endpoint</li>
+<li>Check rate limits: Third-party APIs may throttle</li>
+<li>Review consent state: Confirm tracking is enabled for user</li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>Event tracking captures user actions as structured data with consistent schemas (name, timestamp, properties)</li>
+<li>Client-side tracking captures browser interactions but is blocked by ad blockers; server-side is reliable for business metrics</li>
+<li>Funnels measure conversion through multi-step flows and identify drop-off points</li>
+<li>Ahoy provides first-party tracking in Rails; Segment routes events to multiple analytics tools</li>
+<li>GDPR requires consent management, IP anonymization, data deletion, and minimal PII storage</li>
+</ul>
 
     
   </div>
@@ -704,57 +945,330 @@
 <div id="exercise-tab" class="tab-content">
   <div class="content-section">
     
-      <h1>Exercise: Event Tracking &amp; Analytics</h1>
-
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
+      <h1>Exercise: Event Tracking with Ahoy</h1>
 
 <h2>Objective</h2>
 
-<p>Build hands-on experience with event tracking &amp; analytics through practical implementation.</p>
+<p>Implement event tracking using Ahoy gem, create a conversion funnel, and ensure GDPR compliance with consent management and data deletion.</p>
 
-<h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new event_tracking_practice
-<span class="nb">cd </span>event_tracking_practice
+<h2>Task</h2>
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
-</code></pre></div>
-<h2>Tasks</h2>
+<p>In a Rails application:</p>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
+<ol>
+<li>Install and configure Ahoy for event tracking</li>
+<li>Track a 3-step signup funnel (started, info_added, completed)</li>
+<li>Implement consent management before tracking events</li>
+<li>Create a data deletion endpoint for GDPR compliance</li>
+<li>Query events to calculate funnel conversion rates</li>
+</ol>
 
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
-</code></pre></div>
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
-
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
-
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
-
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
-
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
-
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
-</code></pre></div>
-<h2>Stretch Goals</h2>
+<h2>Acceptance Criteria</h2>
 
 <ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
+<li>[ ] Ahoy installed with visits and events tables migrated</li>
+<li>[ ] Three funnel events tracked: signup_started, email_added, signup_completed</li>
+<li>[ ] Events include user_id and relevant properties (email domain, plan type)</li>
+<li>[ ] Consent banner blocks tracking until user accepts</li>
+<li>[ ] Data deletion endpoint removes all user events and visits</li>
+<li>[ ] SQL query calculates conversion rate for each funnel step</li>
+<li>[ ] IP addresses masked in accordance with GDPR</li>
 </ul>
 
-<h2>Solution Notes</h2>
+<h2>Verification Steps</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<h3>Step 1: Install Ahoy</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Add to Gemfile</span>
+bundle add ahoy_matey
+
+bundle <span class="nb">install</span>
+
+<span class="c"># Generate migrations</span>
+rails generate ahoy:install
+
+<span class="c"># Run migrations</span>
+rails db:migrate
+
+</code></pre></div>
+<h3>Step 2: Configure Ahoy</h3>
+
+<p>Create <code>config/initializers/ahoy.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Ahoy</span><span class="p">.</span><span class="nf">api</span> <span class="o">=</span> <span class="kp">false</span>
+<span class="no">Ahoy</span><span class="p">.</span><span class="nf">mask_ips</span> <span class="o">=</span> <span class="kp">true</span>  <span class="c1"># GDPR compliance</span>
+<span class="no">Ahoy</span><span class="p">.</span><span class="nf">cookies</span> <span class="o">=</span> <span class="ss">:none</span>  <span class="c1"># Don't set cookies until consent</span>
+<span class="no">Ahoy</span><span class="p">.</span><span class="nf">visit_duration</span> <span class="o">=</span> <span class="mi">4</span><span class="p">.</span><span class="nf">hours</span>
+
+</code></pre></div>
+<h3>Step 3: Create Consent Management</h3>
+
+<p>Add to <code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">post</span> <span class="s1">'/consent/accept'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'consent#accept'</span>
+  <span class="n">post</span> <span class="s1">'/consent/reject'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'consent#reject'</span>
+
+  <span class="n">get</span> <span class="s1">'/signup'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'signups#new'</span>
+  <span class="n">post</span> <span class="s1">'/signup'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'signups#create'</span>
+
+  <span class="n">delete</span> <span class="s1">'/privacy/delete_data'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'privacy#delete_data'</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Create <code>app/controllers/consent_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ConsentController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="n">skip_before_action</span> <span class="ss">:verify_authenticity_token</span>
+
+  <span class="k">def</span> <span class="nf">accept</span>
+    <span class="n">cookies</span><span class="p">[</span><span class="ss">:analytics_consent</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="ss">value: </span><span class="s1">'true'</span><span class="p">,</span>
+      <span class="ss">expires: </span><span class="mi">1</span><span class="p">.</span><span class="nf">year</span><span class="p">,</span>
+      <span class="ss">same_site: :lax</span>
+    <span class="p">}</span>
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">success: </span><span class="kp">true</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">reject</span>
+    <span class="n">cookies</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="ss">:analytics_consent</span><span class="p">)</span>
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">success: </span><span class="kp">true</span> <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 4: Create Signup Funnel</h3>
+
+<p>Create <code>app/controllers/signups_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">SignupsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="n">skip_before_action</span> <span class="ss">:verify_authenticity_token</span>
+
+  <span class="k">def</span> <span class="nf">new</span>
+    <span class="n">track_event</span><span class="p">(</span><span class="s1">'signup_started'</span><span class="p">,</span> <span class="p">{</span>
+      <span class="ss">source: </span><span class="n">params</span><span class="p">[</span><span class="ss">:source</span><span class="p">]</span> <span class="o">||</span> <span class="s1">'direct'</span><span class="p">,</span>
+      <span class="ss">page: </span><span class="n">request</span><span class="p">.</span><span class="nf">path</span>
+    <span class="p">})</span>
+
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">message: </span><span class="s1">'Signup form loaded'</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">create</span>
+    <span class="n">email</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="ss">:email</span><span class="p">]</span>
+    <span class="n">plan</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="ss">:plan</span><span class="p">]</span> <span class="o">||</span> <span class="s1">'free'</span>
+
+    <span class="c1"># Track email step</span>
+    <span class="n">track_event</span><span class="p">(</span><span class="s1">'email_added'</span><span class="p">,</span> <span class="p">{</span>
+      <span class="ss">email_domain: </span><span class="n">email</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">split</span><span class="p">(</span><span class="s1">'@'</span><span class="p">)</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">last</span><span class="p">,</span>
+      <span class="ss">plan: </span><span class="n">plan</span>
+    <span class="p">})</span>
+
+    <span class="c1"># Simulate user creation</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+      <span class="ss">email: </span><span class="n">email</span><span class="p">,</span>
+      <span class="ss">plan: </span><span class="n">plan</span><span class="p">,</span>
+      <span class="ss">password: </span><span class="no">SecureRandom</span><span class="p">.</span><span class="nf">hex</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Associate future events with user</span>
+    <span class="n">ahoy</span><span class="p">.</span><span class="nf">authenticate</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+
+    <span class="c1"># Track completion</span>
+    <span class="n">track_event</span><span class="p">(</span><span class="s1">'signup_completed'</span><span class="p">,</span> <span class="p">{</span>
+      <span class="ss">user_id: </span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+      <span class="ss">plan: </span><span class="n">plan</span><span class="p">,</span>
+      <span class="ss">email_domain: </span><span class="n">email</span><span class="p">.</span><span class="nf">split</span><span class="p">(</span><span class="s1">'@'</span><span class="p">).</span><span class="nf">last</span>
+    <span class="p">})</span>
+
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span>
+      <span class="ss">success: </span><span class="kp">true</span><span class="p">,</span>
+      <span class="ss">user_id: </span><span class="n">user</span><span class="p">.</span><span class="nf">id</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">track_event</span><span class="p">(</span><span class="nb">name</span><span class="p">,</span> <span class="n">properties</span> <span class="o">=</span> <span class="p">{})</span>
+    <span class="k">return</span> <span class="k">unless</span> <span class="n">tracking_enabled?</span>
+
+    <span class="n">ahoy</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span><span class="nb">name</span><span class="p">,</span> <span class="n">properties</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">tracking_enabled?</span>
+    <span class="n">cookies</span><span class="p">[</span><span class="ss">:analytics_consent</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'true'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Ensure User model exists:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># If User model doesn't exist</span>
+rails generate model User email:string plan:string password_digest:string
+rails db:migrate
+
+</code></pre></div>
+<p>Or create it manually in <code>app/models/user.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">validates</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">uniqueness: </span><span class="kp">true</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 5: Create Data Deletion Endpoint</h3>
+
+<p>Create <code>app/controllers/privacy_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">PrivacyController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="n">skip_before_action</span> <span class="ss">:verify_authenticity_token</span>
+  <span class="n">before_action</span> <span class="ss">:authenticate_user!</span>
+
+  <span class="k">def</span> <span class="nf">delete_data</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">current_user</span>
+
+    <span class="c1"># Delete all events and visits</span>
+    <span class="no">Ahoy</span><span class="o">::</span><span class="no">Event</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">user: </span><span class="n">user</span><span class="p">).</span><span class="nf">delete_all</span>
+    <span class="no">Ahoy</span><span class="o">::</span><span class="no">Visit</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">user: </span><span class="n">user</span><span class="p">).</span><span class="nf">delete_all</span>
+
+    <span class="c1"># Optionally delete the user account</span>
+    <span class="c1"># user.destroy</span>
+
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span>
+      <span class="ss">success: </span><span class="kp">true</span><span class="p">,</span>
+      <span class="ss">message: </span><span class="s1">'All tracking data deleted'</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">authenticate_user!</span>
+    <span class="c1"># Simplified authentication for exercise</span>
+    <span class="n">user_id</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="ss">:user_id</span><span class="p">]</span> <span class="o">||</span> <span class="n">request</span><span class="p">.</span><span class="nf">headers</span><span class="p">[</span><span class="s1">'X-User-Id'</span><span class="p">]</span>
+    <span class="vi">@current_user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find_by</span><span class="p">(</span><span class="ss">id: </span><span class="n">user_id</span><span class="p">)</span>
+
+    <span class="k">unless</span> <span class="vi">@current_user</span>
+      <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">error: </span><span class="s1">'Unauthorized'</span> <span class="p">},</span> <span class="ss">status: :unauthorized</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">current_user</span>
+    <span class="vi">@current_user</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 6: Test Event Tracking</h3>
+
+<p>Start Rails server:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails server
+
+</code></pre></div>
+<p>Test funnel flow:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Step 1: Start signup (no consent - should not track)</span>
+curl <span class="nt">-v</span> http://localhost:3000/signup?source<span class="o">=</span>google
+
+<span class="c"># Check cookies - should have ahoy_visit but no consent</span>
+<span class="c"># Events should be created only if consent exists</span>
+
+<span class="c"># Step 2: Accept consent</span>
+curl <span class="nt">-X</span> POST http://localhost:3000/consent/accept <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"Cookie: ahoy_visit=abc123"</span> <span class="se">\</span>
+  <span class="nt">-c</span> cookies.txt
+
+<span class="c"># Step 3: Start signup again (with consent)</span>
+curl http://localhost:3000/signup?source<span class="o">=</span>google <span class="se">\</span>
+  <span class="nt">-b</span> cookies.txt
+
+<span class="c"># Step 4: Complete signup</span>
+curl <span class="nt">-X</span> POST http://localhost:3000/signup <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+  <span class="nt">-b</span> cookies.txt <span class="se">\</span>
+  <span class="nt">-d</span> <span class="s1">'{
+    "email": "user@example.com",
+    "plan": "premium"
+  }'</span>
+
+</code></pre></div>
+<h3>Step 7: Query Funnel Conversion</h3>
+
+<p>Open Rails console:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Check events were created</span>
+<span class="no">Ahoy</span><span class="o">::</span><span class="no">Event</span><span class="p">.</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:name</span><span class="p">).</span><span class="nf">tally</span>
+<span class="c1"># =&gt; {"signup_started"=&gt;1, "email_added"=&gt;1, "signup_completed"=&gt;1}</span>
+
+<span class="c1"># Calculate funnel conversion</span>
+<span class="n">started</span> <span class="o">=</span> <span class="no">Ahoy</span><span class="o">::</span><span class="no">Event</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">name: </span><span class="s1">'signup_started'</span><span class="p">).</span><span class="nf">count</span>
+<span class="n">email_added</span> <span class="o">=</span> <span class="no">Ahoy</span><span class="o">::</span><span class="no">Event</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">name: </span><span class="s1">'email_added'</span><span class="p">).</span><span class="nf">count</span>
+<span class="n">completed</span> <span class="o">=</span> <span class="no">Ahoy</span><span class="o">::</span><span class="no">Event</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">name: </span><span class="s1">'signup_completed'</span><span class="p">).</span><span class="nf">count</span>
+
+<span class="nb">puts</span> <span class="s2">"Started: </span><span class="si">#{</span><span class="n">started</span><span class="si">}</span><span class="s2">"</span>
+<span class="nb">puts</span> <span class="s2">"Email Added: </span><span class="si">#{</span><span class="n">email_added</span><span class="si">}</span><span class="s2"> (</span><span class="si">#{</span><span class="p">(</span><span class="n">email_added</span><span class="p">.</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">started</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2">%)"</span>
+<span class="nb">puts</span> <span class="s2">"Completed: </span><span class="si">#{</span><span class="n">completed</span><span class="si">}</span><span class="s2"> (</span><span class="si">#{</span><span class="p">(</span><span class="n">completed</span><span class="p">.</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">started</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2">%)"</span>
+
+<span class="c1"># Check properties</span>
+<span class="no">Ahoy</span><span class="o">::</span><span class="no">Event</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">name: </span><span class="s1">'signup_completed'</span><span class="p">).</span><span class="nf">last</span><span class="p">.</span><span class="nf">properties</span>
+<span class="c1"># =&gt; {"user_id"=&gt;1, "plan"=&gt;"premium", "email_domain"=&gt;"example.com"}</span>
+
+<span class="c1"># Verify IP masking</span>
+<span class="no">Ahoy</span><span class="o">::</span><span class="no">Visit</span><span class="p">.</span><span class="nf">last</span><span class="p">.</span><span class="nf">ip</span>
+<span class="c1"># =&gt; Should show masked IP like "127.0.0.0"</span>
+
+</code></pre></div>
+<p>Or use SQL:</p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">SELECT</span>
+  <span class="n">name</span><span class="p">,</span>
+  <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">as</span> <span class="n">event_count</span><span class="p">,</span>
+  <span class="k">COUNT</span><span class="p">(</span><span class="k">DISTINCT</span> <span class="n">user_id</span><span class="p">)</span> <span class="k">as</span> <span class="n">unique_users</span>
+<span class="k">FROM</span> <span class="n">ahoy_events</span>
+<span class="k">WHERE</span> <span class="nb">time</span> <span class="o">&gt;</span> <span class="n">NOW</span><span class="p">()</span> <span class="o">-</span> <span class="n">INTERVAL</span> <span class="s1">'1 day'</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="n">name</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="n">name</span><span class="p">;</span>
+
+</code></pre></div>
+<h3>Step 8: Test Data Deletion</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Delete user data</span>
+curl <span class="nt">-X</span> DELETE http://localhost:3000/privacy/delete_data <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"X-User-Id: 1"</span>
+
+</code></pre></div>
+<p>Verify in console:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">first</span>
+<span class="no">Ahoy</span><span class="o">::</span><span class="no">Event</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">user: </span><span class="n">user</span><span class="p">).</span><span class="nf">count</span>
+<span class="c1"># =&gt; 0</span>
+<span class="no">Ahoy</span><span class="o">::</span><span class="no">Visit</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">user: </span><span class="n">user</span><span class="p">).</span><span class="nf">count</span>
+<span class="c1"># =&gt; 0</span>
+
+</code></pre></div>
+<h2>Stretch (Optional)</h2>
+
+<ol>
+<li>Add session-based anonymous tracking before user signup:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Track with anonymous ID</span>
+<span class="n">anonymous_id</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="ss">:anonymous_id</span><span class="p">]</span> <span class="o">||=</span> <span class="no">SecureRandom</span><span class="p">.</span><span class="nf">uuid</span>
+<span class="n">ahoy</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span><span class="s1">'page_viewed'</span><span class="p">,</span> <span class="ss">anonymous_id: </span><span class="n">anonymous_id</span><span class="p">)</span>
+
+<span class="c1"># Later associate with user</span>
+<span class="n">ahoy</span><span class="p">.</span><span class="nf">authenticate</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+
+</code></pre></div>
+<ol>
+<li>Create a funnel report endpoint:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/analytics_controller.rb</span>
+<span class="k">def</span> <span class="nf">funnel_report</span>
+  <span class="n">funnel_data</span> <span class="o">=</span> <span class="no">Ahoy</span><span class="o">::</span><span class="no">Event</span>
+    <span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">name: </span><span class="p">[</span><span class="s1">'signup_started'</span><span class="p">,</span> <span class="s1">'email_added'</span><span class="p">,</span> <span class="s1">'signup_completed'</span><span class="p">])</span>
+    <span class="p">.</span><span class="nf">group</span><span class="p">(</span><span class="ss">:name</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">count</span>
+
+  <span class="n">render</span> <span class="ss">json: </span><span class="n">funnel_data</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<ol>
+<li>Export user data for GDPR data portability:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">export_data</span>
+  <span class="n">events</span> <span class="o">=</span> <span class="no">Ahoy</span><span class="o">::</span><span class="no">Event</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">user: </span><span class="n">current_user</span><span class="p">)</span>
+  <span class="n">render</span> <span class="ss">json: </span><span class="n">events</span><span class="p">.</span><span class="nf">as_json</span><span class="p">(</span><span class="ss">only: </span><span class="p">[</span><span class="ss">:name</span><span class="p">,</span> <span class="ss">:properties</span><span class="p">,</span> <span class="ss">:time</span><span class="p">])</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h2>Time Estimate</h2>
+
+<p>22 minutes</p>
 
     
   </div>
@@ -766,74 +1280,308 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Server-side tracking cannot be blocked by ad blockers">
+          <h4>Question 1 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the main advantage of server-side event tracking over client-side JavaScript tracking?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  Server-side tracking is faster to implement
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  Server-side tracking cannot be blocked by ad blockers
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  Server-side tracking captures more user interactions
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  Server-side tracking is cheaper
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Server-side tracking from controllers is reliable and accurate, while client-side JavaScript can be blocked by 20-30% of users.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Inconsistent naming breaks queries and creates duplicate events">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">Why is consistent event schema important for analytics?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  Schemas reduce storage costs
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  Schemas make events faster to process
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  Inconsistent naming breaks queries and creates duplicate events
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Schemas are required by GDPR
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Events like 'user_signup' vs 'UserSignedUp' with different properties make analysis impossible without schema consistency.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="2"
              >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 3 (2 points)</h4>
+          <p style="margin: 10px 0;">What three key pieces of information should every event contain?</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Event name, timestamp, and user identifier (user_id or anonymous_id).</p>
+            </div>
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Measuring drop-off rates through multi-step user flows">
+          <h4>Question 4 (1 points)</h4>
+          <p style="margin: 10px 0;">What is a conversion funnel used for?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  Storing events in databases
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  Measuring drop-off rates through multi-step user flows
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  Encrypting user data
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  Sending events to third-party tools
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Funnels track users through steps (signup → email → completion) to identify where they abandon the process.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Ahoy masks IPs by setting Ahoy.mask_ips = true">
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">How does Ahoy ensure GDPR compliance for IP addresses?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  Ahoy doesn't store IP addresses
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  Ahoy encrypts IP addresses
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  Ahoy masks IPs by setting Ahoy.mask_ips = true
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  Ahoy sends IPs to external servers
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> IP masking replaces the last octet with zeros (e.g., 192.168.1.0) to anonymize users while preserving location data.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="2"
              >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">Write code to track an event only if the user has given analytics consent.</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">ahoy.track('event_name', properties) if cookies[:analytics_consent] == 'true'</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Segment routes events to multiple analytics destinations">
+          <h4>Question 7 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the purpose of Segment in event tracking?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  Segment stores events in PostgreSQL
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  Segment routes events to multiple analytics destinations
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  Segment generates analytics reports
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  Segment blocks tracking cookies
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Segment acts as a hub that forwards events to Mixpanel, Amplitude, Google Analytics, and other tools from a single API.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Right to be forgotten">
+          <h4>Question 8 (1 points)</h4>
+          <p style="margin: 10px 0;">Which GDPR requirement does a data deletion endpoint fulfill?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  Right to be forgotten
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  Cookie consent
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  Data minimization
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Data portability
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> GDPR Article 17 requires providing a way for users to request deletion of their personal data.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 9 (2 points)</h4>
+          <p style="margin: 10px 0;">How would you query Ahoy to find all users who started signup but did not complete it?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">started_ids = Ahoy::Event.where(name: 'signup_started').pluck(:user_id); completed_ids = Ahoy::Event.where(name: 'signup_completed').pluck(:user_id); started_ids - completed_ids</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Emails are PII that increase GDPR compliance burden">
+          <h4>Question 10 (1 points)</h4>
+          <p style="margin: 10px 0;">Why should you avoid storing email addresses directly in event properties?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(9, 0)">
+                  Emails are too large
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 1)">
+                  Emails slow down queries
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 2)">
+                  Emails are PII that increase GDPR compliance burden
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 3)">
+                  Emails cannot be stored in JSON
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Personal data like emails requires consent, encryption, and deletion handling. Use hashed IDs or domain-only instead.
+              </div>
+            
           
         </div>
       
@@ -847,7 +1595,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -863,33 +1611,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/ankane/ahoy" target="_blank">Ahoy GitHub Repository</a>
+            <div class="why">Official documentation for installation, event tracking, and GDPR compliance features.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://segment.com/docs/connections/sources/catalog/libraries/server/ruby/" target="_blank">Segment Documentation — Ruby Library</a>
+            <div class="why">Complete reference for server-side event tracking with Segment API and best practices.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://docs.mixpanel.com/docs/tracking/how-tos/events-and-properties" target="_blank">Mixpanel — Event Tracking Guide</a>
+            <div class="why">Detailed guide on event schema design, properties, and funnel analysis.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.cookiebot.com/en/gdpr-analytics/" target="_blank">GDPR and Analytics: A Practical Guide</a>
+            <div class="why">Comprehensive overview of consent management, data deletion, and compliance requirements.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://amplitude.com/blog/product-analytics-best-practices" target="_blank">Amplitude — Product Analytics Best Practices</a>
+            <div class="why">Industry patterns for event taxonomy, naming conventions, and schema governance.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://evilmartians.com/chronicles/tracking-user-activity-with-ahoy-in-rails" target="_blank">Evil Martians — Event Tracking in Rails</a>
+            <div class="why">Practical guide to implementing first-party analytics with Ahoy gem.</div>
+          </li>
+        
+          <li>
+            <a href="https://gdpr-info.eu/art-17-gdpr/" target="_blank">GDPR Article 17 — Right to Erasure</a>
+            <div class="why">Legal text defining user rights to data deletion and compliance requirements.</div>
           </li>
         
       </ul>

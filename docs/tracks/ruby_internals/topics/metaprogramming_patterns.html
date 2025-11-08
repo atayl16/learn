@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,71 +656,367 @@
 
 <h2>What It Is</h2>
 
-<p>Metaprogramming Patterns is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>Metaprogramming in Ruby is writing code that writes code at runtime. Ruby&#39;s dynamic nature allows methods to be defined on the fly (<code>define_method</code>), missing methods to be intercepted (<code>method_missing</code>), code to be evaluated in different contexts (<code>instance_eval</code>), and messages to be sent dynamically (<code>send</code>). These techniques enable elegant DSLs and reduce boilerplate, but come with trade-offs in readability and debuggability.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Metaprogramming powers Rails&#39; declarative syntax: <code>has_many :posts</code> defines methods dynamically, <code>validates :email, presence: true</code> generates validation logic, and <code>scope :active, -&gt; { ... }</code> creates chainable queries. Understanding these patterns helps you leverage Ruby&#39;s flexibility without sacrificing maintainability. Knowing when <em>not</em> to metaprogram is equally crucial.</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li>Creating DSLs for configuration or business logic (RSpec, Rails routing)</li>
+<li>Eliminating repetitive method definitions (attr_accessor patterns)</li>
+<li>Building framework-level abstractions (ActiveRecord associations)</li>
+<li>Forwarding method calls dynamically (delegators, proxies)</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><strong>Overusing method_missing:</strong> It&#39;s a catch-all that breaks introspection (<code>respond_to?</code>), makes stack traces cryptic, and slows performance (Ruby checks all ancestors before calling <code>method_missing</code>). Define explicit methods whenever possible.</li>
+<li><strong>Breaking respond_to?:</strong> If you define <code>method_missing</code>, always override <code>respond_to_missing?</code> to maintain Ruby&#39;s introspection contract.</li>
+<li><strong>Debugging nightmares:</strong> Metaprogrammed code hides method definitions from grep/editors. Always document what gets generated and where. Consider using <code>Module.prepend</code> or class methods instead of heavy metaprogramming.</li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>method_missing</h2>
 
-<h3>Key Concept 1</h3>
+<p>Intercepts calls to undefined methods:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">DynamicFinder</span>
+  <span class="k">def</span> <span class="nf">method_missing</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">method_name</span><span class="p">.</span><span class="nf">to_s</span><span class="p">.</span><span class="nf">start_with?</span><span class="p">(</span><span class="s2">"find_by_"</span><span class="p">)</span>
+      <span class="n">attribute</span> <span class="o">=</span> <span class="n">method_name</span><span class="p">.</span><span class="nf">to_s</span><span class="p">.</span><span class="nf">sub</span><span class="p">(</span><span class="s2">"find_by_"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+      <span class="nb">puts</span> <span class="s2">"Searching for </span><span class="si">#{</span><span class="n">attribute</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">args</span><span class="p">.</span><span class="nf">first</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">else</span>
+      <span class="k">super</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+  <span class="k">def</span> <span class="nf">respond_to_missing?</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">include_private</span> <span class="o">=</span> <span class="kp">false</span><span class="p">)</span>
+    <span class="n">method_name</span><span class="p">.</span><span class="nf">to_s</span><span class="p">.</span><span class="nf">start_with?</span><span class="p">(</span><span class="s2">"find_by_"</span><span class="p">)</span> <span class="o">||</span> <span class="k">super</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">finder</span> <span class="o">=</span> <span class="no">DynamicFinder</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">finder</span><span class="p">.</span><span class="nf">find_by_email</span><span class="p">(</span><span class="s2">"alice@example.com"</span><span class="p">)</span>
+<span class="c1"># =&gt; Searching for email: alice@example.com</span>
+
+<span class="n">finder</span><span class="p">.</span><span class="nf">respond_to?</span><span class="p">(</span><span class="ss">:find_by_name</span><span class="p">)</span>
+<span class="c1"># =&gt; true (thanks to respond_to_missing?)</span>
+
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<p><strong>Rails example (ActiveRecord):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">find_by_email</span><span class="p">(</span><span class="s2">"bob@example.com"</span><span class="p">)</span>
+<span class="c1"># Calls method_missing, generates: User.where(email: "bob@example.com").first</span>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+</code></pre></div>
+<p><strong>When to avoid:</strong> If you know the method names ahead of time, define them explicitly. <code>method_missing</code> is a last resort.</p>
+
+<hr>
+
+<h2>define_method</h2>
+
+<p>Defines methods dynamically at runtime:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Report</span>
+  <span class="p">[</span><span class="ss">:daily</span><span class="p">,</span> <span class="ss">:weekly</span><span class="p">,</span> <span class="ss">:monthly</span><span class="p">].</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">period</span><span class="o">|</span>
+    <span class="n">define_method</span><span class="p">(</span><span class="s2">"</span><span class="si">#{</span><span class="n">period</span><span class="si">}</span><span class="s2">_sales"</span><span class="p">)</span> <span class="k">do</span>
+      <span class="nb">puts</span> <span class="s2">"Fetching </span><span class="si">#{</span><span class="n">period</span><span class="si">}</span><span class="s2"> sales..."</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">report</span> <span class="o">=</span> <span class="no">Report</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">report</span><span class="p">.</span><span class="nf">daily_sales</span>
+<span class="c1"># =&gt; Fetching daily sales...</span>
+
+</code></pre></div>
+<p><strong>Rails example (attr_accessor):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># ActiveModel::AttributeMethods uses define_method</span>
+<span class="k">class</span> <span class="nc">User</span>
+  <span class="p">[</span><span class="ss">:name</span><span class="p">,</span> <span class="ss">:email</span><span class="p">].</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="kp">attr</span><span class="o">|</span>
+    <span class="n">define_method</span><span class="p">(</span><span class="kp">attr</span><span class="p">)</span> <span class="p">{</span> <span class="nb">instance_variable_get</span><span class="p">(</span><span class="s2">"@</span><span class="si">#{</span><span class="kp">attr</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="p">}</span>
+    <span class="n">define_method</span><span class="p">(</span><span class="s2">"</span><span class="si">#{</span><span class="kp">attr</span><span class="si">}</span><span class="s2">="</span><span class="p">)</span> <span class="p">{</span> <span class="o">|</span><span class="n">val</span><span class="o">|</span> <span class="nb">instance_variable_set</span><span class="p">(</span><span class="s2">"@</span><span class="si">#{</span><span class="kp">attr</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Advantage over method_missing:</strong> Defined methods appear in <code>.methods</code>, show up in stack traces, and perform better.</p>
+
+<hr>
+
+<h2>Class Macros</h2>
+
+<p>Class methods that generate instance methods or behavior:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ActiveRecord::Base</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">belongs_to</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+    <span class="n">define_method</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span> <span class="k">do</span>
+      <span class="c1"># Load associated record</span>
+      <span class="n">association_id</span> <span class="o">=</span> <span class="nb">send</span><span class="p">(</span><span class="s2">"</span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">_id"</span><span class="p">)</span>
+      <span class="nb">name</span><span class="p">.</span><span class="nf">to_s</span><span class="p">.</span><span class="nf">classify</span><span class="p">.</span><span class="nf">constantize</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">association_id</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">Post</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">belongs_to</span> <span class="ss">:user</span>
+<span class="k">end</span>
+
+<span class="c1"># Post.new.user calls dynamically defined method</span>
+
+</code></pre></div>
+<p><strong>Rails examples:</strong><br>
+- <code>has_many :posts</code> → defines <code>posts</code>, <code>posts=</code>, <code>posts&lt;&lt;</code>, <code>posts.build</code>, etc.<br>
+- <code>validates :email, presence: true</code> → adds validation callback<br>
+- <code>attr_accessor :name</code> → defines <code>name</code> and <code>name=</code></p>
+
+<hr>
+
+<h2>Building DSLs</h2>
+
+<p>Domain-Specific Languages use metaprogramming to create expressive APIs:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">QueryBuilder</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@conditions</span> <span class="o">=</span> <span class="p">[]</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">where</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span>
+    <span class="vi">@conditions</span> <span class="o">&lt;&lt;</span> <span class="n">condition</span>
+    <span class="nb">self</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">order</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+    <span class="vi">@order</span> <span class="o">=</span> <span class="n">column</span>
+    <span class="nb">self</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">to_sql</span>
+    <span class="s2">"SELECT * FROM users WHERE </span><span class="si">#{</span><span class="vi">@conditions</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">' AND '</span><span class="p">)</span><span class="si">}</span><span class="s2"> ORDER BY </span><span class="si">#{</span><span class="vi">@order</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="no">QueryBuilder</span><span class="p">.</span><span class="nf">new</span>
+         <span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"active = true"</span><span class="p">)</span>
+         <span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"age &gt; 18"</span><span class="p">)</span>
+         <span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s2">"created_at"</span><span class="p">)</span>
+<span class="n">query</span><span class="p">.</span><span class="nf">to_sql</span>
+<span class="c1"># =&gt; "SELECT * FROM users WHERE active = true AND age &gt; 18 ORDER BY created_at"</span>
+
+</code></pre></div>
+<p><strong>Rails routing DSL:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:posts</span> <span class="k">do</span>
+    <span class="n">member</span> <span class="k">do</span>
+      <span class="n">post</span> <span class="ss">:publish</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Uses <code>instance_eval</code> to evaluate the block in the context of a router object.</p>
+
+<hr>
+
+<h2>send and public_send</h2>
+
+<p>Call methods dynamically by name:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span>
+  <span class="k">def</span> <span class="nf">name</span>
+    <span class="s2">"Alice"</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">secret</span>
+    <span class="s2">"password123"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">user</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="ss">:name</span><span class="p">)</span>
+<span class="c1"># =&gt; "Alice"</span>
+
+<span class="n">user</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="ss">:secret</span><span class="p">)</span>
+<span class="c1"># =&gt; "password123" (bypasses privacy)</span>
+
+<span class="n">user</span><span class="p">.</span><span class="nf">public_send</span><span class="p">(</span><span class="ss">:secret</span><span class="p">)</span>
+<span class="c1"># =&gt; NoMethodError (respects privacy)</span>
+
+</code></pre></div>
+<p><strong>Use case:</strong> Delegators, method forwarding, dynamic dispatching.</p>
+
+<p><strong>Danger:</strong> <code>send</code> bypasses encapsulation. Prefer <code>public_send</code> unless you intentionally need private access.</p>
+
+<hr>
+
+<h2>instance_eval and class_eval</h2>
+
+<p>Execute code in the context of an object or class:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Box</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@contents</span> <span class="o">=</span> <span class="p">[]</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">box</span> <span class="o">=</span> <span class="no">Box</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">box</span><span class="p">.</span><span class="nf">instance_eval</span> <span class="k">do</span>
+  <span class="vi">@contents</span> <span class="o">&lt;&lt;</span> <span class="s2">"Item 1"</span>
+  <span class="vi">@contents</span> <span class="o">&lt;&lt;</span> <span class="s2">"Item 2"</span>
+<span class="k">end</span>
+
+<span class="n">box</span><span class="p">.</span><span class="nf">instance_eval</span> <span class="p">{</span> <span class="vi">@contents</span> <span class="p">}</span>
+<span class="c1"># =&gt; ["Item 1", "Item 2"]</span>
+
+</code></pre></div>
+<p><strong>class_eval (define methods on classes):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">User</span><span class="p">.</span><span class="nf">class_eval</span> <span class="k">do</span>
+  <span class="k">def</span> <span class="nf">full_name</span>
+    <span class="s2">"</span><span class="si">#{</span><span class="n">first_name</span><span class="si">}</span><span class="s2"> </span><span class="si">#{</span><span class="n">last_name</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Rails example (concerns):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">Taggable</span>
+  <span class="kp">extend</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Concern</span>
+
+  <span class="n">included</span> <span class="k">do</span>
+    <span class="n">has_many</span> <span class="ss">:tags</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># ActiveSupport::Concern uses class_eval to inject has_many when included</span>
+
+</code></pre></div>
+<hr>
+
+<h2>When NOT to Use Metaprogramming</h2>
+
+<h3>1. When Explicit Code is Clearer</h3>
+
+<p><strong>Bad:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="p">[</span><span class="ss">:name</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:phone</span><span class="p">].</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="kp">attr</span><span class="o">|</span>
+  <span class="n">define_method</span><span class="p">(</span><span class="s2">"print_</span><span class="si">#{</span><span class="kp">attr</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="p">{</span> <span class="nb">puts</span> <span class="nb">send</span><span class="p">(</span><span class="kp">attr</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Good:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">print_name</span>
+  <span class="nb">puts</span> <span class="nb">name</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">print_email</span>
+  <span class="nb">puts</span> <span class="n">email</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>2. When It Breaks Tooling</h3>
+
+<p>Metaprogramming hides method definitions from:<br>
+- Code editors (autocomplete, go-to-definition)<br>
+- Static analysis tools (RuboCop, Sorbet)<br>
+- Grep/search<br>
+- New team members reading code</p>
+
+<h3>3. When Performance Matters</h3>
+
+<p><code>method_missing</code> is 10x slower than defined methods because Ruby walks the entire ancestor chain first.</p>
+
+<h3>4. When Debugging Becomes Painful</h3>
+
+<p>Stack traces from metaprogrammed code are harder to follow. If you&#39;re spending more time debugging than you saved writing code, stop metaprogramming.</p>
+
+<hr>
+
+<h2>Rails Metaprogramming Examples</h2>
+
+<h3>has_many (ActiveRecord)</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_many</span> <span class="ss">:posts</span>
+<span class="k">end</span>
+
+<span class="c1"># Generates these methods:</span>
+<span class="c1"># - user.posts</span>
+<span class="c1"># - user.posts=(posts)</span>
+<span class="c1"># - user.post_ids</span>
+<span class="c1"># - user.posts.build(attrs)</span>
+<span class="c1"># - user.posts.create(attrs)</span>
+<span class="c1"># - user.posts.destroy_all</span>
+
+</code></pre></div>
+<p><strong>How it works:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">has_many</span><span class="p">(</span><span class="nb">name</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+  <span class="n">define_method</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span> <span class="k">do</span>
+    <span class="c1"># Load association</span>
+  <span class="k">end</span>
+
+  <span class="n">define_method</span><span class="p">(</span><span class="s2">"</span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">="</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">records</span><span class="o">|</span>
+    <span class="c1"># Assign association</span>
+  <span class="k">end</span>
+
+  <span class="c1"># ... many more methods</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>validates (ActiveModel)</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">validates</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">uniqueness: </span><span class="kp">true</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>How it works:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">validates</span><span class="p">(</span><span class="o">*</span><span class="n">attributes</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+  <span class="n">options</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">validator_name</span><span class="p">,</span> <span class="n">validator_options</span><span class="o">|</span>
+    <span class="n">validator_class</span> <span class="o">=</span> <span class="s2">"</span><span class="si">#{</span><span class="n">validator_name</span><span class="si">}</span><span class="s2">_validator"</span><span class="p">.</span><span class="nf">classify</span><span class="p">.</span><span class="nf">constantize</span>
+    <span class="n">validator_class</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">attributes: </span><span class="n">attributes</span><span class="p">,</span> <span class="o">**</span><span class="n">validator_options</span><span class="p">).</span><span class="nf">validate</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
 <hr>
 
 <h2>Best Practices</h2>
 
 <ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
+<li><strong>Document generated methods:</strong> Use YARD comments or README to list what gets created.</li>
+<li><strong>Fail fast:</strong> Raise clear errors when metaprogramming setup fails.</li>
+<li><strong>Benchmark:</strong> Profile <code>method_missing</code> vs. <code>define_method</code> if performance matters.</li>
+<li><strong>Override respond_to_missing?:</strong> Always pair with <code>method_missing</code>.</li>
+<li><strong>Use modules for DSLs:</strong> Keep metaprogramming isolated in mixins/concerns.</li>
+<li><strong>Prefer class methods over instance_eval:</strong> Easier to trace.</li>
+<li><strong>Test edge cases:</strong> Missing methods, nil arguments, wrong types.</li>
 </ol>
 
 <hr>
 
-<h2>Key Terms</h2>
+<h2>Debugging Checklist</h2>
 
-<ul>
-<li><strong>method_missing</strong></li>
-<li><strong>define_method</strong></li>
-<li><strong>class macros</strong></li>
-<li><strong>DSL</strong></li>
-<li><strong>send</strong></li>
-</ul>
+<p>When metaprogrammed code breaks:</p>
+
+<ol>
+<li>Check what methods exist: <code>obj.methods.grep(/pattern/)</code></li>
+<li>Inspect method source: <code>obj.method(:foo).source_location</code></li>
+<li>Enable verbose logging: <code>set_trace_func</code> or <code>TracePoint</code></li>
+<li>Check <code>respond_to?</code> and <code>respond_to_missing?</code> consistency</li>
+<li>Use <code>Kernel#caller</code> to trace where methods are defined</li>
+<li>Search for <code>define_method</code>, <code>class_eval</code>, <code>instance_eval</code> in codebase</li>
+<li>Add <code>puts</code> inside metaprogramming blocks to see what gets generated</li>
+</ol>
 
 <hr>
 
-<h2>Summary</h2>
+<h2>One-Minute Recap</h2>
 
-<p>Metaprogramming Patterns is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
-
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<ul>
+<li><code>method_missing</code> intercepts undefined methods; always pair with <code>respond_to_missing?</code></li>
+<li><code>define_method</code> creates methods dynamically; prefer over <code>method_missing</code> when possible</li>
+<li>Class macros (<code>has_many</code>, <code>validates</code>) are class methods that generate instance behavior</li>
+<li>DSLs use <code>instance_eval</code> and chaining for expressive APIs</li>
+<li><code>send</code> / <code>public_send</code> call methods by name; <code>public_send</code> respects privacy</li>
+<li>Avoid metaprogramming when explicit code is clearer, faster, or more debuggable</li>
+<li>Rails uses metaprogramming extensively; understanding it unlocks framework internals</li>
+</ul>
 
     
   </div>
@@ -706,55 +1028,418 @@
     
       <h1>Exercise: Metaprogramming Patterns</h1>
 
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
-
 <h2>Objective</h2>
 
-<p>Build hands-on experience with metaprogramming patterns through practical implementation.</p>
+<p>Build a simple DSL using <code>method_missing</code> and <code>define_method</code> to create a flexible configuration system. You&#39;ll implement metaprogramming techniques and learn when to prefer explicit methods over dynamic ones.</p>
 
-<h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new metaprogramming_patterns_practice
-<span class="nb">cd </span>metaprogramming_patterns_practice
+<h2>Task</h2>
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
-</code></pre></div>
-<h2>Tasks</h2>
+<p>Create a <code>ConfigBuilder</code> class that allows setting and getting configuration values using both <code>method_missing</code> and <code>define_method</code>, then refactor to compare approaches.</p>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
-
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
-</code></pre></div>
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
-
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
-
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
-
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
-
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
-
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
-</code></pre></div>
-<h2>Stretch Goals</h2>
+<h2>Acceptance Criteria</h2>
 
 <ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
+<li>[ ] <code>ConfigBuilder</code> handles undefined getter/setter methods via <code>method_missing</code></li>
+<li>[ ] <code>respond_to_missing?</code> correctly reports available methods</li>
+<li>[ ] <code>define_method</code> version creates explicit methods for known config keys</li>
+<li>[ ] Both versions produce identical behavior but different introspection results</li>
+<li>[ ] Performance difference between approaches is measurable</li>
 </ul>
+
+<h2>Setup</h2>
+
+<h3>Step 1: Create Test File</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">mkdir</span> <span class="nt">-p</span> ~/metaprogramming_demo
+<span class="nb">cd</span> ~/metaprogramming_demo
+<span class="nb">touch </span>config_builder.rb
+<span class="nb">touch </span>test_config.rb
+
+</code></pre></div>
+<h3>Step 2: Implement method_missing Version</h3>
+
+<p>Create <code>config_builder.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ConfigBuilder</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@config</span> <span class="o">=</span> <span class="p">{}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">method_missing</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">method_string</span> <span class="o">=</span> <span class="n">method_name</span><span class="p">.</span><span class="nf">to_s</span>
+
+    <span class="k">if</span> <span class="n">method_string</span><span class="p">.</span><span class="nf">end_with?</span><span class="p">(</span><span class="s2">"="</span><span class="p">)</span>
+      <span class="c1"># Setter: config.database_url = "..."</span>
+      <span class="n">key</span> <span class="o">=</span> <span class="n">method_string</span><span class="p">.</span><span class="nf">chomp</span><span class="p">(</span><span class="s2">"="</span><span class="p">).</span><span class="nf">to_sym</span>
+      <span class="vi">@config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="nf">first</span>
+    <span class="k">elsif</span> <span class="vi">@config</span><span class="p">.</span><span class="nf">key?</span><span class="p">(</span><span class="n">method_name</span><span class="p">)</span>
+      <span class="c1"># Getter: config.database_url</span>
+      <span class="vi">@config</span><span class="p">[</span><span class="n">method_name</span><span class="p">]</span>
+    <span class="k">else</span>
+      <span class="k">super</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">respond_to_missing?</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="n">include_private</span> <span class="o">=</span> <span class="kp">false</span><span class="p">)</span>
+    <span class="n">method_string</span> <span class="o">=</span> <span class="n">method_name</span><span class="p">.</span><span class="nf">to_s</span>
+    <span class="n">method_string</span><span class="p">.</span><span class="nf">end_with?</span><span class="p">(</span><span class="s2">"="</span><span class="p">)</span> <span class="o">||</span> <span class="vi">@config</span><span class="p">.</span><span class="nf">key?</span><span class="p">(</span><span class="n">method_name</span><span class="p">)</span> <span class="o">||</span> <span class="k">super</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">to_h</span>
+    <span class="vi">@config</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 3: Test method_missing Behavior</h3>
+
+<p>Create <code>test_config.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require_relative</span> <span class="s2">"config_builder"</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="no">ConfigBuilder</span><span class="p">.</span><span class="nf">new</span>
+
+<span class="c1"># Set values dynamically</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">database_url</span> <span class="o">=</span> <span class="s2">"postgres://localhost/mydb"</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">api_key</span> <span class="o">=</span> <span class="s2">"secret123"</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">timeout</span> <span class="o">=</span> <span class="mi">30</span>
+
+<span class="c1"># Get values</span>
+<span class="nb">puts</span> <span class="n">config</span><span class="p">.</span><span class="nf">database_url</span>
+<span class="c1"># =&gt; "postgres://localhost/mydb"</span>
+
+<span class="nb">puts</span> <span class="n">config</span><span class="p">.</span><span class="nf">api_key</span>
+<span class="c1"># =&gt; "secret123"</span>
+
+<span class="c1"># Check introspection</span>
+<span class="nb">puts</span> <span class="n">config</span><span class="p">.</span><span class="nf">respond_to?</span><span class="p">(</span><span class="ss">:database_url</span><span class="p">)</span>
+<span class="c1"># =&gt; true</span>
+
+<span class="nb">puts</span> <span class="n">config</span><span class="p">.</span><span class="nf">respond_to?</span><span class="p">(</span><span class="ss">:nonexistent</span><span class="p">)</span>
+<span class="c1"># =&gt; false</span>
+
+<span class="c1"># List all methods</span>
+<span class="nb">puts</span> <span class="n">config</span><span class="p">.</span><span class="nf">methods</span><span class="p">.</span><span class="nf">grep</span><span class="p">(</span><span class="sr">/database/</span><span class="p">)</span>
+<span class="c1"># =&gt; [] (method_missing doesn't create real methods!)</span>
+
+<span class="nb">puts</span> <span class="n">config</span><span class="p">.</span><span class="nf">to_h</span>
+<span class="c1"># =&gt; {:database_url=&gt;"postgres://localhost/mydb", :api_key=&gt;"secret123", :timeout=&gt;30}</span>
+
+</code></pre></div>
+<p>Run it:</p>
+<div class="highlight"><pre class="highlight shell"><code>ruby test_config.rb
+
+</code></pre></div>
+<h3>Step 4: Refactor Using define_method</h3>
+
+<p>Create <code>config_builder_explicit.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ConfigBuilderExplicit</span>
+  <span class="no">KNOWN_KEYS</span> <span class="o">=</span> <span class="p">[</span><span class="ss">:database_url</span><span class="p">,</span> <span class="ss">:api_key</span><span class="p">,</span> <span class="ss">:timeout</span><span class="p">,</span> <span class="ss">:host</span><span class="p">,</span> <span class="ss">:port</span><span class="p">]</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@config</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Define getter and setter for each known key</span>
+    <span class="no">KNOWN_KEYS</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">key</span><span class="o">|</span>
+      <span class="nb">self</span><span class="p">.</span><span class="nf">class</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="ss">:define_method</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="k">do</span>
+        <span class="vi">@config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+      <span class="k">end</span>
+
+      <span class="nb">self</span><span class="p">.</span><span class="nf">class</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="ss">:define_method</span><span class="p">,</span> <span class="s2">"</span><span class="si">#{</span><span class="n">key</span><span class="si">}</span><span class="s2">="</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">value</span><span class="o">|</span>
+        <span class="vi">@config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">to_h</span>
+    <span class="vi">@config</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 5: Test define_method Version</h3>
+
+<p>Create <code>test_explicit.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require_relative</span> <span class="s2">"config_builder_explicit"</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="no">ConfigBuilderExplicit</span><span class="p">.</span><span class="nf">new</span>
+
+<span class="n">config</span><span class="p">.</span><span class="nf">database_url</span> <span class="o">=</span> <span class="s2">"postgres://localhost/mydb"</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">api_key</span> <span class="o">=</span> <span class="s2">"secret123"</span>
+
+<span class="nb">puts</span> <span class="n">config</span><span class="p">.</span><span class="nf">database_url</span>
+<span class="c1"># =&gt; "postgres://localhost/mydb"</span>
+
+<span class="c1"># Introspection now works!</span>
+<span class="nb">puts</span> <span class="n">config</span><span class="p">.</span><span class="nf">methods</span><span class="p">.</span><span class="nf">grep</span><span class="p">(</span><span class="sr">/database/</span><span class="p">)</span>
+<span class="c1"># =&gt; [:database_url, :database_url=]</span>
+
+<span class="nb">puts</span> <span class="n">config</span><span class="p">.</span><span class="nf">respond_to?</span><span class="p">(</span><span class="ss">:api_key</span><span class="p">)</span>
+<span class="c1"># =&gt; true</span>
+
+<span class="c1"># But unknown keys raise NoMethodError</span>
+<span class="k">begin</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">unknown_key</span> <span class="o">=</span> <span class="s2">"value"</span>
+<span class="k">rescue</span> <span class="no">NoMethodError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+  <span class="nb">puts</span> <span class="s2">"Error: </span><span class="si">#{</span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 6: Benchmark Performance</h3>
+
+<p>Create <code>benchmark_comparison.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s2">"benchmark"</span>
+<span class="nb">require_relative</span> <span class="s2">"config_builder"</span>
+<span class="nb">require_relative</span> <span class="s2">"config_builder_explicit"</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="mi">100_000</span>
+
+<span class="no">Benchmark</span><span class="p">.</span><span class="nf">bm</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+  <span class="n">x</span><span class="p">.</span><span class="nf">report</span><span class="p">(</span><span class="s2">"method_missing:"</span><span class="p">)</span> <span class="k">do</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="no">ConfigBuilder</span><span class="p">.</span><span class="nf">new</span>
+    <span class="n">n</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span>
+      <span class="n">config</span><span class="p">.</span><span class="nf">database_url</span> <span class="o">=</span> <span class="s2">"postgres://localhost"</span>
+      <span class="n">config</span><span class="p">.</span><span class="nf">database_url</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="n">x</span><span class="p">.</span><span class="nf">report</span><span class="p">(</span><span class="s2">"define_method:"</span><span class="p">)</span> <span class="k">do</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="no">ConfigBuilderExplicit</span><span class="p">.</span><span class="nf">new</span>
+    <span class="n">n</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span>
+      <span class="n">config</span><span class="p">.</span><span class="nf">database_url</span> <span class="o">=</span> <span class="s2">"postgres://localhost"</span>
+      <span class="n">config</span><span class="p">.</span><span class="nf">database_url</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Run benchmark:</p>
+<div class="highlight"><pre class="highlight shell"><code>ruby benchmark_comparison.rb
+
+</code></pre></div>
+<p><strong>Expected output:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>                           user     system      total        real
+method_missing:        0.050000   0.000000   0.050000 (  0.052341)
+define_method:         0.010000   0.000000   0.010000 (  0.010234)
+
+</code></pre></div>
+<p><code>define_method</code> is <strong>5-10x faster</strong> because Ruby doesn&#39;t walk the ancestor chain.</p>
+
+<hr>
+
+<h2>Part 2: Build a Simple Query DSL</h2>
+
+<h3>Task 2.1: Create a Chainable Query Builder</h3>
+
+<p>Create <code>query_builder.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">QueryBuilder</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+    <span class="vi">@table</span> <span class="o">=</span> <span class="n">table</span>
+    <span class="vi">@conditions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="vi">@order_by</span> <span class="o">=</span> <span class="kp">nil</span>
+    <span class="vi">@limit_value</span> <span class="o">=</span> <span class="kp">nil</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">where</span><span class="p">(</span><span class="n">condition</span><span class="p">)</span>
+    <span class="vi">@conditions</span> <span class="o">&lt;&lt;</span> <span class="n">condition</span>
+    <span class="nb">self</span>  <span class="c1"># Return self for chaining</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">order</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+    <span class="vi">@order_by</span> <span class="o">=</span> <span class="n">column</span>
+    <span class="nb">self</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">limit</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="vi">@limit_value</span> <span class="o">=</span> <span class="n">n</span>
+    <span class="nb">self</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">to_sql</span>
+    <span class="n">sql</span> <span class="o">=</span> <span class="s2">"SELECT * FROM </span><span class="si">#{</span><span class="vi">@table</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">sql</span> <span class="o">+=</span> <span class="s2">" WHERE </span><span class="si">#{</span><span class="vi">@conditions</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">' AND '</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="vi">@conditions</span><span class="p">.</span><span class="nf">any?</span>
+    <span class="n">sql</span> <span class="o">+=</span> <span class="s2">" ORDER BY </span><span class="si">#{</span><span class="vi">@order_by</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="vi">@order_by</span>
+    <span class="n">sql</span> <span class="o">+=</span> <span class="s2">" LIMIT </span><span class="si">#{</span><span class="vi">@limit_value</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="vi">@limit_value</span>
+    <span class="n">sql</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Task 2.2: Test Chaining</h3>
+
+<p>Create <code>test_query.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require_relative</span> <span class="s2">"query_builder"</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="no">QueryBuilder</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="s2">"users"</span><span class="p">)</span>
+  <span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"active = true"</span><span class="p">)</span>
+  <span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"age &gt; 18"</span><span class="p">)</span>
+  <span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s2">"created_at DESC"</span><span class="p">)</span>
+  <span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="nb">puts</span> <span class="n">query</span><span class="p">.</span><span class="nf">to_sql</span>
+<span class="c1"># =&gt; SELECT * FROM users WHERE active = true AND age &gt; 18 ORDER BY created_at DESC LIMIT 10</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Part 3: Advanced - Class Macros</h2>
+
+<h3>Task 3.1: Build attr_accessor Using Metaprogramming</h3>
+
+<p>Create <code>custom_attr.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">CustomAttr</span>
+  <span class="k">def</span> <span class="nf">custom_accessor</span><span class="p">(</span><span class="o">*</span><span class="n">attrs</span><span class="p">)</span>
+    <span class="n">attrs</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="kp">attr</span><span class="o">|</span>
+      <span class="n">define_method</span><span class="p">(</span><span class="kp">attr</span><span class="p">)</span> <span class="k">do</span>
+        <span class="nb">instance_variable_get</span><span class="p">(</span><span class="s2">"@</span><span class="si">#{</span><span class="kp">attr</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+      <span class="k">end</span>
+
+      <span class="n">define_method</span><span class="p">(</span><span class="s2">"</span><span class="si">#{</span><span class="kp">attr</span><span class="si">}</span><span class="s2">="</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">value</span><span class="o">|</span>
+        <span class="nb">instance_variable_set</span><span class="p">(</span><span class="s2">"@</span><span class="si">#{</span><span class="kp">attr</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">Person</span>
+  <span class="kp">extend</span> <span class="no">CustomAttr</span>
+  <span class="n">custom_accessor</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:age</span><span class="p">,</span> <span class="ss">:email</span>
+<span class="k">end</span>
+
+<span class="n">person</span> <span class="o">=</span> <span class="no">Person</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">person</span><span class="p">.</span><span class="nf">name</span> <span class="o">=</span> <span class="s2">"Alice"</span>
+<span class="n">person</span><span class="p">.</span><span class="nf">age</span> <span class="o">=</span> <span class="mi">30</span>
+
+<span class="nb">puts</span> <span class="n">person</span><span class="p">.</span><span class="nf">name</span>
+<span class="c1"># =&gt; "Alice"</span>
+
+<span class="nb">puts</span> <span class="n">person</span><span class="p">.</span><span class="nf">methods</span><span class="p">.</span><span class="nf">grep</span><span class="p">(</span><span class="sr">/name/</span><span class="p">)</span>
+<span class="c1"># =&gt; [:name, :name=]</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Stretch Goals</h2>
+
+<ol>
+<li><strong>Add type checking to ConfigBuilder:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">method_missing</span><span class="p">(</span><span class="n">method_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">method_name</span><span class="p">.</span><span class="nf">to_s</span><span class="p">.</span><span class="nf">end_with?</span><span class="p">(</span><span class="s2">"="</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">method_name</span><span class="p">.</span><span class="nf">to_s</span><span class="p">.</span><span class="nf">chomp</span><span class="p">(</span><span class="s2">"="</span><span class="p">).</span><span class="nf">to_sym</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="nf">first</span>
+    <span class="k">raise</span> <span class="no">TypeError</span><span class="p">,</span> <span class="s2">"Expected String"</span> <span class="k">unless</span> <span class="n">value</span><span class="p">.</span><span class="nf">is_a?</span><span class="p">(</span><span class="no">String</span><span class="p">)</span>
+    <span class="vi">@config</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+  <span class="k">else</span>
+    <span class="k">super</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Create a class macro that logs method calls:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">Loggable</span>
+  <span class="k">def</span> <span class="nf">log_calls</span><span class="p">(</span><span class="o">*</span><span class="n">method_names</span><span class="p">)</span>
+    <span class="n">method_names</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">method_name</span><span class="o">|</span>
+      <span class="n">original_method</span> <span class="o">=</span> <span class="nb">instance_method</span><span class="p">(</span><span class="n">method_name</span><span class="p">)</span>
+
+      <span class="n">define_method</span><span class="p">(</span><span class="n">method_name</span><span class="p">)</span> <span class="k">do</span> <span class="o">|*</span><span class="n">args</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">block</span><span class="o">|</span>
+        <span class="nb">puts</span> <span class="s2">"Calling </span><span class="si">#{</span><span class="n">method_name</span><span class="si">}</span><span class="s2"> with </span><span class="si">#{</span><span class="n">args</span><span class="p">.</span><span class="nf">inspect</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">original_method</span><span class="p">.</span><span class="nf">bind</span><span class="p">(</span><span class="nb">self</span><span class="p">).</span><span class="nf">call</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">Calculator</span>
+  <span class="kp">extend</span> <span class="no">Loggable</span>
+
+  <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+  <span class="k">end</span>
+
+  <span class="n">log_calls</span> <span class="ss">:add</span>
+<span class="k">end</span>
+
+<span class="n">calc</span> <span class="o">=</span> <span class="no">Calculator</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">calc</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="c1"># =&gt; Calling add with [2, 3]</span>
+<span class="c1"># =&gt; 5</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Use <code>instance_eval</code> to create a DSL:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">RouteBuilder</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
+    <span class="vi">@routes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="nb">instance_eval</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span> <span class="k">if</span> <span class="nb">block_given?</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">to</span><span class="p">:)</span>
+    <span class="vi">@routes</span> <span class="o">&lt;&lt;</span> <span class="p">{</span> <span class="ss">method: :get</span><span class="p">,</span> <span class="ss">path: </span><span class="n">path</span><span class="p">,</span> <span class="ss">controller: </span><span class="n">to</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">to</span><span class="p">:)</span>
+    <span class="vi">@routes</span> <span class="o">&lt;&lt;</span> <span class="p">{</span> <span class="ss">method: :post</span><span class="p">,</span> <span class="ss">path: </span><span class="n">path</span><span class="p">,</span> <span class="ss">controller: </span><span class="n">to</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">routes</span>
+    <span class="vi">@routes</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">routes</span> <span class="o">=</span> <span class="no">RouteBuilder</span><span class="p">.</span><span class="nf">new</span> <span class="k">do</span>
+  <span class="n">get</span> <span class="s2">"/users"</span><span class="p">,</span> <span class="ss">to: </span><span class="s2">"users#index"</span>
+  <span class="n">post</span> <span class="s2">"/users"</span><span class="p">,</span> <span class="ss">to: </span><span class="s2">"users#create"</span>
+<span class="k">end</span>
+
+<span class="nb">puts</span> <span class="n">routes</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">inspect</span>
+<span class="c1"># =&gt; [{:method=&gt;:get, :path=&gt;"/users", :controller=&gt;"users#index"}, {:method=&gt;:post, :path=&gt;"/users", :controller=&gt;"users#create"}]</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Verification</h2>
+
+<p>Run all tests:</p>
+<div class="highlight"><pre class="highlight shell"><code>ruby test_config.rb
+ruby test_explicit.rb
+ruby benchmark_comparison.rb
+ruby test_query.rb
+ruby custom_attr.rb
+
+</code></pre></div>
+<p>All scripts should run without errors and demonstrate:<br>
+- <code>method_missing</code> intercepts undefined methods<br>
+- <code>respond_to_missing?</code> maintains introspection<br>
+- <code>define_method</code> creates real methods (faster, better introspection)<br>
+- Chaining enables DSL-like syntax<br>
+- Class macros reduce boilerplate</p>
+
+<hr>
 
 <h2>Solution Notes</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p><strong>Common Gotchas:</strong></p>
+
+<ol>
+<li><strong>Forgetting <code>respond_to_missing?</code>:</strong> Always implement it when using <code>method_missing</code>.</li>
+<li><strong>Not returning <code>self</code> for chaining:</strong> DSL methods must return <code>self</code> to enable <code>.where(...).order(...)</code>.</li>
+<li><strong>Using <code>define_method</code> at instance level:</strong> Call it on <code>self.class</code> or inside class definition.</li>
+<li><strong>Performance assumptions:</strong> Always benchmark; <code>method_missing</code> is slower.</li>
+<li><strong>Debugging confusion:</strong> Use <code>obj.methods.grep(/pattern/)</code> to see what actually exists.</li>
+</ol>
+
+<p><strong>Key Takeaways:</strong><br>
+- Use <code>define_method</code> when you know method names upfront.<br>
+- Reserve <code>method_missing</code> for truly dynamic cases (e.g., Rails <code>find_by_*</code>).<br>
+- Metaprogramming trades clarity for brevity; use sparingly.<br>
+- Always measure performance impact in real-world scenarios.</p>
+
+<hr>
+
+<h2>Time Estimate</h2>
+
+<p>25 minutes</p>
 
     
   </div>
@@ -766,74 +1451,311 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="respond_to_missing? to maintain introspection">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What must you always implement when using method_missing?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  define_method for the missing methods
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  respond_to_missing? to maintain introspection
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  super in the method_missing implementation
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  send to forward the calls
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> respond_to_missing? ensures respond_to? works correctly with method_missing, maintaining Ruby's introspection contract.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="It creates real methods that appear in .methods and are 5-10x faster">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">Why is define_method preferred over method_missing for known method names?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  It's easier to write
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  It creates real methods that appear in .methods and are 5-10x faster
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  method_missing is deprecated
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  define_method works in more Ruby versions
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> define_method creates actual methods that show up in introspection and avoid the performance cost of walking the ancestor chain.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="3"
              >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 3 (3 points)</h4>
+          <p style="margin: 10px 0;">Write a simple class macro that defines both a getter and setter for an attribute using define_method.</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">def self.my_attr(name)
+  define_method(name) { instance_variable_get("@#{name}") }
+  define_method("#{name}=") { |val| instance_variable_set("@#{name}", val) }
+end</p>
+            </div>
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="send bypasses privacy; public_send respects private/protected">
+          <h4>Question 4 (2 points)</h4>
+          <p style="margin: 10px 0;">What's the key difference between send and public_send?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  send is faster
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  public_send is newer syntax
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  send bypasses privacy; public_send respects private/protected
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  They are aliases
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> send can call private methods, breaking encapsulation. public_send raises NoMethodError for private methods, respecting visibility.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="It uses define_method to generate multiple association methods">
+          <h4>Question 5 (1 points)</h4>
+          <p style="margin: 10px 0;">How does Rails' has_many macro work internally?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  It uses method_missing to create association methods
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  It uses define_method to generate multiple association methods
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  It manually defines each method in C
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  It uses module prepending
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> has_many uses define_method to create posts, posts=, post_ids, posts.build, etc. at class definition time.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="2"
              >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">What method would you call on an object to see if a dynamically defined method exists?</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">obj.methods.grep(/pattern/) or obj.respond_to?(:method_name)</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="When explicit code is clearer, performance matters, or it breaks tooling">
+          <h4>Question 7 (2 points)</h4>
+          <p style="margin: 10px 0;">When should you avoid metaprogramming?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  Never, it's always better
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  When explicit code is clearer, performance matters, or it breaks tooling
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  Only in production
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  When using Rails
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Metaprogramming trades clarity for brevity. If it makes debugging harder, confuses editors, or hurts performance, explicit code is better.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Evaluates code in the context of an instance">
+          <h4>Question 8 (1 points)</h4>
+          <p style="margin: 10px 0;">What does instance_eval do?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  Evaluates code in the context of an instance
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  Creates a new instance
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  Evaluates instance variables
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Calls instance methods
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> instance_eval executes a block with self set to the receiver, giving access to instance variables and private methods.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="obj.method(:name).source_location">
+          <h4>Question 9 (2 points)</h4>
+          <p style="margin: 10px 0;">What debugging technique helps find where metaprogrammed methods are defined?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(8, 0)">
+                  puts in every method
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 1)">
+                  obj.method(:name).source_location
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 2)">
+                  binding.pry
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 3)">
+                  raise to get a stack trace
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> source_location returns the file and line number where a method was defined, helping trace dynamically created methods.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="short"
+             data-points="3"
+             >
+          <h4>Question 10 (3 points)</h4>
+          <p style="margin: 10px 0;">How would you make a DSL method chainable (e.g., query.where(...).order(...))</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Return self from each method so it can be chained</p>
+            </div>
           
         </div>
       
@@ -847,7 +1769,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -863,33 +1785,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://pragprog.com/titles/ppmetr2/metaprogramming-ruby-2/" target="_blank">Metaprogramming Ruby 2 (Paolo Perrotta)</a>
+            <div class="why">The definitive guide to Ruby metaprogramming. Covers method_missing, define_method, eval family, and Rails internals with clear examples and exercises.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://ruby-doc.org/core-3.2.0/BasicObject.html#method-i-method_missing" target="_blank">Ruby Documentation - Method Missing</a>
+            <div class="why">Official Ruby docs for method_missing and respond_to_missing?, including best practices and warnings about performance.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/rails/rails/blob/main/activerecord/lib/active_record/associations.rb" target="_blank">Rails Source - ActiveRecord::Associations::ClassMethods</a>
+            <div class="why">Read how Rails implements has_many, belongs_to using define_method and class_eval. Great real-world metaprogramming example.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.confidentruby.com/" target="_blank">Confident Ruby - Metaprogramming (Avdi Grimm)</a>
+            <div class="why">Chapter on when to use and when to avoid metaprogramming. Covers trade-offs between clarity and cleverness.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://thoughtbot.com/blog/ruby-metaprogramming-a-real-world-example" target="_blank">Understanding Ruby Metaprogramming (Thoughtbot)</a>
+            <div class="why">Practical blog post showing real-world DSL building with instance_eval and define_method. Includes refactoring examples.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.youtube.com/watch?v=l91Km6mBgFY" target="_blank">RailsConf - Metaprogramming for Dummies (Jim Weirich)</a>
+            <div class="why">Classic conference talk explaining method_missing, define_method, and eval family. Great for visual learners.</div>
+          </li>
+        
+          <li>
+            <a href="https://patshaughnessy.net/ruby-under-a-microscope" target="_blank">Ruby Under a Microscope (Pat Shaughnessy)</a>
+            <div class="why">Deep dive into Ruby internals including method lookup chain and why method_missing is slow. Includes performance benchmarks.</div>
           </li>
         
       </ul>

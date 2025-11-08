@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>

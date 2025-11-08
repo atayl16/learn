@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,71 +656,295 @@
 
 <h2>What It Is</h2>
 
-<p>Docker &amp; Containerization Basics is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>Docker is a platform for packaging applications and their dependencies into isolated containers—lightweight, portable units that run consistently across environments. A container bundles your Rails app, Ruby runtime, system libraries, and dependencies into a single image. Unlike virtual machines, containers share the host OS kernel, making them faster to start and lighter on resources. Multi-stage Dockerfiles optimize images by separating build-time tools from runtime dependencies.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Production Rails deployments require reproducibility. &quot;Works on my machine&quot; bugs disappear when dev and prod run identical containers. Docker simplifies deploying to Kubernetes, AWS ECS, or any cloud platform. Rails-specific challenges—precompiling assets, managing database migrations, handling secrets—require careful Dockerfile design. A poorly optimized image (2GB+) wastes bandwidth and slows deployments; a well-crafted multi-stage build produces 200-500MB images. Understanding layer caching cuts build times from 10 minutes to 30 seconds.</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li><strong>Production deployment:</strong> Ship to Kubernetes, ECS, or any container orchestrator</li>
+<li><strong>Development parity:</strong> Run the same environment locally and in production</li>
+<li><strong>CI/CD pipelines:</strong> Build once, test in container, deploy the same image</li>
+<li><strong>Microservices:</strong> Isolate services (Rails API, background workers, frontend)</li>
+<li><strong>Debugging production issues:</strong> Reproduce exact production environment locally</li>
+<li><strong>Legacy dependencies:</strong> Isolate old Ruby versions or system libraries</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><strong>Layer caching breaks on Gemfile changes:</strong> Copying the entire app before <code>bundle install</code> invalidates cache on every code change. Fix: copy <code>Gemfile</code> first, run <code>bundle install</code>, then copy app code.</li>
+<li><strong>Asset compilation in production containers:</strong> Running <code>rails assets:precompile</code> at runtime wastes startup time. Fix: Precompile in multi-stage build, copy compiled assets to final image.</li>
+<li><strong>Bloated images with build tools:</strong> Including gcc, make, and node in production images adds 500MB+. Fix: Use multi-stage builds to separate build dependencies from runtime.</li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>Docker Core Concepts</h2>
 
-<h3>Key Concept 1</h3>
+<h3>Images vs Containers</h3>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<p><strong>Image:</strong> A read-only template with your app and dependencies. Built from a Dockerfile.</p>
+
+<p><strong>Container:</strong> A running instance of an image. Writable, ephemeral.</p>
+<div class="highlight"><pre class="highlight shell"><code>docker build <span class="nt">-t</span> myapp:latest <span class="nb">.</span>       <span class="c"># Creates image</span>
+docker run <span class="nt">-p</span> 3000:3000 myapp:latest <span class="c"># Runs container from image</span>
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<h3>Layers &amp; Caching</h3>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<p>Each Dockerfile instruction creates a layer. Docker caches unchanged layers:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="k">FROM</span><span class="s"> ruby:3.2-alpine         # Layer 1: base image</span>
+<span class="k">RUN </span>apk add <span class="nt">--no-cache</span> build-base  <span class="c"># Layer 2: dependencies</span>
+<span class="k">COPY</span><span class="s"> Gemfile* ./             # Layer 3: gem files</span>
+<span class="k">RUN </span>bundle <span class="nb">install</span>           <span class="c"># Layer 4: installed gems (cached if Gemfile unchanged)</span>
+<span class="k">COPY</span><span class="s"> . .                     # Layer 5: app code (changes frequently)</span>
+</code></pre></div>
+<p><strong>Optimization:</strong> Order instructions from least to most frequently changed. Place <code>COPY . .</code> last so code changes don&#39;t invalidate gem cache.</p>
+
+<hr>
+
+<h2>Multi-Stage Builds for Rails</h2>
+
+<p>Multi-stage builds use multiple <code>FROM</code> statements. Early stages build assets and install gems; the final stage copies only runtime artifacts:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="c"># Stage 1: Build environment</span>
+<span class="k">FROM</span><span class="w"> </span><span class="s">ruby:3.2-alpine</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s">builder</span>
+
+<span class="k">RUN </span>apk add <span class="nt">--no-cache</span> build-base nodejs yarn postgresql-dev
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="k">COPY</span><span class="s"> Gemfile Gemfile.lock ./</span>
+<span class="k">RUN </span>bundle config <span class="nb">set</span> <span class="nt">--local</span> deployment <span class="s1">'true'</span> <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    bundle config <span class="nb">set</span> <span class="nt">--local</span> without <span class="s1">'development test'</span> <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    bundle <span class="nb">install</span> <span class="nt">--jobs</span> 4
+
+<span class="k">COPY</span><span class="s"> package.json yarn.lock ./</span>
+<span class="k">RUN </span>yarn <span class="nb">install</span> <span class="nt">--frozen-lockfile</span>
+
+<span class="k">COPY</span><span class="s"> . .</span>
+
+<span class="c"># Precompile assets</span>
+<span class="k">RUN </span><span class="nv">SECRET_KEY_BASE</span><span class="o">=</span>placeholder rails assets:precompile
+
+<span class="c"># Stage 2: Runtime environment</span>
+<span class="k">FROM</span><span class="s"> ruby:3.2-alpine</span>
+
+<span class="k">RUN </span>apk add <span class="nt">--no-cache</span> postgresql-client tzdata
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="c"># Copy only runtime dependencies</span>
+<span class="k">COPY</span><span class="s"> --from=builder /usr/local/bundle /usr/local/bundle</span>
+<span class="k">COPY</span><span class="s"> --from=builder /app /app</span>
+
+<span class="k">EXPOSE</span><span class="s"> 3000</span>
+
+<span class="k">CMD</span><span class="s"> ["rails", "server", "-b", "0.0.0.0"]</span>
+</code></pre></div>
+<p><strong>Key benefits:</strong><br>
+- Builder stage has gcc, make, node (build tools)<br>
+- Final image has only runtime dependencies<br>
+- Image size: 1.2GB → 350MB</p>
+
+<hr>
+
+<h2>Rails-Specific Dockerfile Concerns</h2>
+
+<h3>1. Asset Compilation</h3>
+
+<p><strong>Problem:</strong> Assets need to be precompiled before the app starts.</p>
+
+<p><strong>Solution:</strong> Precompile during image build:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="c"># In builder stage</span>
+<span class="k">ENV</span><span class="s"> RAILS_ENV=production</span>
+<span class="k">ENV</span><span class="s"> NODE_ENV=production</span>
+<span class="k">RUN </span><span class="nv">SECRET_KEY_BASE</span><span class="o">=</span>placeholder rails assets:precompile
+</code></pre></div>
+<p><strong>Why placeholder key?</strong> Assets:precompile doesn&#39;t need the real secret; it just needs a non-empty value.</p>
+
+<h3>2. Database Setup</h3>
+
+<p><strong>Problem:</strong> <code>rails db:migrate</code> shouldn&#39;t run in the Dockerfile (database may not exist yet).</p>
+
+<p><strong>Solution:</strong> Run migrations in a separate step (init container, deploy script):</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Deploy script</span>
+docker run myapp:latest rails db:migrate
+docker run <span class="nt">-d</span> myapp:latest rails server
+</code></pre></div>
+<p>Or use an entrypoint script:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="k">COPY</span><span class="s"> docker-entrypoint.sh /usr/local/bin/</span>
+<span class="k">RUN </span><span class="nb">chmod</span> +x /usr/local/bin/docker-entrypoint.sh
+<span class="k">ENTRYPOINT</span><span class="s"> ["docker-entrypoint.sh"]</span>
+</code></pre></div><div class="highlight"><pre class="highlight shell"><code><span class="c">#!/bin/sh</span>
+<span class="c"># docker-entrypoint.sh</span>
+bundle <span class="nb">exec </span>rails db:migrate
+<span class="nb">exec</span> <span class="s2">"</span><span class="nv">$@</span><span class="s2">"</span>
+</code></pre></div>
+<h3>3. Secrets Management</h3>
+
+<p><strong>Problem:</strong> Don&#39;t bake secrets into images.</p>
+
+<p><strong>Solution:</strong> Use environment variables or mounted secrets:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="c"># Don't do this:</span>
+<span class="c"># ENV DATABASE_PASSWORD=secret123</span>
+
+<span class="c"># Do this:</span>
+<span class="c"># Pass at runtime</span>
+docker run -e DATABASE_URL=postgres://... myapp:latest
+</code></pre></div>
+<p>Or use Docker secrets (Swarm/Kubernetes) or AWS Secrets Manager.</p>
+
+<h3>4. Gem Native Extensions</h3>
+
+<p><strong>Problem:</strong> Gems like <code>pg</code>, <code>nokogiri</code> need system libraries.</p>
+
+<p><strong>Solution:</strong> Install dev packages in builder, runtime libraries in final stage:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="c"># Builder</span>
+<span class="k">RUN </span>apk add <span class="nt">--no-cache</span> build-base postgresql-dev libxml2-dev
+
+<span class="c"># Runtime</span>
+<span class="k">RUN </span>apk add <span class="nt">--no-cache</span> postgresql-client libxml2
+</code></pre></div>
+<hr>
+
+<h2>Optimizing Image Size</h2>
+
+<h3>Alpine vs Debian</h3>
+
+<table><thead>
+<tr>
+<th>Base Image</th>
+<th>Size</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>ruby:3.2</code> (Debian)</td>
+<td>~900MB</td>
+<td>Full compatibility</td>
+<td>Large</td>
+</tr>
+<tr>
+<td><code>ruby:3.2-alpine</code></td>
+<td>~150MB</td>
+<td>Small, fast</td>
+<td>Some gems need tweaks</td>
+</tr>
+</tbody></table>
+
+<p><strong>Recommendation:</strong> Start with Alpine; fall back to Debian if gems fail to compile.</p>
+
+<h3>Layer Minimization</h3>
+
+<p>Combine <code>RUN</code> commands to reduce layers:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="c"># Bad: 3 layers</span>
+<span class="k">RUN </span>apk add build-base
+<span class="k">RUN </span>apk add postgresql-dev
+<span class="k">RUN </span>apk add nodejs
+
+<span class="c"># Good: 1 layer</span>
+<span class="k">RUN </span>apk add <span class="nt">--no-cache</span> build-base postgresql-dev nodejs
+</code></pre></div>
+<h3>.dockerignore</h3>
+
+<p>Exclude unnecessary files from build context:</p>
+<div class="highlight"><pre class="highlight plaintext"><code># .dockerignore
+.git
+log/*
+tmp/*
+node_modules
+coverage
+*.swp
+.env
+</code></pre></div>
+<p><strong>Impact:</strong> Reduces context size from 500MB to 50MB, speeds up <code>COPY . .</code>.</p>
+
+<hr>
+
+<h2>Debugging Containers</h2>
+
+<h3>Inspecting a Running Container</h3>
+<div class="highlight"><pre class="highlight shell"><code>docker ps                          <span class="c"># List running containers</span>
+docker <span class="nb">exec</span> <span class="nt">-it</span> &lt;container_id&gt; sh  <span class="c"># Open shell inside container</span>
+</code></pre></div>
+<h3>Viewing Logs</h3>
+<div class="highlight"><pre class="highlight shell"><code>docker logs &lt;container_id&gt;         <span class="c"># View stdout/stderr</span>
+docker logs <span class="nt">-f</span> &lt;container_id&gt;      <span class="c"># Follow logs</span>
+</code></pre></div>
+<h3>Debugging Build Failures</h3>
+<div class="highlight"><pre class="highlight shell"><code>docker build <span class="nt">--no-cache</span> <span class="nt">-t</span> myapp <span class="nb">.</span>  <span class="c"># Force rebuild all layers</span>
+docker build <span class="nt">--target</span> builder <span class="nt">-t</span> myapp-builder <span class="nb">.</span>  <span class="c"># Build only builder stage</span>
+docker run <span class="nt">-it</span> myapp-builder sh    <span class="c"># Inspect builder stage</span>
+</code></pre></div>
+<h3>Common Errors</h3>
+
+<p><strong>Error:</strong> <code>Gem::Ext::BuildError: ERROR: Failed to build gem native extension</code></p>
+
+<p><strong>Fix:</strong> Install missing system libraries:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="k">RUN </span>apk add <span class="nt">--no-cache</span> build-base postgresql-dev
+</code></pre></div>
+<p><strong>Error:</strong> <code>ExecJS::RuntimeUnavailable: Could not find a JavaScript runtime</code></p>
+
+<p><strong>Fix:</strong> Install Node.js:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="k">RUN </span>apk add <span class="nt">--no-cache</span> nodejs
 </code></pre></div>
 <hr>
 
 <h2>Best Practices</h2>
 
-<ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
-</ol>
+<ul>
+<li>Use multi-stage builds to separate build and runtime dependencies</li>
+<li>Copy <code>Gemfile</code> before app code to leverage layer caching</li>
+<li>Precompile assets during build, not at runtime</li>
+<li>Use <code>.dockerignore</code> to exclude logs, tmp, node_modules</li>
+<li>Run as non-root user for security</li>
+<li>Pin base image versions (<code>ruby:3.2.2-alpine</code>, not <code>ruby:latest</code>)</li>
+<li>Set <code>RAILS_ENV=production</code> and <code>NODE_ENV=production</code></li>
+<li>Use <code>bundle config set --local deployment &#39;true&#39;</code> for production installs</li>
+<li>Avoid installing development/test gems in production</li>
+<li>Handle database migrations outside the image build</li>
+</ul>
 
+<hr>
+
+<h2>Running as Non-Root User</h2>
+
+<p><strong>Problem:</strong> Containers run as root by default (security risk).</p>
+
+<p><strong>Solution:</strong> Create a user:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="k">RUN </span>addgroup <span class="nt">-g</span> 1000 rails <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    adduser <span class="nt">-D</span> <span class="nt">-u</span> 1000 <span class="nt">-G</span> rails rails
+
+<span class="k">USER</span><span class="s"> rails</span>
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+</code></pre></div>
 <hr>
 
 <h2>Key Terms</h2>
 
 <ul>
-<li><strong>Dockerfile</strong></li>
-<li><strong>multi-stage builds</strong></li>
-<li><strong>layers</strong></li>
-<li><strong>docker-compose</strong></li>
-<li><strong>image optimization</strong></li>
+<li><strong>Image</strong> - Read-only template with app and dependencies</li>
+<li><strong>Container</strong> - Running instance of an image</li>
+<li><strong>Layer</strong> - Each Dockerfile instruction creates a cached layer</li>
+<li><strong>Multi-stage build</strong> - Use multiple FROM statements to optimize final image</li>
+<li><strong>Build context</strong> - Files sent to Docker daemon (controlled by .dockerignore)</li>
+<li><strong>Layer caching</strong> - Docker reuses unchanged layers to speed builds</li>
+<li><strong>Alpine</strong> - Minimal Linux distribution (~5MB base)</li>
+<li><strong>Entrypoint</strong> - Script that runs before CMD, useful for migrations</li>
 </ul>
 
 <hr>
 
 <h2>Summary</h2>
 
-<p>Docker &amp; Containerization Basics is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
+<p>Docker packages Rails apps into portable containers that run identically everywhere. Multi-stage builds separate build tools from production runtime, reducing image size by 60%+. Layer caching is critical: copy Gemfile before app code, order instructions least-to-most frequently changed. Precompile assets during build, run migrations outside the image. Use Alpine for small images, .dockerignore to exclude junk, non-root users for security.</p>
 
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<p><strong>Next steps:</strong> Complete the exercise to build a production-ready Dockerfile with multi-stage builds.</p>
 
     
   </div>
@@ -706,55 +956,465 @@
     
       <h1>Exercise: Docker &amp; Containerization Basics</h1>
 
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
-
 <h2>Objective</h2>
 
-<p>Build hands-on experience with docker &amp; containerization basics through practical implementation.</p>
+<p>Build a production-ready Rails Dockerfile with multi-stage builds, layer caching optimization, and security best practices.</p>
 
-<h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new docker_containerization_practice
-<span class="nb">cd </span>docker_containerization_practice
+<h2>Task</h2>
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
-</code></pre></div>
-<h2>Tasks</h2>
+<p>Create an optimized Docker container for a Rails application:</p>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
+<ol>
+<li>Create a multi-stage Dockerfile using Alpine Linux base image</li>
+<li>Implement layer caching strategies to minimize rebuild times</li>
+<li>Configure asset precompilation in the build stage</li>
+<li>Set up a non-root user for security</li>
+<li>Build and run the container, measuring image sizes and build times</li>
+</ol>
 
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
-</code></pre></div>
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
-
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
-
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
-
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
-
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
-
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
-</code></pre></div>
-<h2>Stretch Goals</h2>
+<h2>Acceptance Criteria</h2>
 
 <ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
+<li>[ ] Multi-stage Dockerfile with separate <code>builder</code> and <code>runner</code> stages</li>
+<li>[ ] Alpine-based images reducing final size to under 200MB</li>
+<li>[ ] Non-root user <code>rails</code> runs the application (not root)</li>
+<li>[ ] Assets precompiled in build stage, not at runtime</li>
+<li>[ ] Layer caching optimized: dependencies installed before copying source code</li>
+<li>[ ] <code>.dockerignore</code> excludes unnecessary files (log/, tmp/, .git/)</li>
+<li>[ ] Container runs and serves HTTP traffic on port 3000</li>
+<li>[ ] Build time under 5 minutes on clean build, under 30 seconds on cached builds</li>
 </ul>
 
+<h2>Verification Steps</h2>
+
+<ol>
+<li>Build the image and check size:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code>docker build <span class="nt">-t</span> rails-demo:optimized <span class="nb">.</span>
+
+<span class="c"># Check image size (should be &lt; 200MB)</span>
+docker images rails-demo:optimized
+
+</code></pre></div>
+<ol>
+<li>Verify non-root user:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code>docker run <span class="nt">--rm</span> rails-demo:optimized <span class="nb">id</span>
+<span class="c"># Should output: uid=1000(rails) gid=1000(rails) groups=1000(rails)</span>
+
+</code></pre></div>
+<ol>
+<li>Run container and test HTTP access:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code>docker run <span class="nt">-p</span> 3000:3000 <span class="nt">--rm</span> rails-demo:optimized
+
+<span class="c"># In another terminal</span>
+curl http://localhost:3000
+<span class="c"># Should return Rails welcome page or app homepage</span>
+
+</code></pre></div>
+<ol>
+<li>Test layer caching - change app code and rebuild:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Edit app/controllers/application_controller.rb</span>
+<span class="c"># Add a comment, then rebuild</span>
+
+docker build <span class="nt">-t</span> rails-demo:optimized <span class="nb">.</span>
+<span class="c"># Should skip dependency layers and complete in ~30 seconds</span>
+
+</code></pre></div>
+<h2>Setup Code</h2>
+
+<h3>Step 1: Create Rails Application</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create new Rails app with minimal setup</span>
+rails new docker_demo <span class="nt">--skip-test</span> <span class="nt">--skip-javascript</span> <span class="nt">--database</span><span class="o">=</span>postgresql
+<span class="nb">cd </span>docker_demo
+
+<span class="c"># Generate a simple controller to test</span>
+bin/rails generate controller Pages home
+
+</code></pre></div>
+<p>Edit <code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">root</span> <span class="s1">'pages#home'</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Edit <code>app/views/pages/home.html.erb</code>:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="nt">&lt;h1&gt;</span>Docker Containerization Demo<span class="nt">&lt;/h1&gt;</span>
+<span class="nt">&lt;p&gt;</span>This Rails app is running in a Docker container!<span class="nt">&lt;/p&gt;</span>
+<span class="nt">&lt;p&gt;</span>Time: <span class="cp">&lt;%=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
+
+</code></pre></div>
+<h3>Step 2: Create .dockerignore</h3>
+
+<p>Create <code>.dockerignore</code> at project root:</p>
+<div class="highlight"><pre class="highlight plaintext"><code># Ignore bundler config
+.bundle
+
+# Ignore all logfiles and tempfiles
+log/*
+tmp/*
+
+# Ignore uploaded files in development
+storage/*
+
+# Ignore master key for decrypting credentials
+config/master.key
+
+# Ignore assets that will be compiled
+public/assets/*
+public/packs/*
+
+# Ignore git and CI files
+.git
+.gitignore
+.github
+.dockerignore
+
+# Ignore local development files
+.env
+.env.local
+
+# Ignore node_modules
+node_modules
+
+# Ignore test files
+spec
+test
+
+# Ignore documentation
+README.md
+doc
+
+</code></pre></div>
+<h3>Step 3: Create Multi-Stage Dockerfile</h3>
+
+<p>Create <code>Dockerfile</code> at project root:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="c"># syntax=docker/dockerfile:1</span>
+
+<span class="c"># ==================================</span>
+<span class="c"># Stage 1: Builder</span>
+<span class="c"># ==================================</span>
+<span class="k">FROM</span><span class="w"> </span><span class="s">ruby:3.2.2-alpine</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s">builder</span>
+
+<span class="c"># Install build dependencies</span>
+<span class="k">RUN </span>apk add <span class="nt">--no-cache</span> <span class="se">\
+</span>  build-base <span class="se">\
+</span>  postgresql-dev <span class="se">\
+</span>  git <span class="se">\
+</span>  nodejs <span class="se">\
+</span>  yarn <span class="se">\
+</span>  tzdata
+
+<span class="c"># Set working directory</span>
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="c"># Copy dependency files first (for layer caching)</span>
+<span class="k">COPY</span><span class="s"> Gemfile Gemfile.lock ./</span>
+
+<span class="c"># Install gems to system (not vendor/bundle for smaller image)</span>
+<span class="k">RUN </span>bundle config <span class="nb">set</span> <span class="nt">--local</span> deployment <span class="s1">'true'</span> <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    bundle config <span class="nb">set</span> <span class="nt">--local</span> without <span class="s1">'development test'</span> <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    bundle <span class="nb">install</span> <span class="nt">--jobs</span> 4 <span class="nt">--retry</span> 3 <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    <span class="nb">rm</span> <span class="nt">-rf</span> /usr/local/bundle/cache/<span class="k">*</span>.gem <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    find /usr/local/bundle/gems/ <span class="nt">-name</span> <span class="s2">"*.c"</span> <span class="nt">-delete</span> <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    find /usr/local/bundle/gems/ <span class="nt">-name</span> <span class="s2">"*.o"</span> <span class="nt">-delete</span>
+
+<span class="c"># Copy application code</span>
+<span class="k">COPY</span><span class="s"> . .</span>
+
+<span class="c"># Precompile assets (if using asset pipeline)</span>
+<span class="c"># This runs in the builder stage to keep runner slim</span>
+<span class="k">RUN </span><span class="nv">SECRET_KEY_BASE</span><span class="o">=</span>dummy bundle <span class="nb">exec </span>rails assets:precompile
+
+<span class="c"># Remove development/test files</span>
+<span class="k">RUN </span><span class="nb">rm</span> <span class="nt">-rf</span> spec <span class="nb">test </span>tmp/cache
+
+<span class="c"># ==================================</span>
+<span class="c"># Stage 2: Runner</span>
+<span class="c"># ==================================</span>
+<span class="k">FROM</span><span class="w"> </span><span class="s">ruby:3.2.2-alpine</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s">runner</span>
+
+<span class="c"># Install runtime dependencies only</span>
+<span class="k">RUN </span>apk add <span class="nt">--no-cache</span> <span class="se">\
+</span>  postgresql-client <span class="se">\
+</span>  tzdata <span class="se">\
+</span>  curl
+
+<span class="c"># Create non-root user</span>
+<span class="k">RUN </span>addgroup <span class="nt">-g</span> 1000 rails <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    adduser <span class="nt">-D</span> <span class="nt">-u</span> 1000 <span class="nt">-G</span> rails rails
+
+<span class="c"># Set working directory</span>
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="c"># Copy bundled gems from builder</span>
+<span class="k">COPY</span><span class="s"> --from=builder /usr/local/bundle /usr/local/bundle</span>
+
+<span class="c"># Copy application from builder</span>
+<span class="k">COPY</span><span class="s"> --from=builder --chown=rails:rails /app /app</span>
+
+<span class="c"># Switch to non-root user</span>
+<span class="k">USER</span><span class="s"> rails</span>
+
+<span class="c"># Expose port</span>
+<span class="k">EXPOSE</span><span class="s"> 3000</span>
+
+<span class="c"># Set production environment</span>
+<span class="k">ENV</span><span class="s"> RAILS_ENV=production \</span>
+    RAILS_LOG_TO_STDOUT=true \
+    RAILS_SERVE_STATIC_FILES=true
+
+<span class="c"># Health check</span>
+<span class="k">HEALTHCHECK</span><span class="s"> --interval=30s --timeout=3s --start-period=40s --retries=3 \</span>
+  CMD curl -f http://localhost:3000 || exit 1
+
+<span class="c"># Start Rails server</span>
+<span class="k">CMD</span><span class="s"> ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]</span>
+
+</code></pre></div>
+<h3>Step 4: Create docker-compose.yml for Development</h3>
+
+<p>Create <code>docker-compose.yml</code>:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.8'</span>
+
+<span class="na">services</span><span class="pi">:</span>
+  <span class="na">db</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">postgres:15-alpine</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">POSTGRES_USER</span><span class="pi">:</span> <span class="s">postgres</span>
+      <span class="na">POSTGRES_PASSWORD</span><span class="pi">:</span> <span class="s">postgres</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">postgres_data:/var/lib/postgresql/data</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">5432:5432"</span>
+
+  <span class="na">web</span><span class="pi">:</span>
+    <span class="na">build</span><span class="pi">:</span>
+      <span class="na">context</span><span class="pi">:</span> <span class="s">.</span>
+      <span class="na">dockerfile</span><span class="pi">:</span> <span class="s">Dockerfile</span>
+    <span class="na">command</span><span class="pi">:</span> <span class="s">bundle exec rails server -b 0.0.0.0</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">DATABASE_URL</span><span class="pi">:</span> <span class="s">postgresql://postgres:postgres@db:5432/docker_demo_production</span>
+      <span class="na">RAILS_ENV</span><span class="pi">:</span> <span class="s">production</span>
+      <span class="na">SECRET_KEY_BASE</span><span class="pi">:</span> <span class="s">insecure_secret_for_demo_only_change_in_production</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">3000:3000"</span>
+    <span class="na">depends_on</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">db</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">./:/app</span>
+
+<span class="na">volumes</span><span class="pi">:</span>
+  <span class="na">postgres_data</span><span class="pi">:</span>
+
+</code></pre></div>
+<h3>Step 5: Configure Database</h3>
+
+<p>Edit <code>config/database.yml</code> to support DATABASE_URL:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">production</span><span class="pi">:</span>
+  <span class="na">&lt;&lt;</span><span class="pi">:</span> <span class="nv">*default</span>
+  <span class="na">url</span><span class="pi">:</span> <span class="s">&lt;%= ENV['DATABASE_URL'] %&gt;</span>
+
+</code></pre></div>
+<h3>Step 6: Build and Run</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Build the image</span>
+docker build <span class="nt">-t</span> rails-demo:optimized <span class="nb">.</span>
+
+<span class="c"># Check image size</span>
+docker images rails-demo:optimized
+
+<span class="c"># Run with docker-compose (includes database)</span>
+docker-compose up <span class="nt">--build</span>
+
+<span class="c"># In another terminal, create database</span>
+docker-compose <span class="nb">exec </span>web bundle <span class="nb">exec </span>rails db:create db:migrate
+
+</code></pre></div>
+<p>Visit <a href="http://localhost:3000" target="_blank">http://localhost:3000</a> - you should see your homepage.</p>
+
+<h3>Step 7: Test Layer Caching</h3>
+
+<p>Make a small code change:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Edit app/views/pages/home.html.erb</span>
+<span class="c"># Add: &lt;p&gt;Updated at: &lt;%= Time.current.to_s(:long) %&gt;&lt;/p&gt;</span>
+
+<span class="c"># Rebuild - notice cached layers</span>
+<span class="nb">time </span>docker build <span class="nt">-t</span> rails-demo:optimized <span class="nb">.</span>
+
+</code></pre></div>
+<p>Output should show:</p>
+<div class="highlight"><pre class="highlight plaintext"><code> =&gt; CACHED [builder 2/8] RUN apk add --no-cache ...
+ =&gt; CACHED [builder 4/8] COPY Gemfile Gemfile.lock ./
+ =&gt; CACHED [builder 5/8] RUN bundle config ...
+</code></pre></div>
+<p>Build time should be under 1 minute.</p>
+
+<h3>Step 8: Verify Security - Non-Root User</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Check what user runs the process</span>
+docker run <span class="nt">--rm</span> rails-demo:optimized <span class="nb">whoami</span>
+<span class="c"># Output: rails</span>
+
+docker run <span class="nt">--rm</span> rails-demo:optimized <span class="nb">id</span>
+<span class="c"># Output: uid=1000(rails) gid=1000(rails) groups=1000(rails)</span>
+
+<span class="c"># Try to write to protected directory (should fail)</span>
+docker run <span class="nt">--rm</span> rails-demo:optimized sh <span class="nt">-c</span> <span class="s2">"touch /etc/test"</span>
+<span class="c"># Output: touch: /etc/test: Permission denied</span>
+
+</code></pre></div>
+<h3>Step 9: Measure Optimization Impact</h3>
+
+<p>Create an unoptimized Dockerfile for comparison:</p>
+
+<p>Create <code>Dockerfile.unoptimized</code>:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="k">FROM</span><span class="s"> ruby:3.2.2</span>
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="c"># No layer optimization - copy everything first</span>
+<span class="k">COPY</span><span class="s"> . .</span>
+
+<span class="c"># Install dependencies after copying code</span>
+<span class="k">RUN </span>bundle <span class="nb">install</span>
+
+<span class="c"># Run as root (insecure)</span>
+<span class="c"># No multi-stage build (larger image)</span>
+
+<span class="k">EXPOSE</span><span class="s"> 3000</span>
+
+<span class="k">CMD</span><span class="s"> ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]</span>
+
+</code></pre></div>
+<p>Compare:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Build unoptimized version</span>
+docker build <span class="nt">-f</span> Dockerfile.unoptimized <span class="nt">-t</span> rails-demo:unoptimized <span class="nb">.</span>
+
+<span class="c"># Compare sizes</span>
+docker images | <span class="nb">grep </span>rails-demo
+
+<span class="c"># Optimized: ~150MB</span>
+<span class="c"># Unoptimized: ~900MB</span>
+
+</code></pre></div>
+<h2>Stretch (Optional)</h2>
+
+<ol>
+<li><strong>Add BuildKit caching with mount cache:</strong></li>
+</ol>
+
+<p>Edit Dockerfile builder stage:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="c"># Install gems with mount cache</span>
+<span class="k">RUN </span><span class="nt">--mount</span><span class="o">=</span><span class="nb">type</span><span class="o">=</span>cache,target<span class="o">=</span>/usr/local/bundle/cache <span class="se">\
+</span>    bundle config <span class="nb">set</span> <span class="nt">--local</span> deployment <span class="s1">'true'</span> <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    bundle <span class="nb">install</span> <span class="nt">--jobs</span> 4 <span class="nt">--retry</span> 3
+
+</code></pre></div>
+<p>Build with BuildKit:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nv">DOCKER_BUILDKIT</span><span class="o">=</span>1 docker build <span class="nt">-t</span> rails-demo:buildkit <span class="nb">.</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Implement .dockerignore optimization check:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># See what files Docker sends to build context</span>
+docker build <span class="nt">--no-cache</span> <span class="nt">-t</span> rails-demo <span class="nb">.</span> 2&gt;&amp;1 | <span class="nb">grep</span> <span class="s2">"Sending build context"</span>
+
+<span class="c"># Should be under 10MB if .dockerignore works</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Add multi-platform builds:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Build for AMD64 and ARM64</span>
+docker buildx create <span class="nt">--use</span>
+docker buildx build <span class="nt">--platform</span> linux/amd64,linux/arm64 <span class="nt">-t</span> rails-demo:multi <span class="nb">.</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Scan for vulnerabilities:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Install trivy</span>
+<span class="c"># On macOS: brew install aquasecurity/trivy/trivy</span>
+<span class="c"># On Linux: see https://github.com/aquasecurity/trivy</span>
+
+trivy image rails-demo:optimized
+
+</code></pre></div>
+<ol>
+<li><strong>Optimize for faster startup:</strong></li>
+</ol>
+
+<p>Add bootsnap configuration in Dockerfile:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="c"># In runner stage, precompile bootsnap cache</span>
+<span class="k">RUN </span>bundle <span class="nb">exec </span>bootsnap precompile <span class="nt">--gemfile</span> app/ lib/
+
+</code></pre></div>
+<ol>
+<li><strong>Implement Docker secrets for production:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a secret</span>
+<span class="nb">echo</span> <span class="s2">"my-secret-key"</span> | docker secret create rails_secret_key_base -
+
+<span class="c"># Use in docker-compose.yml</span>
+services:
+  web:
+    secrets:
+      - rails_secret_key_base
+    environment:
+      SECRET_KEY_BASE_FILE: /run/secrets/rails_secret_key_base
+
+secrets:
+  rails_secret_key_base:
+    external: <span class="nb">true</span>
+
+</code></pre></div>
 <h2>Solution Notes</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p><strong>Common Gotchas:</strong></p>
+
+<ol>
+<li><p><strong>Assets not found:</strong> If you see asset 404s, ensure <code>RAILS_SERVE_STATIC_FILES=true</code> is set and assets are precompiled in builder stage.</p></li>
+<li><p><strong>Permission errors:</strong> If the container can&#39;t write to <code>tmp/</code> or <code>log/</code>, ensure those directories have correct ownership:<br>
+<code>dockerfile<br>
+RUN mkdir -p tmp/pids log &amp;&amp; \<br>
+   chown -R rails:rails tmp log<br>
+</code></p></li>
+<li><p><strong>Database connection errors:</strong> Use <code>DATABASE_URL</code> environment variable instead of hardcoded config. Wait for database to be ready:<br>
+<code>bash<br>
+docker-compose exec web bundle exec rails db:create<br>
+</code></p></li>
+<li><p><strong>Slow builds:</strong> Ensure Gemfile/Gemfile.lock are copied BEFORE application code. Check .dockerignore excludes large directories.</p></li>
+<li><p><strong>Large image size:</strong> Verify multi-stage build is working. Check <code>docker history rails-demo:optimized</code> to see layer sizes. Remove build dependencies from runner stage.</p></li>
+</ol>
+
+<p><strong>Layer Caching Best Practices:</strong></p>
+
+<ul>
+<li>Copy dependency files (Gemfile) before source code</li>
+<li>Install dependencies before copying application</li>
+<li>Use <code>.dockerignore</code> to exclude unnecessary files</li>
+<li>Group RUN commands that change together with <code>&amp;&amp;</code></li>
+<li>Put frequently changing steps (COPY app code) last</li>
+</ul>
+
+<p><strong>Production Readiness Checklist:</strong></p>
+
+<ul>
+<li>[ ] Non-root user configured</li>
+<li>[ ] Multi-stage build reduces image size</li>
+<li>[ ] Secrets managed via environment or Docker secrets</li>
+<li>[ ] Health check endpoint configured</li>
+<li>[ ] Logs sent to STDOUT for container logging</li>
+<li>[ ] Static files served efficiently</li>
+<li>[ ] Alpine base image for minimal attack surface</li>
+<li>[ ] No development dependencies in final image</li>
+</ul>
+
+<h2>Time Estimate</h2>
+
+<p>22 minutes</p>
 
     
   </div>
@@ -766,74 +1426,368 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Each RUN command creates a new layer; Docker skips rebuilding unchanged layers when dependencies haven't changed">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">How do Docker layers enable build caching?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  Each RUN command creates a new layer; Docker skips rebuilding unchanged layers when dependencies haven't changed
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  Docker automatically deduplicates identical files across all containers on the system
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  Build caching only works with the --no-cache flag
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  Layers are cached in RAM during the build process and discarded after
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Docker's layer caching is based on command history. When input hasn't changed, Docker reuses the cached layer, avoiding expensive re-execution. This is why ordering RUN commands matters—expensive operations should come after frequently-changing steps.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Build dependencies and compiler tools can be discarded in the final image, reducing size and attack surface">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the primary benefit of multi-stage Docker builds?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  They allow you to use different base images for different services
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  Build dependencies and compiler tools can be discarded in the final image, reducing size and attack surface
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  They automatically parallelize building on multi-core systems
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Multi-stage builds enable simultaneous development by multiple team members
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Multi-stage builds let you compile or prepare assets in an intermediate stage, then copy only the necessary artifacts to a minimal final image. This eliminates build tools, headers, and source code from production images.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="During the multi-stage build in an intermediate builder stage before the COPY command">
+          <h4>Question 3 (1 points)</h4>
+          <p style="margin: 10px 0;">In a Rails Dockerfile, where should asset precompilation typically occur?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  In the final stage, using a RUN command before starting the Rails server
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  As a separate Docker command run after container startup
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  Using a Docker volume mount to precompile from the host machine
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  During the multi-stage build in an intermediate builder stage before the COPY command
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Asset precompilation requires source files but the compiled assets are all you need in production. Using a builder stage lets you precompile, then COPY only public/assets/ to the final stage. This keeps the final image small and avoids recompiling on every deployment.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="It limits the damage if a container is compromised; root access inside a container can potentially escape to the host">
+          <h4>Question 4 (2 points)</h4>
+          <p style="margin: 10px 0;">Why is running applications as a non-root user important in Docker?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  Non-root users execute containers faster
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  It limits the damage if a container is compromised; root access inside a container can potentially escape to the host
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  Docker automatically restricts root users from accessing the network
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  Non-root users allow container-to-container communication
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Running as non-root follows the principle of least privilege. While container isolation provides protection, using root increases risk. If an attacker gains code execution, non-root privileges limit what they can do locally within and potentially outside the container.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Use the USER directive after creating a user with RUN addgroup and RUN adduser">
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the correct approach to add a non-root user in a Dockerfile?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  Use the USER directive after creating a user with RUN addgroup and RUN adduser
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  Modify /etc/sudoers in the Dockerfile to create a non-root account
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  Specify the non-root user when running 'docker run' with the --user flag only
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  Create a group but no specific user; Docker automatically runs as a pseudo-user
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Create the user/group with RUN commands (using base image tools), then switch to that user with USER appuser. This ensures all subsequent commands and the container's main process run as that user, not root.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="build/ dist/ node_modules/ .git .gitignore .env .env.* log/ tmp/ and other non-essential files">
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">What should .dockerignore include to optimize Docker builds?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  Only git-related files and directories like .git
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  build/ dist/ node_modules/ .git .gitignore .env .env.* log/ tmp/ and other non-essential files
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  All source code files, since Docker builds from compiled artifacts only
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  Nothing; .dockerignore slows down Docker builds
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> .dockerignore prevents unnecessary files from being sent to the Docker daemon, reducing build context size and speeding up builds. Exclude version control, logs, temporary files, and development dependencies that you'll reinstall in the image.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Use docker run on the previous layer's image to interactively debug the environment and commands">
+          <h4>Question 7 (1 points)</h4>
+          <p style="margin: 10px 0;">How do you debug a Dockerfile build failure when a RUN command fails?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  You must rewrite the entire Dockerfile and rebuild
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  Use docker run on the previous layer's image to interactively debug the environment and commands
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  Add verbose output flags to the docker build command
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  Docker automatically logs all failures to a debug.log file
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> If RUN command X fails, Docker has successfully cached the previous layer. You can run a container from that layer (docker run -it <layer-id> bash) to test commands in the exact environment where the build failed.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Using COPY or ADD commands that bring in frequently-changing files before stable dependencies">
+          <h4>Question 8 (2 points)</h4>
+          <p style="margin: 10px 0;">What is a common cause of Docker layer caching being bypassed?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  Using COPY or ADD commands that bring in frequently-changing files before stable dependencies
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  Installing dependencies before copying source code
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  Using a base image with a specific version tag (not 'latest')
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Running with the --cache flag instead of --no-cache
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> If COPY . . comes before RUN npm install, every source code change invalidates the dependency layer's cache, forcing a rebuild. The best practice is to COPY only dependency files (package.json, Gemfile) before RUN install commands, then COPY source code later.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Use Docker secrets or BuildKit secrets; never hardcode or use ENV for production secrets">
+          <h4>Question 9 (2 points)</h4>
+          <p style="margin: 10px 0;">How should you manage secrets (API keys, database passwords) in Docker builds?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(8, 0)">
+                  Build them into the image using ENV statements in the Dockerfile
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 1)">
+                  Use Docker secrets or BuildKit secrets; never hardcode or use ENV for production secrets
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 2)">
+                  Store secrets in .env files and COPY them into the image
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 3)">
+                  Always pass secrets as ARG values during build time
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Secrets hardcoded in images are permanently exposed in the layer history. Use Docker's secret management, BuildKit --secret mounts, or supply secrets at runtime via environment variables or external vaults. Never COPY .env files into images.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Use docker logs <container-id> to view the stdout/stderr of the main process">
+          <h4>Question 10 (1 points)</h4>
+          <p style="margin: 10px 0;">When debugging a running container, which approach is most effective for accessing logs?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(9, 0)">
+                  Use docker logs <container-id> to view the stdout/stderr of the main process
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 1)">
+                  Open an SSH connection to the running container
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 2)">
+                  Use docker inspect to directly read memory
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 3)">
+                  Restart the container with verbose flags to re-generate logs
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> docker logs captures the main process output (PID 1), which is the most reliable way to debug running containers. You can also use docker exec -it <container> bash to get an interactive shell inside the container for further debugging.
+              </div>
+            
           
         </div>
       
@@ -847,7 +1801,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -863,33 +1817,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://docs.docker.com/get-started/" target="_blank">Docker Documentation — Getting Started</a>
+            <div class="why">Official Docker documentation covering fundamentals: containers, images, volumes, networking, and Docker Compose.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://gorails.com/guides/using-docker-for-rails-development" target="_blank">Rails on Docker (GoRails Guide)</a>
+            <div class="why">Practical guide to setting up Rails development environment with Docker, including Docker Compose configuration.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://hub.docker.com/_/ruby" target="_blank">Docker Official Images — Ruby</a>
+            <div class="why">Best practices for Ruby Docker images, version tags, and production-ready base images for Rails apps.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://docs.docker.com/build/building/multi-stage/" target="_blank">Multi-stage Builds in Docker</a>
+            <div class="why">Official guide to optimizing image sizes and build performance using multi-stage Dockerfiles.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://docs.docker.com/develop/dev-best-practices/" target="_blank">Production Best Practices for Containers (Docker)</a>
+            <div class="why">Security, optimization, and operational best practices for running containers in production.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/GoogleContainerTools/container-structure-test" target="_blank">Container Structure Tests</a>
+            <div class="why">Framework for testing Docker image structure, contents, and behavior to ensure reproducibility.</div>
+          </li>
+        
+          <li>
+            <a href="https://docs.github.com/en/actions/publishing-packages/publishing-docker-images" target="_blank">GitHub Actions — Building and Pushing Docker Images</a>
+            <div class="why">CI/CD integration patterns for automating Docker image builds, tests, and deployment.</div>
           </li>
         
       </ul>

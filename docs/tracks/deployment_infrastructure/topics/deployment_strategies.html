@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,71 +656,347 @@
 
 <h2>What It Is</h2>
 
-<p>Deployment Strategies is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>Deployment strategies are systematic approaches to releasing new versions of your Rails application to production with minimal risk and downtime. Blue-green deployment maintains two identical production environments and switches traffic between them. Canary releases gradually roll out changes to a small subset of users before full deployment. Rolling deployments incrementally replace old instances with new ones. Each strategy balances risk, complexity, and downtime differently. The goal is zero-downtime deployments where users experience no service interruption during releases.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Deploying to production is high-stakes. A bad deployment can bring down your entire application, costing revenue and customer trust. Traditional &quot;stop-the-world&quot; deployments require maintenance windows and angry users. Modern deployment strategies eliminate downtime, enable rapid rollbacks, and reduce blast radius when bugs slip through. Choosing the wrong strategy can mean unnecessary infrastructure costs (blue-green doubles resources temporarily) or increased complexity (canary requires sophisticated traffic routing). Rails apps have specific concerns: database migrations must be backward compatible, asset compilation happens before deployment, and background jobs need graceful shutdown.</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li><strong>Blue-green deployment:</strong> When you need instant rollback capability and can afford 2x infrastructure during cutover</li>
+<li><strong>Canary releases:</strong> When testing new features with real traffic before full rollout, especially for high-risk changes</li>
+<li><strong>Rolling deployments:</strong> For cost-efficient gradual updates when you can tolerate brief mixed-version states</li>
+<li><strong>Feature flags with deployment:</strong> When deploying code that&#39;s not yet ready for all users</li>
+<li><strong>Database migrations:</strong> When schema changes require careful coordination with code deployments</li>
+<li><strong>High-traffic applications:</strong> When even 1 second of downtime costs thousands in lost revenue</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><strong>Database migration incompatibility:</strong> Deploying code that requires new columns before running migrations breaks the old version. Fix: Make migrations backward-compatible. Add columns as nullable first, backfill data, then deploy code that uses them.</li>
+<li><strong>Session store incompatibility:</strong> Blue-green switches instantly, but user sessions may have old data structures. Fix: Use database-backed sessions or ensure session data is backward compatible across versions.</li>
+<li><strong>Health checks that lie:</strong> A health check that returns 200 before the app is fully ready (database connections, caches warmed) causes traffic to hit broken instances. Fix: Implement deep health checks that verify all critical dependencies.</li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>Core Deployment Strategies</h2>
 
-<h3>Key Concept 1</h3>
+<h3>Blue-Green Deployment</h3>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<p><strong>Concept:</strong> Maintain two identical production environments (&quot;blue&quot; and &quot;green&quot;). Deploy new version to the inactive environment, test it, then switch all traffic at once.</p>
+
+<p><strong>How it works:</strong><br>
+1. Blue environment serves production traffic<br>
+2. Deploy new version to green environment<br>
+3. Run smoke tests against green<br>
+4. Switch load balancer to point at green<br>
+5. Blue becomes the standby for instant rollback</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/routes.rb - Health check endpoint for load balancer</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">get</span> <span class="s1">'/health'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'health#check'</span>
+<span class="k">end</span>
+
+<span class="c1"># app/controllers/health_controller.rb</span>
+<span class="k">class</span> <span class="nc">HealthController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">check</span>
+    <span class="c1"># Deep health check verifying all dependencies</span>
+    <span class="n">checks</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="ss">database: </span><span class="n">check_database</span><span class="p">,</span>
+      <span class="ss">redis: </span><span class="n">check_redis</span><span class="p">,</span>
+      <span class="ss">migrations: </span><span class="n">check_migrations</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">checks</span><span class="p">.</span><span class="nf">values</span><span class="p">.</span><span class="nf">all?</span>
+      <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">status: </span><span class="s1">'healthy'</span><span class="p">,</span> <span class="ss">version: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'APP_VERSION'</span><span class="p">],</span> <span class="ss">checks: </span><span class="n">checks</span> <span class="p">},</span> <span class="ss">status: :ok</span>
+    <span class="k">else</span>
+      <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">status: </span><span class="s1">'unhealthy'</span><span class="p">,</span> <span class="ss">checks: </span><span class="n">checks</span> <span class="p">},</span> <span class="ss">status: :service_unavailable</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">check_database</span>
+    <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="s1">'SELECT 1'</span><span class="p">)</span>
+    <span class="kp">true</span>
+  <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="p">{</span> <span class="ss">error: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">check_redis</span>
+    <span class="no">Redis</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">ping</span> <span class="o">==</span> <span class="s1">'PONG'</span>
+  <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="p">{</span> <span class="ss">error: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">check_migrations</span>
+    <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">.</span><span class="nf">check_pending!</span>
+    <span class="kp">true</span>
+  <span class="k">rescue</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">PendingMigrationError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="p">{</span> <span class="ss">error: </span><span class="s1">'Pending migrations'</span> <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<p><strong>Trade-offs:</strong><br>
+- <strong>Pros:</strong> Instant cutover, instant rollback, full testing in production-like environment<br>
+- <strong>Cons:</strong> 2x infrastructure cost during deployment, requires load balancer configuration</p>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<h3>Canary Releases</h3>
+
+<p><strong>Concept:</strong> Deploy new version to a small percentage of servers/users first. Monitor metrics. Gradually increase traffic if healthy.</p>
+
+<p><strong>Implementation with feature flags:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'flipper'</span>
+<span class="n">gem</span> <span class="s1">'flipper-active_record'</span>
+
+<span class="c1"># config/initializers/flipper.rb</span>
+<span class="no">Flipper</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">default</span> <span class="k">do</span>
+    <span class="n">adapter</span> <span class="o">=</span> <span class="no">Flipper</span><span class="o">::</span><span class="no">Adapters</span><span class="o">::</span><span class="no">ActiveRecord</span><span class="p">.</span><span class="nf">new</span>
+    <span class="no">Flipper</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">adapter</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/controllers/api/v2/users_controller.rb</span>
+<span class="k">class</span> <span class="nc">Api::V2::UsersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="c1"># Canary: Show new optimized query to 10% of users</span>
+    <span class="k">if</span> <span class="no">Flipper</span><span class="p">.</span><span class="nf">enabled?</span><span class="p">(</span><span class="ss">:optimized_user_query</span><span class="p">,</span> <span class="n">current_user</span><span class="p">)</span>
+      <span class="vi">@users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">optimized_query</span><span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+    <span class="k">else</span>
+      <span class="vi">@users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">legacy_query</span><span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">render</span> <span class="ss">json: </span><span class="vi">@users</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Enable for 10% of users</span>
+<span class="no">Flipper</span><span class="p">.</span><span class="nf">enable_percentage_of_actors</span><span class="p">(</span><span class="ss">:optimized_user_query</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># Monitor error rates, increase gradually</span>
+<span class="no">Flipper</span><span class="p">.</span><span class="nf">enable_percentage_of_actors</span><span class="p">(</span><span class="ss">:optimized_user_query</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+<span class="no">Flipper</span><span class="p">.</span><span class="nf">enable_percentage_of_actors</span><span class="p">(</span><span class="ss">:optimized_user_query</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Trade-offs:</strong><br>
+- <strong>Pros:</strong> Lower risk, real user feedback, gradual rollout<br>
+- <strong>Cons:</strong> Requires feature flag infrastructure, more complex monitoring, users get inconsistent experiences</p>
+
+<h3>Rolling Deployment</h3>
+
+<p><strong>Concept:</strong> Update instances one-by-one or in small batches. Always maintain minimum healthy capacity.</p>
+
+<p><strong>Kubernetes example:</strong></p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="c1"># deployment.yml</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">rails-app</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">6</span>
+  <span class="na">strategy</span><span class="pi">:</span>
+    <span class="na">type</span><span class="pi">:</span> <span class="s">RollingUpdate</span>
+    <span class="na">rollingUpdate</span><span class="pi">:</span>
+      <span class="na">maxSurge</span><span class="pi">:</span> <span class="m">2</span>        <span class="c1"># Can create 2 extra pods during update</span>
+      <span class="na">maxUnavailable</span><span class="pi">:</span> <span class="m">1</span>  <span class="c1"># Maximum 1 pod can be down at a time</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">rails-app</span>
+        <span class="na">version</span><span class="pi">:</span> <span class="s">v2.5.0</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">rails</span>
+        <span class="na">image</span><span class="pi">:</span> <span class="s">myapp:v2.5.0</span>
+        <span class="na">readinessProbe</span><span class="pi">:</span>
+          <span class="na">httpGet</span><span class="pi">:</span>
+            <span class="na">path</span><span class="pi">:</span> <span class="s">/health</span>
+            <span class="na">port</span><span class="pi">:</span> <span class="m">3000</span>
+          <span class="na">initialDelaySeconds</span><span class="pi">:</span> <span class="m">10</span>
+          <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">5</span>
+        <span class="na">livenessProbe</span><span class="pi">:</span>
+          <span class="na">httpGet</span><span class="pi">:</span>
+            <span class="na">path</span><span class="pi">:</span> <span class="s">/health</span>
+            <span class="na">port</span><span class="pi">:</span> <span class="m">3000</span>
+          <span class="na">initialDelaySeconds</span><span class="pi">:</span> <span class="m">30</span>
+          <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">10</span>
+</code></pre></div>
+<p><strong>How Kubernetes rolling update works:</strong><br>
+1. Creates 2 new pods (maxSurge)<br>
+2. Waits for readiness probe to pass<br>
+3. Terminates 1 old pod<br>
+4. Repeats until all pods updated</p>
+
+<p><strong>Trade-offs:</strong><br>
+- <strong>Pros:</strong> Efficient resource usage, no extra infrastructure needed<br>
+- <strong>Cons:</strong> Mixed versions run simultaneously, slower rollout, harder to rollback mid-deployment</p>
+
+<hr>
+
+<h2>Zero-Downtime Deployments</h2>
+
+<h3>Critical Requirements</h3>
+
+<p><strong>1. Graceful Shutdown</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/puma.rb</span>
+<span class="n">workers</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"WEB_CONCURRENCY"</span><span class="p">)</span> <span class="p">{</span> <span class="mi">2</span> <span class="p">}</span>
+<span class="n">threads_count</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"RAILS_MAX_THREADS"</span><span class="p">)</span> <span class="p">{</span> <span class="mi">5</span> <span class="p">}</span>
+<span class="n">threads</span> <span class="n">threads_count</span><span class="p">,</span> <span class="n">threads_count</span>
+
+<span class="n">preload_app!</span>
+
+<span class="c1"># Handle SIGTERM gracefully</span>
+<span class="n">on_worker_shutdown</span> <span class="k">do</span>
+  <span class="nb">puts</span> <span class="s2">"Worker shutting down - finishing in-flight requests"</span>
+  <span class="c1"># Puma automatically waits for requests to complete</span>
+  <span class="c1"># But you can clean up resources here</span>
+  <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection_pool</span><span class="p">.</span><span class="nf">disconnect!</span>
+<span class="k">end</span>
+
+<span class="c1"># Signal readiness to load balancer</span>
+<span class="n">on_worker_boot</span> <span class="k">do</span>
+  <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">establish_connection</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>2. Health Check Endpoints</strong></p>
+
+<p>Separate liveness (is process alive?) from readiness (can it handle traffic?):</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/routes.rb</span>
+<span class="n">get</span> <span class="s1">'/health/live'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'health#live'</span>
+<span class="n">get</span> <span class="s1">'/health/ready'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'health#ready'</span>
+
+<span class="c1"># app/controllers/health_controller.rb</span>
+<span class="k">class</span> <span class="nc">HealthController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">live</span>
+    <span class="c1"># Simple: is the process running?</span>
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">status: </span><span class="s1">'alive'</span> <span class="p">},</span> <span class="ss">status: :ok</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">ready</span>
+    <span class="c1"># Deep check: can we serve traffic?</span>
+    <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="s1">'SELECT 1'</span><span class="p">)</span>
+    <span class="no">Redis</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">ping</span>
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">status: </span><span class="s1">'ready'</span> <span class="p">},</span> <span class="ss">status: :ok</span>
+  <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">status: </span><span class="s1">'not ready'</span><span class="p">,</span> <span class="ss">error: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span> <span class="p">},</span> <span class="ss">status: :service_unavailable</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>3. Backward-Compatible Migrations</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Bad: breaks old code immediately</span>
+<span class="k">class</span> <span class="nc">AddEmailToUsers</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">add_column</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:string</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Good: allow old code to work without email</span>
+<span class="k">class</span> <span class="nc">AddEmailToUsers</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">add_column</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:string</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">true</span>  <span class="c1"># nullable first</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Deploy 1: Add nullable column, deploy new code</span>
+<span class="c1"># Deploy 2: Backfill data</span>
+<span class="c1"># Deploy 3: Add NOT NULL constraint</span>
+</code></pre></div>
+<hr>
+
+<h2>Rollback Strategies</h2>
+
+<h3>Fast Rollback Options</h3>
+
+<p><strong>1. Load Balancer Switch (Blue-Green)</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># AWS ALB example</span>
+aws elbv2 modify-listener <span class="nt">--listener-arn</span> <span class="nv">$LISTENER_ARN</span> <span class="se">\</span>
+  <span class="nt">--default-actions</span> <span class="nv">Type</span><span class="o">=</span>forward,TargetGroupArn<span class="o">=</span><span class="nv">$BLUE_TARGET_GROUP</span>
+
+<span class="c"># Instant rollback to blue environment</span>
+<span class="c"># Takes ~5 seconds for all traffic to switch</span>
+</code></pre></div>
+<p><strong>2. Container Tag Revert (Kubernetes)</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Rollback to previous revision</span>
+kubectl rollout undo deployment/rails-app
+
+<span class="c"># Or specific revision</span>
+kubectl rollout undo deployment/rails-app <span class="nt">--to-revision</span><span class="o">=</span>3
+
+<span class="c"># Check rollout status</span>
+kubectl rollout status deployment/rails-app
+</code></pre></div>
+<p><strong>3. Feature Flag Disable</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Instant disable of problematic feature</span>
+<span class="no">Flipper</span><span class="p">.</span><span class="nf">disable</span><span class="p">(</span><span class="ss">:new_checkout_flow</span><span class="p">)</span>
+
+<span class="c1"># Or for specific users</span>
+<span class="no">Flipper</span><span class="p">.</span><span class="nf">disable_actor</span><span class="p">(</span><span class="ss">:new_checkout_flow</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+</code></pre></div>
+<h3>Database Rollback Challenges</h3>
+
+<p><strong>Problem:</strong> Can&#39;t rollback deployed code if migration is irreversible.</p>
+
+<p><strong>Solution:</strong> Three-phase deployment for breaking changes:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Phase 1: Add new column (backward compatible)</span>
+<span class="k">class</span> <span class="nc">AddPreferencesToUsers</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">add_column</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:preferences_json</span><span class="p">,</span> <span class="ss">:jsonb</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+<span class="c1"># Deploy code that writes to BOTH old and new columns</span>
+
+<span class="c1"># Phase 2: Backfill data</span>
+<span class="c1"># Run rake task to copy data</span>
+
+<span class="c1"># Phase 3: Remove old column (breaking change)</span>
+<span class="k">class</span> <span class="nc">RemoveOldPreferences</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">remove_column</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">:old_preferences</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+<span class="c1"># Deploy code that only uses new column</span>
 </code></pre></div>
 <hr>
 
 <h2>Best Practices</h2>
 
-<ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
-</ol>
+<ul>
+<li><strong>Always use health checks:</strong> Implement deep health checks that verify database, cache, and critical dependencies before routing traffic</li>
+<li><strong>Make migrations backward compatible:</strong> New code should work with old schema; old code should tolerate new schema</li>
+<li><strong>Monitor deployment metrics:</strong> Track error rates, latency, throughput during and after deployments</li>
+<li><strong>Automate rollback decisions:</strong> Set thresholds (error rate &gt;1%, latency &gt;500ms) that trigger automatic rollbacks</li>
+<li><strong>Test rollback procedures:</strong> Practice rollbacks regularly; if rollback is painful, you&#39;ll avoid deploying</li>
+<li><strong>Use canaries for risky changes:</strong> Algorithm changes, payment flows, and critical paths deserve gradual rollout</li>
+<li><strong>Decouple deployment from release:</strong> Deploy dark-launched code behind feature flags, release by enabling flags</li>
+<li><strong>Document rollback steps:</strong> Playbooks for database rollbacks, cache invalidation, and service restarts</li>
+</ul>
 
 <hr>
 
 <h2>Key Terms</h2>
 
 <ul>
-<li><strong>blue-green</strong></li>
-<li><strong>canary</strong></li>
-<li><strong>rolling deployment</strong></li>
-<li><strong>zero-downtime</strong></li>
-<li><strong>rollback</strong></li>
+<li><strong>Blue-green deployment</strong> - Two identical environments; switch traffic between them</li>
+<li><strong>Canary release</strong> - Gradual rollout to subset of users/servers</li>
+<li><strong>Rolling deployment</strong> - Incremental replacement of old instances with new</li>
+<li><strong>Zero-downtime deployment</strong> - Release without service interruption</li>
+<li><strong>Graceful shutdown</strong> - Finish in-flight requests before terminating process</li>
+<li><strong>Health check</strong> - Endpoint that verifies application readiness</li>
+<li><strong>Rollback</strong> - Reverting to previous version after failed deployment</li>
+<li><strong>Feature flag</strong> - Runtime toggle to enable/disable features without deploying</li>
 </ul>
 
 <hr>
 
 <h2>Summary</h2>
 
-<p>Deployment Strategies is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
+<p>Deployment strategies eliminate downtime and reduce risk when releasing Rails applications. Blue-green deployments enable instant rollback but cost 2x infrastructure. Canary releases provide gradual validation with real traffic. Rolling deployments balance efficiency and safety. All strategies require health checks, graceful shutdowns, and backward-compatible database migrations. The best strategy depends on your risk tolerance, infrastructure budget, and rollback requirements. Master these patterns to deploy confidently and recover quickly.</p>
 
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<p><strong>Next steps:</strong> Complete the exercise to implement blue-green deployment with load balancer switching.</p>
 
     
   </div>
@@ -704,57 +1006,703 @@
 <div id="exercise-tab" class="tab-content">
   <div class="content-section">
     
-      <h1>Exercise: Deployment Strategies</h1>
-
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
+      <h1>Exercise: Blue-Green Deployment with Load Balancer Switching</h1>
 
 <h2>Objective</h2>
 
-<p>Build hands-on experience with deployment strategies through practical implementation.</p>
+<p>Implement a complete blue-green deployment workflow using Docker containers and HAProxy as a load balancer. You&#39;ll deploy two versions of a Rails application, configure health checks, and practice switching traffic between environments with zero downtime.</p>
 
-<h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new deployment_strategies_practice
-<span class="nb">cd </span>deployment_strategies_practice
+<h2>Task</h2>
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
-</code></pre></div>
-<h2>Tasks</h2>
+<p>Build a blue-green deployment system that:</p>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
+<ol>
+<li>Runs two identical Rails applications (blue and green environments)</li>
+<li>Uses HAProxy to route traffic between environments</li>
+<li>Implements health checks for both environments</li>
+<li>Enables instant traffic switching via load balancer reconfiguration</li>
+<li>Demonstrates rollback capability by switching back to the previous version</li>
+</ol>
 
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
-</code></pre></div>
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
-
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
-
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
-
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
-
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
-
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
-</code></pre></div>
-<h2>Stretch Goals</h2>
+<h2>Acceptance Criteria</h2>
 
 <ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
+<li>[ ] Two Rails containers running different versions (blue v1.0, green v2.0)</li>
+<li>[ ] HAProxy load balancer routing traffic to active environment</li>
+<li>[ ] Health check endpoint returns environment version and status</li>
+<li>[ ] Traffic can be switched from blue to green with zero downtime</li>
+<li>[ ] Rollback capability verified by switching back to blue</li>
+<li>[ ] Health checks prevent traffic to unhealthy instances</li>
+<li>[ ] Deployment script automates the entire blue-green workflow</li>
 </ul>
 
+<h2>Verification Steps</h2>
+
+<ol>
+<li>Verify both environments are healthy:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Blue environment (running v1.0)</span>
+curl http://localhost:8001/health
+<span class="c"># Should return: {"status":"healthy","version":"v1.0","environment":"blue"}</span>
+
+<span class="c"># Green environment (running v2.0)</span>
+curl http://localhost:8002/health
+<span class="c"># Should return: {"status":"healthy","version":"v2.0","environment":"green"}</span>
+</code></pre></div>
+<ol>
+<li>Verify load balancer routes to active environment:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Load balancer endpoint</span>
+curl http://localhost:8080/
+<span class="c"># Should return the active environment's response</span>
+</code></pre></div>
+<ol>
+<li>Test zero-downtime switch:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># In one terminal, continuously ping the service</span>
+<span class="k">while </span><span class="nb">true</span><span class="p">;</span> <span class="k">do </span>curl <span class="nt">-s</span> http://localhost:8080/ | <span class="nb">grep </span>version<span class="p">;</span> <span class="nb">sleep </span>1<span class="p">;</span> <span class="k">done</span>
+
+<span class="c"># In another terminal, switch environments</span>
+./scripts/switch_environment.sh green
+
+<span class="c"># The first terminal should show no request failures during switch</span>
+</code></pre></div>
+<ol>
+<li>Verify rollback capability:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Switch back to blue</span>
+./scripts/switch_environment.sh blue
+
+<span class="c"># Confirm traffic is back on v1.0</span>
+curl http://localhost:8080/health
+</code></pre></div>
+<h2>Setup Code</h2>
+
+<h3>Step 1: Create Rails Application Structure</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create project directory</span>
+<span class="nb">mkdir </span>blue_green_deployment
+<span class="nb">cd </span>blue_green_deployment
+
+<span class="c"># Create Rails app</span>
+rails new demo_app <span class="nt">--skip-test</span> <span class="nt">--database</span><span class="o">=</span>postgresql
+<span class="nb">cd </span>demo_app
+</code></pre></div>
+<h3>Step 2: Implement Health Check Endpoint</h3>
+
+<p>Edit <code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">get</span> <span class="s1">'/health'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'health#check'</span>
+  <span class="n">root</span> <span class="s1">'application#index'</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Create <code>app/controllers/health_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">HealthController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">check</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'APP_VERSION'</span><span class="p">]</span> <span class="o">||</span> <span class="s1">'unknown'</span>
+    <span class="n">environment</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'ENVIRONMENT'</span><span class="p">]</span> <span class="o">||</span> <span class="s1">'unknown'</span>
+
+    <span class="n">checks</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="ss">database: </span><span class="n">check_database</span><span class="p">,</span>
+      <span class="ss">redis: </span><span class="n">check_redis</span>
+    <span class="p">}</span>
+
+    <span class="n">all_healthy</span> <span class="o">=</span> <span class="n">checks</span><span class="p">.</span><span class="nf">values</span><span class="p">.</span><span class="nf">all?</span> <span class="p">{</span> <span class="o">|</span><span class="n">v</span><span class="o">|</span> <span class="n">v</span> <span class="o">==</span> <span class="kp">true</span> <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">all_healthy</span>
+      <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span>
+        <span class="ss">status: </span><span class="s1">'healthy'</span><span class="p">,</span>
+        <span class="ss">version: </span><span class="n">version</span><span class="p">,</span>
+        <span class="ss">environment: </span><span class="n">environment</span><span class="p">,</span>
+        <span class="ss">checks: </span><span class="n">checks</span><span class="p">,</span>
+        <span class="ss">timestamp: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+      <span class="p">},</span> <span class="ss">status: :ok</span>
+    <span class="k">else</span>
+      <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span>
+        <span class="ss">status: </span><span class="s1">'unhealthy'</span><span class="p">,</span>
+        <span class="ss">version: </span><span class="n">version</span><span class="p">,</span>
+        <span class="ss">environment: </span><span class="n">environment</span><span class="p">,</span>
+        <span class="ss">checks: </span><span class="n">checks</span>
+      <span class="p">},</span> <span class="ss">status: :service_unavailable</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">check_database</span>
+    <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="s1">'SELECT 1'</span><span class="p">)</span>
+    <span class="kp">true</span>
+  <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="p">{</span> <span class="ss">error: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">check_redis</span>
+    <span class="c1"># Optional: if you have Redis configured</span>
+    <span class="kp">true</span>
+  <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="p">{</span> <span class="ss">error: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span> <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Create <code>app/controllers/application_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ApplicationController</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">Base</span>
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'APP_VERSION'</span><span class="p">]</span> <span class="o">||</span> <span class="s1">'unknown'</span>
+    <span class="n">environment</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">[</span><span class="s1">'ENVIRONMENT'</span><span class="p">]</span> <span class="o">||</span> <span class="s1">'unknown'</span>
+
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span>
+      <span class="ss">message: </span><span class="s2">"Hello from </span><span class="si">#{</span><span class="n">environment</span><span class="si">}</span><span class="s2"> environment!"</span><span class="p">,</span>
+      <span class="ss">version: </span><span class="n">version</span><span class="p">,</span>
+      <span class="ss">environment: </span><span class="n">environment</span><span class="p">,</span>
+      <span class="ss">hostname: </span><span class="no">Socket</span><span class="p">.</span><span class="nf">gethostname</span><span class="p">,</span>
+      <span class="ss">timestamp: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 3: Create Multi-Environment Dockerfile</h3>
+
+<p>Create <code>Dockerfile</code> in the Rails app root:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="c"># syntax=docker/dockerfile:1</span>
+<span class="k">FROM</span><span class="w"> </span><span class="s">ruby:3.2.2-alpine</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s">builder</span>
+
+<span class="k">RUN </span>apk add <span class="nt">--no-cache</span> build-base postgresql-dev nodejs tzdata
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="k">COPY</span><span class="s"> Gemfile Gemfile.lock ./</span>
+<span class="k">RUN </span>bundle config <span class="nb">set</span> <span class="nt">--local</span> deployment <span class="s1">'true'</span> <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    bundle config <span class="nb">set</span> <span class="nt">--local</span> without <span class="s1">'development test'</span> <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    bundle <span class="nb">install</span> <span class="nt">--jobs</span> 4
+
+<span class="k">COPY</span><span class="s"> . .</span>
+
+<span class="c"># Runtime stage</span>
+<span class="k">FROM</span><span class="s"> ruby:3.2.2-alpine</span>
+
+<span class="k">RUN </span>apk add <span class="nt">--no-cache</span> postgresql-client tzdata curl
+
+<span class="k">RUN </span>addgroup <span class="nt">-g</span> 1000 rails <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    adduser <span class="nt">-D</span> <span class="nt">-u</span> 1000 <span class="nt">-G</span> rails rails
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="k">COPY</span><span class="s"> --from=builder /usr/local/bundle /usr/local/bundle</span>
+<span class="k">COPY</span><span class="s"> --from=builder --chown=rails:rails /app /app</span>
+
+<span class="k">USER</span><span class="s"> rails</span>
+
+<span class="k">EXPOSE</span><span class="s"> 3000</span>
+
+<span class="k">ENV</span><span class="s"> RAILS_ENV=production \</span>
+    RAILS_LOG_TO_STDOUT=true \
+    RAILS_SERVE_STATIC_FILES=true
+
+<span class="k">HEALTHCHECK</span><span class="s"> --interval=10s --timeout=3s --start-period=30s --retries=3 \</span>
+  CMD curl -f http://localhost:3000/health || exit 1
+
+<span class="k">CMD</span><span class="s"> ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]</span>
+</code></pre></div>
+<h3>Step 4: Create HAProxy Configuration</h3>
+
+<p>Create <code>haproxy/haproxy.cfg</code> in project root:</p>
+<div class="highlight"><pre class="highlight conf"><code><span class="n">global</span>
+    <span class="n">log</span> <span class="n">stdout</span> <span class="n">format</span> <span class="n">raw</span> <span class="n">local0</span>
+    <span class="n">maxconn</span> <span class="m">4096</span>
+
+<span class="n">defaults</span>
+    <span class="n">log</span>     <span class="n">global</span>
+    <span class="n">mode</span>    <span class="n">http</span>
+    <span class="n">option</span>  <span class="n">httplog</span>
+    <span class="n">option</span>  <span class="n">dontlognull</span>
+    <span class="n">timeout</span> <span class="n">connect</span> <span class="m">5000</span><span class="n">ms</span>
+    <span class="n">timeout</span> <span class="n">client</span>  <span class="m">50000</span><span class="n">ms</span>
+    <span class="n">timeout</span> <span class="n">server</span>  <span class="m">50000</span><span class="n">ms</span>
+
+<span class="c"># Stats page for monitoring
+</span><span class="n">listen</span> <span class="n">stats</span>
+    <span class="n">bind</span> *:<span class="m">8404</span>
+    <span class="n">stats</span> <span class="n">enable</span>
+    <span class="n">stats</span> <span class="n">uri</span> /<span class="n">stats</span>
+    <span class="n">stats</span> <span class="n">refresh</span> <span class="m">10</span><span class="n">s</span>
+    <span class="n">stats</span> <span class="n">admin</span> <span class="n">if</span> <span class="n">TRUE</span>
+
+<span class="c"># Frontend - receives traffic
+</span><span class="n">frontend</span> <span class="n">http_front</span>
+    <span class="n">bind</span> *:<span class="m">80</span>
+    <span class="n">default_backend</span> <span class="n">active_env</span>
+
+<span class="c"># Backend pools
+</span><span class="n">backend</span> <span class="n">blue_env</span>
+    <span class="n">option</span> <span class="n">httpchk</span> <span class="n">GET</span> /<span class="n">health</span>
+    <span class="n">http</span>-<span class="n">check</span> <span class="n">expect</span> <span class="n">status</span> <span class="m">200</span>
+    <span class="n">server</span> <span class="n">blue</span> <span class="n">blue</span>:<span class="m">3000</span> <span class="n">check</span> <span class="n">inter</span> <span class="m">5</span><span class="n">s</span> <span class="n">fall</span> <span class="m">3</span> <span class="n">rise</span> <span class="m">2</span>
+
+<span class="n">backend</span> <span class="n">green_env</span>
+    <span class="n">option</span> <span class="n">httpchk</span> <span class="n">GET</span> /<span class="n">health</span>
+    <span class="n">http</span>-<span class="n">check</span> <span class="n">expect</span> <span class="n">status</span> <span class="m">200</span>
+    <span class="n">server</span> <span class="n">green</span> <span class="n">green</span>:<span class="m">3000</span> <span class="n">check</span> <span class="n">inter</span> <span class="m">5</span><span class="n">s</span> <span class="n">fall</span> <span class="m">3</span> <span class="n">rise</span> <span class="m">2</span>
+
+<span class="c"># Active backend (will be modified during switches)
+</span><span class="n">backend</span> <span class="n">active_env</span>
+    <span class="n">option</span> <span class="n">httpchk</span> <span class="n">GET</span> /<span class="n">health</span>
+    <span class="n">http</span>-<span class="n">check</span> <span class="n">expect</span> <span class="n">status</span> <span class="m">200</span>
+    <span class="n">server</span> <span class="n">blue</span> <span class="n">blue</span>:<span class="m">3000</span> <span class="n">check</span> <span class="n">inter</span> <span class="m">5</span><span class="n">s</span> <span class="n">fall</span> <span class="m">3</span> <span class="n">rise</span> <span class="m">2</span>
+</code></pre></div>
+<h3>Step 5: Create Docker Compose Configuration</h3>
+
+<p>Create <code>docker-compose.yml</code>:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.8'</span>
+
+<span class="na">services</span><span class="pi">:</span>
+  <span class="na">db</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">postgres:15-alpine</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">POSTGRES_USER</span><span class="pi">:</span> <span class="s">postgres</span>
+      <span class="na">POSTGRES_PASSWORD</span><span class="pi">:</span> <span class="s">postgres</span>
+      <span class="na">POSTGRES_DB</span><span class="pi">:</span> <span class="s">demo_production</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">postgres_data:/var/lib/postgresql/data</span>
+    <span class="na">healthcheck</span><span class="pi">:</span>
+      <span class="na">test</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">CMD-SHELL"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">pg_isready</span><span class="nv"> </span><span class="s">-U</span><span class="nv"> </span><span class="s">postgres"</span><span class="pi">]</span>
+      <span class="na">interval</span><span class="pi">:</span> <span class="s">10s</span>
+      <span class="na">timeout</span><span class="pi">:</span> <span class="s">5s</span>
+      <span class="na">retries</span><span class="pi">:</span> <span class="m">5</span>
+
+  <span class="c1"># Blue environment (v1.0)</span>
+  <span class="na">blue</span><span class="pi">:</span>
+    <span class="na">build</span><span class="pi">:</span>
+      <span class="na">context</span><span class="pi">:</span> <span class="s">./demo_app</span>
+      <span class="na">dockerfile</span><span class="pi">:</span> <span class="s">Dockerfile</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">DATABASE_URL</span><span class="pi">:</span> <span class="s">postgresql://postgres:postgres@db:5432/demo_production</span>
+      <span class="na">RAILS_ENV</span><span class="pi">:</span> <span class="s">production</span>
+      <span class="na">SECRET_KEY_BASE</span><span class="pi">:</span> <span class="s">insecure_secret_for_demo_only_change_in_production</span>
+      <span class="na">APP_VERSION</span><span class="pi">:</span> <span class="s">v1.0</span>
+      <span class="na">ENVIRONMENT</span><span class="pi">:</span> <span class="s">blue</span>
+    <span class="na">depends_on</span><span class="pi">:</span>
+      <span class="na">db</span><span class="pi">:</span>
+        <span class="na">condition</span><span class="pi">:</span> <span class="s">service_healthy</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8001:3000"</span>
+    <span class="na">healthcheck</span><span class="pi">:</span>
+      <span class="na">test</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">CMD"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">curl"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">-f"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">http://localhost:3000/health"</span><span class="pi">]</span>
+      <span class="na">interval</span><span class="pi">:</span> <span class="s">10s</span>
+      <span class="na">timeout</span><span class="pi">:</span> <span class="s">3s</span>
+      <span class="na">retries</span><span class="pi">:</span> <span class="m">3</span>
+      <span class="na">start_period</span><span class="pi">:</span> <span class="s">30s</span>
+
+  <span class="c1"># Green environment (v2.0)</span>
+  <span class="na">green</span><span class="pi">:</span>
+    <span class="na">build</span><span class="pi">:</span>
+      <span class="na">context</span><span class="pi">:</span> <span class="s">./demo_app</span>
+      <span class="na">dockerfile</span><span class="pi">:</span> <span class="s">Dockerfile</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">DATABASE_URL</span><span class="pi">:</span> <span class="s">postgresql://postgres:postgres@db:5432/demo_production</span>
+      <span class="na">RAILS_ENV</span><span class="pi">:</span> <span class="s">production</span>
+      <span class="na">SECRET_KEY_BASE</span><span class="pi">:</span> <span class="s">insecure_secret_for_demo_only_change_in_production</span>
+      <span class="na">APP_VERSION</span><span class="pi">:</span> <span class="s">v2.0</span>
+      <span class="na">ENVIRONMENT</span><span class="pi">:</span> <span class="s">green</span>
+    <span class="na">depends_on</span><span class="pi">:</span>
+      <span class="na">db</span><span class="pi">:</span>
+        <span class="na">condition</span><span class="pi">:</span> <span class="s">service_healthy</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8002:3000"</span>
+    <span class="na">healthcheck</span><span class="pi">:</span>
+      <span class="na">test</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">CMD"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">curl"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">-f"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">http://localhost:3000/health"</span><span class="pi">]</span>
+      <span class="na">interval</span><span class="pi">:</span> <span class="s">10s</span>
+      <span class="na">timeout</span><span class="pi">:</span> <span class="s">3s</span>
+      <span class="na">retries</span><span class="pi">:</span> <span class="m">3</span>
+      <span class="na">start_period</span><span class="pi">:</span> <span class="s">30s</span>
+
+  <span class="c1"># HAProxy load balancer</span>
+  <span class="na">haproxy</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">haproxy:2.8-alpine</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8080:80"</span>     <span class="c1"># Main traffic</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8404:8404"</span>   <span class="c1"># Stats page</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">./haproxy:/usr/local/etc/haproxy:ro</span>
+      <span class="pi">-</span> <span class="s">haproxy_config:/etc/haproxy</span>
+    <span class="na">depends_on</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">blue</span>
+      <span class="pi">-</span> <span class="s">green</span>
+    <span class="na">command</span><span class="pi">:</span> <span class="s">haproxy -f /usr/local/etc/haproxy/haproxy.cfg</span>
+
+<span class="na">volumes</span><span class="pi">:</span>
+  <span class="na">postgres_data</span><span class="pi">:</span>
+  <span class="na">haproxy_config</span><span class="pi">:</span>
+</code></pre></div>
+<h3>Step 6: Create Deployment Scripts</h3>
+
+<p>Create <code>scripts/switch_environment.sh</code>:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c">#!/bin/bash</span>
+<span class="nb">set</span> <span class="nt">-e</span>
+
+<span class="nv">TARGET_ENV</span><span class="o">=</span><span class="nv">$1</span>
+
+<span class="k">if</span> <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$TARGET_ENV</span><span class="s2">"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+  </span><span class="nb">echo</span> <span class="s2">"Usage: </span><span class="nv">$0</span><span class="s2"> [blue|green]"</span>
+  <span class="nb">exit </span>1
+<span class="k">fi
+
+if</span> <span class="o">[</span> <span class="s2">"</span><span class="nv">$TARGET_ENV</span><span class="s2">"</span> <span class="o">!=</span> <span class="s2">"blue"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="o">[</span> <span class="s2">"</span><span class="nv">$TARGET_ENV</span><span class="s2">"</span> <span class="o">!=</span> <span class="s2">"green"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+  </span><span class="nb">echo</span> <span class="s2">"Error: Environment must be 'blue' or 'green'"</span>
+  <span class="nb">exit </span>1
+<span class="k">fi
+
+</span><span class="nb">echo</span> <span class="s2">"Switching to </span><span class="nv">$TARGET_ENV</span><span class="s2"> environment..."</span>
+
+<span class="c"># Health check before switch</span>
+<span class="nb">echo</span> <span class="s2">"Checking </span><span class="nv">$TARGET_ENV</span><span class="s2"> environment health..."</span>
+<span class="nv">HEALTH_STATUS</span><span class="o">=</span><span class="si">$(</span>curl <span class="nt">-s</span> http://localhost:800<span class="si">$(</span><span class="o">[</span> <span class="s2">"</span><span class="nv">$TARGET_ENV</span><span class="s2">"</span> <span class="o">=</span> <span class="s2">"blue"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">"1"</span> <span class="o">||</span> <span class="nb">echo</span> <span class="s2">"2"</span><span class="si">)</span>/health | <span class="nb">grep</span> <span class="nt">-o</span> <span class="s1">'"status":"[^"]*"'</span> | <span class="nb">cut</span> <span class="nt">-d</span><span class="s1">'"'</span> <span class="nt">-f4</span><span class="si">)</span>
+
+<span class="k">if</span> <span class="o">[</span> <span class="s2">"</span><span class="nv">$HEALTH_STATUS</span><span class="s2">"</span> <span class="o">!=</span> <span class="s2">"healthy"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+  </span><span class="nb">echo</span> <span class="s2">"Error: </span><span class="nv">$TARGET_ENV</span><span class="s2"> environment is not healthy!"</span>
+  <span class="nb">echo</span> <span class="s2">"Status: </span><span class="nv">$HEALTH_STATUS</span><span class="s2">"</span>
+  <span class="nb">exit </span>1
+<span class="k">fi
+
+</span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$TARGET_ENV</span><span class="s2"> is healthy. Proceeding with switch..."</span>
+
+<span class="c"># Create new HAProxy config</span>
+<span class="nb">cat</span> <span class="o">&gt;</span> haproxy/haproxy.cfg <span class="o">&lt;&lt;</span> <span class="no">EOF</span><span class="sh">
+global
+    log stdout format raw local0
+    maxconn 4096
+
+defaults
+    log     global
+    mode    http
+    option  httplog
+    option  dontlognull
+    timeout connect 5000ms
+    timeout client  50000ms
+    timeout server  50000ms
+
+listen stats
+    bind *:8404
+    stats enable
+    stats uri /stats
+    stats refresh 10s
+    stats admin if TRUE
+
+frontend http_front
+    bind *:80
+    default_backend active_env
+
+backend blue_env
+    option httpchk GET /health
+    http-check expect status 200
+    server blue blue:3000 check inter 5s fall 3 rise 2
+
+backend green_env
+    option httpchk GET /health
+    http-check expect status 200
+    server green green:3000 check inter 5s fall 3 rise 2
+
+backend active_env
+    option httpchk GET /health
+    http-check expect status 200
+    server </span><span class="nv">$TARGET_ENV</span><span class="sh"> </span><span class="nv">$TARGET_ENV</span><span class="sh">:3000 check inter 5s fall 3 rise 2
+</span><span class="no">EOF
+
+</span><span class="c"># Reload HAProxy</span>
+<span class="nb">echo</span> <span class="s2">"Reloading HAProxy configuration..."</span>
+docker-compose <span class="nb">exec </span>haproxy haproxy <span class="nt">-f</span> /usr/local/etc/haproxy/haproxy.cfg <span class="nt">-sf</span> <span class="si">$(</span>docker-compose <span class="nb">exec </span>haproxy pidof haproxy<span class="si">)</span>
+
+<span class="nb">echo</span> <span class="s2">"Successfully switched to </span><span class="nv">$TARGET_ENV</span><span class="s2">!"</span>
+<span class="nb">echo</span> <span class="s2">"Verify with: curl http://localhost:8080/health"</span>
+</code></pre></div>
+<p>Make it executable:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">chmod</span> +x scripts/switch_environment.sh
+</code></pre></div>
+<p>Create <code>scripts/deploy.sh</code>:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c">#!/bin/bash</span>
+<span class="nb">set</span> <span class="nt">-e</span>
+
+<span class="nv">NEW_VERSION</span><span class="o">=</span><span class="nv">$1</span>
+<span class="nv">TARGET_ENV</span><span class="o">=</span><span class="nv">$2</span>
+
+<span class="k">if</span> <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$NEW_VERSION</span><span class="s2">"</span> <span class="o">]</span> <span class="o">||</span> <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$TARGET_ENV</span><span class="s2">"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+  </span><span class="nb">echo</span> <span class="s2">"Usage: </span><span class="nv">$0</span><span class="s2"> &lt;version&gt; [blue|green]"</span>
+  <span class="nb">echo</span> <span class="s2">"Example: </span><span class="nv">$0</span><span class="s2"> v2.1 green"</span>
+  <span class="nb">exit </span>1
+<span class="k">fi
+
+</span><span class="nb">echo</span> <span class="s2">"Deploying </span><span class="nv">$NEW_VERSION</span><span class="s2"> to </span><span class="nv">$TARGET_ENV</span><span class="s2"> environment..."</span>
+
+<span class="c"># Update environment variable in docker-compose</span>
+<span class="nb">export </span><span class="nv">NEW_APP_VERSION</span><span class="o">=</span><span class="nv">$NEW_VERSION</span>
+
+<span class="c"># Rebuild and restart target environment</span>
+<span class="nb">echo</span> <span class="s2">"Building new image..."</span>
+docker-compose build <span class="nv">$TARGET_ENV</span>
+
+<span class="nb">echo</span> <span class="s2">"Stopping </span><span class="nv">$TARGET_ENV</span><span class="s2">..."</span>
+docker-compose stop <span class="nv">$TARGET_ENV</span>
+
+<span class="nb">echo</span> <span class="s2">"Starting </span><span class="nv">$TARGET_ENV</span><span class="s2"> with version </span><span class="nv">$NEW_VERSION</span><span class="s2">..."</span>
+docker-compose up <span class="nt">-d</span> <span class="nv">$TARGET_ENV</span>
+
+<span class="c"># Wait for health check</span>
+<span class="nb">echo</span> <span class="s2">"Waiting for </span><span class="nv">$TARGET_ENV</span><span class="s2"> to be healthy..."</span>
+<span class="nv">RETRY_COUNT</span><span class="o">=</span>0
+<span class="nv">MAX_RETRIES</span><span class="o">=</span>30
+
+<span class="k">while</span> <span class="o">[</span> <span class="nv">$RETRY_COUNT</span> <span class="nt">-lt</span> <span class="nv">$MAX_RETRIES</span> <span class="o">]</span><span class="p">;</span> <span class="k">do
+  </span><span class="nv">HEALTH_CHECK</span><span class="o">=</span><span class="si">$(</span>curl <span class="nt">-s</span> http://localhost:800<span class="si">$(</span><span class="o">[</span> <span class="s2">"</span><span class="nv">$TARGET_ENV</span><span class="s2">"</span> <span class="o">=</span> <span class="s2">"blue"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">"1"</span> <span class="o">||</span> <span class="nb">echo</span> <span class="s2">"2"</span><span class="si">)</span>/health <span class="o">||</span> <span class="nb">echo</span> <span class="s2">"unhealthy"</span><span class="si">)</span>
+
+  <span class="k">if </span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$HEALTH_CHECK</span><span class="s2">"</span> | <span class="nb">grep</span> <span class="nt">-q</span> <span class="s1">'"status":"healthy"'</span><span class="p">;</span> <span class="k">then
+    </span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$TARGET_ENV</span><span class="s2"> is healthy!"</span>
+    <span class="nb">break
+  </span><span class="k">fi
+
+  </span><span class="nb">echo</span> <span class="s2">"Waiting for </span><span class="nv">$TARGET_ENV</span><span class="s2">... (</span><span class="nv">$RETRY_COUNT</span><span class="s2">/</span><span class="nv">$MAX_RETRIES</span><span class="s2">)"</span>
+  <span class="nb">sleep </span>2
+  <span class="nv">RETRY_COUNT</span><span class="o">=</span><span class="k">$((</span>RETRY_COUNT <span class="o">+</span> <span class="m">1</span><span class="k">))</span>
+<span class="k">done
+
+if</span> <span class="o">[</span> <span class="nv">$RETRY_COUNT</span> <span class="nt">-eq</span> <span class="nv">$MAX_RETRIES</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+  </span><span class="nb">echo</span> <span class="s2">"Error: </span><span class="nv">$TARGET_ENV</span><span class="s2"> failed to become healthy"</span>
+  <span class="nb">exit </span>1
+<span class="k">fi
+
+</span><span class="nb">echo</span> <span class="s2">"Deployment complete!"</span>
+<span class="nb">echo</span> <span class="s2">"To switch traffic: ./scripts/switch_environment.sh </span><span class="nv">$TARGET_ENV</span><span class="s2">"</span>
+</code></pre></div>
+<p>Make it executable:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">chmod</span> +x scripts/deploy.sh
+</code></pre></div>
+<h3>Step 7: Initial Setup and Database Migration</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Start all services</span>
+docker-compose up <span class="nt">-d</span>
+
+<span class="c"># Create database</span>
+docker-compose <span class="nb">exec </span>blue bundle <span class="nb">exec </span>rails db:create
+docker-compose <span class="nb">exec </span>blue bundle <span class="nb">exec </span>rails db:migrate
+
+<span class="c"># Verify both environments are running</span>
+curl http://localhost:8001/health  <span class="c"># Blue</span>
+curl http://localhost:8002/health  <span class="c"># Green</span>
+</code></pre></div>
+<h3>Step 8: Test Blue-Green Deployment Workflow</h3>
+
+<p><strong>Test 1: Initial traffic to blue</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Check active environment</span>
+curl http://localhost:8080/ | jq
+
+<span class="c"># Output should show blue environment, v1.0</span>
+</code></pre></div>
+<p><strong>Test 2: Deploy new version to green (inactive)</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Simulate deploying v2.1 to green</span>
+./scripts/deploy.sh v2.1 green
+
+<span class="c"># Verify green is running new version but not receiving traffic</span>
+curl http://localhost:8002/health | jq
+</code></pre></div>
+<p><strong>Test 3: Zero-downtime switch to green</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># In terminal 1: Monitor traffic continuously</span>
+<span class="k">while </span><span class="nb">true</span><span class="p">;</span> <span class="k">do
+  </span>curl <span class="nt">-s</span> http://localhost:8080/ | jq <span class="nt">-r</span> <span class="s1">'.version + " - " + .environment'</span>
+  <span class="nb">sleep </span>1
+<span class="k">done</span>
+
+<span class="c"># In terminal 2: Switch to green</span>
+./scripts/switch_environment.sh green
+
+<span class="c"># Terminal 1 should show no errors, seamless switch from v1.0 to v2.0</span>
+</code></pre></div>
+<p><strong>Test 4: Rollback to blue</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Switch back to blue</span>
+./scripts/switch_environment.sh blue
+
+<span class="c"># Verify traffic is on v1.0 again</span>
+curl http://localhost:8080/ | jq
+</code></pre></div>
+<p><strong>Test 5: Simulate unhealthy environment</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Stop green to make it unhealthy</span>
+docker-compose stop green
+
+<span class="c"># Try to switch (should fail)</span>
+./scripts/switch_environment.sh green
+<span class="c"># Output: "Error: green environment is not healthy!"</span>
+</code></pre></div>
+<h3>Step 9: Monitor HAProxy Stats</h3>
+
+<p>Visit <a href="http://localhost:8404/stats" target="_blank">http://localhost:8404/stats</a> in your browser to see:<br>
+- Active backend servers<br>
+- Health check status<br>
+- Request rates<br>
+- Error rates</p>
+
+<h3>Step 10: Cleanup</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Stop all services</span>
+docker-compose down
+
+<span class="c"># Remove volumes</span>
+docker-compose down <span class="nt">-v</span>
+</code></pre></div>
+<h2>Stretch (Optional)</h2>
+
+<ol>
+<li><strong>Add automated rollback on error detection:</strong></li>
+</ol>
+
+<p>Create <code>scripts/auto_rollback.sh</code>:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c">#!/bin/bash</span>
+<span class="c"># Monitor error rate and auto-rollback if &gt; threshold</span>
+
+<span class="nv">CURRENT_ENV</span><span class="o">=</span><span class="nv">$1</span>
+<span class="nv">PREVIOUS_ENV</span><span class="o">=</span><span class="nv">$2</span>
+<span class="nv">ERROR_THRESHOLD</span><span class="o">=</span>5  <span class="c"># percentage</span>
+
+<span class="c"># Monitor for 60 seconds</span>
+<span class="k">for </span>i <span class="k">in</span> <span class="o">{</span>1..12<span class="o">}</span><span class="p">;</span> <span class="k">do</span>
+  <span class="c"># Simulate checking error rate (in real scenario, check APM/logs)</span>
+  <span class="nv">ERROR_RATE</span><span class="o">=</span><span class="si">$(</span>curl <span class="nt">-s</span> http://localhost:8080/health | jq <span class="nt">-r</span> <span class="s1">'.error_rate // 0'</span><span class="si">)</span>
+
+  <span class="k">if</span> <span class="o">[</span> <span class="s2">"</span><span class="nv">$ERROR_RATE</span><span class="s2">"</span> <span class="nt">-gt</span> <span class="s2">"</span><span class="nv">$ERROR_THRESHOLD</span><span class="s2">"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nb">echo</span> <span class="s2">"ERROR RATE EXCEEDED! Rolling back to </span><span class="nv">$PREVIOUS_ENV</span><span class="s2">"</span>
+    ./scripts/switch_environment.sh <span class="nv">$PREVIOUS_ENV</span>
+    <span class="nb">exit </span>1
+  <span class="k">fi
+
+  </span><span class="nb">sleep </span>5
+<span class="k">done
+
+</span><span class="nb">echo</span> <span class="s2">"Deployment stable. No rollback needed."</span>
+</code></pre></div>
+<ol>
+<li><strong>Implement database migration coordination:</strong></li>
+</ol>
+
+<p>Add migration check to health endpoint:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">check_migrations</span>
+  <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">.</span><span class="nf">check_pending!</span>
+  <span class="p">{</span> <span class="ss">status: </span><span class="s1">'current'</span><span class="p">,</span> <span class="ss">version: </span><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migrator</span><span class="p">.</span><span class="nf">current_version</span> <span class="p">}</span>
+<span class="k">rescue</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">PendingMigrationError</span>
+  <span class="p">{</span> <span class="ss">status: </span><span class="s1">'pending'</span><span class="p">,</span> <span class="ss">error: </span><span class="s1">'Migrations pending'</span> <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<ol>
+<li><strong>Add smoke tests before switching:</strong></li>
+</ol>
+
+<p>Create <code>scripts/smoke_test.sh</code>:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c">#!/bin/bash</span>
+<span class="nv">TARGET_ENV</span><span class="o">=</span><span class="nv">$1</span>
+<span class="nv">PORT</span><span class="o">=</span><span class="si">$(</span><span class="o">[</span> <span class="s2">"</span><span class="nv">$TARGET_ENV</span><span class="s2">"</span> <span class="o">=</span> <span class="s2">"blue"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">"8001"</span> <span class="o">||</span> <span class="nb">echo</span> <span class="s2">"8002"</span><span class="si">)</span>
+
+<span class="nb">echo</span> <span class="s2">"Running smoke tests against </span><span class="nv">$TARGET_ENV</span><span class="s2">..."</span>
+
+<span class="c"># Test 1: Health check passes</span>
+curl <span class="nt">-f</span> http://localhost:<span class="nv">$PORT</span>/health <span class="o">||</span> <span class="nb">exit </span>1
+
+<span class="c"># Test 2: Homepage loads</span>
+curl <span class="nt">-f</span> http://localhost:<span class="nv">$PORT</span>/ <span class="o">||</span> <span class="nb">exit </span>1
+
+<span class="c"># Test 3: Response time &lt; 500ms</span>
+<span class="nv">RESPONSE_TIME</span><span class="o">=</span><span class="si">$(</span>curl <span class="nt">-o</span> /dev/null <span class="nt">-s</span> <span class="nt">-w</span> <span class="s1">'%{time_total}'</span> http://localhost:<span class="nv">$PORT</span>/<span class="si">)</span>
+<span class="k">if</span> <span class="o">((</span> <span class="si">$(</span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$RESPONSE_TIME</span><span class="s2"> &gt; 0.5"</span> | bc <span class="nt">-l</span><span class="si">)</span> <span class="o">))</span><span class="p">;</span> <span class="k">then
+  </span><span class="nb">echo</span> <span class="s2">"Response time too slow: </span><span class="k">${</span><span class="nv">RESPONSE_TIME</span><span class="k">}</span><span class="s2">s"</span>
+  <span class="nb">exit </span>1
+<span class="k">fi
+
+</span><span class="nb">echo</span> <span class="s2">"All smoke tests passed!"</span>
+</code></pre></div>
+<ol>
+<li><strong>Implement canary deployment variation:</strong></li>
+</ol>
+
+<p>Modify HAProxy config to send 10% traffic to new environment:</p>
+<div class="highlight"><pre class="highlight conf"><code><span class="n">backend</span> <span class="n">active_env</span>
+    <span class="n">balance</span> <span class="n">roundrobin</span>
+    <span class="c"># 90% to blue
+</span>    <span class="n">server</span> <span class="n">blue</span> <span class="n">blue</span>:<span class="m">3000</span> <span class="n">check</span> <span class="n">weight</span> <span class="m">90</span>
+    <span class="c"># 10% to green (canary)
+</span>    <span class="n">server</span> <span class="n">green</span> <span class="n">green</span>:<span class="m">3000</span> <span class="n">check</span> <span class="n">weight</span> <span class="m">10</span>
+</code></pre></div>
+<ol>
+<li><strong>Add metrics collection:</strong></li>
+</ol>
+
+<p>Instrument application to track deployment metrics:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/initializers/deployment_metrics.rb</span>
+<span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="p">.</span><span class="nf">subscribe</span><span class="p">(</span><span class="s1">'process_action.action_controller'</span><span class="p">)</span> <span class="k">do</span> <span class="o">|*</span><span class="n">args</span><span class="o">|</span>
+  <span class="n">event</span> <span class="o">=</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">Notifications</span><span class="o">::</span><span class="no">Event</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+  <span class="c1"># Log metrics for monitoring</span>
+  <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span><span class="p">({</span>
+    <span class="ss">event: </span><span class="s1">'request'</span><span class="p">,</span>
+    <span class="ss">version: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'APP_VERSION'</span><span class="p">],</span>
+    <span class="ss">environment: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'ENVIRONMENT'</span><span class="p">],</span>
+    <span class="ss">duration: </span><span class="n">event</span><span class="p">.</span><span class="nf">duration</span><span class="p">,</span>
+    <span class="ss">status: </span><span class="n">event</span><span class="p">.</span><span class="nf">payload</span><span class="p">[</span><span class="ss">:status</span><span class="p">]</span>
+  <span class="p">}.</span><span class="nf">to_json</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
 <h2>Solution Notes</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p><strong>Common Gotchas:</strong></p>
+
+<ol>
+<li><p><strong>HAProxy config not reloading:</strong> Use <code>haproxy -sf &lt;pid&gt;</code> to gracefully reload config without dropping connections.</p></li>
+<li><p><strong>Health checks too aggressive:</strong> If health checks mark healthy instances as down, increase <code>inter</code> interval or reduce <code>fall</code> threshold.</p></li>
+<li><p><strong>Database connection conflicts:</strong> Both environments share the same database. Ensure migrations are backward compatible.</p></li>
+<li><p><strong>Port conflicts:</strong> Blue uses 8001, green uses 8002, load balancer uses 8080. Ensure these ports are available.</p></li>
+<li><p><strong>Container startup timing:</strong> Health checks may fail if probed before Rails finishes booting. Use <code>start_period</code> to allow warmup time.</p></li>
+</ol>
+
+<p><strong>Production Considerations:</strong></p>
+
+<ul>
+<li>Use separate databases for true isolation, or use feature flags for schema changes</li>
+<li>Implement automated smoke tests before switching</li>
+<li>Set up monitoring/alerting on error rates during deployments</li>
+<li>Keep old environment running for several hours after switch for quick rollback</li>
+<li>Use infrastructure-as-code (Terraform) to provision blue/green environments</li>
+<li>Implement connection draining to finish in-flight requests before shutdown</li>
+</ul>
+
+<p><strong>Blue-Green vs Rolling Deployment:</strong></p>
+
+<table><thead>
+<tr>
+<th>Aspect</th>
+<th>Blue-Green</th>
+<th>Rolling</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Infrastructure cost</td>
+<td>2x during switch</td>
+<td>1x always</td>
+</tr>
+<tr>
+<td>Rollback speed</td>
+<td>Instant</td>
+<td>Slow (reverse update)</td>
+</tr>
+<tr>
+<td>Testing before switch</td>
+<td>Full production testing</td>
+<td>No pre-switch testing</td>
+</tr>
+<tr>
+<td>Mixed versions</td>
+<td>Never</td>
+<td>Temporarily</td>
+</tr>
+<tr>
+<td>Best for</td>
+<td>Critical apps, instant rollback needed</td>
+<td>Cost-sensitive, gradual updates</td>
+</tr>
+</tbody></table>
+
+<h2>Time Estimate</h2>
+
+<p>25 minutes</p>
 
     
   </div>
@@ -766,74 +1714,368 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Instant rollback by switching load balancer back to the previous environment with no gradual rollout needed">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the primary advantage of blue-green deployment over rolling deployment?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  Blue-green costs less because it uses a single environment
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  Instant rollback by switching load balancer back to the previous environment with no gradual rollout needed
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  Blue-green allows both versions to run simultaneously, reducing infrastructure requirements
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  Rolling deployments cannot achieve zero-downtime, only blue-green can
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Blue-green maintains two complete environments. If the new (green) version has issues, you simply switch the load balancer back to blue instantly. Rolling deployments must reverse the entire update process, which is slower and more complex.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="During deployment, old code and new code may run simultaneously; both must work with the current schema">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">Why must database migrations be backward compatible in zero-downtime deployments?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  Backward compatibility ensures faster database queries
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  During deployment, old code and new code may run simultaneously; both must work with the current schema
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  Rails requires all migrations to be reversible for proper version control
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Backward compatible migrations reduce the size of database backups
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> In rolling deployments or during blue-green transitions, you have mixed versions running. If new code expects a column that doesn't exist yet, or old code fails when a column is removed, the deployment breaks. Migrations must be compatible with both versions.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Gradually roll out changes to a small percentage of users/servers first, monitor metrics, then increase traffic if healthy">
+          <h4>Question 3 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the purpose of a canary release?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  Deploy to all servers at once to maximize deployment speed
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  Gradually roll out changes to a small percentage of users/servers first, monitor metrics, then increase traffic if healthy
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  Run two complete production environments simultaneously for redundancy
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  Automatically rollback deployments when any error occurs
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Canary releases minimize risk by exposing only a subset of users to new code initially. If error rates spike or performance degrades, you can halt the rollout before impacting all users. This provides real production feedback with limited blast radius.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Before deploying to either environment, ensuring both blue and green can handle the new schema">
+          <h4>Question 4 (1 points)</h4>
+          <p style="margin: 10px 0;">In a blue-green deployment, when should database migrations be run?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  Before deploying to either environment, ensuring both blue and green can handle the new schema
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  After switching all traffic to the green environment
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  During the Docker image build process
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  Only after the green environment has been running for 24 hours
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Migrations must run before code deployment so both environments work with the updated schema. If you migrate after switching to green, blue won't be compatible for rollback. Run migrations as a separate step before deploying new code.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Liveness checks if the process is alive; readiness checks if the application can handle traffic">
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the difference between a liveness probe and a readiness probe in deployment health checks?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  Liveness checks if the process is alive; readiness checks if the application can handle traffic
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  Liveness is for databases; readiness is for application servers
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  They are the same thing with different names
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  Readiness kills unhealthy containers; liveness restarts them
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Liveness probes detect if a container is frozen or deadlocked and should be restarted. Readiness probes determine if an instance is ready to receive traffic (database connected, caches warmed). A failing liveness probe triggers a restart; a failing readiness probe stops routing traffic but keeps the container running.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Blue-green requires 2x infrastructure during cutover but enables instant rollback; rolling uses 1x infrastructure but slower rollback">
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the main trade-off of blue-green deployments compared to rolling deployments?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  Blue-green provides faster deployments but requires downtime
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  Blue-green requires 2x infrastructure during cutover but enables instant rollback; rolling uses 1x infrastructure but slower rollback
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  Rolling deployments require manual intervention; blue-green is fully automated
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  Blue-green cannot handle database migrations; rolling deployments can
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Blue-green's main trade-off is cost vs. safety. You pay for two full environments temporarily but gain instant rollback capability and full production testing before cutover. Rolling deployments are more cost-efficient (gradual instance replacement) but rollback requires reversing the entire update process.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Health checks that return 200 OK before the application is fully initialized, causing traffic to hit broken instances">
+          <h4>Question 7 (1 points)</h4>
+          <p style="margin: 10px 0;">What is a common pitfall when implementing health checks for load balancers?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  Health checks that return 200 OK before the application is fully initialized, causing traffic to hit broken instances
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  Running health checks too infrequently (every 60 seconds or more)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  Including database queries in liveness probes
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  Using HTTP instead of HTTPS for health check endpoints
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Shallow health checks that only verify 'process is running' are dangerous. If a Rails app returns 200 before database connections are ready or caches are warmed, the load balancer routes traffic to a broken instance. Deep health checks must verify all critical dependencies before returning healthy status.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Use a three-phase deployment: (1) add new column, deploy dual-write code; (2) backfill data; (3) remove old column, deploy new code">
+          <h4>Question 8 (2 points)</h4>
+          <p style="margin: 10px 0;">How should you handle a breaking database migration (removing a column) in a zero-downtime deployment?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  Deploy code and migration simultaneously; rely on fast deployment to minimize issues
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  Use a three-phase deployment: (1) add new column, deploy dual-write code; (2) backfill data; (3) remove old column, deploy new code
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  Run the migration after all servers have been updated to new code
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Use feature flags to hide the breaking change until all users are migrated
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Breaking changes require multiple deployments. Phase 1: add the new column (compatible with old code) and deploy code that writes to both old and new columns. Phase 2: backfill existing data. Phase 3: remove the old column and deploy code that only uses the new column. This ensures old and new code versions always have compatible data.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="To finish processing in-flight requests before terminating the process, preventing errors for active users">
+          <h4>Question 9 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the purpose of graceful shutdown in deployment strategies?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(8, 0)">
+                  To immediately terminate all connections when deploying new code
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 1)">
+                  To finish processing in-flight requests before terminating the process, preventing errors for active users
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 2)">
+                  To automatically rollback deployments when errors are detected
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 3)">
+                  To warm up caches before accepting production traffic
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Graceful shutdown ensures zero-downtime. When a process receives SIGTERM, it stops accepting new requests but finishes processing current requests before exiting. Without graceful shutdown, active requests fail mid-processing, causing 502/503 errors for users. Puma and most application servers support graceful shutdown natively.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="When you want to test high-risk changes with real traffic on a small subset before full rollout">
+          <h4>Question 10 (1 points)</h4>
+          <p style="margin: 10px 0;">When should you choose canary deployment over blue-green deployment?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(9, 0)">
+                  When infrastructure budget is unlimited and instant rollback is critical
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 1)">
+                  When you want to test high-risk changes with real traffic on a small subset before full rollout
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 2)">
+                  When zero-downtime is not required
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 3)">
+                  When you need to run migrations that break backward compatibility
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Canary deployments excel at risk mitigation for uncertain changes. By routing 5-10% of traffic to new code first, you detect issues with real production load but limit the blast radius. Blue-green is better for instant rollback; canary is better for gradual validation and reducing risk of changes with unknown production behavior.
+              </div>
+            
           
         </div>
       
@@ -847,7 +2089,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -863,33 +2105,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://martinfowler.com/bliki/BlueGreenDeployment.html" target="_blank">Martin Fowler - BlueGreenDeployment</a>
+            <div class="why">Authoritative explanation of blue-green deployment pattern, trade-offs, and implementation considerations from software architecture expert Martin Fowler.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://kubernetes.io/docs/tutorials/kubernetes-basics/update/update-intro/" target="_blank">Kubernetes Rolling Updates and Rollbacks</a>
+            <div class="why">Official Kubernetes documentation on rolling updates, including maxSurge, maxUnavailable parameters, and rollback strategies for container orchestration.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/flippercloud/flipper" target="_blank">Flipper - Feature Flags for Ruby</a>
+            <div class="why">Most popular Rails feature flag library for implementing canary releases, gradual rollouts, and decoupling deployment from feature releases.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.honeybadger.io/blog/zero-downtime-rails-deployments/" target="_blank">Zero Downtime Deployments with Rails</a>
+            <div class="why">Practical guide to achieving zero-downtime Rails deployments, covering database migrations, asset compilation, and graceful shutdown patterns.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://docs.aws.amazon.com/whitepapers/latest/blue-green-deployments/welcome.html" target="_blank">AWS Blue/Green Deployments</a>
+            <div class="why">AWS whitepaper on blue-green deployment patterns for various infrastructure setups including load balancers, DNS, and Auto Scaling groups.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://blog.getambassador.io/cloud-native-patterns-canary-release-1cb8f82d371a" target="_blank">Implementing Canary Releases on Kubernetes</a>
+            <div class="why">Detailed guide to implementing canary releases using Kubernetes and service mesh, with traffic splitting and progressive rollout strategies.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/ankane/strong_migrations" target="_blank">Rails Database Migrations Without Downtime</a>
+            <div class="why">Strong Migrations gem and guide for catching unsafe Rails migrations that cause downtime, with patterns for zero-downtime schema changes.</div>
           </li>
         
       </ul>

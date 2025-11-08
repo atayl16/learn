@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,50 +656,188 @@
 
 <h2>What It Is</h2>
 
-<p>Report Generation Strategies is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>Report generation in Rails involves exporting large datasets to CSV, Excel, or PDF formats while maintaining acceptable response times and server resource usage. Production report systems must handle millions of rows, stream data to avoid memory exhaustion, cache expensive analytical queries, and queue long-running exports as background jobs.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Poorly implemented reports are a top cause of production outages. A single unoptimized export loading 500,000 rows into memory causes 2GB+ RAM spikes, triggering OOM kills and cascading failures. Streaming reports reduce memory from O(N) to O(1). Background jobs prevent 60-second request timeouts. Query caching eliminates redundant 30-second analytical queries when multiple users download the same daily report.</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li>CSV exports: any dataset over 1,000 rows should stream, over 10,000 rows should background process</li>
+<li>Excel exports: use background jobs for &gt;5,000 rows due to XLSX formatting overhead</li>
+<li>Caching: analytical reports with GROUP BY, window functions, or multi-table JOINs taking &gt;2 seconds</li>
+<li>Streaming: always stream CSV to prevent memory bloat, even for medium datasets</li>
+<li>Direct download: only for reports completing in &lt;5 seconds with &lt;1,000 rows</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><strong>Loading all rows into memory:</strong> Using <code>Post.all.to_a</code> or <code>User.pluck(:email)</code> for large datasets loads millions of records into RAM, causing 500 errors. Always use <code>find_each</code> or CSV streaming.</li>
+<li><strong>Blocking the web process:</strong> Running a 45-second report export in a controller action hits Rack timeout (30s default), returns 500, but job keeps running. Move to Sidekiq with status polling.</li>
+<li><strong>No query caching for repeated reports:</strong> Ten users downloading the same &quot;Monthly Sales&quot; report each trigger a 20-second GROUP BY query. Cache query results with Rails.cache for 1 hour and serve from memory.</li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>CSV Streaming</h2>
 
-<h3>Key Concept 1</h3>
+<p>Stream CSV rows directly to the HTTP response without buffering in memory:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/reports_controller.rb</span>
+<span class="k">class</span> <span class="nc">ReportsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">users_csv</span>
+    <span class="n">headers</span><span class="p">[</span><span class="s1">'Content-Type'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'text/csv'</span>
+    <span class="n">headers</span><span class="p">[</span><span class="s1">'Content-Disposition'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'attachment; filename=users.csv'</span>
+    <span class="n">headers</span><span class="p">[</span><span class="s1">'Last-Modified'</span><span class="p">]</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">httpdate</span>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+    <span class="c1"># Disable Rack buffering for streaming</span>
+    <span class="nb">self</span><span class="p">.</span><span class="nf">response_body</span> <span class="o">=</span> <span class="n">generate_csv_enumerator</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">generate_csv_enumerator</span>
+    <span class="no">Enumerator</span><span class="p">.</span><span class="nf">new</span> <span class="k">do</span> <span class="o">|</span><span class="n">csv</span><span class="o">|</span>
+      <span class="c1"># Stream CSV header</span>
+      <span class="n">csv</span> <span class="o">&lt;&lt;</span> <span class="no">CSV</span><span class="p">.</span><span class="nf">generate_line</span><span class="p">([</span><span class="s1">'ID'</span><span class="p">,</span> <span class="s1">'Email'</span><span class="p">,</span> <span class="s1">'Created At'</span><span class="p">])</span>
+
+      <span class="c1"># Stream rows in batches (find_each uses 1000 default)</span>
+      <span class="no">User</span><span class="p">.</span><span class="nf">find_each</span> <span class="k">do</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span>
+        <span class="n">csv</span> <span class="o">&lt;&lt;</span> <span class="no">CSV</span><span class="p">.</span><span class="nf">generate_line</span><span class="p">([</span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="nf">email</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="nf">created_at</span><span class="p">])</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<p><strong>Memory usage:</strong> 50MB constant regardless of dataset size.</p>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<p><strong>Before:</strong> Loading 100,000 users with <code>.to_a</code> consumed 1.8GB RAM.</p>
+
+<p><strong>After:</strong> Streaming maintains 50MB RAM usage.</p>
+
+<hr>
+
+<h2>Background Jobs for Large Exports</h2>
+
+<p>Offload slow reports to Sidekiq and notify users via email:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/jobs/report_export_job.rb</span>
+<span class="k">class</span> <span class="nc">ReportExportJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="n">queue_as</span> <span class="ss">:reports</span>
+
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">filters</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s2">"</span><span class="si">#{</span><span class="n">report_type</span><span class="si">}</span><span class="s2">_</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">to_i</span><span class="si">}</span><span class="s2">.csv"</span>
+    <span class="n">filepath</span> <span class="o">=</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">root</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">'tmp'</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+
+    <span class="c1"># Generate CSV file</span>
+    <span class="no">CSV</span><span class="p">.</span><span class="nf">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">csv</span><span class="o">|</span>
+      <span class="n">csv</span> <span class="o">&lt;&lt;</span> <span class="p">[</span><span class="s1">'ID'</span><span class="p">,</span> <span class="s1">'Email'</span><span class="p">,</span> <span class="s1">'Revenue'</span><span class="p">,</span> <span class="s1">'Status'</span><span class="p">]</span>
+
+      <span class="no">Report</span><span class="p">.</span><span class="nf">generate</span><span class="p">(</span><span class="n">report_type</span><span class="p">,</span> <span class="n">filters</span><span class="p">).</span><span class="nf">find_each</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+        <span class="n">csv</span> <span class="o">&lt;&lt;</span> <span class="p">[</span><span class="n">row</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="n">row</span><span class="p">.</span><span class="nf">email</span><span class="p">,</span> <span class="n">row</span><span class="p">.</span><span class="nf">revenue</span><span class="p">,</span> <span class="n">row</span><span class="p">.</span><span class="nf">status</span><span class="p">]</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="c1"># Upload to S3</span>
+    <span class="n">s3_url</span> <span class="o">=</span> <span class="no">S3Uploader</span><span class="p">.</span><span class="nf">upload</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">"reports/</span><span class="si">#{</span><span class="n">filename</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="c1"># Email download link</span>
+    <span class="no">ReportMailer</span><span class="p">.</span><span class="nf">export_ready</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">s3_url</span><span class="p">).</span><span class="nf">deliver_now</span>
+
+    <span class="c1"># Cleanup</span>
+    <span class="no">File</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/controllers/reports_controller.rb</span>
+<span class="k">def</span> <span class="nf">export</span>
+  <span class="no">ReportExportJob</span><span class="p">.</span><span class="nf">perform_later</span><span class="p">(</span><span class="n">current_user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="ss">:type</span><span class="p">],</span> <span class="n">filters</span><span class="p">)</span>
+  <span class="n">flash</span><span class="p">[</span><span class="ss">:notice</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Report queued. You'll receive an email with download link."</span>
+  <span class="n">redirect_to</span> <span class="n">reports_path</span>
+<span class="k">end</span>
 </code></pre></div>
+<p>Users receive email with S3 presigned URL valid for 7 days.</p>
+
+<hr>
+
+<h2>Caching Expensive Analytical Queries</h2>
+
+<p>Cache aggregated results for slow queries:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ReportsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">monthly_revenue</span>
+    <span class="vi">@report_data</span> <span class="o">=</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"monthly_revenue_</span><span class="si">#{</span><span class="no">Date</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">month</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">1</span><span class="p">.</span><span class="nf">hour</span><span class="p">)</span> <span class="k">do</span>
+      <span class="c1"># Expensive query with GROUP BY and window functions</span>
+      <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="o">&lt;&lt;~</span><span class="no">SQL</span><span class="p">).</span><span class="nf">to_a</span><span class="sh">
+        SELECT
+          DATE_TRUNC('day', created_at) as day,
+          SUM(amount) as revenue,
+          COUNT(*) as order_count,
+          AVG(amount) OVER (ORDER BY DATE_TRUNC('day', created_at) ROWS 7 PRECEDING) as moving_avg
+        FROM orders
+        WHERE created_at &gt;= DATE_TRUNC('month', CURRENT_DATE)
+        GROUP BY DATE_TRUNC('day', created_at)
+        ORDER BY day
+</span><span class="no">      SQL</span>
+    <span class="k">end</span>
+
+    <span class="n">render</span> <span class="ss">json: </span><span class="vi">@report_data</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Query time:</strong> 23 seconds (uncached) → 8ms (cached).</p>
+
+<p>Cache key includes month to auto-expire on month boundary.</p>
+
+<hr>
+
+<h2>Excel Generation with caxlsx_rails</h2>
+
+<p>For formatted Excel exports with charts and styling:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'caxlsx'</span>
+<span class="n">gem</span> <span class="s1">'caxlsx_rails'</span>
+
+<span class="c1"># app/views/reports/sales.xlsx.axlsx</span>
+<span class="n">wb</span> <span class="o">=</span> <span class="n">xlsx_package</span><span class="p">.</span><span class="nf">workbook</span>
+
+<span class="n">wb</span><span class="p">.</span><span class="nf">add_worksheet</span><span class="p">(</span><span class="ss">name: </span><span class="s2">"Sales Report"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">sheet</span><span class="o">|</span>
+  <span class="c1"># Header row with bold styling</span>
+  <span class="n">sheet</span><span class="p">.</span><span class="nf">add_row</span> <span class="p">[</span><span class="s1">'Date'</span><span class="p">,</span> <span class="s1">'Product'</span><span class="p">,</span> <span class="s1">'Revenue'</span><span class="p">,</span> <span class="s1">'Units'</span><span class="p">],</span> <span class="ss">style: </span><span class="n">wb</span><span class="p">.</span><span class="nf">styles</span><span class="p">.</span><span class="nf">add_style</span><span class="p">(</span><span class="ss">b: </span><span class="kp">true</span><span class="p">)</span>
+
+  <span class="c1"># Data rows (use find_each for large datasets)</span>
+  <span class="vi">@sales</span><span class="p">.</span><span class="nf">find_each</span> <span class="k">do</span> <span class="o">|</span><span class="n">sale</span><span class="o">|</span>
+    <span class="n">sheet</span><span class="p">.</span><span class="nf">add_row</span> <span class="p">[</span><span class="n">sale</span><span class="p">.</span><span class="nf">date</span><span class="p">,</span> <span class="n">sale</span><span class="p">.</span><span class="nf">product_name</span><span class="p">,</span> <span class="n">sale</span><span class="p">.</span><span class="nf">revenue</span><span class="p">,</span> <span class="n">sale</span><span class="p">.</span><span class="nf">units</span><span class="p">]</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Add chart</span>
+  <span class="n">sheet</span><span class="p">.</span><span class="nf">add_chart</span><span class="p">(</span><span class="no">Axlsx</span><span class="o">::</span><span class="no">Chart</span><span class="p">,</span> <span class="ss">title: </span><span class="s2">"Revenue Trend"</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">chart</span><span class="o">|</span>
+    <span class="n">chart</span><span class="p">.</span><span class="nf">add_series</span> <span class="ss">data: </span><span class="n">sheet</span><span class="p">[</span><span class="s2">"C2:C</span><span class="si">#{</span><span class="vi">@sales</span><span class="p">.</span><span class="nf">count</span> <span class="o">+</span> <span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">],</span> <span class="ss">labels: </span><span class="n">sheet</span><span class="p">[</span><span class="s2">"A2:A</span><span class="si">#{</span><span class="vi">@sales</span><span class="p">.</span><span class="nf">count</span> <span class="o">+</span> <span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/controllers/reports_controller.rb</span>
+<span class="k">def</span> <span class="nf">sales</span>
+  <span class="vi">@sales</span> <span class="o">=</span> <span class="no">Sale</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s1">'created_at &gt;= ?'</span><span class="p">,</span> <span class="mi">30</span><span class="p">.</span><span class="nf">days</span><span class="p">.</span><span class="nf">ago</span><span class="p">)</span>
+
+  <span class="n">respond_to</span> <span class="k">do</span> <span class="o">|</span><span class="nb">format</span><span class="o">|</span>
+    <span class="nb">format</span><span class="p">.</span><span class="nf">xlsx</span> <span class="c1"># Renders sales.xlsx.axlsx</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>For &gt;5,000 rows, move Excel generation to background job due to XLSX formatting overhead.</p>
+
 <hr>
 
 <h2>Best Practices</h2>
 
 <ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
+<li><strong>Always stream CSV:</strong> Use enumerators and <code>find_each</code> to maintain O(1) memory usage regardless of row count.</li>
+<li><strong>Background jobs for slow exports:</strong> Any report taking &gt;5 seconds should be async with email notification.</li>
+<li><strong>Cache analytical queries:</strong> Store aggregated results in Rails.cache with 1-hour TTL for repeated downloads.</li>
+<li><strong>Presigned S3 URLs:</strong> Store large exports in S3, send time-limited download links (avoid database BLOB storage).</li>
+<li><strong>Monitor memory and query time:</strong> Track P95 response time and memory usage per report type in APM.</li>
 </ol>
 
 <hr>
@@ -681,20 +845,20 @@
 <h2>Key Terms</h2>
 
 <ul>
-<li><strong>CSV</strong></li>
-<li><strong>Excel</strong></li>
-<li><strong>streaming</strong></li>
-<li><strong>report generation</strong></li>
-<li><strong>data export</strong></li>
+<li><strong>streaming:</strong> generating CSV row-by-row without loading full dataset into memory</li>
+<li><strong>find_each:</strong> ActiveRecord batch iterator that fetches 1,000 records at a time</li>
+<li><strong>enumerator:</strong> Ruby object that yields values lazily without materializing full collection</li>
+<li><strong>presigned URL:</strong> time-limited S3 download link that expires after N hours</li>
+<li><strong>query caching:</strong> storing expensive query results in Rails.cache (Redis/Memcached)</li>
 </ul>
 
 <hr>
 
 <h2>Summary</h2>
 
-<p>Report Generation Strategies is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
+<p>Report generation requires streaming for memory efficiency, background jobs for long-running exports, and caching for repeated analytical queries. Stream CSV with enumerators, queue Excel exports via Sidekiq, cache aggregated results for 1 hour, and serve downloads from S3 with presigned URLs. These patterns prevent OOM errors, timeout failures, and redundant expensive queries.</p>
 
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<p><strong>Next steps:</strong> Complete the exercise to build a streaming CSV report with background processing and query caching.</p>
 
     
   </div>
@@ -706,55 +870,264 @@
     
       <h1>Exercise: Report Generation Strategies</h1>
 
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
-
 <h2>Objective</h2>
 
-<p>Build hands-on experience with report generation strategies through practical implementation.</p>
+<p>Build a streaming CSV report generator with background job processing, query caching, and memory-efficient exports for large datasets.</p>
+
+<h2>Task</h2>
+
+<p>Create a Rails app that exports order data to CSV using three approaches:</p>
+
+<ol>
+<li>Basic streaming CSV for immediate download</li>
+<li>Background job for large exports with email notification</li>
+<li>Cached analytical report with aggregated data</li>
+</ol>
 
 <h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new report_generation_practice
-<span class="nb">cd </span>report_generation_practice
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
+<h3>Step 1: Create Rails App &amp; Models</h3>
+<div class="highlight"><pre class="highlight shell"><code>rails new report_generator <span class="nt">--skip-javascript</span>
+<span class="nb">cd </span>report_generator
+bin/rails generate model Order customer_name:string amount:decimal status:string created_at:datetime
+bin/rails db:migrate
 </code></pre></div>
-<h2>Tasks</h2>
+<h3>Step 2: Install Dependencies</h3>
+<div class="highlight"><pre class="highlight shell"><code>bundle add sidekiq
+</code></pre></div>
+<h3>Step 3: Seed Data</h3>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails console
+</code></pre></div>
+<p>In console:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Generate 50,000 sample orders</span>
+<span class="n">statuses</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'pending'</span><span class="p">,</span> <span class="s1">'completed'</span><span class="p">,</span> <span class="s1">'cancelled'</span><span class="p">]</span>
+<span class="mi">50_000</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+  <span class="no">Order</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span>
+    <span class="ss">customer_name: </span><span class="s2">"Customer </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+    <span class="ss">amount: </span><span class="nb">rand</span><span class="p">(</span><span class="mf">10.0</span><span class="o">..</span><span class="mf">500.0</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+    <span class="ss">status: </span><span class="n">statuses</span><span class="p">.</span><span class="nf">sample</span><span class="p">,</span>
+    <span class="ss">created_at: </span><span class="nb">rand</span><span class="p">(</span><span class="mi">90</span><span class="p">.</span><span class="nf">days</span><span class="p">.</span><span class="nf">ago</span><span class="o">..</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">)</span>
+  <span class="p">)</span>
+<span class="k">end</span>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
+<span class="nb">puts</span> <span class="s2">"Created </span><span class="si">#{</span><span class="no">Order</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> orders"</span>
+</code></pre></div>
+<h3>Step 4: Configure Sidekiq</h3>
 
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
+<p><code>config/application.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span><span class="p">.</span><span class="nf">active_job</span><span class="p">.</span><span class="nf">queue_adapter</span> <span class="o">=</span> <span class="ss">:sidekiq</span>
+</code></pre></div>
+<h2>Part 1: Streaming CSV Export (8 minutes)</h2>
+
+<p><strong>Task 1.1:</strong> Create a streaming CSV controller</p>
+
+<p>Create <code>app/controllers/reports_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ReportsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">orders_csv</span>
+    <span class="n">headers</span><span class="p">[</span><span class="s1">'Content-Type'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'text/csv'</span>
+    <span class="n">headers</span><span class="p">[</span><span class="s1">'Content-Disposition'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'attachment; filename=orders.csv'</span>
+
+    <span class="c1"># Stream response without buffering</span>
+    <span class="nb">self</span><span class="p">.</span><span class="nf">response_body</span> <span class="o">=</span> <span class="n">csv_enumerator</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">csv_enumerator</span>
+    <span class="no">Enumerator</span><span class="p">.</span><span class="nf">new</span> <span class="k">do</span> <span class="o">|</span><span class="n">stream</span><span class="o">|</span>
+      <span class="c1"># TODO: Stream CSV header</span>
+      <span class="c1"># TODO: Stream rows using find_each to batch queries</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Add route in <code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">get</span> <span class="s1">'reports/orders_csv'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'reports#orders_csv'</span>
 </code></pre></div>
 <p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
+- [ ] CSV header includes: ID, Customer Name, Amount, Status, Created At<br>
+- [ ] Uses <code>find_each</code> to batch database queries (default 1000 records)<br>
+- [ ] Generates each CSV row with <code>CSV.generate_line</code><br>
+- [ ] Memory usage stays constant (~50MB) regardless of dataset size</p>
 
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
+<p><strong>Verification:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails server
+<span class="c"># Visit http://localhost:3000/reports/orders_csv</span>
+<span class="c"># Download should start immediately and complete in ~5 seconds</span>
+</code></pre></div>
+<p>Check logs for batched queries:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>Order Load (5.2ms)  SELECT "orders".* FROM "orders" ORDER BY "orders"."id" ASC LIMIT 1000
+Order Load (3.8ms)  SELECT "orders".* FROM "orders" WHERE "orders"."id" &gt; 1000 ORDER BY "orders"."id" ASC LIMIT 1000
+# ... continues in batches
+</code></pre></div>
+<h2>Part 2: Background Job Export (10 minutes)</h2>
 
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
+<p><strong>Task 2.1:</strong> Create background job for large exports</p>
 
+<p>Generate job:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate job ReportExport
+</code></pre></div>
+<p>Edit <code>app/jobs/report_export_job.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ReportExportJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="n">queue_as</span> <span class="ss">:reports</span>
+
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">user_email</span><span class="p">,</span> <span class="n">filters</span> <span class="o">=</span> <span class="p">{})</span>
+    <span class="c1"># TODO: Generate CSV file in tmp/</span>
+    <span class="c1"># TODO: Store user_email for notification</span>
+    <span class="c1"># TODO: Send email with download instructions</span>
+    <span class="c1"># TODO: Clean up temp file</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Create mailer:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate mailer ReportMailer export_ready
+</code></pre></div>
+<p>Edit <code>app/mailers/report_mailer.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ReportMailer</span> <span class="o">&lt;</span> <span class="no">ApplicationMailer</span>
+  <span class="k">def</span> <span class="nf">export_ready</span><span class="p">(</span><span class="n">email</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+    <span class="vi">@filename</span> <span class="o">=</span> <span class="n">filename</span>
+    <span class="n">mail</span><span class="p">(</span><span class="ss">to: </span><span class="n">email</span><span class="p">,</span> <span class="ss">subject: </span><span class="s2">"Your report is ready"</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Add controller action:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/reports_controller.rb</span>
+<span class="k">def</span> <span class="nf">queue_export</span>
+  <span class="no">ReportExportJob</span><span class="p">.</span><span class="nf">perform_later</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:email</span><span class="p">])</span>
+  <span class="n">flash</span><span class="p">[</span><span class="ss">:notice</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Report queued. You'll receive an email when ready."</span>
+  <span class="n">redirect_to</span> <span class="n">root_path</span>
+<span class="k">end</span>
+</code></pre></div>
 <p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
+- [ ] Job generates CSV file in <code>tmp/</code> directory<br>
+- [ ] Email sent with download instructions after completion<br>
+- [ ] Temp file cleaned up after email sent<br>
+- [ ] Job runs in background (controller returns immediately)</p>
 
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
+<p><strong>Verification:</strong></p>
 
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
+<p>Start Sidekiq:</p>
+<div class="highlight"><pre class="highlight shell"><code>bundle <span class="nb">exec </span>sidekiq
+</code></pre></div>
+<p>In another terminal:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails console
+ReportExportJob.perform_later<span class="o">(</span><span class="s2">"test@example.com"</span><span class="o">)</span>
+</code></pre></div>
+<p>Check Sidekiq logs for job execution and email delivery.</p>
+
+<h2>Part 3: Cached Analytical Report (7 minutes)</h2>
+
+<p><strong>Task 3.1:</strong> Create cached aggregated report</p>
+
+<p>Add controller action:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/reports_controller.rb</span>
+<span class="k">def</span> <span class="nf">daily_revenue</span>
+  <span class="vi">@report</span> <span class="o">=</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="n">cache_key</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">1</span><span class="p">.</span><span class="nf">hour</span><span class="p">)</span> <span class="k">do</span>
+    <span class="c1"># TODO: Execute expensive SQL query with GROUP BY</span>
+    <span class="c1"># TODO: Return JSON with daily revenue sums</span>
+  <span class="k">end</span>
+
+  <span class="n">render</span> <span class="ss">json: </span><span class="vi">@report</span>
+<span class="k">end</span>
+
+<span class="kp">private</span>
+
+<span class="k">def</span> <span class="nf">cache_key</span>
+  <span class="s2">"daily_revenue_</span><span class="si">#{</span><span class="no">Date</span><span class="p">.</span><span class="nf">current</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Write SQL query that aggregates daily revenue:</p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">SELECT</span>
+  <span class="nb">DATE</span><span class="p">(</span><span class="n">created_at</span><span class="p">)</span> <span class="k">as</span> <span class="nb">date</span><span class="p">,</span>
+  <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">as</span> <span class="n">order_count</span><span class="p">,</span>
+  <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="k">as</span> <span class="n">total_revenue</span><span class="p">,</span>
+  <span class="k">AVG</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="k">as</span> <span class="n">avg_order_value</span>
+<span class="k">FROM</span> <span class="n">orders</span>
+<span class="k">WHERE</span> <span class="n">status</span> <span class="o">=</span> <span class="s1">'completed'</span>
+  <span class="k">AND</span> <span class="n">created_at</span> <span class="o">&gt;=</span> <span class="n">DATE_TRUNC</span><span class="p">(</span><span class="s1">'month'</span><span class="p">,</span> <span class="k">CURRENT_DATE</span><span class="p">)</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="nb">DATE</span><span class="p">(</span><span class="n">created_at</span><span class="p">)</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="nb">date</span>
+</code></pre></div>
+<p><strong>Acceptance criteria:</strong><br>
+- [ ] First request executes SQL query (check logs for query time)<br>
+- [ ] Subsequent requests serve from cache (response time &lt;10ms)<br>
+- [ ] Cache key includes current date for auto-expiration<br>
+- [ ] Returns JSON array of daily revenue data</p>
+
+<p><strong>Verification:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># First request - executes query</span>
+curl http://localhost:3000/reports/daily_revenue
+
+<span class="c"># Check logs for query execution time</span>
+<span class="c"># Completed 200 OK in 234ms (ActiveRecord: 220ms)</span>
+
+<span class="c"># Second request - from cache</span>
+curl http://localhost:3000/reports/daily_revenue
+
+<span class="c"># Check logs for cache hit</span>
+<span class="c"># Completed 200 OK in 8ms (ActiveRecord: 0ms)</span>
 </code></pre></div>
 <h2>Stretch Goals</h2>
 
-<ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
-</ul>
+<ol>
+<li><strong>Add filtering parameters:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">csv_enumerator</span>
+  <span class="no">Order</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">status: </span><span class="n">params</span><span class="p">[</span><span class="ss">:status</span><span class="p">]).</span><span class="nf">find_each</span> <span class="k">do</span> <span class="o">|</span><span class="n">order</span><span class="o">|</span>
+    <span class="c1"># ...</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<ol>
+<li><strong>Track export progress:</strong></li>
+</ol>
 
+<p>Use Redis to store job progress percentage and poll from frontend.</p>
+
+<ol>
+<li><strong>S3 upload for background exports:</strong></li>
+</ol>
+
+<p>Instead of email, upload to S3 and send presigned URL:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Requires aws-sdk-s3 gem</span>
+<span class="n">s3</span> <span class="o">=</span> <span class="no">Aws</span><span class="o">::</span><span class="no">S3</span><span class="o">::</span><span class="no">Resource</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">s3</span><span class="p">.</span><span class="nf">bucket</span><span class="p">(</span><span class="s1">'reports'</span><span class="p">).</span><span class="nf">object</span><span class="p">(</span><span class="s2">"exports/</span><span class="si">#{</span><span class="n">filename</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">obj</span><span class="p">.</span><span class="nf">upload_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+<span class="n">presigned_url</span> <span class="o">=</span> <span class="n">obj</span><span class="p">.</span><span class="nf">presigned_url</span><span class="p">(</span><span class="ss">:get</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">7</span><span class="p">.</span><span class="nf">days</span><span class="p">.</span><span class="nf">to_i</span><span class="p">)</span>
+</code></pre></div>
+<ol>
+<li><strong>Memory profiling:</strong></li>
+</ol>
+
+<p>Add memory_profiler gem and measure before/after memory usage:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s1">'memory_profiler'</span>
+
+<span class="n">report</span> <span class="o">=</span> <span class="no">MemoryProfiler</span><span class="p">.</span><span class="nf">report</span> <span class="k">do</span>
+  <span class="c1"># Run export</span>
+<span class="k">end</span>
+
+<span class="n">report</span><span class="p">.</span><span class="nf">pretty_print</span>
+</code></pre></div>
 <h2>Solution Notes</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p><strong>Common gotchas:</strong></p>
+
+<ol>
+<li><p><strong>Forgetting <code>find_each</code> batch size:</strong> Default 1000 is good for most cases. Increase to 5000 for simple queries, decrease to 100 for complex associations.</p></li>
+<li><p><strong>Not setting CSV headers:</strong> Browser won&#39;t recognize as downloadable file without proper <code>Content-Disposition</code> header.</p></li>
+<li><p><strong>Cache key collisions:</strong> Always include date/time component in cache key to prevent stale data.</p></li>
+<li><p><strong>Temp file cleanup:</strong> Use <code>ensure</code> block or <code>File.unlink</code> to prevent disk space leaks.</p></li>
+<li><p><strong>Streaming in development:</strong> Some web servers (WEBrick) buffer responses. Test with Puma for accurate streaming behavior.</p></li>
+</ol>
+
+<p><strong>Expected timings:</strong><br>
+- 50,000 rows streamed: 3-5 seconds<br>
+- Background job: 8-12 seconds (includes email sending)<br>
+- Cached query: &lt;10ms (after first hit)</p>
+
+<h2>Time Estimate</h2>
+
+<p>25 minutes</p>
 
     
   </div>
@@ -766,74 +1139,308 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Streaming uses O(1) constant memory while loading all uses O(N) memory">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the primary memory benefit of streaming CSV exports versus loading all records into memory?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  Streaming uses O(N) memory while loading all uses O(1)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  Streaming uses O(1) constant memory while loading all uses O(N) memory
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  Streaming is faster but uses the same memory
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  Streaming only works with fewer than 1000 records
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Streaming processes one row at a time, maintaining constant memory usage regardless of dataset size, while loading all records consumes memory proportional to the number of records.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Greater than 10,000 rows">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">At what dataset size should CSV exports be moved to background jobs?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  Greater than 100 rows
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  Greater than 1,000 rows
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  Greater than 10,000 rows
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Any size for safety
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Exports taking longer than 5 seconds risk hitting request timeouts. Around 10,000+ rows, exports typically exceed this threshold and should be backgrounded.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="find_each">
+          <h4>Question 3 (1 points)</h4>
+          <p style="margin: 10px 0;">Which ActiveRecord method should you use to batch process large datasets when streaming CSV?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  all.each
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  find_each
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  pluck
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  to_a.each
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> find_each batches queries in groups of 1000 (default), preventing memory bloat. Other methods load all records into memory at once.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="2"
              >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 4 (2 points)</h4>
+          <p style="margin: 10px 0;">Write the Ruby code to set HTTP headers for a CSV file download named 'users.csv'.</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">headers['Content-Type'] = 'text/csv' and headers['Content-Disposition'] = 'attachment; filename=users.csv'</p>
+            </div>
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="To eliminate redundant database queries and improve response time">
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">Why should you cache expensive analytical queries that multiple users run repeatedly?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  To reduce disk space usage
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  To eliminate redundant database queries and improve response time
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  To make the code easier to read
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  Caching is not recommended for reports
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> When multiple users download the same report, caching stores the query result (e.g., in Redis) so subsequent requests return instantly without re-executing the expensive query.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="2"
              >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">What Rails method caches a block's result with a key and expiration time?</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Rails.cache.fetch(key, expires_in: 1.hour) { expensive_query }</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="A time-limited download link for S3 objects">
+          <h4>Question 7 (1 points)</h4>
+          <p style="margin: 10px 0;">What is a presigned URL in the context of report generation?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  A URL that never expires
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  A time-limited download link for S3 objects
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  A URL that requires authentication headers
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  A URL that is signed by the database
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Presigned URLs allow temporary access to S3 objects without making them public. They expire after a configured time period (e.g., 7 days).
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Greater than 5,000 rows">
+          <h4>Question 8 (1 points)</h4>
+          <p style="margin: 10px 0;">When generating Excel files with formatting and charts, what is the recommended row limit before moving to background jobs?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  Greater than 100 rows
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  Greater than 1,000 rows
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  Greater than 5,000 rows
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Greater than 100,000 rows
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Excel (XLSX) generation has more overhead than CSV due to formatting, styles, and charts. Background processing at 5,000+ rows prevents request timeouts.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 9 (2 points)</h4>
+          <p style="margin: 10px 0;">What pattern prevents web request timeouts when generating large reports that take 45+ seconds?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Queue the export as a background job (e.g., Sidekiq) and send an email notification with download link when complete</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="1000 records">
+          <h4>Question 10 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the default batch size for find_each when iterating over records?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(9, 0)">
+                  100 records
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 1)">
+                  500 records
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 2)">
+                  1000 records
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 3)">
+                  5000 records
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> find_each fetches records in batches of 1000 by default. This can be customized with the batch_size parameter.
+              </div>
+            
           
         </div>
       
@@ -847,7 +1454,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -863,33 +1470,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://guides.rubyonrails.org/layouts_and_rendering.html#streaming" target="_blank">Rails Guides — Layouts and Rendering (Streaming Section)</a>
+            <div class="why">Official Rails documentation on streaming responses, including live streaming and how to set response_body with enumerators.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/caxlsx/caxlsx_rails" target="_blank">caxlsx_rails — Excel Generation for Rails</a>
+            <div class="why">Popular gem for generating Excel files with formatting, charts, and styles. Includes Rails integration and view templates.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://ruby-doc.org/stdlib-3.1.0/libdoc/csv/rdoc/CSV.html" target="_blank">Ruby CSV Documentation</a>
+            <div class="why">Canonical Ruby CSV library documentation covering CSV.generate_line, parsing options, and performance considerations.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/mperham/sidekiq/wiki/Best-Practices" target="_blank">Sidekiq Best Practices — Background Jobs</a>
+            <div class="why">Official Sidekiq patterns for job design, including file processing, email delivery, and cleanup strategies for report generation.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://guides.rubyonrails.org/caching_with_rails.html#low-level-caching" target="_blank">Rails Caching Guide — Low-Level Caching</a>
+            <div class="why">Official guide to Rails.cache.fetch with expiration strategies, cache key design, and Redis/Memcached configuration.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Presigner.html" target="_blank">AWS SDK for Ruby — S3 Presigned URLs</a>
+            <div class="why">Documentation for generating time-limited S3 download links, essential for serving large reports without database storage.</div>
+          </li>
+        
+          <li>
+            <a href="https://thoughtbot.com/blog/a-tour-of-rails-streaming" target="_blank">Streaming CSV in Rails (Thoughtbot Blog)</a>
+            <div class="why">Practical guide to implementing streaming responses in Rails with memory profiling and performance benchmarks.</div>
           </li>
         
       </ul>

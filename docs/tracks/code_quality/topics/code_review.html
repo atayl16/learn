@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,71 +656,203 @@
 
 <h2>What It Is</h2>
 
-<p>Code Review Techniques is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>Code review is the practice of having teammates examine proposed code changes before merging them. Effective reviews balance three goals: catching bugs and design flaws, teaching patterns and standards, and maintaining team velocity. Reviews use blocking comments for critical issues (security holes, broken logic) and non-blocking comments for style preferences and learning opportunities. A review checklist ensures consistency: verify tests pass, check for edge cases, assess readability, and confirm alignment with architecture.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Code merged without review accumulates technical debt faster than teams can address it. A reviewer catches the bug you missed after three hours of debugging. Reviews also scale knowledge: juniors learn patterns from seniors, seniors learn domain context from juniors. Poor reviews slow teams down with nitpicking (arguing over variable names) or rubber-stamping (approving without reading). Senior developers know when to block (&quot;this leaks user emails&quot;) versus when to suggest (&quot;consider extracting a service object here&quot;).</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li>Block merges for security vulnerabilities, data integrity bugs, or broken business logic</li>
+<li>Non-blocking comments for style preferences, performance optimizations, or refactoring suggestions</li>
+<li>Review checklists for complex domains (payments, authentication) to ensure critical checks happen</li>
+<li>Async reviews for non-urgent changes; pair programming or sync calls for architectural decisions</li>
+<li>Automated linting and CI checks to catch formatting and test failures before human review</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><p><strong>Nitpicking style in reviews:</strong> Arguing over indentation or method names wastes time. Use automated linters (RuboCop, StandardRB) to enforce style, and reserve review comments for logic and design. If your team debates style in reviews, you need better tooling, not more opinions.</p></li>
+<li><p><strong>Blocking on non-critical issues:</strong> Marking a PR as &quot;Request Changes&quot; because a variable could be renamed or a method could be extracted slows delivery. Use non-blocking comments (&quot;nit:&quot; or &quot;optional:&quot;) for suggestions that don&#39;t affect correctness. Block only for bugs, security issues, or violations of agreed-upon architecture.</p></li>
+<li><p><strong>Skipping context in feedback:</strong> Comments like &quot;this is wrong&quot; or &quot;refactor this&quot; frustrate authors and don&#39;t teach patterns. Explain why: &quot;This query will N+1 on production data—consider <code>includes(:comments)</code>&quot; or &quot;Inline SQL bypasses our audit log—use the <code>AuditableUpdate</code> service instead.&quot;</p></li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>Giving Constructive Feedback</h2>
 
-<h3>Key Concept 1</h3>
+<p>Effective feedback separates observation from judgment and explains the &quot;why.&quot;</p>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<p><strong>Avoid:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>This code is messy. Fix it.
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<p><strong>Better:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>This method does three things: validates input, calls an API, and updates the database.
+Consider extracting the API call into a service object so we can test it independently
+and retry on failures. (non-blocking)
+</code></pre></div>
+<p><strong>Structure:</strong><br>
+1. State what you observed: &quot;This controller action has 50 lines&quot;<br>
+2. Explain the impact: &quot;Long actions are hard to test and debug&quot;<br>
+3. Suggest an approach: &quot;Consider moving business logic to a service object&quot;<br>
+4. Label priority: &quot;blocking&quot; for must-fix, &quot;nit&quot; for optional</p>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<p>Use questions to invite discussion: &quot;Could this cause an N+1 if the user has 1000 posts?&quot; frames the concern as a question, not an accusation.</p>
+
+<hr>
+
+<h2>Critical vs Style Issues</h2>
+
+<p>Not all feedback deserves equal weight. Distinguish bugs from preferences.</p>
+
+<p><strong>Critical (blocking):</strong><br>
+- Security: Exposing sensitive data, SQL injection, missing authorization<br>
+- Correctness: Off-by-one errors, race conditions, incorrect business logic<br>
+- Data integrity: Missing validations, unsafe migrations, transaction violations<br>
+- Performance: N+1 queries on large datasets, missing indexes, unbounded loops</p>
+
+<p><strong>Style (non-blocking):</strong><br>
+- Variable naming: <code>user</code> vs <code>current_user</code><br>
+- Method extraction: &quot;This could be a private method&quot;<br>
+- Pattern suggestions: &quot;Have you considered the Strategy pattern here?&quot;<br>
+- Documentation: &quot;Add a comment explaining why we skip validation here&quot;</p>
+
+<p><strong>Example blocking comment:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># PR code</span>
+<span class="k">def</span> <span class="nf">charge_card</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span>
+  <span class="no">Stripe</span><span class="o">::</span><span class="no">Charge</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">amount: </span><span class="n">amount</span><span class="p">,</span> <span class="ss">currency: </span><span class="s2">"usd"</span><span class="p">,</span> <span class="ss">source: </span><span class="n">params</span><span class="p">[</span><span class="ss">:token</span><span class="p">])</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Review:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>BLOCKING: This reads the Stripe token directly from params without validation.
+An attacker could pass arbitrary data. Use strong parameters and validate the
+token format before passing it to Stripe.
+</code></pre></div>
+<p><strong>Example non-blocking comment:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># PR code</span>
+<span class="n">orders</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">o</span><span class="o">|</span> <span class="n">o</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="ss">status: </span><span class="s2">"shipped"</span><span class="p">)</span> <span class="p">}</span>
+</code></pre></div>
+<p><strong>Review:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>nit: This triggers N UPDATE queries. Consider `Order.where(id: order_ids).update_all(status: "shipped")`
+for better performance. Not blocking since this only runs on admin actions with &lt;10 orders.
 </code></pre></div>
 <hr>
 
-<h2>Best Practices</h2>
+<h2>Review Checklists</h2>
 
-<ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
-</ol>
+<p>Checklists ensure consistency, especially for junior reviewers or complex domains.</p>
+
+<p><strong>General Rails PR Checklist:</strong><br>
+- [ ] Tests pass in CI (green build required)<br>
+- [ ] New code has test coverage (unit or request tests)<br>
+- [ ] Database migrations are reversible and safe for zero-downtime deploy<br>
+- [ ] No N+1 queries (check for <code>includes</code> or <code>preload</code> on associations)<br>
+- [ ] Authorization checks present for user-facing actions<br>
+- [ ] No sensitive data in logs (passwords, tokens, PII)<br>
+- [ ] Error handling covers edge cases (nil values, timeouts, API failures)<br>
+- [ ] New ENV variables documented in <code>.env.example</code></p>
+
+<p><strong>Domain-Specific (Payments):</strong><br>
+- [ ] Idempotency keys used for Stripe API calls<br>
+- [ ] Amounts validated before charging (positive, within limits)<br>
+- [ ] Failures logged and alerted (Sentry, Rollbar)<br>
+- [ ] Refunds and disputes handled</p>
+
+<p>Checklists turn implicit knowledge into explicit steps. Review the checklist, then adapt it for your team&#39;s context.</p>
 
 <hr>
 
-<h2>Key Terms</h2>
+<h2>Building Review Culture</h2>
+
+<p>Healthy review culture values learning over gatekeeping.</p>
+
+<p><strong>Team norms to establish:</strong><br>
+1. <strong>Response time:</strong> Aim for first review within 4 hours during work hours<br>
+2. <strong>Review size:</strong> PRs over 400 lines take exponentially longer to review—break them up<br>
+3. <strong>Label conventions:</strong> Use &quot;blocking,&quot; &quot;nit,&quot; &quot;question,&quot; &quot;praise&quot; to set expectations<br>
+4. <strong>Author responsibility:</strong> Respond to every comment (fix, disagree, or acknowledge)<br>
+5. <strong>Reviewer responsibility:</strong> Approve after blocking issues are resolved; don&#39;t request changes on nits</p>
+
+<p><strong>Encourage learning in both directions:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code># Senior reviewing junior
+"Nice use of `pluck` here to avoid loading full ActiveRecord objects—this saves memory."
+
+# Junior reviewing senior
+"I didn't know `find_each` batches queries. Could you add a comment explaining why
+we use it here? It'll help the next person."
+</code></pre></div>
+<p>Pair programming for high-risk changes (data migrations, payment flows) beats async review. Save reviews for standard feature work.</p>
+
+<hr>
+
+<h2>Blocking vs Non-Blocking Comments</h2>
+
+<p>Blocking comments prevent merge until resolved. Non-blocking comments are suggestions.</p>
+
+<p><strong>Use blocking for:</strong><br>
+- Bugs that will break production<br>
+- Security vulnerabilities<br>
+- Violations of team architecture decisions (e.g., &quot;we agreed not to use inline SQL&quot;)</p>
+
+<p><strong>Use non-blocking for:</strong><br>
+- Performance optimizations on low-traffic code<br>
+- Refactoring suggestions<br>
+- Documentation improvements<br>
+- &quot;FYI&quot; context or learning points</p>
+
+<p><strong>Example labels:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>BLOCKING: This migration drops the `email` column without a deprecation period.
+We need a two-step deploy: deprecate first, drop in the next release.
+
+nit: Consider renaming `process` to `process_payment` for clarity.
+
+optional: You could extract this into a concern, but it's fine as-is.
+
+question: Does this handle the case where `user.subscription` is nil?
+
+praise: Great test coverage on the edge cases!
+</code></pre></div>
+<p>Authors can merge once blocking comments are addressed. Non-blocking comments can be resolved with &quot;acknowledged&quot; or deferred to a follow-up PR.</p>
+
+<hr>
+
+<h2>Trade-offs Box</h2>
 
 <ul>
-<li><strong>code review</strong></li>
-<li><strong>pull requests</strong></li>
-<li><strong>constructive feedback</strong></li>
-<li><strong>nitpicks</strong></li>
-<li><strong>blocking issues</strong></li>
+<li><strong>Advantage:</strong> Code reviews catch bugs before production, spread knowledge across the team, and enforce standards without heavy process.</li>
+<li><strong>Cost:</strong> Reviews add latency (hours to days between PR open and merge) and can become bottlenecks if reviewers are overloaded or nitpick style.</li>
+<li><strong>When to skip:</strong> Skip reviews for trivial changes (typo fixes, README updates) or in emergencies (production outages). Use automated checks and pair programming as alternatives.</li>
 </ul>
 
 <hr>
 
-<h2>Summary</h2>
+<h2>Debugging Checklist</h2>
 
-<p>Code Review Techniques is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
+<p>When reviews slow down or become contentious, check:</p>
 
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<ol>
+<li>PR size: Run <code>git diff --stat main</code> and aim for &lt;400 lines</li>
+<li>Review latency: Track time from PR open to first review—should be under 4 hours</li>
+<li>Approval rate: If &lt;80% of PRs are approved without &quot;Request Changes,&quot; reviewers may be over-blocking</li>
+<li>Linter failures: Automate style checks so reviews focus on logic</li>
+<li>Checklist coverage: Compare your review comments to your checklist—are you forgetting critical checks or nitpicking outside them?</li>
+<li>Author-reviewer relationship: If reviews feel adversarial, schedule a sync call to align on expectations</li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>Code reviews catch bugs, share knowledge, and enforce standards; use blocking comments for critical issues, non-blocking for suggestions</li>
+<li>Distinguish security bugs and data corruption (blocking) from style preferences and refactorings (non-blocking)</li>
+<li>Checklists ensure consistency: verify tests, check for N+1s, validate migrations, confirm authorization</li>
+<li>Build culture by setting response time norms, using clear labels, and valuing learning over gatekeeping</li>
+<li>Merge after blocking issues are resolved; defer non-blocking suggestions to follow-up PRs or acknowledge them</li>
+</ul>
 
     
   </div>
@@ -706,56 +864,152 @@
     
       <h1>Exercise: Code Review Techniques</h1>
 
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
-
 <h2>Objective</h2>
 
-<p>Build hands-on experience with code review techniques through practical implementation.</p>
+<p>Practice identifying critical issues, writing constructive feedback, and distinguishing blocking from non-blocking comments on sample pull requests.</p>
 
-<h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new code_review_practice
-<span class="nb">cd </span>code_review_practice
+<h2>Task</h2>
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
+<p>You&#39;re reviewing three pull requests from your team. For each PR, identify issues, categorize them as blocking or non-blocking, and write feedback using the techniques from the overview.</p>
+
+<hr>
+
+<h3>PR 1: User Authentication</h3>
+
+<p><strong>Code changes:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/sessions_controller.rb</span>
+<span class="k">class</span> <span class="nc">SessionsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">create</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find_by</span><span class="p">(</span><span class="ss">email: </span><span class="n">params</span><span class="p">[</span><span class="ss">:email</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">user</span> <span class="o">&amp;&amp;</span> <span class="n">user</span><span class="p">.</span><span class="nf">password</span> <span class="o">==</span> <span class="n">params</span><span class="p">[</span><span class="ss">:password</span><span class="p">]</span>
+      <span class="n">session</span><span class="p">[</span><span class="ss">:user_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="nf">id</span>
+      <span class="n">redirect_to</span> <span class="n">dashboard_path</span>
+    <span class="k">else</span>
+      <span class="n">flash</span><span class="p">[</span><span class="ss">:error</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Invalid credentials"</span>
+      <span class="n">render</span> <span class="ss">:new</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/models/user.rb</span>
+<span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">validates</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span>
+<span class="k">end</span>
 </code></pre></div>
-<h2>Tasks</h2>
+<p><strong>Your task:</strong><br>
+1. Identify at least 2 critical (blocking) issues<br>
+2. Identify at least 1 style or improvement (non-blocking) suggestion<br>
+3. Write review comments for each issue using the feedback structure from the overview</p>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
+<hr>
 
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
+<h3>PR 2: Order Processing</h3>
+
+<p><strong>Code changes:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/services/order_processor.rb</span>
+<span class="k">class</span> <span class="nc">OrderProcessor</span>
+  <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="n">order_id</span><span class="p">)</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="no">Order</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">order_id</span><span class="p">)</span>
+    <span class="n">order</span><span class="p">.</span><span class="nf">items</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">item</span><span class="o">|</span>
+      <span class="n">item</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="ss">status: </span><span class="s2">"processed"</span><span class="p">)</span>
+      <span class="no">InventoryService</span><span class="p">.</span><span class="nf">decrement_stock</span><span class="p">(</span><span class="n">item</span><span class="p">.</span><span class="nf">product_id</span><span class="p">,</span> <span class="n">item</span><span class="p">.</span><span class="nf">quantity</span><span class="p">)</span>
+    <span class="k">end</span>
+    <span class="n">order</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="ss">status: </span><span class="s2">"completed"</span><span class="p">,</span> <span class="ss">processed_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="p">)</span>
+    <span class="no">OrderMailer</span><span class="p">.</span><span class="nf">confirmation</span><span class="p">(</span><span class="n">order</span><span class="p">.</span><span class="nf">id</span><span class="p">).</span><span class="nf">deliver_now</span>
+  <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="nb">puts</span> <span class="s2">"Error: </span><span class="si">#{</span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 </code></pre></div>
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
+<p><strong>Your task:</strong><br>
+1. Identify issues with database queries and performance<br>
+2. Identify issues with error handling<br>
+3. Identify issues with transaction safety<br>
+4. Write blocking vs non-blocking comments appropriately</p>
 
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
+<hr>
 
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
+<h3>PR 3: Product Migration</h3>
 
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
-
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
-
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
+<p><strong>Code changes:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># db/migrate/20241108_remove_description_from_products.rb</span>
+<span class="k">class</span> <span class="nc">RemoveDescriptionFromProducts</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">remove_column</span> <span class="ss">:products</span><span class="p">,</span> <span class="ss">:description</span><span class="p">,</span> <span class="ss">:text</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 </code></pre></div>
-<h2>Stretch Goals</h2>
+<p><strong>PR description:</strong> &quot;Removing unused description field from products table.&quot;</p>
+
+<p><strong>Your task:</strong><br>
+1. Assess the migration safety for zero-downtime deployments<br>
+2. Check if the migration is reversible<br>
+3. Write feedback explaining deployment risks</p>
+
+<hr>
+
+<h2>Acceptance Criteria</h2>
 
 <ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
+<li>[ ] PR 1: Identified password comparison vulnerability (blocking)</li>
+<li>[ ] PR 1: Identified missing password hashing/bcrypt (blocking)</li>
+<li>[ ] PR 1: Suggested validation improvements (non-blocking)</li>
+<li>[ ] PR 2: Flagged N+1 queries and suggested fix (blocking on high-traffic endpoints)</li>
+<li>[ ] PR 2: Identified missing transaction wrapper (blocking)</li>
+<li>[ ] PR 2: Noted error handling issues (blocking)</li>
+<li>[ ] PR 3: Explained two-phase deployment requirement (blocking)</li>
+<li>[ ] PR 3: Confirmed migration is not reversible (blocking)</li>
+<li>[ ] All comments use clear labels (BLOCKING, nit, question, etc.)</li>
+<li>[ ] All blocking comments explain the &quot;why&quot; and suggest a solution</li>
 </ul>
+
+<h2>Verification Steps</h2>
+
+<p>Compare your review comments to these key issues:</p>
+
+<p><strong>PR 1 Critical Issues:</strong><br>
+- Password stored and compared in plaintext (security vulnerability)<br>
+- Missing <code>has_secure_password</code> or bcrypt integration<br>
+- No rate limiting on login attempts</p>
+
+<p><strong>PR 2 Critical Issues:</strong><br>
+- N+1 query on <code>order.items.each</code><br>
+- No database transaction wrapping updates<br>
+- Error swallowing with generic rescue and <code>puts</code> instead of proper logging<br>
+- Sending email synchronously instead of background job</p>
+
+<p><strong>PR 3 Critical Issues:</strong><br>
+- Dropping column will break running app servers during deployment<br>
+- Migration is not reversible (no <code>up</code>/<code>down</code> or reversible block)<br>
+- No deprecation period before column removal</p>
+
+<h2>Stretch (Optional)</h2>
+
+<p>Create a custom review checklist for your team based on your most common PR issues. Include 5-8 items specific to your domain (e.g., &quot;Verify Stripe idempotency keys&quot; for payment PRs).</p>
+
+<h2>Time Estimate</h2>
+
+<p>22 minutes</p>
 
 <h2>Solution Notes</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p><strong>Example review comment for PR 1:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>BLOCKING: This compares passwords in plaintext, which is a critical security vulnerability.
+Passwords should never be stored or compared directly.
 
+Suggested fix:
+1. Add `gem 'bcrypt'` to Gemfile
+2. Add `has_secure_password` to User model
+3. Change comparison to `user.authenticate(params[:password])`
+4. Ensure password is stored as `password_digest` in the database
+
+See Rails security guide: https://guides.rubyonrails.org/security.html#user-management
+</code></pre></div>
+<p><strong>Example non-blocking comment for PR 2:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>nit: `Time.now` should be `Time.current` to respect the Rails timezone setting.
+This prevents bugs when users are in different timezones. Not blocking since
+processed_at is only used for admin reporting.
+</code></pre></div>
     
   </div>
 </div>
@@ -766,74 +1020,308 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="User passwords are compared in plaintext without hashing">
+          <h4>Question 1 (1 points)</h4>
+          <p style="margin: 10px 0;">Which type of issue should warrant a BLOCKING comment in a code review?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  A variable could be renamed for clarity
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  A method could be extracted into a private method
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  User passwords are compared in plaintext without hashing
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  Code formatting doesn't match team style guide
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Security vulnerabilities like plaintext password comparison are critical issues that must be fixed before merging. Style and refactoring suggestions should be non-blocking.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Use automated linters and focus reviews on logic">
+          <h4>Question 2 (1 points)</h4>
+          <p style="margin: 10px 0;">What's the most effective way to handle code style issues in reviews?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  Block every PR until style is perfect
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  Use automated linters and focus reviews on logic
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  Ignore style completely
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Debate each style choice in review comments
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Automated linters (RuboCop, StandardRB) enforce style consistently without wasting reviewer time. Reviews should focus on logic, architecture, and correctness.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="2"
              >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 3 (2 points)</h4>
+          <p style="margin: 10px 0;">You see this code in a PR: `orders.each { |o| o.update(status: 'shipped') }`. Write a review comment using the constructive feedback structure (observation, impact, suggestion, label).</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">This triggers N individual UPDATE queries (one per order). For 100 orders, this creates 100 database round trips, slowing down the endpoint. Consider using `Order.where(id: order_ids).update_all(status: 'shipped')` for a single query. (blocking if this runs on high-traffic endpoints, nit if it's admin-only with <10 orders)</p>
+            </div>
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="For high-risk changes like data migrations or payment flows">
+          <h4>Question 4 (1 points)</h4>
+          <p style="margin: 10px 0;">When should you use pair programming instead of async code review?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  For all pull requests to ensure quality
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  Never; code review is always better
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  For high-risk changes like data migrations or payment flows
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  Only when the author is a junior developer
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Pair programming is more effective for complex, high-risk changes where real-time collaboration prevents bugs. Save async reviews for standard feature work.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Request changes: use a two-phase deploy (ignore column first, drop in next release)">
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">A PR removes a database column with `remove_column :products, :description`. What's the correct review feedback?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  Approve immediately; unused columns should be removed
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  Request changes: use a two-phase deploy (ignore column first, drop in next release)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  Suggest using a different migration method
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  Add a non-blocking comment about reversibility
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Dropping columns immediately breaks running app servers during zero-downtime deploys. The correct approach is: (1) ignore the column, (2) deploy, (3) drop the column in the next release.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Under 400 lines">
+          <h4>Question 6 (1 points)</h4>
+          <p style="margin: 10px 0;">What's the recommended PR size to keep reviews effective?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  Under 100 lines
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  Under 400 lines
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  Under 1000 lines
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  No limit; larger PRs are fine
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> PRs over 400 lines take exponentially longer to review and are more likely to have bugs slip through. Breaking changes into smaller PRs improves review quality and speed.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 7 (2 points)</h4>
+          <p style="margin: 10px 0;">What's the difference between a blocking comment and a non-blocking comment? Give one example of each.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Blocking comments prevent merge until resolved (e.g., 'BLOCKING: This SQL injection vulnerability allows attackers to access any user's data'). Non-blocking comments are suggestions that don't affect correctness (e.g., 'nit: Consider extracting this 20-line method into smaller methods for readability').</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Acknowledge, fix, or defer to follow-up PR">
+          <h4>Question 8 (1 points)</h4>
+          <p style="margin: 10px 0;">How should an author respond to non-blocking review comments?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  Fix all suggestions before merging
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  Merge immediately without addressing them
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  Acknowledge, fix, or defer to follow-up PR
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Argue about every suggestion in comments
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Non-blocking comments don't prevent merge. Authors can choose to implement suggestions, acknowledge and defer to later, or explain why they disagree. The key is responding to every comment.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Within 4 hours during work hours">
+          <h4>Question 9 (1 points)</h4>
+          <p style="margin: 10px 0;">What's the recommended response time for initial code review?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(8, 0)">
+                  Within 24 hours
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 1)">
+                  Within 4 hours during work hours
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 2)">
+                  Within 1 hour
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 3)">
+                  By end of week
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> A 4-hour response time balances reviewer availability with author productivity. Faster reviews prevent context switching and keep momentum, while allowing reviewers to focus on their own work.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 10 (2 points)</h4>
+          <p style="margin: 10px 0;">Name three items that should be on every Rails PR review checklist.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">1) Tests pass in CI and new code has test coverage, 2) Database migrations are reversible and safe for zero-downtime deploys, 3) No N+1 queries (check for includes/preload on associations). Other valid answers: authorization checks, no sensitive data in logs, error handling for edge cases.</p>
+            </div>
           
         </div>
       
@@ -847,7 +1335,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -863,33 +1351,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://google.github.io/eng-practices/review/" target="_blank">Google Engineering Practices — Code Review Guidelines</a>
+            <div class="why">Google's comprehensive guide to code reviews covering reviewer and author responsibilities, what to look for, and how to handle feedback.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://conventionalcomments.org/" target="_blank">Conventional Comments</a>
+            <div class="why">Specification for structured review comments using labels (blocking, nit, question, praise) to set clear expectations.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://thoughtbot.com/blog/how-to-review-code-thoughtfully" target="_blank">Thoughtbot — Code Review Best Practices</a>
+            <div class="why">Practical advice on giving constructive feedback, balancing speed with thoroughness, and building healthy review culture in Rails teams.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/about-pull-request-reviews" target="_blank">GitHub — About Pull Request Reviews</a>
+            <div class="why">Official GitHub documentation on using review features: comments, approvals, request changes, and suggested changes.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.alexandra-hill.com/2018/06/25/the-art-of-giving-and-receiving-code-reviews/" target="_blank">The Art of Giving and Receiving Code Reviews</a>
+            <div class="why">Deep dive into review psychology, empathy in feedback, and how to receive criticism constructively as an author.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://guides.rubyonrails.org/security.html" target="_blank">Rails Security Guide</a>
+            <div class="why">Essential reading for identifying security vulnerabilities during code review: SQL injection, XSS, CSRF, authentication, and authorization issues.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/thoughtbot/guides/tree/main/code-review" target="_blank">Code Review Checklist — Shopify</a>
+            <div class="why">Example checklist from a production Rails team covering testing, performance, security, and deployment safety.</div>
           </li>
         
       </ul>

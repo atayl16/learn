@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,71 +656,260 @@
 
 <h2>What It Is</h2>
 
-<p>Refactoring Patterns in Rails is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>Refactoring is the disciplined practice of restructuring code without changing its external behavior. In Rails, common refactoring patterns include Extract Service Object (moving business logic from controllers/models into dedicated classes), Replace Conditional with Polymorphism (substituting complex if/case statements with object-oriented designs), and Extract Method (breaking down long methods into smaller, named chunks). The goal is improving code readability, maintainability, and testability while preserving functionality.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Rails applications naturally accumulate complexity: controllers grow fat with business logic, models balloon with callbacks and validations, conditionals proliferate. Refactoring patterns prevent this decay. Extract Service keeps controllers thin by moving multi-step workflows (payment processing, report generation) into testable service objects. Replace Conditional with Polymorphism eliminates switch statements by leveraging inheritance or strategy patterns, making code extensible. Following SOLID principles—Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion—ensures classes remain focused, flexible, and maintainable. Refactoring with tests guarantees you don&#39;t break functionality.</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li>Fat controllers exceeding 50 lines or handling multiple responsibilities</li>
+<li>Models with 10+ public methods or complex business logic unrelated to persistence</li>
+<li>Nested conditionals (if/elsif/case) that span 20+ lines or handle polymorphic behavior</li>
+<li>Duplicated code across controllers or models</li>
+<li>Before adding new features to legacy code (refactor first, then extend)</li>
+<li>When tests become hard to write due to tight coupling</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><strong>Refactoring without tests:</strong> Changing code without test coverage risks silent breakage. Always write characterization tests before refactoring legacy code.</li>
+<li><strong>Over-engineering:</strong> Extracting every method into a service object or creating inheritance hierarchies for simple conditionals adds unnecessary abstraction. Refactor when pain is real, not preemptively.</li>
+<li><strong>Big bang refactors:</strong> Rewriting entire controllers or models in one PR makes code review impossible and introduces risk. Refactor incrementally: extract one service, fix one conditional, commit, repeat.</li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>Extract Service Object</h2>
 
-<h3>Key Concept 1</h3>
+<p>Move complex business logic from controllers or models into Plain Old Ruby Objects (POROs):</p>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<p><strong>Before (Fat Controller):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">OrdersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">create</span>
+    <span class="vi">@order</span> <span class="o">=</span> <span class="no">Order</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">order_params</span><span class="p">)</span>
+    <span class="k">if</span> <span class="vi">@order</span><span class="p">.</span><span class="nf">save</span>
+      <span class="vi">@order</span><span class="p">.</span><span class="nf">line_items</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">item</span><span class="o">|</span> <span class="no">InventoryService</span><span class="p">.</span><span class="nf">decrement</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="p">}</span>
+      <span class="no">PaymentGateway</span><span class="p">.</span><span class="nf">charge</span><span class="p">(</span><span class="vi">@order</span><span class="p">.</span><span class="nf">total</span><span class="p">,</span> <span class="vi">@order</span><span class="p">.</span><span class="nf">payment_token</span><span class="p">)</span>
+      <span class="no">OrderMailer</span><span class="p">.</span><span class="nf">confirmation</span><span class="p">(</span><span class="vi">@order</span><span class="p">).</span><span class="nf">deliver_later</span>
+      <span class="no">Analytics</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span><span class="s2">"order_created"</span><span class="p">,</span> <span class="vi">@order</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+      <span class="n">redirect_to</span> <span class="vi">@order</span><span class="p">,</span> <span class="ss">notice: </span><span class="s2">"Order placed!"</span>
+    <span class="k">else</span>
+      <span class="n">render</span> <span class="ss">:new</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<p><strong>After (Service Object):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">OrderCreationService</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">order_params</span><span class="p">)</span>
+    <span class="vi">@order_params</span> <span class="o">=</span> <span class="n">order_params</span>
+  <span class="k">end</span>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+  <span class="k">def</span> <span class="nf">call</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="no">Order</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="vi">@order_params</span><span class="p">)</span>
+    <span class="k">return</span> <span class="no">ServiceResult</span><span class="p">.</span><span class="nf">failure</span><span class="p">(</span><span class="n">order</span><span class="p">.</span><span class="nf">errors</span><span class="p">)</span> <span class="k">unless</span> <span class="n">order</span><span class="p">.</span><span class="nf">save</span>
+
+    <span class="n">decrement_inventory</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+    <span class="n">charge_payment</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+    <span class="n">send_confirmation</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+    <span class="n">track_analytics</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+
+    <span class="no">ServiceResult</span><span class="p">.</span><span class="nf">success</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">decrement_inventory</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+    <span class="n">order</span><span class="p">.</span><span class="nf">line_items</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">item</span><span class="o">|</span> <span class="no">InventoryService</span><span class="p">.</span><span class="nf">decrement</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">charge_payment</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+    <span class="no">PaymentGateway</span><span class="p">.</span><span class="nf">charge</span><span class="p">(</span><span class="n">order</span><span class="p">.</span><span class="nf">total</span><span class="p">,</span> <span class="n">order</span><span class="p">.</span><span class="nf">payment_token</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">send_confirmation</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+    <span class="no">OrderMailer</span><span class="p">.</span><span class="nf">confirmation</span><span class="p">(</span><span class="n">order</span><span class="p">).</span><span class="nf">deliver_later</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">track_analytics</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+    <span class="no">Analytics</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span><span class="s2">"order_created"</span><span class="p">,</span> <span class="n">order</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">OrdersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">create</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="no">OrderCreationService</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">order_params</span><span class="p">).</span><span class="nf">call</span>
+    <span class="k">if</span> <span class="n">result</span><span class="p">.</span><span class="nf">success?</span>
+      <span class="n">redirect_to</span> <span class="n">result</span><span class="p">.</span><span class="nf">value</span><span class="p">,</span> <span class="ss">notice: </span><span class="s2">"Order placed!"</span>
+    <span class="k">else</span>
+      <span class="vi">@order</span> <span class="o">=</span> <span class="no">Order</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">order_params</span><span class="p">)</span>
+      <span class="vi">@order</span><span class="p">.</span><span class="nf">errors</span><span class="p">.</span><span class="nf">merge!</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="nf">errors</span><span class="p">)</span>
+      <span class="n">render</span> <span class="ss">:new</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Benefits:</strong><br>
+- Controller stays thin (Single Responsibility)<br>
+- Service is easily testable in isolation<br>
+- Business logic is reusable (console scripts, background jobs)</p>
+
+<hr>
+
+<h2>Replace Conditional with Polymorphism</h2>
+
+<p>Eliminate complex conditionals by delegating to subclasses or strategy objects:</p>
+
+<p><strong>Before:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">InvoiceGenerator</span>
+  <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="n">invoice</span><span class="p">)</span>
+    <span class="k">case</span> <span class="n">invoice</span><span class="p">.</span><span class="nf">type</span>
+    <span class="k">when</span> <span class="s2">"standard"</span>
+      <span class="n">apply_standard_discount</span><span class="p">(</span><span class="n">invoice</span><span class="p">)</span>
+    <span class="k">when</span> <span class="s2">"nonprofit"</span>
+      <span class="n">apply_nonprofit_discount</span><span class="p">(</span><span class="n">invoice</span><span class="p">)</span>
+    <span class="k">when</span> <span class="s2">"enterprise"</span>
+      <span class="n">apply_enterprise_discount</span><span class="p">(</span><span class="n">invoice</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>After (Strategy Pattern):</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">InvoiceGenerator</span>
+  <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="n">invoice</span><span class="p">)</span>
+    <span class="no">DiscountStrategy</span><span class="p">.</span><span class="nf">for</span><span class="p">(</span><span class="n">invoice</span><span class="p">.</span><span class="nf">type</span><span class="p">).</span><span class="nf">apply_discount</span><span class="p">(</span><span class="n">invoice</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">DiscountStrategy</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">for</span><span class="p">(</span><span class="n">type</span><span class="p">)</span>
+    <span class="p">{</span> <span class="s2">"standard"</span> <span class="o">=&gt;</span> <span class="no">StandardDiscount</span><span class="p">,</span>
+      <span class="s2">"nonprofit"</span> <span class="o">=&gt;</span> <span class="no">NonprofitDiscount</span><span class="p">,</span>
+      <span class="s2">"enterprise"</span> <span class="o">=&gt;</span> <span class="no">EnterpriseDiscount</span> <span class="p">}[</span><span class="n">type</span><span class="p">].</span><span class="nf">new</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">StandardDiscount</span>
+  <span class="k">def</span> <span class="nf">apply_discount</span><span class="p">(</span><span class="n">invoice</span><span class="p">)</span>
+    <span class="n">invoice</span><span class="p">.</span><span class="nf">total</span> <span class="o">*=</span> <span class="mf">0.95</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Benefits:</strong><br>
+- Adding new types requires new classes, not modifying existing code (Open/Closed Principle)<br>
+- Each strategy is independently testable</p>
+
+<hr>
+
+<h2>Extract Method</h2>
+
+<p>Break long methods into smaller, well-named chunks:</p>
+
+<p><strong>Before:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">process_payment</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+  <span class="c1"># Validate</span>
+  <span class="k">raise</span> <span class="s2">"Invalid amount"</span> <span class="k">if</span> <span class="n">order</span><span class="p">.</span><span class="nf">total</span> <span class="o">&lt;=</span> <span class="mi">0</span>
+  <span class="k">raise</span> <span class="s2">"Missing token"</span> <span class="k">if</span> <span class="n">order</span><span class="p">.</span><span class="nf">payment_token</span><span class="p">.</span><span class="nf">blank?</span>
+
+  <span class="c1"># Charge</span>
+  <span class="n">response</span> <span class="o">=</span> <span class="no">PaymentGateway</span><span class="p">.</span><span class="nf">charge</span><span class="p">(</span><span class="n">order</span><span class="p">.</span><span class="nf">total</span><span class="p">,</span> <span class="n">order</span><span class="p">.</span><span class="nf">payment_token</span><span class="p">)</span>
+  <span class="k">raise</span> <span class="s2">"Payment failed"</span> <span class="k">unless</span> <span class="n">response</span><span class="p">.</span><span class="nf">success?</span>
+
+  <span class="c1"># Record</span>
+  <span class="n">order</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">paid_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">,</span> <span class="ss">transaction_id: </span><span class="n">response</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>After:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">process_payment</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+  <span class="n">validate_payment</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+  <span class="n">response</span> <span class="o">=</span> <span class="n">charge_card</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+  <span class="n">record_transaction</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="kp">private</span>
+
+<span class="k">def</span> <span class="nf">validate_payment</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+  <span class="k">raise</span> <span class="s2">"Invalid amount"</span> <span class="k">if</span> <span class="n">order</span><span class="p">.</span><span class="nf">total</span> <span class="o">&lt;=</span> <span class="mi">0</span>
+  <span class="k">raise</span> <span class="s2">"Missing token"</span> <span class="k">if</span> <span class="n">order</span><span class="p">.</span><span class="nf">payment_token</span><span class="p">.</span><span class="nf">blank?</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">charge_card</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+  <span class="n">response</span> <span class="o">=</span> <span class="no">PaymentGateway</span><span class="p">.</span><span class="nf">charge</span><span class="p">(</span><span class="n">order</span><span class="p">.</span><span class="nf">total</span><span class="p">,</span> <span class="n">order</span><span class="p">.</span><span class="nf">payment_token</span><span class="p">)</span>
+  <span class="k">raise</span> <span class="s2">"Payment failed"</span> <span class="k">unless</span> <span class="n">response</span><span class="p">.</span><span class="nf">success?</span>
+  <span class="n">response</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">record_transaction</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+  <span class="n">order</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">paid_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">,</span> <span class="ss">transaction_id: </span><span class="n">response</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+<span class="k">end</span>
 </code></pre></div>
 <hr>
 
-<h2>Best Practices</h2>
+<h2>SOLID Principles</h2>
+
+<ul>
+<li><strong>Single Responsibility:</strong> Each class does one thing (controllers route, models persist, services orchestrate)</li>
+<li><strong>Open/Closed:</strong> Extend via new classes, not by modifying existing code</li>
+<li><strong>Liskov Substitution:</strong> Subclasses substitute for base classes</li>
+<li><strong>Interface Segregation:</strong> Prefer small, focused interfaces</li>
+<li><strong>Dependency Inversion:</strong> Depend on abstractions, not implementations</li>
+</ul>
+
+<hr>
+
+<h2>Refactoring with Tests</h2>
+
+<p><strong>Golden Rule:</strong> Never refactor without tests.</p>
 
 <ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
+<li><strong>Write characterization tests</strong> capturing current behavior:</li>
 </ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">OrderCreationService</span> <span class="k">do</span>
+  <span class="n">it</span> <span class="s2">"creates order, charges card, sends email"</span> <span class="k">do</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="no">OrderCreationService</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">valid_params</span><span class="p">).</span><span class="nf">call</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">result</span><span class="p">).</span><span class="nf">to</span> <span class="n">be_success</span>
+    <span class="n">expect</span><span class="p">(</span><span class="no">Order</span><span class="p">.</span><span class="nf">count</span><span class="p">).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="no">PaymentGateway</span><span class="p">).</span><span class="nf">to</span> <span class="n">have_received</span><span class="p">(</span><span class="ss">:charge</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<ol>
+<li><strong>Refactor incrementally:</strong> Extract one method, run tests, commit.</li>
+<li><strong>Improve tests:</strong> Write unit tests for each extracted class.</li>
+</ol>
+
+<hr>
+
+<h2>Trade-offs</h2>
+
+<ul>
+<li><strong>Advantage:</strong> Cleaner, testable, maintainable code; easier onboarding for new developers.</li>
+<li><strong>Cost:</strong> More files and indirection; can obscure flow if over-abstracted.</li>
+<li><strong>When to skip:</strong> Simple CRUD actions rarely need service objects. Don&#39;t refactor prematurely.</li>
+</ul>
 
 <hr>
 
 <h2>Key Terms</h2>
 
 <ul>
-<li><strong>Extract Service</strong></li>
-<li><strong>Replace Conditional</strong></li>
-<li><strong>refactoring</strong></li>
-<li><strong>fat models</strong></li>
-<li><strong>SOLID</strong></li>
+<li><strong>Extract Service Object</strong></li>
+<li><strong>Replace Conditional with Polymorphism</strong></li>
+<li><strong>Extract Method</strong></li>
+<li><strong>SOLID principles</strong></li>
+<li><strong>characterization tests</strong></li>
+<li><strong>fat controller</strong></li>
 </ul>
 
 <hr>
 
-<h2>Summary</h2>
+<h2>One-Minute Recap</h2>
 
-<p>Refactoring Patterns in Rails is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
-
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<p>Refactoring improves code without changing behavior. Extract Service moves business logic into testable POROs. Replace Conditional with Polymorphism uses inheritance/strategy to eliminate complex if/case statements. Extract Method breaks long methods into named chunks. Follow SOLID: Single Responsibility, Open/Closed, etc. Always refactor with tests—write characterization tests for legacy code, refactor incrementally, then improve test coverage.</p>
 
     
   </div>
@@ -706,55 +921,374 @@
     
       <h1>Exercise: Refactoring Patterns in Rails</h1>
 
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
-
 <h2>Objective</h2>
 
-<p>Build hands-on experience with refactoring patterns in rails through practical implementation.</p>
+<p>Refactor a fat controller into a clean, testable architecture using Extract Service and Replace Conditional with Polymorphism patterns.</p>
 
-<h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new refactoring_patterns_practice
-<span class="nb">cd </span>refactoring_patterns_practice
+<h2>Task</h2>
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
+<p>You have a bloated <code>ArticlesController</code> that handles publishing, scheduling, archiving, and notifications. Your job is to:</p>
+
+<ol>
+<li>Extract the publishing workflow into a service object</li>
+<li>Replace the conditional notification logic with polymorphism</li>
+<li>Write tests to verify behavior remains unchanged</li>
+</ol>
+
+<h2>Acceptance Criteria</h2>
+
+<ul>
+<li>[ ] <code>ArticlePublishingService</code> extracts all publishing logic from controller</li>
+<li>[ ] Controller action is under 10 lines</li>
+<li>[ ] Notification logic uses strategy pattern (no conditionals)</li>
+<li>[ ] All tests pass before and after refactoring</li>
+<li>[ ] Service object is independently testable</li>
+</ul>
+
+<h2>Starting Code</h2>
+
+<h3>Fat Controller (Before)</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/articles_controller.rb</span>
+<span class="k">class</span> <span class="nc">ArticlesController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">publish</span>
+    <span class="vi">@article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+
+    <span class="c1"># Validate</span>
+    <span class="k">unless</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">draft?</span>
+      <span class="n">flash</span><span class="p">[</span><span class="ss">:error</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Only drafts can be published"</span>
+      <span class="n">redirect_to</span> <span class="vi">@article</span> <span class="ow">and</span> <span class="k">return</span>
+    <span class="k">end</span>
+
+    <span class="c1"># Publish</span>
+    <span class="vi">@article</span><span class="p">.</span><span class="nf">status</span> <span class="o">=</span> <span class="s2">"published"</span>
+    <span class="vi">@article</span><span class="p">.</span><span class="nf">published_at</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+    <span class="vi">@article</span><span class="p">.</span><span class="nf">save!</span>
+
+    <span class="c1"># Update search index</span>
+    <span class="no">SearchIndexer</span><span class="p">.</span><span class="nf">index</span><span class="p">(</span><span class="vi">@article</span><span class="p">)</span>
+
+    <span class="c1"># Clear cache</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="s2">"articles/</span><span class="si">#{</span><span class="vi">@article</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="s2">"articles/recent"</span><span class="p">)</span>
+
+    <span class="c1"># Send notifications based on subscription type</span>
+    <span class="n">subscribers</span> <span class="o">=</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">subscribers</span>
+    <span class="n">subscribers</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">subscriber</span><span class="o">|</span>
+      <span class="k">case</span> <span class="n">subscriber</span><span class="p">.</span><span class="nf">subscription_type</span>
+      <span class="k">when</span> <span class="s2">"premium"</span>
+        <span class="no">PremiumNotificationMailer</span><span class="p">.</span><span class="nf">new_article</span><span class="p">(</span><span class="vi">@article</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">).</span><span class="nf">deliver_later</span>
+        <span class="no">PushNotificationService</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="n">subscriber</span><span class="p">,</span> <span class="s2">"New article: </span><span class="si">#{</span><span class="vi">@article</span><span class="p">.</span><span class="nf">title</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+      <span class="k">when</span> <span class="s2">"standard"</span>
+        <span class="no">StandardNotificationMailer</span><span class="p">.</span><span class="nf">new_article</span><span class="p">(</span><span class="vi">@article</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">).</span><span class="nf">deliver_later</span>
+      <span class="k">when</span> <span class="s2">"digest"</span>
+        <span class="c1"># Add to weekly digest queue</span>
+        <span class="no">DigestQueue</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="vi">@article</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="c1"># Track analytics</span>
+    <span class="no">Analytics</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span><span class="s2">"article_published"</span><span class="p">,</span> <span class="p">{</span>
+      <span class="ss">article_id: </span><span class="vi">@article</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+      <span class="ss">author_id: </span><span class="vi">@article</span><span class="p">.</span><span class="nf">author_id</span><span class="p">,</span>
+      <span class="ss">category: </span><span class="vi">@article</span><span class="p">.</span><span class="nf">category</span>
+    <span class="p">})</span>
+
+    <span class="n">redirect_to</span> <span class="vi">@article</span><span class="p">,</span> <span class="ss">notice: </span><span class="s2">"Article published successfully!"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 </code></pre></div>
-<h2>Tasks</h2>
+<h3>Models</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/models/article.rb</span>
+<span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:author</span>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
+  <span class="n">enum</span> <span class="ss">status: </span><span class="p">{</span> <span class="ss">draft: </span><span class="mi">0</span><span class="p">,</span> <span class="ss">published: </span><span class="mi">1</span><span class="p">,</span> <span class="ss">archived: </span><span class="mi">2</span> <span class="p">}</span>
+<span class="k">end</span>
 
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
+<span class="c1"># app/models/subscriber.rb</span>
+<span class="k">class</span> <span class="nc">Subscriber</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:author</span>
+
+  <span class="n">enum</span> <span class="ss">subscription_type: </span><span class="p">{</span> <span class="ss">standard: </span><span class="mi">0</span><span class="p">,</span> <span class="ss">premium: </span><span class="mi">1</span><span class="p">,</span> <span class="ss">digest: </span><span class="mi">2</span> <span class="p">}</span>
+<span class="k">end</span>
 </code></pre></div>
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
+<h2>Refactoring Steps</h2>
 
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
+<h3>Step 1: Write Characterization Tests (5 minutes)</h3>
 
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
+<p>First, capture current behavior with tests:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># spec/controllers/articles_controller_spec.rb</span>
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">ArticlesController</span><span class="p">,</span> <span class="ss">type: :controller</span> <span class="k">do</span>
+  <span class="n">describe</span> <span class="s2">"#publish"</span> <span class="k">do</span>
+    <span class="n">let</span><span class="p">(</span><span class="ss">:author</span><span class="p">)</span> <span class="p">{</span> <span class="n">create</span><span class="p">(</span><span class="ss">:author</span><span class="p">)</span> <span class="p">}</span>
+    <span class="n">let</span><span class="p">(</span><span class="ss">:article</span><span class="p">)</span> <span class="p">{</span> <span class="n">create</span><span class="p">(</span><span class="ss">:article</span><span class="p">,</span> <span class="ss">:draft</span><span class="p">,</span> <span class="ss">author: </span><span class="n">author</span><span class="p">)</span> <span class="p">}</span>
+    <span class="n">let!</span><span class="p">(</span><span class="ss">:premium_sub</span><span class="p">)</span> <span class="p">{</span> <span class="n">create</span><span class="p">(</span><span class="ss">:subscriber</span><span class="p">,</span> <span class="ss">author: </span><span class="n">author</span><span class="p">,</span> <span class="ss">subscription_type: :premium</span><span class="p">)</span> <span class="p">}</span>
+    <span class="n">let!</span><span class="p">(</span><span class="ss">:standard_sub</span><span class="p">)</span> <span class="p">{</span> <span class="n">create</span><span class="p">(</span><span class="ss">:subscriber</span><span class="p">,</span> <span class="ss">author: </span><span class="n">author</span><span class="p">,</span> <span class="ss">subscription_type: :standard</span><span class="p">)</span> <span class="p">}</span>
 
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
+    <span class="n">before</span> <span class="k">do</span>
+      <span class="n">allow</span><span class="p">(</span><span class="no">SearchIndexer</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:index</span><span class="p">)</span>
+      <span class="n">allow</span><span class="p">(</span><span class="no">Analytics</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:track</span><span class="p">)</span>
+    <span class="k">end</span>
 
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
+    <span class="n">it</span> <span class="s2">"publishes article and sends notifications"</span> <span class="k">do</span>
+      <span class="n">expect</span> <span class="p">{</span>
+        <span class="n">post</span> <span class="ss">:publish</span><span class="p">,</span> <span class="ss">params: </span><span class="p">{</span> <span class="ss">id: </span><span class="n">article</span><span class="p">.</span><span class="nf">id</span> <span class="p">}</span>
+      <span class="p">}.</span><span class="nf">to</span> <span class="n">change</span> <span class="p">{</span> <span class="n">article</span><span class="p">.</span><span class="nf">reload</span><span class="p">.</span><span class="nf">status</span> <span class="p">}.</span><span class="nf">from</span><span class="p">(</span><span class="s2">"draft"</span><span class="p">).</span><span class="nf">to</span><span class="p">(</span><span class="s2">"published"</span><span class="p">)</span>
 
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
+      <span class="n">expect</span><span class="p">(</span><span class="n">article</span><span class="p">.</span><span class="nf">published_at</span><span class="p">).</span><span class="nf">to</span> <span class="n">be_present</span>
+      <span class="n">expect</span><span class="p">(</span><span class="no">SearchIndexer</span><span class="p">).</span><span class="nf">to</span> <span class="n">have_received</span><span class="p">(</span><span class="ss">:index</span><span class="p">).</span><span class="nf">with</span><span class="p">(</span><span class="n">article</span><span class="p">)</span>
+      <span class="n">expect</span><span class="p">(</span><span class="no">ActionMailer</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">deliveries</span><span class="p">.</span><span class="nf">size</span><span class="p">).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># premium + standard</span>
+      <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">).</span><span class="nf">to</span> <span class="n">redirect_to</span><span class="p">(</span><span class="n">article</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">it</span> <span class="s2">"rejects non-draft articles"</span> <span class="k">do</span>
+      <span class="n">article</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">status: :published</span><span class="p">)</span>
+
+      <span class="n">post</span> <span class="ss">:publish</span><span class="p">,</span> <span class="ss">params: </span><span class="p">{</span> <span class="ss">id: </span><span class="n">article</span><span class="p">.</span><span class="nf">id</span> <span class="p">}</span>
+
+      <span class="n">expect</span><span class="p">(</span><span class="n">flash</span><span class="p">[</span><span class="ss">:error</span><span class="p">]).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="s2">"Only drafts can be published"</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 </code></pre></div>
+<h3>Step 2: Extract Service Object (10 minutes)</h3>
+
+<p>Create a service to handle publishing workflow:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/services/article_publishing_service.rb</span>
+<span class="k">class</span> <span class="nc">ArticlePublishingService</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">article</span><span class="p">)</span>
+    <span class="vi">@article</span> <span class="o">=</span> <span class="n">article</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">call</span>
+    <span class="k">return</span> <span class="n">failure</span><span class="p">(</span><span class="s2">"Only drafts can be published"</span><span class="p">)</span> <span class="k">unless</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">draft?</span>
+
+    <span class="n">publish_article</span>
+    <span class="n">update_search_index</span>
+    <span class="n">clear_cache</span>
+    <span class="n">notify_subscribers</span>
+    <span class="n">track_analytics</span>
+
+    <span class="n">success</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">publish_article</span>
+    <span class="vi">@article</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">status: :published</span><span class="p">,</span> <span class="ss">published_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">update_search_index</span>
+    <span class="no">SearchIndexer</span><span class="p">.</span><span class="nf">index</span><span class="p">(</span><span class="vi">@article</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">clear_cache</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="s2">"articles/</span><span class="si">#{</span><span class="vi">@article</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="s2">"articles/recent"</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">notify_subscribers</span>
+    <span class="vi">@article</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">subscribers</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">subscriber</span><span class="o">|</span>
+      <span class="no">NotificationStrategy</span><span class="p">.</span><span class="nf">for</span><span class="p">(</span><span class="n">subscriber</span><span class="p">).</span><span class="nf">notify</span><span class="p">(</span><span class="vi">@article</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">track_analytics</span>
+    <span class="no">Analytics</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span><span class="s2">"article_published"</span><span class="p">,</span> <span class="p">{</span>
+      <span class="ss">article_id: </span><span class="vi">@article</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+      <span class="ss">author_id: </span><span class="vi">@article</span><span class="p">.</span><span class="nf">author_id</span><span class="p">,</span>
+      <span class="ss">category: </span><span class="vi">@article</span><span class="p">.</span><span class="nf">category</span>
+    <span class="p">})</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">success</span>
+    <span class="no">ServiceResult</span><span class="p">.</span><span class="nf">success</span><span class="p">(</span><span class="vi">@article</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">failure</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+    <span class="no">ServiceResult</span><span class="p">.</span><span class="nf">failure</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/services/service_result.rb</span>
+<span class="k">class</span> <span class="nc">ServiceResult</span>
+  <span class="nb">attr_reader</span> <span class="ss">:value</span><span class="p">,</span> <span class="ss">:error</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">success</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">new</span><span class="p">(</span><span class="ss">success: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">value: </span><span class="n">value</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">failure</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+    <span class="n">new</span><span class="p">(</span><span class="ss">success: </span><span class="kp">false</span><span class="p">,</span> <span class="ss">error: </span><span class="n">error</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">success</span><span class="p">:,</span> <span class="ss">value: </span><span class="kp">nil</span><span class="p">,</span> <span class="ss">error: </span><span class="kp">nil</span><span class="p">)</span>
+    <span class="vi">@success</span> <span class="o">=</span> <span class="n">success</span>
+    <span class="vi">@value</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="vi">@error</span> <span class="o">=</span> <span class="n">error</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">success?</span>
+    <span class="vi">@success</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">failure?</span>
+    <span class="o">!</span><span class="vi">@success</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 3: Replace Conditional with Polymorphism (10 minutes)</h3>
+
+<p>Replace the case statement with strategy pattern:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/services/notification_strategy.rb</span>
+<span class="k">class</span> <span class="nc">NotificationStrategy</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">for</span><span class="p">(</span><span class="n">subscriber</span><span class="p">)</span>
+    <span class="k">case</span> <span class="n">subscriber</span><span class="p">.</span><span class="nf">subscription_type</span>
+    <span class="k">when</span> <span class="s2">"premium"</span> <span class="k">then</span> <span class="no">PremiumNotification</span><span class="p">.</span><span class="nf">new</span>
+    <span class="k">when</span> <span class="s2">"standard"</span> <span class="k">then</span> <span class="no">StandardNotification</span><span class="p">.</span><span class="nf">new</span>
+    <span class="k">when</span> <span class="s2">"digest"</span> <span class="k">then</span> <span class="no">DigestNotification</span><span class="p">.</span><span class="nf">new</span>
+    <span class="k">else</span> <span class="k">raise</span> <span class="s2">"Unknown subscription type"</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/services/premium_notification.rb</span>
+<span class="k">class</span> <span class="nc">PremiumNotification</span>
+  <span class="k">def</span> <span class="nf">notify</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">)</span>
+    <span class="no">PremiumNotificationMailer</span><span class="p">.</span><span class="nf">new_article</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">).</span><span class="nf">deliver_later</span>
+    <span class="no">PushNotificationService</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="n">subscriber</span><span class="p">,</span> <span class="s2">"New article: </span><span class="si">#{</span><span class="n">article</span><span class="p">.</span><span class="nf">title</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/services/standard_notification.rb</span>
+<span class="k">class</span> <span class="nc">StandardNotification</span>
+  <span class="k">def</span> <span class="nf">notify</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">)</span>
+    <span class="no">StandardNotificationMailer</span><span class="p">.</span><span class="nf">new_article</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">).</span><span class="nf">deliver_later</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/services/digest_notification.rb</span>
+<span class="k">class</span> <span class="nc">DigestNotification</span>
+  <span class="k">def</span> <span class="nf">notify</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">)</span>
+    <span class="no">DigestQueue</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 4: Update Controller (5 minutes)</h3>
+
+<p>Simplify the controller to use the service:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/articles_controller.rb</span>
+<span class="k">class</span> <span class="nc">ArticlesController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">publish</span>
+    <span class="vi">@article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="no">ArticlePublishingService</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="vi">@article</span><span class="p">).</span><span class="nf">call</span>
+
+    <span class="k">if</span> <span class="n">result</span><span class="p">.</span><span class="nf">success?</span>
+      <span class="n">redirect_to</span> <span class="vi">@article</span><span class="p">,</span> <span class="ss">notice: </span><span class="s2">"Article published successfully!"</span>
+    <span class="k">else</span>
+      <span class="n">flash</span><span class="p">[</span><span class="ss">:error</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">.</span><span class="nf">error</span>
+      <span class="n">redirect_to</span> <span class="vi">@article</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 5: Test the Service in Isolation (5 minutes)</h3>
+
+<p>Now write focused unit tests:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># spec/services/article_publishing_service_spec.rb</span>
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">ArticlePublishingService</span> <span class="k">do</span>
+  <span class="n">let</span><span class="p">(</span><span class="ss">:article</span><span class="p">)</span> <span class="p">{</span> <span class="n">create</span><span class="p">(</span><span class="ss">:article</span><span class="p">,</span> <span class="ss">:draft</span><span class="p">)</span> <span class="p">}</span>
+  <span class="n">let</span><span class="p">(</span><span class="ss">:service</span><span class="p">)</span> <span class="p">{</span> <span class="no">ArticlePublishingService</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">article</span><span class="p">)</span> <span class="p">}</span>
+
+  <span class="n">before</span> <span class="k">do</span>
+    <span class="n">allow</span><span class="p">(</span><span class="no">SearchIndexer</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:index</span><span class="p">)</span>
+    <span class="n">allow</span><span class="p">(</span><span class="no">Analytics</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:track</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="n">describe</span> <span class="s2">"#call"</span> <span class="k">do</span>
+    <span class="n">it</span> <span class="s2">"publishes the article"</span> <span class="k">do</span>
+      <span class="n">result</span> <span class="o">=</span> <span class="n">service</span><span class="p">.</span><span class="nf">call</span>
+
+      <span class="n">expect</span><span class="p">(</span><span class="n">result</span><span class="p">).</span><span class="nf">to</span> <span class="n">be_success</span>
+      <span class="n">expect</span><span class="p">(</span><span class="n">article</span><span class="p">.</span><span class="nf">reload</span><span class="p">.</span><span class="nf">status</span><span class="p">).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="s2">"published"</span><span class="p">)</span>
+      <span class="n">expect</span><span class="p">(</span><span class="n">article</span><span class="p">.</span><span class="nf">published_at</span><span class="p">).</span><span class="nf">to</span> <span class="n">be_present</span>
+    <span class="k">end</span>
+
+    <span class="n">it</span> <span class="s2">"updates search index"</span> <span class="k">do</span>
+      <span class="n">service</span><span class="p">.</span><span class="nf">call</span>
+      <span class="n">expect</span><span class="p">(</span><span class="no">SearchIndexer</span><span class="p">).</span><span class="nf">to</span> <span class="n">have_received</span><span class="p">(</span><span class="ss">:index</span><span class="p">).</span><span class="nf">with</span><span class="p">(</span><span class="n">article</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">it</span> <span class="s2">"clears cache"</span> <span class="k">do</span>
+      <span class="n">expect</span><span class="p">(</span><span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:delete</span><span class="p">).</span><span class="nf">with</span><span class="p">(</span><span class="s2">"articles/</span><span class="si">#{</span><span class="n">article</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+      <span class="n">expect</span><span class="p">(</span><span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:delete</span><span class="p">).</span><span class="nf">with</span><span class="p">(</span><span class="s2">"articles/recent"</span><span class="p">)</span>
+      <span class="n">service</span><span class="p">.</span><span class="nf">call</span>
+    <span class="k">end</span>
+
+    <span class="n">it</span> <span class="s2">"rejects non-draft articles"</span> <span class="k">do</span>
+      <span class="n">article</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">status: :published</span><span class="p">)</span>
+      <span class="n">result</span> <span class="o">=</span> <span class="n">service</span><span class="p">.</span><span class="nf">call</span>
+
+      <span class="n">expect</span><span class="p">(</span><span class="n">result</span><span class="p">).</span><span class="nf">to</span> <span class="n">be_failure</span>
+      <span class="n">expect</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="nf">error</span><span class="p">).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="s2">"Only drafts can be published"</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># spec/services/notification_strategy_spec.rb</span>
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">NotificationStrategy</span> <span class="k">do</span>
+  <span class="n">let</span><span class="p">(</span><span class="ss">:article</span><span class="p">)</span> <span class="p">{</span> <span class="n">create</span><span class="p">(</span><span class="ss">:article</span><span class="p">)</span> <span class="p">}</span>
+
+  <span class="n">it</span> <span class="s2">"sends premium notifications"</span> <span class="k">do</span>
+    <span class="n">subscriber</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="ss">:subscriber</span><span class="p">,</span> <span class="ss">subscription_type: :premium</span><span class="p">)</span>
+
+    <span class="n">expect</span><span class="p">(</span><span class="no">PremiumNotificationMailer</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive_message_chain</span><span class="p">(</span><span class="ss">:new_article</span><span class="p">,</span> <span class="ss">:deliver_later</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="no">PushNotificationService</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:send</span><span class="p">)</span>
+
+    <span class="no">NotificationStrategy</span><span class="p">.</span><span class="nf">for</span><span class="p">(</span><span class="n">subscriber</span><span class="p">).</span><span class="nf">notify</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="n">it</span> <span class="s2">"sends standard notifications"</span> <span class="k">do</span>
+    <span class="n">subscriber</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="ss">:subscriber</span><span class="p">,</span> <span class="ss">subscription_type: :standard</span><span class="p">)</span>
+
+    <span class="n">expect</span><span class="p">(</span><span class="no">StandardNotificationMailer</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive_message_chain</span><span class="p">(</span><span class="ss">:new_article</span><span class="p">,</span> <span class="ss">:deliver_later</span><span class="p">)</span>
+
+    <span class="no">NotificationStrategy</span><span class="p">.</span><span class="nf">for</span><span class="p">(</span><span class="n">subscriber</span><span class="p">).</span><span class="nf">notify</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2>Verification Steps</h2>
+
+<ol>
+<li>Run original tests: <code>rspec spec/controllers/articles_controller_spec.rb</code></li>
+<li>Extract service and re-run tests (should still pass)</li>
+<li>Replace conditional with polymorphism and re-run tests</li>
+<li>Run new service specs: <code>rspec spec/services/</code></li>
+<li>Verify controller action is under 10 lines</li>
+</ol>
+
 <h2>Stretch Goals</h2>
 
 <ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
+<li>[ ] Add rollback logic if any step fails (wrap in transaction)</li>
+<li>[ ] Extract cache clearing into a separate concern</li>
+<li>[ ] Add logging to track each step of the publishing workflow</li>
+<li>[ ] Create a base <code>NotificationStrategy</code> class with shared behavior</li>
+<li>[ ] Add metrics tracking for notification delivery</li>
 </ul>
 
-<h2>Solution Notes</h2>
+<h2>Time Estimate</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p>25-30 minutes</p>
+
+<h2>Key Takeaways</h2>
+
+<p>After completing this exercise, you should understand:<br>
+- How to identify code smells in controllers (multiple responsibilities, long methods)<br>
+- When and how to extract service objects<br>
+- How to replace conditionals with polymorphism<br>
+- The importance of tests when refactoring<br>
+- How to test services in isolation</p>
 
     
   </div>
@@ -766,74 +1300,319 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="To separate business logic from HTTP concerns and improve testability">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the primary purpose of extracting a service object from a Rails controller?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  To make the controller faster by moving code to a background job
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  To separate business logic from HTTP concerns and improve testability
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  To reduce the number of database queries
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  To comply with Rails conventions
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Service objects extract complex business logic into testable POROs, keeping controllers focused on HTTP concerns (routing, params, rendering) and following the Single Responsibility Principle.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Never—always write characterization tests first">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">When should you refactor code without tests?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  When the code is simple and you're confident in the changes
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  When tests are too slow to run
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  Never—always write characterization tests first
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  When the deadline is tight
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Refactoring without tests risks breaking functionality silently. Always write characterization tests to capture current behavior before refactoring, even for legacy code.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Open/Closed Principle">
+          <h4>Question 3 (1 points)</h4>
+          <p style="margin: 10px 0;">Which SOLID principle states that classes should be open for extension but closed for modification?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  Single Responsibility Principle
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  Open/Closed Principle
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  Liskov Substitution Principle
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  Dependency Inversion Principle
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> The Open/Closed Principle encourages extending behavior through new classes (e.g., strategy pattern) rather than modifying existing code, reducing the risk of breaking changes.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="3"
              >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 4 (3 points)</h4>
+          <p style="margin: 10px 0;">Write a simple service object skeleton with an initialize method and a call method that returns a success/failure result.</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">class MyService
+  def initialize(params)
+    @params = params
+  end
+
+  def call
+    # business logic
+    ServiceResult.success(value)
+  rescue => e
+    ServiceResult.failure(e.message)
+  end
+end</p>
+            </div>
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Replace Conditional with Polymorphism">
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">What pattern replaces complex if/case statements with object-oriented design?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  Extract Method
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  Replace Conditional with Polymorphism
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  Extract Service Object
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  Dependency Injection
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Replace Conditional with Polymorphism uses inheritance or strategy pattern to eliminate complex conditionals, making code more extensible and testable.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="It exceeds 50 lines and handles multiple responsibilities">
+          <h4>Question 6 (1 points)</h4>
+          <p style="margin: 10px 0;">Which is a sign that a controller action needs refactoring?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  It uses ActiveRecord models
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  It renders a JSON response
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  It exceeds 50 lines and handles multiple responsibilities
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  It uses strong parameters
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Controllers should be thin, focused on HTTP concerns. Long actions with multiple responsibilities violate Single Responsibility and indicate the need for service objects or other refactoring.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 7 (2 points)</h4>
+          <p style="margin: 10px 0;">What is a characterization test and why is it useful when refactoring legacy code?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">A characterization test captures the current behavior of code (even if buggy) without knowing internal implementation. It's useful for refactoring legacy code because it acts as a safety net, detecting any changes in behavior during refactoring.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="In a factory or dispatcher that selects the appropriate strategy">
+          <h4>Question 8 (2 points)</h4>
+          <p style="margin: 10px 0;">In the strategy pattern, where does the conditional logic typically remain?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  In the controller
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  In each strategy class
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  In a factory or dispatcher that selects the appropriate strategy
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Conditionals are completely eliminated
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> The strategy pattern consolidates the conditional logic into a single factory/dispatcher (e.g., NotificationStrategy.for(type)), while the actual behavior is distributed across strategy classes.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Single Responsibility Principle">
+          <h4>Question 9 (1 points)</h4>
+          <p style="margin: 10px 0;">Which SOLID principle states that each class should have only one reason to change?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(8, 0)">
+                  Single Responsibility Principle
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 1)">
+                  Open/Closed Principle
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 2)">
+                  Interface Segregation Principle
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 3)">
+                  Dependency Inversion Principle
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> The Single Responsibility Principle ensures each class has one well-defined purpose, making code easier to test, understand, and modify.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 10 (2 points)</h4>
+          <p style="margin: 10px 0;">Name two benefits of using Extract Method refactoring on a long method.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">1) Improves readability by giving descriptive names to code chunks. 2) Enables reusability by extracting logic into separate methods that can be called elsewhere. (Also acceptable: improves testability, reduces complexity, makes debugging easier)</p>
+            </div>
           
         </div>
       
@@ -847,7 +1626,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -863,33 +1642,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://refactoring.com/" target="_blank">Refactoring: Improving the Design of Existing Code (Martin Fowler)</a>
+            <div class="why">The definitive book on refactoring patterns including Extract Method, Replace Conditional with Polymorphism, and many others. Catalog of refactorings with before/after examples.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://codeclimate.com/blog/7-ways-to-decompose-fat-activerecord-models/" target="_blank">Rails Refactoring Patterns (CodeClimate Blog)</a>
+            <div class="why">Practical guide to decomposing fat Rails models using service objects, value objects, form objects, query objects, and decorators.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://thoughtbot.com/blog/back-to-basics-solid" target="_blank">SOLID Principles in Ruby (Thoughtbot)</a>
+            <div class="why">Clear explanation of Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, and Dependency Inversion with Ruby examples.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.goodreads.com/book/show/44919.Working_Effectively_with_Legacy_Code" target="_blank">Working Effectively with Legacy Code (Michael Feathers)</a>
+            <div class="why">Essential techniques for refactoring legacy code safely, including characterization tests and the concept of seams for breaking dependencies.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.toptal.com/ruby-on-rails/rails-service-objects-tutorial" target="_blank">Rails Service Objects: A Comprehensive Guide</a>
+            <div class="why">Step-by-step tutorial on extracting service objects from controllers, testing patterns, error handling, and when to use them.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://refactoring.guru/replace-conditional-with-polymorphism" target="_blank">Replace Conditional with Polymorphism (Refactoring Guru)</a>
+            <div class="why">Visual guide to replacing conditionals with polymorphism, showing code smells, refactoring steps, and benefits with diagrams.</div>
+          </li>
+        
+          <li>
+            <a href="https://www.youtube.com/watch?v=DC-pQPq0acs" target="_blank">RailsConf: Refactoring from Good to Great (Ben Orenstein)</a>
+            <div class="why">Live refactoring session demonstrating Extract Method, Extract Class, and other patterns with real Rails code. Shows thought process and incremental steps.</div>
           </li>
         
       </ul>

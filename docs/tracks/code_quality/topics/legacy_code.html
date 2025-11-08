@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,71 +656,361 @@
 
 <h2>What It Is</h2>
 
-<p>Working with Legacy Code is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>Working with legacy code means modifying systems without adequate test coverage, unclear design decisions, and complex dependencies that resist change. A characterization test captures existing behavior without understanding internal implementation, creating a safety net before refactoring. A seam is a place where you can alter program behavior without editing code in that location—typically through dependency injection or method extraction. The Strangler Fig pattern gradually replaces legacy functionality by routing new features to modern code while legacy code continues serving existing requests.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Legacy codebases represent business value accumulated over years but resist evolution due to lack of tests and documentation. Adding features or fixing bugs without breaking existing functionality requires systematic techniques to understand behavior, isolate changes, and verify correctness. The ability to safely refactor legacy code determines whether systems can adapt to new requirements or ossify into unmaintainable liabilities. Organizations spend 60-80% of development time maintaining existing code, making legacy code skills directly impact team velocity.</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li>Inherit a codebase with &lt;20% test coverage and no documentation</li>
+<li>Fix bugs in code sections without tests, fearing regression</li>
+<li>Extract business logic from monolithic controllers or models</li>
+<li>Replace deprecated dependencies or upgrade frameworks</li>
+<li>Migrate from legacy architecture to modern patterns incrementally</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><p><strong>Refactoring without tests first:</strong> Changing code structure to &quot;clean it up&quot; without characterization tests means you can&#39;t detect behavioral changes. The result is silent bugs discovered weeks later in production. Always write tests that lock in current behavior before touching legacy code.</p></li>
+<li><p><strong>Big-bang rewrites instead of incremental changes:</strong> Teams commit to &quot;rewrite from scratch&quot; to avoid working with messy code, only to discover they can&#39;t replicate complex business rules built over years. Use Strangler Fig to replace functionality piece by piece while maintaining production stability.</p></li>
+<li><p><strong>Breaking dependencies everywhere simultaneously:</strong> Finding a seam in legacy code tempts you to inject dependencies throughout the system. This creates massive changesets that can&#39;t be reviewed or deployed safely. Isolate the smallest testable unit, add tests there, then expand coverage incrementally.</p></li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>Characterization Tests</h2>
 
-<h3>Key Concept 1</h3>
+<p>Characterization tests document what code actually does, not what it should do:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Legacy code: unclear what this method returns</span>
+<span class="k">class</span> <span class="nc">OrderProcessor</span>
+  <span class="k">def</span> <span class="nf">calculate_discount</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">order</span><span class="p">.</span><span class="nf">total</span> <span class="o">&gt;</span> <span class="mi">1000</span>
+      <span class="n">discount</span> <span class="o">=</span> <span class="n">order</span><span class="p">.</span><span class="nf">total</span> <span class="o">*</span> <span class="mf">0.1</span>
+      <span class="n">discount</span> <span class="o">+=</span> <span class="mi">50</span> <span class="k">if</span> <span class="n">order</span><span class="p">.</span><span class="nf">customer</span><span class="p">.</span><span class="nf">vip?</span>
+      <span class="n">discount</span> <span class="o">=</span> <span class="mi">200</span> <span class="k">if</span> <span class="n">discount</span> <span class="o">&gt;</span> <span class="mi">200</span>
+    <span class="k">else</span>
+      <span class="n">discount</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">end</span>
+    <span class="n">discount</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<p>Write tests capturing current behavior:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># spec/models/order_processor_spec.rb</span>
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">OrderProcessor</span> <span class="k">do</span>
+  <span class="n">describe</span> <span class="s1">'#calculate_discount'</span> <span class="k">do</span>
+    <span class="n">let</span><span class="p">(</span><span class="ss">:processor</span><span class="p">)</span> <span class="p">{</span> <span class="no">OrderProcessor</span><span class="p">.</span><span class="nf">new</span> <span class="p">}</span>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+    <span class="c1"># Characterize exact current behavior</span>
+    <span class="n">it</span> <span class="s1">'returns 0 for orders under $1000'</span> <span class="k">do</span>
+      <span class="n">order</span> <span class="o">=</span> <span class="n">double</span><span class="p">(</span><span class="ss">total: </span><span class="mi">999</span><span class="p">,</span> <span class="ss">customer: </span><span class="n">double</span><span class="p">(</span><span class="ss">vip?: </span><span class="kp">false</span><span class="p">))</span>
+      <span class="n">expect</span><span class="p">(</span><span class="n">processor</span><span class="p">.</span><span class="nf">calculate_discount</span><span class="p">(</span><span class="n">order</span><span class="p">)).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">it</span> <span class="s1">'returns 10% for orders over $1000'</span> <span class="k">do</span>
+      <span class="n">order</span> <span class="o">=</span> <span class="n">double</span><span class="p">(</span><span class="ss">total: </span><span class="mi">1500</span><span class="p">,</span> <span class="ss">customer: </span><span class="n">double</span><span class="p">(</span><span class="ss">vip?: </span><span class="kp">false</span><span class="p">))</span>
+      <span class="n">expect</span><span class="p">(</span><span class="n">processor</span><span class="p">.</span><span class="nf">calculate_discount</span><span class="p">(</span><span class="n">order</span><span class="p">)).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="mi">150</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">it</span> <span class="s1">'adds $50 for VIP customers'</span> <span class="k">do</span>
+      <span class="n">order</span> <span class="o">=</span> <span class="n">double</span><span class="p">(</span><span class="ss">total: </span><span class="mi">1500</span><span class="p">,</span> <span class="ss">customer: </span><span class="n">double</span><span class="p">(</span><span class="ss">vip?: </span><span class="kp">true</span><span class="p">))</span>
+      <span class="n">expect</span><span class="p">(</span><span class="n">processor</span><span class="p">.</span><span class="nf">calculate_discount</span><span class="p">(</span><span class="n">order</span><span class="p">)).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">it</span> <span class="s1">'caps discount at $200 even for VIPs'</span> <span class="k">do</span>
+      <span class="n">order</span> <span class="o">=</span> <span class="n">double</span><span class="p">(</span><span class="ss">total: </span><span class="mi">3000</span><span class="p">,</span> <span class="ss">customer: </span><span class="n">double</span><span class="p">(</span><span class="ss">vip?: </span><span class="kp">true</span><span class="p">))</span>
+      <span class="n">expect</span><span class="p">(</span><span class="n">processor</span><span class="p">.</span><span class="nf">calculate_discount</span><span class="p">(</span><span class="n">order</span><span class="p">)).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Once tests pass, refactor with confidence:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">OrderProcessor</span>
+  <span class="no">MAX_DISCOUNT</span> <span class="o">=</span> <span class="mi">200</span>
+  <span class="no">VIP_BONUS</span> <span class="o">=</span> <span class="mi">50</span>
+  <span class="no">DISCOUNT_RATE</span> <span class="o">=</span> <span class="mf">0.1</span>
+  <span class="no">MIN_ORDER_FOR_DISCOUNT</span> <span class="o">=</span> <span class="mi">1000</span>
+
+  <span class="k">def</span> <span class="nf">calculate_discount</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">0</span> <span class="k">unless</span> <span class="n">order</span><span class="p">.</span><span class="nf">total</span> <span class="o">&gt;=</span> <span class="no">MIN_ORDER_FOR_DISCOUNT</span>
+
+    <span class="n">discount</span> <span class="o">=</span> <span class="n">order</span><span class="p">.</span><span class="nf">total</span> <span class="o">*</span> <span class="no">DISCOUNT_RATE</span>
+    <span class="n">discount</span> <span class="o">+=</span> <span class="no">VIP_BONUS</span> <span class="k">if</span> <span class="n">order</span><span class="p">.</span><span class="nf">customer</span><span class="p">.</span><span class="nf">vip?</span>
+    <span class="p">[</span><span class="n">discount</span><span class="p">,</span> <span class="no">MAX_DISCOUNT</span><span class="p">].</span><span class="nf">min</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Tests still pass, proving behavior unchanged.</p>
+
+<hr>
+
+<h2>Finding Seams</h2>
+
+<p>A seam lets you inject test doubles without changing legacy code:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Legacy controller: hard to test because it calls external API</span>
+<span class="k">class</span> <span class="nc">ReportsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">generate</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="no">HTTParty</span><span class="p">.</span><span class="nf">get</span><span class="p">(</span><span class="s2">"https://analytics.example.com/data"</span><span class="p">)</span>
+    <span class="vi">@report</span> <span class="o">=</span> <span class="no">ReportGenerator</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">data</span><span class="p">).</span><span class="nf">build</span>
+    <span class="n">render</span> <span class="ss">:show</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Seam 1: Extract method</strong> creates injection point:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ReportsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">generate</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">fetch_analytics_data</span>
+    <span class="vi">@report</span> <span class="o">=</span> <span class="no">ReportGenerator</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">data</span><span class="p">).</span><span class="nf">build</span>
+    <span class="n">render</span> <span class="ss">:show</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">fetch_analytics_data</span>
+    <span class="no">HTTParty</span><span class="p">.</span><span class="nf">get</span><span class="p">(</span><span class="s2">"https://analytics.example.com/data"</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Test by stubbing the seam:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">ReportsController</span> <span class="k">do</span>
+  <span class="n">describe</span> <span class="s1">'GET #generate'</span> <span class="k">do</span>
+    <span class="n">it</span> <span class="s1">'generates report from analytics data'</span> <span class="k">do</span>
+      <span class="n">allow</span><span class="p">(</span><span class="n">controller</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:fetch_analytics_data</span><span class="p">).</span><span class="nf">and_return</span><span class="p">({</span><span class="s1">'users'</span> <span class="o">=&gt;</span> <span class="mi">100</span><span class="p">})</span>
+
+      <span class="n">get</span> <span class="ss">:generate</span>
+
+      <span class="n">expect</span><span class="p">(</span><span class="n">assigns</span><span class="p">(</span><span class="ss">:report</span><span class="p">)).</span><span class="nf">to</span> <span class="n">be_present</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Seam 2: Dependency injection</strong> for better design:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ReportsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">generate</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">analytics_client</span><span class="p">.</span><span class="nf">fetch_data</span>
+    <span class="vi">@report</span> <span class="o">=</span> <span class="no">ReportGenerator</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">data</span><span class="p">).</span><span class="nf">build</span>
+    <span class="n">render</span> <span class="ss">:show</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">analytics_client</span>
+    <span class="vi">@analytics_client</span> <span class="o">||=</span> <span class="no">AnalyticsClient</span><span class="p">.</span><span class="nf">new</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Test with injected double</span>
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">ReportsController</span> <span class="k">do</span>
+  <span class="n">let</span><span class="p">(</span><span class="ss">:analytics_client</span><span class="p">)</span> <span class="p">{</span> <span class="n">double</span><span class="p">(</span><span class="s1">'AnalyticsClient'</span><span class="p">)</span> <span class="p">}</span>
+  <span class="n">before</span> <span class="p">{</span> <span class="n">allow</span><span class="p">(</span><span class="n">controller</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:analytics_client</span><span class="p">).</span><span class="nf">and_return</span><span class="p">(</span><span class="n">analytics_client</span><span class="p">)</span> <span class="p">}</span>
+
+  <span class="n">it</span> <span class="s1">'generates report from analytics data'</span> <span class="k">do</span>
+    <span class="n">allow</span><span class="p">(</span><span class="n">analytics_client</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:fetch_data</span><span class="p">).</span><span class="nf">and_return</span><span class="p">({</span><span class="s1">'users'</span> <span class="o">=&gt;</span> <span class="mi">100</span><span class="p">})</span>
+
+    <span class="n">get</span> <span class="ss">:generate</span>
+
+    <span class="n">expect</span><span class="p">(</span><span class="n">assigns</span><span class="p">(</span><span class="ss">:report</span><span class="p">)).</span><span class="nf">to</span> <span class="n">be_present</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
 <hr>
 
-<h2>Best Practices</h2>
+<h2>Strangler Fig Pattern</h2>
 
-<ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
-</ol>
+<p>Replace legacy code by routing new requests to modern implementation while old code handles existing functionality:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Legacy: Fat controller with business logic</span>
+<span class="k">class</span> <span class="nc">OrdersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">create</span>
+    <span class="c1"># 200 lines of order processing logic</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="no">Order</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">order_params</span><span class="p">)</span>
+    <span class="c1"># ... complex validation</span>
+    <span class="c1"># ... inventory checks</span>
+    <span class="c1"># ... payment processing</span>
+    <span class="c1"># ... email notifications</span>
+    <span class="n">order</span><span class="p">.</span><span class="nf">save</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
+</code></pre></div>
+<p><strong>Phase 1:</strong> Route new feature to service object:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">OrdersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">create</span>
+    <span class="k">if</span> <span class="n">use_new_order_flow?</span>
+      <span class="n">result</span> <span class="o">=</span> <span class="no">Orders</span><span class="o">::</span><span class="no">CreateService</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">order_params</span><span class="p">,</span> <span class="n">current_user</span><span class="p">).</span><span class="nf">call</span>
+      <span class="k">if</span> <span class="n">result</span><span class="p">.</span><span class="nf">success?</span>
+        <span class="n">redirect_to</span> <span class="n">result</span><span class="p">.</span><span class="nf">order</span>
+      <span class="k">else</span>
+        <span class="vi">@errors</span> <span class="o">=</span> <span class="n">result</span><span class="p">.</span><span class="nf">errors</span>
+        <span class="n">render</span> <span class="ss">:new</span>
+      <span class="k">end</span>
+    <span class="k">else</span>
+      <span class="c1"># Original legacy code stays untouched</span>
+      <span class="n">order</span> <span class="o">=</span> <span class="no">Order</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">order_params</span><span class="p">)</span>
+      <span class="c1"># ... 200 lines of legacy logic</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">use_new_order_flow?</span>
+    <span class="c1"># Feature flag or gradual rollout</span>
+    <span class="n">current_user</span><span class="p">.</span><span class="nf">beta_features_enabled?</span> <span class="o">||</span> <span class="n">params</span><span class="p">[</span><span class="ss">:use_new_flow</span><span class="p">]</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Phase 2:</strong> Modern service with tests:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">Orders</span>
+  <span class="k">class</span> <span class="nc">CreateService</span>
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
+      <span class="vi">@params</span> <span class="o">=</span> <span class="n">params</span>
+      <span class="vi">@user</span> <span class="o">=</span> <span class="n">user</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">call</span>
+      <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">transaction</span> <span class="k">do</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="n">build_order</span>
+        <span class="n">check_inventory!</span>
+        <span class="n">process_payment!</span>
+        <span class="n">send_notifications</span>
+        <span class="no">Result</span><span class="p">.</span><span class="nf">success</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+      <span class="no">Result</span><span class="p">.</span><span class="nf">failure</span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="kp">private</span>
+    <span class="c1"># Clean, tested methods</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Phase 3:</strong> Once stable, remove legacy code:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">OrdersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">create</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="no">Orders</span><span class="o">::</span><span class="no">CreateService</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">order_params</span><span class="p">,</span> <span class="n">current_user</span><span class="p">).</span><span class="nf">call</span>
+    <span class="k">if</span> <span class="n">result</span><span class="p">.</span><span class="nf">success?</span>
+      <span class="n">redirect_to</span> <span class="n">result</span><span class="p">.</span><span class="nf">order</span>
+    <span class="k">else</span>
+      <span class="vi">@errors</span> <span class="o">=</span> <span class="n">result</span><span class="p">.</span><span class="nf">errors</span>
+      <span class="n">render</span> <span class="ss">:new</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
 <hr>
 
-<h2>Key Terms</h2>
+<h2>Breaking Dependencies for Testing</h2>
+
+<p>Legacy code often has hard dependencies on databases, file systems, or external services:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Untestable: database and file system coupling</span>
+<span class="k">class</span> <span class="nc">UserExporter</span>
+  <span class="k">def</span> <span class="nf">export_to_csv</span>
+    <span class="n">users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">active: </span><span class="kp">true</span><span class="p">)</span>
+    <span class="no">CSV</span><span class="p">.</span><span class="nf">open</span><span class="p">(</span><span class="s1">'exports/users.csv'</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">csv</span><span class="o">|</span>
+      <span class="n">users</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">u</span><span class="o">|</span> <span class="n">csv</span> <span class="o">&lt;&lt;</span> <span class="p">[</span><span class="n">u</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="n">u</span><span class="p">.</span><span class="nf">email</span><span class="p">]</span> <span class="p">}</span>
+    <span class="k">end</span>
+    <span class="no">EmailService</span><span class="p">.</span><span class="nf">send_export_notification</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Break dependencies with parameters:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">UserExporter</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="ss">user_scope: </span><span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">active: </span><span class="kp">true</span><span class="p">),</span>
+                 <span class="ss">file_writer: </span><span class="no">CSVFileWriter</span><span class="p">.</span><span class="nf">new</span><span class="p">,</span>
+                 <span class="ss">notifier: </span><span class="no">EmailNotifier</span><span class="p">.</span><span class="nf">new</span><span class="p">)</span>
+    <span class="vi">@user_scope</span> <span class="o">=</span> <span class="n">user_scope</span>
+    <span class="vi">@file_writer</span> <span class="o">=</span> <span class="n">file_writer</span>
+    <span class="vi">@notifier</span> <span class="o">=</span> <span class="n">notifier</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">export_to_csv</span>
+    <span class="vi">@file_writer</span><span class="p">.</span><span class="nf">write</span><span class="p">(</span><span class="s1">'exports/users.csv'</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">writer</span><span class="o">|</span>
+      <span class="vi">@user_scope</span><span class="p">.</span><span class="nf">find_each</span> <span class="k">do</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span>
+        <span class="n">writer</span> <span class="o">&lt;&lt;</span> <span class="p">[</span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="nf">email</span><span class="p">]</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+    <span class="vi">@notifier</span><span class="p">.</span><span class="nf">send_export_notification</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Now testable with doubles:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">UserExporter</span> <span class="k">do</span>
+  <span class="n">it</span> <span class="s1">'exports active users to CSV'</span> <span class="k">do</span>
+    <span class="n">users</span> <span class="o">=</span> <span class="p">[</span><span class="n">double</span><span class="p">(</span><span class="ss">id: </span><span class="mi">1</span><span class="p">,</span> <span class="ss">email: </span><span class="s1">'a@test.com'</span><span class="p">),</span> <span class="n">double</span><span class="p">(</span><span class="ss">id: </span><span class="mi">2</span><span class="p">,</span> <span class="ss">email: </span><span class="s1">'b@test.com'</span><span class="p">)]</span>
+    <span class="n">user_scope</span> <span class="o">=</span> <span class="n">double</span><span class="p">(</span><span class="ss">find_each: </span><span class="kp">nil</span><span class="p">)</span>
+    <span class="n">allow</span><span class="p">(</span><span class="n">user_scope</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:find_each</span><span class="p">).</span><span class="nf">and_yield</span><span class="p">(</span><span class="n">users</span><span class="p">[</span><span class="mi">0</span><span class="p">]).</span><span class="nf">and_yield</span><span class="p">(</span><span class="n">users</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">file_writer</span> <span class="o">=</span> <span class="n">double</span><span class="p">(</span><span class="s1">'CSVFileWriter'</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">file_writer</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:write</span><span class="p">).</span><span class="nf">with</span><span class="p">(</span><span class="s1">'exports/users.csv'</span><span class="p">).</span><span class="nf">and_yield</span><span class="p">(</span><span class="n">file_writer</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">file_writer</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:&lt;&lt;</span><span class="p">).</span><span class="nf">with</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="s1">'a@test.com'</span><span class="p">])</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">file_writer</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:&lt;&lt;</span><span class="p">).</span><span class="nf">with</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="s1">'b@test.com'</span><span class="p">])</span>
+
+    <span class="n">notifier</span> <span class="o">=</span> <span class="n">double</span><span class="p">(</span><span class="s1">'EmailNotifier'</span><span class="p">)</span>
+    <span class="n">expect</span><span class="p">(</span><span class="n">notifier</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:send_export_notification</span><span class="p">)</span>
+
+    <span class="n">exporter</span> <span class="o">=</span> <span class="no">UserExporter</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">user_scope: </span><span class="n">user_scope</span><span class="p">,</span>
+                                <span class="ss">file_writer: </span><span class="n">file_writer</span><span class="p">,</span>
+                                <span class="ss">notifier: </span><span class="n">notifier</span><span class="p">)</span>
+    <span class="n">exporter</span><span class="p">.</span><span class="nf">export_to_csv</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Trade-offs Box</h2>
 
 <ul>
-<li><strong>characterization tests</strong></li>
-<li><strong>seams</strong></li>
-<li><strong>Strangler Fig</strong></li>
-<li><strong>legacy code</strong></li>
-<li><strong>refactoring</strong></li>
+<li><strong>Advantage:</strong> Characterization tests let you refactor fearlessly without understanding complex logic; Strangler Fig allows incremental migration with zero downtime.</li>
+<li><strong>Cost:</strong> Writing characterization tests for large legacy systems takes time before delivering features; maintaining parallel code paths (old + new) adds complexity.</li>
+<li><strong>When to skip:</strong> For isolated scripts or one-off tasks, immediate rewrite may be faster than adding tests first. For actively-developed code with good coverage, use standard refactoring techniques.</li>
 </ul>
 
 <hr>
 
-<h2>Summary</h2>
+<h2>Debugging Checklist</h2>
 
-<p>Working with Legacy Code is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
+<p>When working with legacy code:</p>
 
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<ol>
+<li>Identify the smallest unit you need to change (method, class, module)</li>
+<li>Write characterization tests capturing current behavior, bugs included</li>
+<li>Run tests—if they fail, adjust tests to match actual behavior</li>
+<li>Look for seams: method boundaries, class initialization, external calls</li>
+<li>Extract methods to create seams if none exist</li>
+<li>Break hard dependencies by adding parameters with default values</li>
+<li>Refactor incrementally: extract constant, rename variable, add method</li>
+<li>Run tests after each micro-change to verify behavior unchanged</li>
+<li>Use feature flags for Strangler Fig pattern, route 5% traffic initially</li>
+<li>Monitor production metrics during migration, ready to rollback</li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>Characterization tests lock in current behavior without understanding implementation</li>
+<li>Seams are injection points where you can alter behavior for testing</li>
+<li>Strangler Fig pattern replaces legacy code incrementally using feature flags</li>
+<li>Break dependencies by adding parameters with default production values</li>
+<li>Always write tests before refactoring; change code structure, not behavior</li>
+</ul>
 
     
   </div>
@@ -706,55 +1022,495 @@
     
       <h1>Exercise: Working with Legacy Code</h1>
 
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
-
 <h2>Objective</h2>
 
-<p>Build hands-on experience with working with legacy code through practical implementation.</p>
+<p>Apply characterization testing and seam-based refactoring to untested legacy code, safely extract business logic using dependency injection, and verify behavior remains unchanged throughout the refactoring process.</p>
 
-<h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new legacy_code_practice
-<span class="nb">cd </span>legacy_code_practice
+<h2>Task</h2>
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
+<p>Given a legacy Rails controller with embedded business logic, no tests, and hard dependencies:</p>
+
+<ol>
+<li>Write characterization tests capturing current behavior</li>
+<li>Identify and extract seams for dependency injection</li>
+<li>Refactor logic into a service object</li>
+<li>Implement Strangler Fig pattern with feature flag</li>
+<li>Verify all tests pass after refactoring</li>
+</ol>
+
+<h2>Acceptance Criteria</h2>
+
+<ul>
+<li>[ ] Characterization tests cover all code paths in legacy method</li>
+<li>[ ] Tests use doubles/stubs to avoid database and external API calls</li>
+<li>[ ] Seam extracted for external dependency (payment gateway)</li>
+<li>[ ] Service object implements same behavior with injected dependencies</li>
+<li>[ ] Feature flag controls routing between legacy and new implementation</li>
+<li>[ ] All characterization tests pass with both implementations</li>
+<li>[ ] Legacy code paths marked for removal with TODO comments</li>
+</ul>
+
+<h2>Setup Code</h2>
+
+<h3>Legacy Controller (Untested)</h3>
+
+<p>Create <code>app/controllers/subscriptions_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">SubscriptionsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">create</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:user_id</span><span class="p">])</span>
+
+    <span class="c1"># Hard-coded payment gateway</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="no">HTTParty</span><span class="p">.</span><span class="nf">post</span><span class="p">(</span>
+      <span class="s1">'https://payments.example.com/charge'</span><span class="p">,</span>
+      <span class="ss">body: </span><span class="p">{</span>
+        <span class="ss">amount: </span><span class="n">params</span><span class="p">[</span><span class="ss">:amount</span><span class="p">],</span>
+        <span class="ss">token: </span><span class="n">params</span><span class="p">[</span><span class="ss">:payment_token</span><span class="p">],</span>
+        <span class="ss">email: </span><span class="n">user</span><span class="p">.</span><span class="nf">email</span>
+      <span class="p">}.</span><span class="nf">to_json</span><span class="p">,</span>
+      <span class="ss">headers: </span><span class="p">{</span> <span class="s1">'Content-Type'</span> <span class="o">=&gt;</span> <span class="s1">'application/json'</span> <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">response</span><span class="p">.</span><span class="nf">code</span> <span class="o">==</span> <span class="mi">200</span>
+      <span class="n">subscription</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="nf">subscriptions</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+        <span class="ss">plan: </span><span class="n">params</span><span class="p">[</span><span class="ss">:plan</span><span class="p">],</span>
+        <span class="ss">amount: </span><span class="n">params</span><span class="p">[</span><span class="ss">:amount</span><span class="p">],</span>
+        <span class="ss">status: </span><span class="s1">'active'</span><span class="p">,</span>
+        <span class="ss">payment_id: </span><span class="n">response</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span>
+      <span class="p">)</span>
+
+      <span class="c1"># Send confirmation email</span>
+      <span class="no">UserMailer</span><span class="p">.</span><span class="nf">subscription_confirmation</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="n">subscription</span><span class="p">.</span><span class="nf">id</span><span class="p">).</span><span class="nf">deliver_now</span>
+
+      <span class="c1"># Log to third-party analytics</span>
+      <span class="no">HTTParty</span><span class="p">.</span><span class="nf">post</span><span class="p">(</span>
+        <span class="s1">'https://analytics.example.com/track'</span><span class="p">,</span>
+        <span class="ss">body: </span><span class="p">{</span> <span class="ss">event: </span><span class="s1">'subscription_created'</span><span class="p">,</span> <span class="ss">user_id: </span><span class="n">user</span><span class="p">.</span><span class="nf">id</span> <span class="p">}.</span><span class="nf">to_json</span>
+      <span class="p">)</span>
+
+      <span class="n">redirect_to</span> <span class="n">subscription_path</span><span class="p">(</span><span class="n">subscription</span><span class="p">),</span> <span class="ss">notice: </span><span class="s1">'Subscription created!'</span>
+    <span class="k">else</span>
+      <span class="n">redirect_to</span> <span class="n">new_subscription_path</span><span class="p">,</span> <span class="ss">alert: </span><span class="s1">'Payment failed'</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<h2>Tasks</h2>
+<p>This code has multiple problems:<br>
+- No tests<br>
+- Hard-coded external API calls (HTTParty)<br>
+- Business logic in controller<br>
+- Can&#39;t test without hitting real APIs</p>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
+<h2>Part 1: Write Characterization Tests (10 minutes)</h2>
 
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
+<p>Create <code>spec/controllers/subscriptions_controller_spec.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s1">'rails_helper'</span>
+
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">SubscriptionsController</span><span class="p">,</span> <span class="ss">type: :controller</span> <span class="k">do</span>
+  <span class="n">describe</span> <span class="s1">'POST #create'</span> <span class="k">do</span>
+    <span class="n">let</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span> <span class="p">{</span> <span class="n">double</span><span class="p">(</span><span class="s1">'User'</span><span class="p">,</span> <span class="ss">id: </span><span class="mi">1</span><span class="p">,</span> <span class="ss">email: </span><span class="s1">'user@example.com'</span><span class="p">,</span> <span class="ss">subscriptions: </span><span class="n">subscriptions</span><span class="p">)</span> <span class="p">}</span>
+    <span class="n">let</span><span class="p">(</span><span class="ss">:subscriptions</span><span class="p">)</span> <span class="p">{</span> <span class="n">double</span><span class="p">(</span><span class="s1">'Subscriptions'</span><span class="p">)</span> <span class="p">}</span>
+    <span class="n">let</span><span class="p">(</span><span class="ss">:subscription</span><span class="p">)</span> <span class="p">{</span> <span class="n">double</span><span class="p">(</span><span class="s1">'Subscription'</span><span class="p">,</span> <span class="ss">id: </span><span class="mi">99</span><span class="p">)</span> <span class="p">}</span>
+
+    <span class="n">before</span> <span class="k">do</span>
+      <span class="n">allow</span><span class="p">(</span><span class="no">User</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:find</span><span class="p">).</span><span class="nf">with</span><span class="p">(</span><span class="s1">'1'</span><span class="p">).</span><span class="nf">and_return</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">context</span> <span class="s1">'when payment succeeds'</span> <span class="k">do</span>
+      <span class="n">before</span> <span class="k">do</span>
+        <span class="c1"># Stub payment gateway</span>
+        <span class="n">stub_request</span><span class="p">(</span><span class="ss">:post</span><span class="p">,</span> <span class="s1">'https://payments.example.com/charge'</span><span class="p">)</span>
+          <span class="p">.</span><span class="nf">to_return</span><span class="p">(</span><span class="ss">status: </span><span class="mi">200</span><span class="p">,</span> <span class="ss">body: </span><span class="p">{</span> <span class="ss">id: </span><span class="s1">'pay_123'</span> <span class="p">}.</span><span class="nf">to_json</span><span class="p">)</span>
+
+        <span class="c1"># Stub analytics</span>
+        <span class="n">stub_request</span><span class="p">(</span><span class="ss">:post</span><span class="p">,</span> <span class="s1">'https://analytics.example.com/track'</span><span class="p">)</span>
+          <span class="p">.</span><span class="nf">to_return</span><span class="p">(</span><span class="ss">status: </span><span class="mi">200</span><span class="p">)</span>
+
+        <span class="c1"># Stub subscription creation</span>
+        <span class="n">allow</span><span class="p">(</span><span class="n">subscriptions</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:create!</span><span class="p">).</span><span class="nf">and_return</span><span class="p">(</span><span class="n">subscription</span><span class="p">)</span>
+
+        <span class="c1"># Stub mailer</span>
+        <span class="n">mailer</span> <span class="o">=</span> <span class="n">double</span><span class="p">(</span><span class="s1">'Mailer'</span><span class="p">)</span>
+        <span class="n">allow</span><span class="p">(</span><span class="no">UserMailer</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:subscription_confirmation</span><span class="p">).</span><span class="nf">and_return</span><span class="p">(</span><span class="n">mailer</span><span class="p">)</span>
+        <span class="n">allow</span><span class="p">(</span><span class="n">mailer</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:deliver_now</span><span class="p">)</span>
+      <span class="k">end</span>
+
+      <span class="n">it</span> <span class="s1">'creates subscription with correct attributes'</span> <span class="k">do</span>
+        <span class="n">expect</span><span class="p">(</span><span class="n">subscriptions</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:create!</span><span class="p">).</span><span class="nf">with</span><span class="p">(</span>
+          <span class="ss">plan: </span><span class="s1">'premium'</span><span class="p">,</span>
+          <span class="ss">amount: </span><span class="s1">'2999'</span><span class="p">,</span>
+          <span class="ss">status: </span><span class="s1">'active'</span><span class="p">,</span>
+          <span class="ss">payment_id: </span><span class="s1">'pay_123'</span>
+        <span class="p">)</span>
+
+        <span class="n">post</span> <span class="ss">:create</span><span class="p">,</span> <span class="ss">params: </span><span class="p">{</span>
+          <span class="ss">user_id: </span><span class="mi">1</span><span class="p">,</span>
+          <span class="ss">plan: </span><span class="s1">'premium'</span><span class="p">,</span>
+          <span class="ss">amount: </span><span class="s1">'2999'</span><span class="p">,</span>
+          <span class="ss">payment_token: </span><span class="s1">'tok_123'</span>
+        <span class="p">}</span>
+      <span class="k">end</span>
+
+      <span class="n">it</span> <span class="s1">'sends confirmation email'</span> <span class="k">do</span>
+        <span class="n">mailer</span> <span class="o">=</span> <span class="n">double</span><span class="p">(</span><span class="s1">'Mailer'</span><span class="p">)</span>
+        <span class="n">expect</span><span class="p">(</span><span class="no">UserMailer</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:subscription_confirmation</span><span class="p">).</span><span class="nf">with</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">99</span><span class="p">).</span><span class="nf">and_return</span><span class="p">(</span><span class="n">mailer</span><span class="p">)</span>
+        <span class="n">expect</span><span class="p">(</span><span class="n">mailer</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:deliver_now</span><span class="p">)</span>
+
+        <span class="n">post</span> <span class="ss">:create</span><span class="p">,</span> <span class="ss">params: </span><span class="p">{</span> <span class="ss">user_id: </span><span class="mi">1</span><span class="p">,</span> <span class="ss">plan: </span><span class="s1">'premium'</span><span class="p">,</span> <span class="ss">amount: </span><span class="s1">'2999'</span><span class="p">,</span> <span class="ss">payment_token: </span><span class="s1">'tok_123'</span> <span class="p">}</span>
+      <span class="k">end</span>
+
+      <span class="n">it</span> <span class="s1">'redirects to subscription page'</span> <span class="k">do</span>
+        <span class="n">post</span> <span class="ss">:create</span><span class="p">,</span> <span class="ss">params: </span><span class="p">{</span> <span class="ss">user_id: </span><span class="mi">1</span><span class="p">,</span> <span class="ss">plan: </span><span class="s1">'premium'</span><span class="p">,</span> <span class="ss">amount: </span><span class="s1">'2999'</span><span class="p">,</span> <span class="ss">payment_token: </span><span class="s1">'tok_123'</span> <span class="p">}</span>
+
+        <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">).</span><span class="nf">to</span> <span class="n">redirect_to</span><span class="p">(</span><span class="n">subscription_path</span><span class="p">(</span><span class="n">subscription</span><span class="p">))</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="n">context</span> <span class="s1">'when payment fails'</span> <span class="k">do</span>
+      <span class="n">before</span> <span class="k">do</span>
+        <span class="n">stub_request</span><span class="p">(</span><span class="ss">:post</span><span class="p">,</span> <span class="s1">'https://payments.example.com/charge'</span><span class="p">)</span>
+          <span class="p">.</span><span class="nf">to_return</span><span class="p">(</span><span class="ss">status: </span><span class="mi">402</span><span class="p">,</span> <span class="ss">body: </span><span class="p">{</span> <span class="ss">error: </span><span class="s1">'Insufficient funds'</span> <span class="p">}.</span><span class="nf">to_json</span><span class="p">)</span>
+      <span class="k">end</span>
+
+      <span class="n">it</span> <span class="s1">'does not create subscription'</span> <span class="k">do</span>
+        <span class="n">expect</span><span class="p">(</span><span class="n">subscriptions</span><span class="p">).</span><span class="nf">not_to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:create!</span><span class="p">)</span>
+
+        <span class="n">post</span> <span class="ss">:create</span><span class="p">,</span> <span class="ss">params: </span><span class="p">{</span> <span class="ss">user_id: </span><span class="mi">1</span><span class="p">,</span> <span class="ss">plan: </span><span class="s1">'premium'</span><span class="p">,</span> <span class="ss">amount: </span><span class="s1">'2999'</span><span class="p">,</span> <span class="ss">payment_token: </span><span class="s1">'tok_123'</span> <span class="p">}</span>
+      <span class="k">end</span>
+
+      <span class="n">it</span> <span class="s1">'redirects to new subscription page with error'</span> <span class="k">do</span>
+        <span class="n">post</span> <span class="ss">:create</span><span class="p">,</span> <span class="ss">params: </span><span class="p">{</span> <span class="ss">user_id: </span><span class="mi">1</span><span class="p">,</span> <span class="ss">plan: </span><span class="s1">'premium'</span><span class="p">,</span> <span class="ss">amount: </span><span class="s1">'2999'</span><span class="p">,</span> <span class="ss">payment_token: </span><span class="s1">'tok_123'</span> <span class="p">}</span>
+
+        <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">).</span><span class="nf">to</span> <span class="n">redirect_to</span><span class="p">(</span><span class="n">new_subscription_path</span><span class="p">)</span>
+        <span class="n">expect</span><span class="p">(</span><span class="n">flash</span><span class="p">[</span><span class="ss">:alert</span><span class="p">]).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="s1">'Payment failed'</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
 </code></pre></div>
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
+<p><strong>Run tests:</strong> <code>bundle exec rspec spec/controllers/subscriptions_controller_spec.rb</code></p>
 
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
+<p>Tests should pass, locking in current behavior.</p>
 
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
+<h2>Part 2: Extract Seams (5 minutes)</h2>
 
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
+<p>Modify controller to create testable seams:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">SubscriptionsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">create</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:user_id</span><span class="p">])</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">process_payment</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="ss">:amount</span><span class="p">],</span> <span class="n">params</span><span class="p">[</span><span class="ss">:payment_token</span><span class="p">])</span>
 
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
+    <span class="k">if</span> <span class="n">response</span><span class="p">.</span><span class="nf">code</span> <span class="o">==</span> <span class="mi">200</span>
+      <span class="n">subscription</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="nf">subscriptions</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+        <span class="ss">plan: </span><span class="n">params</span><span class="p">[</span><span class="ss">:plan</span><span class="p">],</span>
+        <span class="ss">amount: </span><span class="n">params</span><span class="p">[</span><span class="ss">:amount</span><span class="p">],</span>
+        <span class="ss">status: </span><span class="s1">'active'</span><span class="p">,</span>
+        <span class="ss">payment_id: </span><span class="n">response</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span>
+      <span class="p">)</span>
 
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
+      <span class="n">send_confirmation</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">subscription</span><span class="p">)</span>
+      <span class="n">track_analytics</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+
+      <span class="n">redirect_to</span> <span class="n">subscription_path</span><span class="p">(</span><span class="n">subscription</span><span class="p">),</span> <span class="ss">notice: </span><span class="s1">'Subscription created!'</span>
+    <span class="k">else</span>
+      <span class="n">redirect_to</span> <span class="n">new_subscription_path</span><span class="p">,</span> <span class="ss">alert: </span><span class="s1">'Payment failed'</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">process_payment</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">amount</span><span class="p">,</span> <span class="n">token</span><span class="p">)</span>
+    <span class="no">HTTParty</span><span class="p">.</span><span class="nf">post</span><span class="p">(</span>
+      <span class="s1">'https://payments.example.com/charge'</span><span class="p">,</span>
+      <span class="ss">body: </span><span class="p">{</span> <span class="ss">amount: </span><span class="n">amount</span><span class="p">,</span> <span class="ss">token: </span><span class="n">token</span><span class="p">,</span> <span class="ss">email: </span><span class="n">user</span><span class="p">.</span><span class="nf">email</span> <span class="p">}.</span><span class="nf">to_json</span><span class="p">,</span>
+      <span class="ss">headers: </span><span class="p">{</span> <span class="s1">'Content-Type'</span> <span class="o">=&gt;</span> <span class="s1">'application/json'</span> <span class="p">}</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">send_confirmation</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">subscription</span><span class="p">)</span>
+    <span class="no">UserMailer</span><span class="p">.</span><span class="nf">subscription_confirmation</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="n">subscription</span><span class="p">.</span><span class="nf">id</span><span class="p">).</span><span class="nf">deliver_now</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">track_analytics</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+    <span class="no">HTTParty</span><span class="p">.</span><span class="nf">post</span><span class="p">(</span>
+      <span class="s1">'https://analytics.example.com/track'</span><span class="p">,</span>
+      <span class="ss">body: </span><span class="p">{</span> <span class="ss">event: </span><span class="s1">'subscription_created'</span><span class="p">,</span> <span class="ss">user_id: </span><span class="n">user</span><span class="p">.</span><span class="nf">id</span> <span class="p">}.</span><span class="nf">to_json</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Run tests again:</strong> They still pass, proving behavior unchanged.</p>
+
+<h2>Part 3: Create Service Object (8 minutes)</h2>
+
+<p>Create <code>app/services/subscriptions/create_service.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">Subscriptions</span>
+  <span class="k">class</span> <span class="nc">CreateService</span>
+    <span class="no">Result</span> <span class="o">=</span> <span class="no">Struct</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">:success?</span><span class="p">,</span> <span class="ss">:subscription</span><span class="p">,</span> <span class="ss">:error</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">user</span><span class="p">:,</span> <span class="n">plan</span><span class="p">:,</span> <span class="n">amount</span><span class="p">:,</span> <span class="n">payment_token</span><span class="p">:,</span>
+                   <span class="ss">payment_gateway: </span><span class="no">PaymentGateway</span><span class="p">.</span><span class="nf">new</span><span class="p">,</span>
+                   <span class="ss">mailer: </span><span class="no">UserMailer</span><span class="p">,</span>
+                   <span class="ss">analytics: </span><span class="no">AnalyticsTracker</span><span class="p">.</span><span class="nf">new</span><span class="p">)</span>
+      <span class="vi">@user</span> <span class="o">=</span> <span class="n">user</span>
+      <span class="vi">@plan</span> <span class="o">=</span> <span class="n">plan</span>
+      <span class="vi">@amount</span> <span class="o">=</span> <span class="n">amount</span>
+      <span class="vi">@payment_token</span> <span class="o">=</span> <span class="n">payment_token</span>
+      <span class="vi">@payment_gateway</span> <span class="o">=</span> <span class="n">payment_gateway</span>
+      <span class="vi">@mailer</span> <span class="o">=</span> <span class="n">mailer</span>
+      <span class="vi">@analytics</span> <span class="o">=</span> <span class="n">analytics</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">call</span>
+      <span class="n">payment_result</span> <span class="o">=</span> <span class="vi">@payment_gateway</span><span class="p">.</span><span class="nf">charge</span><span class="p">(</span>
+        <span class="ss">amount: </span><span class="vi">@amount</span><span class="p">,</span>
+        <span class="ss">token: </span><span class="vi">@payment_token</span><span class="p">,</span>
+        <span class="ss">email: </span><span class="vi">@user</span><span class="p">.</span><span class="nf">email</span>
+      <span class="p">)</span>
+
+      <span class="k">return</span> <span class="no">Result</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="kp">false</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="s1">'Payment failed'</span><span class="p">)</span> <span class="k">unless</span> <span class="n">payment_result</span><span class="p">.</span><span class="nf">success?</span>
+
+      <span class="n">subscription</span> <span class="o">=</span> <span class="vi">@user</span><span class="p">.</span><span class="nf">subscriptions</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+        <span class="ss">plan: </span><span class="vi">@plan</span><span class="p">,</span>
+        <span class="ss">amount: </span><span class="vi">@amount</span><span class="p">,</span>
+        <span class="ss">status: </span><span class="s1">'active'</span><span class="p">,</span>
+        <span class="ss">payment_id: </span><span class="n">payment_result</span><span class="p">.</span><span class="nf">id</span>
+      <span class="p">)</span>
+
+      <span class="vi">@mailer</span><span class="p">.</span><span class="nf">subscription_confirmation</span><span class="p">(</span><span class="vi">@user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="n">subscription</span><span class="p">.</span><span class="nf">id</span><span class="p">).</span><span class="nf">deliver_now</span>
+      <span class="vi">@analytics</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span><span class="s1">'subscription_created'</span><span class="p">,</span> <span class="ss">user_id: </span><span class="vi">@user</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+
+      <span class="no">Result</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="kp">true</span><span class="p">,</span> <span class="n">subscription</span><span class="p">,</span> <span class="kp">nil</span><span class="p">)</span>
+    <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+      <span class="no">Result</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="kp">false</span><span class="p">,</span> <span class="kp">nil</span><span class="p">,</span> <span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Create wrapper classes for external dependencies:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/services/payment_gateway.rb</span>
+<span class="k">class</span> <span class="nc">PaymentGateway</span>
+  <span class="no">PaymentResult</span> <span class="o">=</span> <span class="no">Struct</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">:success?</span><span class="p">,</span> <span class="ss">:id</span><span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">charge</span><span class="p">(</span><span class="n">amount</span><span class="p">:,</span> <span class="n">token</span><span class="p">:,</span> <span class="n">email</span><span class="p">:)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="no">HTTParty</span><span class="p">.</span><span class="nf">post</span><span class="p">(</span>
+      <span class="s1">'https://payments.example.com/charge'</span><span class="p">,</span>
+      <span class="ss">body: </span><span class="p">{</span> <span class="ss">amount: </span><span class="n">amount</span><span class="p">,</span> <span class="ss">token: </span><span class="n">token</span><span class="p">,</span> <span class="ss">email: </span><span class="n">email</span> <span class="p">}.</span><span class="nf">to_json</span><span class="p">,</span>
+      <span class="ss">headers: </span><span class="p">{</span> <span class="s1">'Content-Type'</span> <span class="o">=&gt;</span> <span class="s1">'application/json'</span> <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="no">PaymentResult</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">,</span> <span class="n">response</span><span class="p">[</span><span class="s1">'id'</span><span class="p">])</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/services/analytics_tracker.rb</span>
+<span class="k">class</span> <span class="nc">AnalyticsTracker</span>
+  <span class="k">def</span> <span class="nf">track</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="no">HTTParty</span><span class="p">.</span><span class="nf">post</span><span class="p">(</span>
+      <span class="s1">'https://analytics.example.com/track'</span><span class="p">,</span>
+      <span class="ss">body: </span><span class="p">{</span> <span class="ss">event: </span><span class="n">event</span> <span class="p">}.</span><span class="nf">merge</span><span class="p">(</span><span class="n">data</span><span class="p">).</span><span class="nf">to_json</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Write service tests:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># spec/services/subscriptions/create_service_spec.rb</span>
+<span class="nb">require</span> <span class="s1">'rails_helper'</span>
+
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">Subscriptions</span><span class="o">::</span><span class="no">CreateService</span> <span class="k">do</span>
+  <span class="n">describe</span> <span class="s1">'#call'</span> <span class="k">do</span>
+    <span class="n">let</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span> <span class="p">{</span> <span class="n">double</span><span class="p">(</span><span class="s1">'User'</span><span class="p">,</span> <span class="ss">id: </span><span class="mi">1</span><span class="p">,</span> <span class="ss">email: </span><span class="s1">'user@test.com'</span><span class="p">,</span> <span class="ss">subscriptions: </span><span class="n">subscriptions</span><span class="p">)</span> <span class="p">}</span>
+    <span class="n">let</span><span class="p">(</span><span class="ss">:subscriptions</span><span class="p">)</span> <span class="p">{</span> <span class="n">double</span><span class="p">(</span><span class="s1">'Subscriptions'</span><span class="p">)</span> <span class="p">}</span>
+    <span class="n">let</span><span class="p">(</span><span class="ss">:subscription</span><span class="p">)</span> <span class="p">{</span> <span class="n">double</span><span class="p">(</span><span class="s1">'Subscription'</span><span class="p">,</span> <span class="ss">id: </span><span class="mi">99</span><span class="p">)</span> <span class="p">}</span>
+    <span class="n">let</span><span class="p">(</span><span class="ss">:payment_gateway</span><span class="p">)</span> <span class="p">{</span> <span class="n">double</span><span class="p">(</span><span class="s1">'PaymentGateway'</span><span class="p">)</span> <span class="p">}</span>
+    <span class="n">let</span><span class="p">(</span><span class="ss">:mailer</span><span class="p">)</span> <span class="p">{</span> <span class="n">double</span><span class="p">(</span><span class="s1">'Mailer'</span><span class="p">,</span> <span class="ss">deliver_now: </span><span class="kp">true</span><span class="p">)</span> <span class="p">}</span>
+    <span class="n">let</span><span class="p">(</span><span class="ss">:mailer_class</span><span class="p">)</span> <span class="p">{</span> <span class="n">double</span><span class="p">(</span><span class="s1">'UserMailer'</span><span class="p">,</span> <span class="ss">subscription_confirmation: </span><span class="n">mailer</span><span class="p">)</span> <span class="p">}</span>
+    <span class="n">let</span><span class="p">(</span><span class="ss">:analytics</span><span class="p">)</span> <span class="p">{</span> <span class="n">double</span><span class="p">(</span><span class="s1">'AnalyticsTracker'</span><span class="p">)</span> <span class="p">}</span>
+
+    <span class="n">subject</span><span class="p">(</span><span class="ss">:service</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">described_class</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span>
+        <span class="ss">user: </span><span class="n">user</span><span class="p">,</span>
+        <span class="ss">plan: </span><span class="s1">'premium'</span><span class="p">,</span>
+        <span class="ss">amount: </span><span class="s1">'2999'</span><span class="p">,</span>
+        <span class="ss">payment_token: </span><span class="s1">'tok_123'</span><span class="p">,</span>
+        <span class="ss">payment_gateway: </span><span class="n">payment_gateway</span><span class="p">,</span>
+        <span class="ss">mailer: </span><span class="n">mailer_class</span><span class="p">,</span>
+        <span class="ss">analytics: </span><span class="n">analytics</span>
+      <span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">context</span> <span class="s1">'when payment succeeds'</span> <span class="k">do</span>
+      <span class="n">before</span> <span class="k">do</span>
+        <span class="n">allow</span><span class="p">(</span><span class="n">payment_gateway</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:charge</span><span class="p">).</span><span class="nf">and_return</span><span class="p">(</span>
+          <span class="n">double</span><span class="p">(</span><span class="ss">success?: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">id: </span><span class="s1">'pay_123'</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">allow</span><span class="p">(</span><span class="n">subscriptions</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:create!</span><span class="p">).</span><span class="nf">and_return</span><span class="p">(</span><span class="n">subscription</span><span class="p">)</span>
+        <span class="n">allow</span><span class="p">(</span><span class="n">analytics</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:track</span><span class="p">)</span>
+      <span class="k">end</span>
+
+      <span class="n">it</span> <span class="s1">'returns success result with subscription'</span> <span class="k">do</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">service</span><span class="p">.</span><span class="nf">call</span>
+
+        <span class="n">expect</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="nf">success?</span><span class="p">).</span><span class="nf">to</span> <span class="n">be</span> <span class="kp">true</span>
+        <span class="n">expect</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="nf">subscription</span><span class="p">).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="n">subscription</span><span class="p">)</span>
+      <span class="k">end</span>
+
+      <span class="n">it</span> <span class="s1">'sends confirmation email'</span> <span class="k">do</span>
+        <span class="n">expect</span><span class="p">(</span><span class="n">mailer_class</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:subscription_confirmation</span><span class="p">).</span><span class="nf">with</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">99</span><span class="p">)</span>
+        <span class="n">service</span><span class="p">.</span><span class="nf">call</span>
+      <span class="k">end</span>
+
+      <span class="n">it</span> <span class="s1">'tracks analytics event'</span> <span class="k">do</span>
+        <span class="n">expect</span><span class="p">(</span><span class="n">analytics</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:track</span><span class="p">).</span><span class="nf">with</span><span class="p">(</span><span class="s1">'subscription_created'</span><span class="p">,</span> <span class="ss">user_id: </span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">service</span><span class="p">.</span><span class="nf">call</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="n">context</span> <span class="s1">'when payment fails'</span> <span class="k">do</span>
+      <span class="n">before</span> <span class="k">do</span>
+        <span class="n">allow</span><span class="p">(</span><span class="n">payment_gateway</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:charge</span><span class="p">).</span><span class="nf">and_return</span><span class="p">(</span>
+          <span class="n">double</span><span class="p">(</span><span class="ss">success?: </span><span class="kp">false</span><span class="p">,</span> <span class="ss">id: </span><span class="kp">nil</span><span class="p">)</span>
+        <span class="p">)</span>
+      <span class="k">end</span>
+
+      <span class="n">it</span> <span class="s1">'returns failure result'</span> <span class="k">do</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">service</span><span class="p">.</span><span class="nf">call</span>
+
+        <span class="n">expect</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="nf">success?</span><span class="p">).</span><span class="nf">to</span> <span class="n">be</span> <span class="kp">false</span>
+        <span class="n">expect</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="nf">error</span><span class="p">).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="s1">'Payment failed'</span><span class="p">)</span>
+      <span class="k">end</span>
+
+      <span class="n">it</span> <span class="s1">'does not create subscription'</span> <span class="k">do</span>
+        <span class="n">expect</span><span class="p">(</span><span class="n">subscriptions</span><span class="p">).</span><span class="nf">not_to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:create!</span><span class="p">)</span>
+        <span class="n">service</span><span class="p">.</span><span class="nf">call</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h2>Part 4: Implement Strangler Fig Pattern (5 minutes)</h2>
+
+<p>Update controller to support both paths:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">SubscriptionsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">create</span>
+    <span class="k">if</span> <span class="n">use_new_subscription_flow?</span>
+      <span class="n">create_with_service</span>
+    <span class="k">else</span>
+      <span class="n">create_legacy</span> <span class="c1"># TODO: Remove after migration complete</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">use_new_subscription_flow?</span>
+    <span class="c1"># Feature flag or gradual rollout</span>
+    <span class="n">current_user</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">feature_enabled?</span><span class="p">(</span><span class="ss">:new_subscription_flow</span><span class="p">)</span> <span class="o">||</span> <span class="n">params</span><span class="p">[</span><span class="ss">:use_new_flow</span><span class="p">]</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">create_with_service</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:user_id</span><span class="p">])</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="no">Subscriptions</span><span class="o">::</span><span class="no">CreateService</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span>
+      <span class="ss">user: </span><span class="n">user</span><span class="p">,</span>
+      <span class="ss">plan: </span><span class="n">params</span><span class="p">[</span><span class="ss">:plan</span><span class="p">],</span>
+      <span class="ss">amount: </span><span class="n">params</span><span class="p">[</span><span class="ss">:amount</span><span class="p">],</span>
+      <span class="ss">payment_token: </span><span class="n">params</span><span class="p">[</span><span class="ss">:payment_token</span><span class="p">]</span>
+    <span class="p">).</span><span class="nf">call</span>
+
+    <span class="k">if</span> <span class="n">result</span><span class="p">.</span><span class="nf">success?</span>
+      <span class="n">redirect_to</span> <span class="n">subscription_path</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="nf">subscription</span><span class="p">),</span> <span class="ss">notice: </span><span class="s1">'Subscription created!'</span>
+    <span class="k">else</span>
+      <span class="n">redirect_to</span> <span class="n">new_subscription_path</span><span class="p">,</span> <span class="ss">alert: </span><span class="n">result</span><span class="p">.</span><span class="nf">error</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">create_legacy</span>
+    <span class="c1"># Original implementation (seams extracted)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:user_id</span><span class="p">])</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">process_payment</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="ss">:amount</span><span class="p">],</span> <span class="n">params</span><span class="p">[</span><span class="ss">:payment_token</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">response</span><span class="p">.</span><span class="nf">code</span> <span class="o">==</span> <span class="mi">200</span>
+      <span class="n">subscription</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="nf">subscriptions</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+        <span class="ss">plan: </span><span class="n">params</span><span class="p">[</span><span class="ss">:plan</span><span class="p">],</span>
+        <span class="ss">amount: </span><span class="n">params</span><span class="p">[</span><span class="ss">:amount</span><span class="p">],</span>
+        <span class="ss">status: </span><span class="s1">'active'</span><span class="p">,</span>
+        <span class="ss">payment_id: </span><span class="n">response</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span>
+      <span class="p">)</span>
+
+      <span class="n">send_confirmation</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">subscription</span><span class="p">)</span>
+      <span class="n">track_analytics</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+
+      <span class="n">redirect_to</span> <span class="n">subscription_path</span><span class="p">(</span><span class="n">subscription</span><span class="p">),</span> <span class="ss">notice: </span><span class="s1">'Subscription created!'</span>
+    <span class="k">else</span>
+      <span class="n">redirect_to</span> <span class="n">new_subscription_path</span><span class="p">,</span> <span class="ss">alert: </span><span class="s1">'Payment failed'</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Seam methods...</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h2>Verification Steps</h2>
+
+<ol>
+<li>Run all tests:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code>bundle <span class="nb">exec </span>rspec
+
+</code></pre></div>
+<p>All tests should pass for both legacy and new implementations.</p>
+
+<ol>
+<li>Test in Rails console:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Create test user</span>
+<span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">email: </span><span class="s1">'test@example.com'</span><span class="p">,</span> <span class="ss">name: </span><span class="s1">'Test User'</span><span class="p">)</span>
+
+<span class="c1"># Test new service directly</span>
+<span class="n">result</span> <span class="o">=</span> <span class="no">Subscriptions</span><span class="o">::</span><span class="no">CreateService</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span>
+  <span class="ss">user: </span><span class="n">user</span><span class="p">,</span>
+  <span class="ss">plan: </span><span class="s1">'premium'</span><span class="p">,</span>
+  <span class="ss">amount: </span><span class="s1">'2999'</span><span class="p">,</span>
+  <span class="ss">payment_token: </span><span class="s1">'tok_test'</span><span class="p">,</span>
+  <span class="ss">payment_gateway: </span><span class="n">double</span><span class="p">(</span><span class="ss">charge: </span><span class="n">double</span><span class="p">(</span><span class="ss">success?: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">id: </span><span class="s1">'pay_123'</span><span class="p">)),</span>
+  <span class="ss">mailer: </span><span class="n">double</span><span class="p">(</span><span class="ss">subscription_confirmation: </span><span class="n">double</span><span class="p">(</span><span class="ss">deliver_now: </span><span class="kp">true</span><span class="p">)),</span>
+  <span class="ss">analytics: </span><span class="n">double</span><span class="p">(</span><span class="ss">track: </span><span class="kp">true</span><span class="p">)</span>
+<span class="p">).</span><span class="nf">call</span>
+
+<span class="n">result</span><span class="p">.</span><span class="nf">success?</span> <span class="c1"># =&gt; true</span>
+
+</code></pre></div>
+<ol>
+<li>Monitor feature flag rollout in production (pseudo-code):</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Start with 5% of users</span>
+<span class="no">FeatureFlag</span><span class="p">.</span><span class="nf">set</span><span class="p">(</span><span class="ss">:new_subscription_flow</span><span class="p">,</span> <span class="ss">percentage: </span><span class="mi">5</span><span class="p">)</span>
+
+<span class="c1"># Monitor error rates, then increase</span>
+<span class="no">FeatureFlag</span><span class="p">.</span><span class="nf">set</span><span class="p">(</span><span class="ss">:new_subscription_flow</span><span class="p">,</span> <span class="ss">percentage: </span><span class="mi">25</span><span class="p">)</span>
+<span class="no">FeatureFlag</span><span class="p">.</span><span class="nf">set</span><span class="p">(</span><span class="ss">:new_subscription_flow</span><span class="p">,</span> <span class="ss">percentage: </span><span class="mi">50</span><span class="p">)</span>
+<span class="no">FeatureFlag</span><span class="p">.</span><span class="nf">set</span><span class="p">(</span><span class="ss">:new_subscription_flow</span><span class="p">,</span> <span class="ss">percentage: </span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># Remove legacy code path</span>
 </code></pre></div>
 <h2>Stretch Goals</h2>
 
 <ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
+<li>[ ] Add retry logic to PaymentGateway for transient failures</li>
+<li>[ ] Implement circuit breaker pattern for external API calls</li>
+<li>[ ] Add background job for analytics tracking (non-blocking)</li>
+<li>[ ] Extract mailer call to background job</li>
+<li>[ ] Add integration tests using VCR to record/replay HTTP requests</li>
+<li>[ ] Implement idempotency keys to prevent duplicate charges</li>
 </ul>
 
-<h2>Solution Notes</h2>
+<h2>Time Estimate</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p>25 minutes</p>
 
     
   </div>
@@ -766,74 +1522,308 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="A test that documents what code actually does, not what it should do">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What is a characterization test?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  A test that verifies code meets its original specification
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  A test that documents what code actually does, not what it should do
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  A test that measures code performance characteristics
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  A test that validates data types and interfaces
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Characterization tests lock in current behavior without requiring understanding of the implementation, creating a safety net before refactoring legacy code.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="A place where you can alter behavior without editing code in that location">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">What is a 'seam' in legacy code?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  A bug or defect that needs fixing
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  A place where you can alter behavior without editing code in that location
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  A connection between two microservices
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  A deprecated method that should be removed
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Seams are injection points (like method boundaries or initialization) where you can substitute dependencies for testing without modifying the code being tested.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="It replaces legacy functionality incrementally while keeping production stable">
+          <h4>Question 3 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the main advantage of the Strangler Fig pattern?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  It allows complete code rewrites without risk
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  It eliminates the need for feature flags
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  It replaces legacy functionality incrementally while keeping production stable
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  It automatically generates tests for legacy code
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Strangler Fig routes new requests to modern code while legacy handles existing functionality, allowing gradual migration with zero downtime.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="2"
              >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 4 (2 points)</h4>
+          <p style="margin: 10px 0;">Why should you write characterization tests before refactoring legacy code?</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">To lock in current behavior so you can detect if refactoring changes functionality. Tests pass = behavior unchanged.</p>
+            </div>
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="ActiveRecord objects serialize their current state; changes after enqueueing aren't reflected">
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">What's wrong with passing ActiveRecord objects directly to background jobs in legacy code?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  Objects are too large to serialize efficiently
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  ActiveRecord objects serialize their current state; changes after enqueueing aren't reflected
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  Background jobs cannot deserialize ActiveRecord objects
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  It violates the single responsibility principle
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Serialized objects contain stale data. Pass IDs instead and fetch fresh records in the job to ensure you work with current state.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="2"
              >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">How do you create a seam in a controller method that makes a hard-coded HTTParty call?</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Extract the HTTParty call into a private method, then stub that method in tests. Or inject a client object through dependency injection.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Feature flags or gradual rollout percentages">
+          <h4>Question 7 (1 points)</h4>
+          <p style="margin: 10px 0;">When implementing Strangler Fig pattern, what controls routing between legacy and new code?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  Load balancer configuration
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  Feature flags or gradual rollout percentages
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  Database migration version
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  Environment variables only
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Feature flags let you route a percentage of traffic to new code, gradually increasing as confidence grows, with instant rollback if issues arise.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Write characterization tests capturing current behavior">
+          <h4>Question 8 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the first step when working with untested legacy code?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  Rewrite the code from scratch
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  Add comments explaining what the code does
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  Write characterization tests capturing current behavior
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Refactor to improve code style
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Tests first create a safety net to detect behavioral changes. Refactoring without tests means you can't verify you didn't break anything.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 9 (2 points)</h4>
+          <p style="margin: 10px 0;">What's the difference between 'big-bang rewrite' and 'Strangler Fig' approaches to replacing legacy code?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Big-bang replaces everything at once (high risk, downtime). Strangler Fig replaces piece by piece in production with feature flags (low risk, gradual).</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Add dependency injection with default production values">
+          <h4>Question 10 (1 points)</h4>
+          <p style="margin: 10px 0;">How do you break hard dependencies on external services in legacy code for testing?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(9, 0)">
+                  Mock the HTTP library globally
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 1)">
+                  Add dependency injection with default production values
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 2)">
+                  Disable the external service calls in test environment
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 3)">
+                  Use VCR to record all HTTP interactions
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Injecting dependencies (e.g., payment_gateway: PaymentGateway.new) lets you pass test doubles while keeping production behavior unchanged with default values.
+              </div>
+            
           
         </div>
       
@@ -847,7 +1837,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -863,33 +1853,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.amazon.com/Working-Effectively-Legacy-Michael-Feathers/dp/0131177052" target="_blank">Working Effectively with Legacy Code (Michael C. Feathers)</a>
+            <div class="why">The definitive book on legacy code techniques, covering characterization tests, seams, dependency breaking, and safe refactoring strategies.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://martinfowler.com/bliki/StranglerFigApplication.html" target="_blank">Strangler Fig Application Pattern (Martin Fowler)</a>
+            <div class="why">Martin Fowler's original description of the Strangler Fig pattern for incrementally replacing legacy systems without big-bang rewrites.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://blog.thecodewhisperer.com/permalink/surviving-legacy-code-with-golden-master-and-sampling" target="_blank">Characterization Testing (J.B. Rainsberger)</a>
+            <div class="why">Practical guide to writing characterization tests using Golden Master technique to capture complex legacy behavior.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://semaphoreci.com/community/tutorials/mocking-with-rspec-doubles-and-expectations" target="_blank">Rails Testing Handbook — Legacy Code Chapter</a>
+            <div class="why">Tutorial on using RSpec doubles and stubs to test legacy Rails controllers with hard dependencies.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.informit.com/articles/article.aspx?p=359417&seqNum=2" target="_blank">Seams: An Introduction (Michael Feathers)</a>
+            <div class="why">Excerpt from Working Effectively with Legacy Code explaining seams and how to identify them in production code.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://martinfowler.com/articles/feature-toggles.html" target="_blank">Feature Toggles (Pete Hodgson)</a>
+            <div class="why">Comprehensive guide to feature flags and toggles, essential for implementing Strangler Fig pattern safely.</div>
+          </li>
+        
+          <li>
+            <a href="https://martinfowler.com/books/refactoringRubyEd.html" target="_blank">Refactoring: Ruby Edition (Jay Fields, Martin Fowler)</a>
+            <div class="why">Ruby-specific refactoring patterns and techniques with examples for safely transforming legacy Rails code.</div>
           </li>
         
       </ul>

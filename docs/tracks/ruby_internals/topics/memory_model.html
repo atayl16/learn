@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,71 +656,251 @@
 
 <h2>What It Is</h2>
 
-<p>Ruby Memory Model &amp; Object Allocation is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>Ruby&#39;s memory model governs how objects are allocated on the heap, tracked by the garbage collector (GC), and eventually freed. The Ruby heap is organized into pages containing object slots, with the GC using a tri-color mark-and-sweep algorithm plus optional compaction to reclaim unused memory. Memory profiling tools like memory_profiler and derailed_benchmarks measure allocation patterns, identify hotspots, and detect leaks where objects aren&#39;t released despite being unreachable.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Memory issues cause production incidents: bloated processes consume server RAM until they&#39;re OOM-killed, slow GC pauses freeze request threads, and memory leaks force frequent restarts. Understanding allocation patterns lets you optimize hot paths (reducing allocations in loops), detect retained references preventing GC (caches, global variables, closures), and tune GC parameters for your workload (server vs short-lived scripts).</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li>Diagnose high memory usage or OOM crashes in production Rails processes</li>
+<li>Optimize allocation hotspots in performance-critical endpoints or background jobs</li>
+<li>Investigate memory leaks where process size grows unbounded over time</li>
+<li>Tune GC parameters (RUBY_GC_HEAP_GROWTH_FACTOR, MALLOC_ARENA_MAX) for workload characteristics</li>
+<li>Profile memory impact before/after refactoring object-heavy code</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><strong>Global caches without eviction policies:</strong> Storing objects in class variables, constants, or Redis without expiration causes unbounded growth. Each cached object stays in heap memory forever, preventing GC.</li>
+<li><strong>Allocating in hot loops:</strong> Creating temporary strings, arrays, or hashes inside frequently-called methods (per-request filters, N+1 queries) generates millions of objects. Use in-place operations or pre-allocate when possible.</li>
+<li><strong>Closures capturing large scopes:</strong> Blocks and procs retain references to all local variables in scope, even if unused. A single retained object can keep an entire request&#39;s object graph alive, preventing GC collection.</li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>Ruby Heap and Object Slots</h2>
 
-<h3>Key Concept 1</h3>
+<p>The Ruby heap is organized into 16KB pages, each containing slots for objects:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Check current heap statistics</span>
+<span class="no">GC</span><span class="p">.</span><span class="nf">stat</span>
+<span class="c1"># =&gt; {:count=&gt;50, :heap_allocated_pages=&gt;200, :heap_live_slots=&gt;80000, ...}</span>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<span class="c1"># Each page holds ~408 slots (40 bytes per slot)</span>
+<span class="c1"># Strings &gt;23 bytes allocate additional heap memory beyond the slot</span>
+
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<p>Objects smaller than 40 bytes fit in a single slot. Larger objects (long strings, large arrays) allocate extra memory:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s1">'objspace'</span>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<span class="c1"># Small string: 1 slot</span>
+<span class="n">str1</span> <span class="o">=</span> <span class="s2">"hello"</span>
+<span class="no">ObjectSpace</span><span class="p">.</span><span class="nf">memsize_of</span><span class="p">(</span><span class="n">str1</span><span class="p">)</span>  <span class="c1"># =&gt; 40 bytes</span>
+
+<span class="c1"># Large string: 1 slot + heap allocation</span>
+<span class="n">str2</span> <span class="o">=</span> <span class="s2">"a"</span> <span class="o">*</span> <span class="mi">1000</span>
+<span class="no">ObjectSpace</span><span class="p">.</span><span class="nf">memsize_of</span><span class="p">(</span><span class="n">str2</span><span class="p">)</span>  <span class="c1"># =&gt; 1040 bytes (slot + 1000 char buffer)</span>
+
 </code></pre></div>
+<p><strong>Key insight:</strong> Object count matters more than size for GC performance. 1000 small objects trigger GC more than one 1MB string.</p>
+
 <hr>
 
-<h2>Best Practices</h2>
+<h2>GC Phases: Mark, Sweep, Compact</h2>
 
-<ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
-</ol>
+<p>Ruby&#39;s GC runs in phases:</p>
+
+<p><strong>1. Mark Phase</strong></p>
+
+<p>Starting from GC roots (stack variables, globals, constants), traverse object references and mark reachable objects:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># GC roots include:</span>
+<span class="c1"># - Local variables on stack</span>
+<span class="c1"># - Instance variables of live objects</span>
+<span class="c1"># - Constants and global variables</span>
+<span class="c1"># - Objects in finalizer registry</span>
+
+<span class="k">class</span> <span class="nc">Cache</span>
+  <span class="vc">@@data</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># GC root: retained forever unless explicitly cleared</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>2. Sweep Phase</strong></p>
+
+<p>Iterate through heap slots and free unmarked objects:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Trigger manual GC</span>
+<span class="no">GC</span><span class="p">.</span><span class="nf">start</span>
+
+<span class="c1"># Objects without references are swept</span>
+<span class="n">temp</span> <span class="o">=</span> <span class="no">Array</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mi">10_000</span><span class="p">)</span> <span class="p">{</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span> <span class="s2">"string_</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span> <span class="p">}</span>
+<span class="n">temp</span> <span class="o">=</span> <span class="kp">nil</span>  <span class="c1"># Array and strings now unreachable</span>
+
+<span class="no">GC</span><span class="p">.</span><span class="nf">start</span>  <span class="c1"># Sweep phase reclaims memory</span>
+
+</code></pre></div>
+<p><strong>3. Compact Phase (Ruby 2.7+)</strong></p>
+
+<p>Optionally move live objects together to reduce fragmentation:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Enable auto-compaction</span>
+<span class="no">GC</span><span class="p">.</span><span class="nf">auto_compact</span> <span class="o">=</span> <span class="kp">true</span>
+
+<span class="c1"># Or trigger manually</span>
+<span class="no">GC</span><span class="p">.</span><span class="nf">compact</span>
+
+<span class="c1"># Reduces heap fragmentation, improves memory locality</span>
+
+</code></pre></div>
+<p>Compaction is expensive (requires updating all references) but reduces memory fragmentation in long-running processes.</p>
 
 <hr>
 
-<h2>Key Terms</h2>
+<h2>Memory Profiling with memory_profiler</h2>
+
+<p>Track allocations per code path:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'memory_profiler'</span>
+
+<span class="c1"># In code</span>
+<span class="nb">require</span> <span class="s1">'memory_profiler'</span>
+
+<span class="n">report</span> <span class="o">=</span> <span class="no">MemoryProfiler</span><span class="p">.</span><span class="nf">report</span> <span class="k">do</span>
+  <span class="mi">1000</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span>
+    <span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">active: </span><span class="kp">true</span><span class="p">).</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:email</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="n">report</span><span class="p">.</span><span class="nf">pretty_print</span>
+
+<span class="c1"># Output shows:</span>
+<span class="c1"># Total allocated: 50000 objects (2.5 MB)</span>
+<span class="c1"># Top allocations:</span>
+<span class="c1">#   app/models/user.rb:15  - 30000 String objects</span>
+<span class="c1">#   activerecord-7.0.4/lib/active_record/result.rb:45 - 10000 Array objects</span>
+
+</code></pre></div>
+<p><strong>What to look for:</strong><br>
+- High allocation counts in your code (vs gems)<br>
+- Temporary objects created in loops<br>
+- Unexpected large allocations (serialization, JSON parsing)</p>
+
+<hr>
+
+<h2>Profiling with derailed_benchmarks</h2>
+
+<p>Test memory usage of entire request paths:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Gemfile</span>
+gem <span class="s1">'derailed_benchmarks'</span>, group: :development
+
+<span class="c"># Profile a controller action</span>
+bundle <span class="nb">exec </span>derailed bundle:mem
+
+<span class="c"># Output:</span>
+<span class="c"># TOP: 85.5 MB</span>
+<span class="c">#   require 'active_support' =&gt; 12.3 MB</span>
+<span class="c">#   require 'action_view' =&gt; 8.7 MB</span>
+
+<span class="c"># Profile specific endpoint</span>
+<span class="nv">DERAILED_SCRIPT_COUNT</span><span class="o">=</span>100 bundle <span class="nb">exec </span>derailed <span class="nb">exec </span>perf:mem_over_time
+
+</code></pre></div>
+<p>This runs requests repeatedly and measures memory growth, revealing leaks or high allocations.</p>
+
+<hr>
+
+<h2>Identifying Memory Leaks</h2>
+
+<p>A leak occurs when objects remain reachable (preventing GC) despite being logically unused:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Leak example: global cache without eviction</span>
+<span class="k">class</span> <span class="nc">ReportCache</span>
+  <span class="vc">@@reports</span> <span class="o">=</span> <span class="p">{}</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">fetch</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+    <span class="vc">@@reports</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span> <span class="o">||=</span> <span class="no">Report</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="nb">id</span><span class="p">).</span><span class="nf">generate_expensive_data</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Every unique ID stays in memory forever</span>
+<span class="mi">1_000_000</span><span class="p">.</span><span class="nf">times</span> <span class="p">{</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span> <span class="no">ReportCache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="p">}</span>
+
+</code></pre></div>
+<p><strong>Detection strategy:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Track object counts over time</span>
+<span class="n">before</span> <span class="o">=</span> <span class="no">ObjectSpace</span><span class="p">.</span><span class="nf">count_objects</span>
+<span class="mi">1000</span><span class="p">.</span><span class="nf">times</span> <span class="p">{</span> <span class="n">do_operation</span> <span class="p">}</span>
+<span class="no">GC</span><span class="p">.</span><span class="nf">start</span>
+<span class="n">after</span> <span class="o">=</span> <span class="no">ObjectSpace</span><span class="p">.</span><span class="nf">count_objects</span>
+
+<span class="c1"># Compare counts</span>
+<span class="p">(</span><span class="n">after</span><span class="p">.</span><span class="nf">keys</span> <span class="o">&amp;</span> <span class="n">before</span><span class="p">.</span><span class="nf">keys</span><span class="p">).</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">key</span><span class="o">|</span>
+  <span class="n">diff</span> <span class="o">=</span> <span class="n">after</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">-</span> <span class="n">before</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+  <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">key</span><span class="si">}</span><span class="s2">: +</span><span class="si">#{</span><span class="n">diff</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">diff</span> <span class="o">&gt;</span> <span class="mi">0</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Look for growing counts of T_STRING, T_ARRAY, T_HASH, or T_DATA (native objects).</p>
+
+<hr>
+
+<h2>GC Tuning Parameters</h2>
+
+<p>Environment variables control GC behavior:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Increase heap growth factor for fewer GC cycles (trades memory for speed)</span>
+<span class="nb">export </span><span class="nv">RUBY_GC_HEAP_GROWTH_FACTOR</span><span class="o">=</span>1.2  <span class="c"># Default: 1.1</span>
+
+<span class="c"># Increase heap size before triggering GC</span>
+<span class="nb">export </span><span class="nv">RUBY_GC_HEAP_INIT_SLOTS</span><span class="o">=</span>100000  <span class="c"># Default: 10000</span>
+
+<span class="c"># Reduce malloc arena fragmentation (glibc-specific)</span>
+<span class="nb">export </span><span class="nv">MALLOC_ARENA_MAX</span><span class="o">=</span>2
+
+</code></pre></div>
+<p><strong>When to tune:</strong><br>
+- High GC time in NewRelic/Scout (increase growth factor)<br>
+- Frequent restarts due to memory limits (decrease growth factor)<br>
+- Many short-lived processes (use defaults)</p>
+
+<hr>
+
+<h2>Trade-offs Box</h2>
 
 <ul>
-<li><strong>object allocation</strong></li>
-<li><strong>garbage collection</strong></li>
-<li><strong>memory bloat</strong></li>
-<li><strong>profiling</strong></li>
-<li><strong>heap</strong></li>
+<li><strong>Advantage:</strong> Profiling reveals allocation hotspots (100x speedup from eliminating string concatenation in loops); tuning GC reduces pause frequency in high-throughput apps.</li>
+<li><strong>Cost:</strong> Memory optimization adds code complexity (object pooling, in-place operations); aggressive GC tuning trades memory for CPU or vice versa.</li>
+<li><strong>When to skip:</strong> Pre-optimization wastes time; profile production first. Don&#39;t tune GC until memory issues appear in metrics.</li>
 </ul>
 
 <hr>
 
-<h2>Summary</h2>
+<h2>Debugging Checklist</h2>
 
-<p>Ruby Memory Model &amp; Object Allocation is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
+<p>When investigating memory issues:</p>
 
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<ol>
+<li>Check process memory growth: <code>ps aux | grep ruby</code> or metrics dashboard</li>
+<li>Profile allocations with memory_profiler in development</li>
+<li>Run derailed_benchmarks to measure request memory impact</li>
+<li>Search for global variables, class variables, constants holding collections</li>
+<li>Inspect closures/blocks for unintended variable captures</li>
+<li>Check for missing pagination (loading entire tables into memory)</li>
+<li>Review caching layers for unbounded growth (no TTL, no eviction)</li>
+<li>Use ObjectSpace.each_object to count instances of specific classes</li>
+<li>Enable GC.stat logging to track heap growth over time</li>
+<li>Test with GC.compact to see if fragmentation is the issue</li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>Ruby heap stores objects in 40-byte slots across 16KB pages; large objects allocate additional memory</li>
+<li>GC uses mark-sweep-compact: mark reachable objects, sweep unreachable ones, optionally compact fragmentation</li>
+<li>memory_profiler shows per-line allocations; derailed_benchmarks profiles full request memory usage</li>
+<li>Leaks occur when objects stay reachable (globals, caches, closures) despite being logically unused</li>
+<li>Tune GC via environment variables only after profiling reveals specific bottlenecks</li>
+</ul>
 
     
   </div>
@@ -706,55 +912,366 @@
     
       <h1>Exercise: Ruby Memory Model &amp; Object Allocation</h1>
 
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
-
 <h2>Objective</h2>
 
-<p>Build hands-on experience with ruby memory model &amp; object allocation through practical implementation.</p>
+<p>Profile memory usage with memory_profiler, identify allocation hotspots in a Rails endpoint, and optimize to reduce object creation by at least 50%.</p>
 
-<h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new memory_model_practice
-<span class="nb">cd </span>memory_model_practice
+<h2>Task</h2>
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
-</code></pre></div>
-<h2>Tasks</h2>
+<p>In a Rails application with realistic data volume:</p>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
+<ol>
+<li>Add memory profiling gems and create a memory-heavy endpoint</li>
+<li>Profile the endpoint to identify allocation hotspots</li>
+<li>Refactor code to reduce allocations</li>
+<li>Verify optimization with before/after metrics</li>
+<li>Investigate a simulated memory leak and fix it</li>
+</ol>
 
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
-</code></pre></div>
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
-
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
-
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
-
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
-
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
-
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
-</code></pre></div>
-<h2>Stretch Goals</h2>
+<h2>Acceptance Criteria</h2>
 
 <ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
+<li>[ ] memory_profiler gem installed and configured</li>
+<li>[ ] Profiling reports show allocation counts and memory usage per file/line</li>
+<li>[ ] Identified at least 3 allocation hotspots (loops, string concatenation, N+1)</li>
+<li>[ ] Refactored code reduces total allocations by 50%+</li>
+<li>[ ] Added test demonstrating memory leak detection with ObjectSpace</li>
+<li>[ ] Documented optimization techniques and their impact</li>
 </ul>
+
+<h2>Verification Steps</h2>
+
+<h3>Step 1: Setup and Create Memory-Heavy Endpoint</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create new Rails app or use existing</span>
+rails new memory_profiler_demo
+<span class="nb">cd </span>memory_profiler_demo
+
+<span class="c"># Add gems</span>
+bundle add memory_profiler
+bundle add faker  <span class="c"># For realistic test data</span>
+
+</code></pre></div>
+<p>Generate a User model with sample data:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate model User name:string email:string bio:text active:boolean
+bin/rails db:migrate
+
+</code></pre></div>
+<p>Seed database:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># db/seeds.rb</span>
+<span class="nb">require</span> <span class="s1">'faker'</span>
+
+<span class="mi">10_000</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span>
+  <span class="no">User</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+    <span class="ss">name: </span><span class="no">Faker</span><span class="o">::</span><span class="no">Name</span><span class="p">.</span><span class="nf">name</span><span class="p">,</span>
+    <span class="ss">email: </span><span class="no">Faker</span><span class="o">::</span><span class="no">Internet</span><span class="p">.</span><span class="nf">email</span><span class="p">,</span>
+    <span class="ss">bio: </span><span class="no">Faker</span><span class="o">::</span><span class="no">Lorem</span><span class="p">.</span><span class="nf">paragraph</span><span class="p">(</span><span class="ss">sentence_count: </span><span class="mi">20</span><span class="p">),</span>
+    <span class="ss">active: </span><span class="p">[</span><span class="kp">true</span><span class="p">,</span> <span class="kp">false</span><span class="p">].</span><span class="nf">sample</span>
+  <span class="p">)</span>
+<span class="k">end</span>
+
+</code></pre></div><div class="highlight"><pre class="highlight shell"><code>bin/rails db:seed
+
+</code></pre></div>
+<h3>Step 2: Create Memory-Heavy Controller</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/reports_controller.rb</span>
+<span class="k">class</span> <span class="nc">ReportsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">user_summary</span>
+    <span class="c1"># INTENTIONALLY INEFFICIENT - allocates heavily</span>
+    <span class="vi">@report</span> <span class="o">=</span> <span class="n">generate_report</span>
+    <span class="n">render</span> <span class="ss">json: </span><span class="vi">@report</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">generate_report</span>
+    <span class="n">report_lines</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="no">User</span><span class="p">.</span><span class="nf">all</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">user</span><span class="o">|</span>
+      <span class="c1"># String concatenation in loop (allocates new strings)</span>
+      <span class="n">summary</span> <span class="o">=</span> <span class="s2">"User: "</span> <span class="o">+</span> <span class="n">user</span><span class="p">.</span><span class="nf">name</span> <span class="o">+</span> <span class="s2">" &lt;"</span> <span class="o">+</span> <span class="n">user</span><span class="p">.</span><span class="nf">email</span> <span class="o">+</span> <span class="s2">"&gt;"</span>
+      <span class="n">summary</span> <span class="o">+=</span> <span class="s2">" | Bio: "</span> <span class="o">+</span> <span class="n">user</span><span class="p">.</span><span class="nf">bio</span><span class="p">.</span><span class="nf">to_s</span>
+      <span class="n">summary</span> <span class="o">+=</span> <span class="s2">" | Status: "</span> <span class="o">+</span> <span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="nf">active</span> <span class="p">?</span> <span class="s2">"active"</span> <span class="p">:</span> <span class="s2">"inactive"</span><span class="p">)</span>
+
+      <span class="c1"># Building array of hashes (allocates hash per iteration)</span>
+      <span class="n">report_lines</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+        <span class="ss">id: </span><span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+        <span class="ss">summary: </span><span class="n">summary</span><span class="p">,</span>
+        <span class="ss">word_count: </span><span class="n">user</span><span class="p">.</span><span class="nf">bio</span><span class="p">.</span><span class="nf">to_s</span><span class="p">.</span><span class="nf">split</span><span class="p">.</span><span class="nf">size</span><span class="p">,</span>
+        <span class="ss">tags: </span><span class="p">[</span><span class="s2">"user"</span><span class="p">,</span> <span class="s2">"report"</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="nf">active</span> <span class="p">?</span> <span class="s2">"active"</span> <span class="p">:</span> <span class="s2">"inactive"</span><span class="p">]</span>
+      <span class="p">}</span>
+    <span class="k">end</span>
+
+    <span class="c1"># Additional processing (more allocations)</span>
+    <span class="n">report_lines</span><span class="p">.</span><span class="nf">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">line</span><span class="o">|</span>
+      <span class="n">line</span><span class="p">.</span><span class="nf">merge</span><span class="p">(</span>
+        <span class="ss">formatted_summary: </span><span class="s2">"[</span><span class="si">#{</span><span class="n">line</span><span class="p">[</span><span class="ss">:id</span><span class="p">]</span><span class="si">}</span><span class="s2">] </span><span class="si">#{</span><span class="n">line</span><span class="p">[</span><span class="ss">:summary</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="ss">metadata: </span><span class="p">{</span> <span class="ss">processed_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="p">.</span><span class="nf">to_s</span><span class="p">,</span> <span class="ss">version: </span><span class="s2">"1.0"</span> <span class="p">}</span>
+      <span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Add route:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/routes.rb</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">get</span> <span class="s1">'reports/user_summary'</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 3: Profile Memory Usage</h3>
+
+<p>Create a profiling script:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># lib/tasks/profile_memory.rake</span>
+<span class="n">namespace</span> <span class="ss">:profile</span> <span class="k">do</span>
+  <span class="n">desc</span> <span class="s2">"Profile memory usage of reports endpoint"</span>
+  <span class="n">task</span> <span class="ss">memory: :environment</span> <span class="k">do</span>
+    <span class="nb">require</span> <span class="s1">'memory_profiler'</span>
+
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== Memory Profile: User Summary Report ==="</span>
+
+    <span class="n">report</span> <span class="o">=</span> <span class="no">MemoryProfiler</span><span class="p">.</span><span class="nf">report</span> <span class="k">do</span>
+      <span class="c1"># Simulate the controller action</span>
+      <span class="no">ReportsController</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="ss">:generate_report</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">--- Top 10 Allocations by Count ---"</span>
+    <span class="n">report</span><span class="p">.</span><span class="nf">pretty_print</span><span class="p">(</span><span class="ss">scale_bytes: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">top: </span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">--- Summary ---"</span>
+    <span class="nb">puts</span> <span class="s2">"Total allocated: </span><span class="si">#{</span><span class="n">report</span><span class="p">.</span><span class="nf">total_allocated</span><span class="si">}</span><span class="s2"> objects"</span>
+    <span class="nb">puts</span> <span class="s2">"Total allocated memory: </span><span class="si">#{</span><span class="n">report</span><span class="p">.</span><span class="nf">total_allocated_memsize</span> <span class="o">/</span> <span class="mf">1024.0</span> <span class="o">/</span> <span class="mf">1024.0</span><span class="si">}</span><span class="s2"> MB"</span>
+    <span class="nb">puts</span> <span class="s2">"Total retained: </span><span class="si">#{</span><span class="n">report</span><span class="p">.</span><span class="nf">total_retained</span><span class="si">}</span><span class="s2"> objects"</span>
+    <span class="nb">puts</span> <span class="s2">"Total retained memory: </span><span class="si">#{</span><span class="n">report</span><span class="p">.</span><span class="nf">total_retained_memsize</span> <span class="o">/</span> <span class="mf">1024.0</span> <span class="o">/</span> <span class="mf">1024.0</span><span class="si">}</span><span class="s2"> MB"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Run profiler:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails profile:memory
+
+<span class="c"># Expected output shows:</span>
+<span class="c"># - High string allocations from concatenation</span>
+<span class="c"># - Array/Hash allocations from .map and .merge</span>
+<span class="c"># - Temporary objects from .to_s, .split, etc.</span>
+
+</code></pre></div>
+<h3>Step 4: Optimize to Reduce Allocations</h3>
+
+<p>Refactored version:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/reports_controller.rb</span>
+<span class="k">class</span> <span class="nc">ReportsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">user_summary_optimized</span>
+    <span class="vi">@report</span> <span class="o">=</span> <span class="n">generate_report_optimized</span>
+    <span class="n">render</span> <span class="ss">json: </span><span class="vi">@report</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">generate_report_optimized</span>
+    <span class="c1"># Use pluck to avoid loading full ActiveRecord objects</span>
+    <span class="n">users_data</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:id</span><span class="p">,</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:bio</span><span class="p">,</span> <span class="ss">:active</span><span class="p">)</span>
+
+    <span class="c1"># Pre-allocate array with known size</span>
+    <span class="n">report_lines</span> <span class="o">=</span> <span class="no">Array</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">users_data</span><span class="p">.</span><span class="nf">size</span><span class="p">)</span>
+
+    <span class="n">users_data</span><span class="p">.</span><span class="nf">each_with_index</span> <span class="k">do</span> <span class="o">|</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">name</span><span class="p">,</span> <span class="n">email</span><span class="p">,</span> <span class="n">bio</span><span class="p">,</span> <span class="n">active</span><span class="p">),</span> <span class="n">idx</span><span class="o">|</span>
+      <span class="c1"># String interpolation allocates once (vs multiple concatenations)</span>
+      <span class="n">summary</span> <span class="o">=</span> <span class="s2">"User: </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2"> &lt;</span><span class="si">#{</span><span class="n">email</span><span class="si">}</span><span class="s2">&gt; | Bio: </span><span class="si">#{</span><span class="n">bio</span><span class="si">}</span><span class="s2"> | Status: </span><span class="si">#{</span><span class="n">active</span> <span class="p">?</span> <span class="s1">'active'</span> <span class="p">:</span> <span class="s1">'inactive'</span><span class="si">}</span><span class="s2">"</span>
+
+      <span class="c1"># Reuse status string</span>
+      <span class="n">status</span> <span class="o">=</span> <span class="n">active</span> <span class="p">?</span> <span class="s1">'active'</span> <span class="p">:</span> <span class="s1">'inactive'</span>
+
+      <span class="c1"># Build hash directly (no merge needed)</span>
+      <span class="n">report_lines</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="ss">id: </span><span class="nb">id</span><span class="p">,</span>
+        <span class="ss">summary: </span><span class="n">summary</span><span class="p">,</span>
+        <span class="ss">word_count: </span><span class="n">bio</span><span class="p">.</span><span class="nf">to_s</span><span class="p">.</span><span class="nf">split</span><span class="p">.</span><span class="nf">size</span><span class="p">,</span>
+        <span class="ss">tags: </span><span class="p">[</span><span class="s2">"user"</span><span class="p">,</span> <span class="s2">"report"</span><span class="p">,</span> <span class="n">status</span><span class="p">],</span>
+        <span class="ss">formatted_summary: </span><span class="s2">"[</span><span class="si">#{</span><span class="nb">id</span><span class="si">}</span><span class="s2">] </span><span class="si">#{</span><span class="n">summary</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="ss">metadata: </span><span class="p">{</span> <span class="ss">processed_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">now</span><span class="p">.</span><span class="nf">to_s</span><span class="p">,</span> <span class="ss">version: </span><span class="s2">"1.0"</span> <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="k">end</span>
+
+    <span class="n">report_lines</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Add optimized route and create comparison task:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/routes.rb</span>
+<span class="n">get</span> <span class="s1">'reports/user_summary_optimized'</span>
+
+</code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="c1"># lib/tasks/profile_memory.rake</span>
+<span class="n">namespace</span> <span class="ss">:profile</span> <span class="k">do</span>
+  <span class="n">task</span> <span class="ss">compare: :environment</span> <span class="k">do</span>
+    <span class="nb">require</span> <span class="s1">'memory_profiler'</span>
+
+    <span class="n">controller</span> <span class="o">=</span> <span class="no">ReportsController</span><span class="p">.</span><span class="nf">new</span>
+
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== ORIGINAL VERSION ==="</span>
+    <span class="n">original</span> <span class="o">=</span> <span class="no">MemoryProfiler</span><span class="p">.</span><span class="nf">report</span> <span class="p">{</span> <span class="n">controller</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="ss">:generate_report</span><span class="p">)</span> <span class="p">}</span>
+
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== OPTIMIZED VERSION ==="</span>
+    <span class="n">optimized</span> <span class="o">=</span> <span class="no">MemoryProfiler</span><span class="p">.</span><span class="nf">report</span> <span class="p">{</span> <span class="n">controller</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="ss">:generate_report_optimized</span><span class="p">)</span> <span class="p">}</span>
+
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== COMPARISON ==="</span>
+    <span class="nb">puts</span> <span class="s2">"Original allocations: </span><span class="si">#{</span><span class="n">original</span><span class="p">.</span><span class="nf">total_allocated</span><span class="si">}</span><span class="s2"> objects (</span><span class="si">#{</span><span class="n">original</span><span class="p">.</span><span class="nf">total_allocated_memsize</span> <span class="o">/</span> <span class="mf">1024.0</span> <span class="o">/</span> <span class="mf">1024.0</span><span class="si">}</span><span class="s2"> MB)"</span>
+    <span class="nb">puts</span> <span class="s2">"Optimized allocations: </span><span class="si">#{</span><span class="n">optimized</span><span class="p">.</span><span class="nf">total_allocated</span><span class="si">}</span><span class="s2"> objects (</span><span class="si">#{</span><span class="n">optimized</span><span class="p">.</span><span class="nf">total_allocated_memsize</span> <span class="o">/</span> <span class="mf">1024.0</span> <span class="o">/</span> <span class="mf">1024.0</span><span class="si">}</span><span class="s2"> MB)"</span>
+
+    <span class="n">reduction</span> <span class="o">=</span> <span class="p">((</span><span class="n">original</span><span class="p">.</span><span class="nf">total_allocated</span> <span class="o">-</span> <span class="n">optimized</span><span class="p">.</span><span class="nf">total_allocated</span><span class="p">).</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">original</span><span class="p">.</span><span class="nf">total_allocated</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nb">puts</span> <span class="s2">"Reduction: </span><span class="si">#{</span><span class="n">reduction</span><span class="si">}</span><span class="s2">% fewer allocations"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 5: Test Memory Leak Detection</h3>
+
+<p>Create a test demonstrating leak detection:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># test/integration/memory_leak_test.rb</span>
+<span class="nb">require</span> <span class="s1">'test_helper'</span>
+
+<span class="k">class</span> <span class="nc">MemoryLeakTest</span> <span class="o">&lt;</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">TestCase</span>
+  <span class="nb">test</span> <span class="s2">"detects memory leak in global cache"</span> <span class="k">do</span>
+    <span class="c1"># Simulate a leaky cache</span>
+    <span class="k">class</span> <span class="nc">LeakyCache</span>
+      <span class="vc">@@cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+      <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">store</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="vc">@@cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+      <span class="k">end</span>
+
+      <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">size</span>
+        <span class="vc">@@cache</span><span class="p">.</span><span class="nf">size</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="c1"># Baseline object count</span>
+    <span class="no">GC</span><span class="p">.</span><span class="nf">start</span>
+    <span class="n">before_strings</span> <span class="o">=</span> <span class="no">ObjectSpace</span><span class="p">.</span><span class="nf">count_objects</span><span class="p">[</span><span class="ss">:T_STRING</span><span class="p">]</span>
+
+    <span class="c1"># Perform operation that should release memory</span>
+    <span class="mi">1000</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+      <span class="no">LeakyCache</span><span class="p">.</span><span class="nf">store</span><span class="p">(</span><span class="s2">"key_</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"value"</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="c1"># Force GC</span>
+    <span class="no">GC</span><span class="p">.</span><span class="nf">start</span>
+    <span class="n">after_strings</span> <span class="o">=</span> <span class="no">ObjectSpace</span><span class="p">.</span><span class="nf">count_objects</span><span class="p">[</span><span class="ss">:T_STRING</span><span class="p">]</span>
+
+    <span class="c1"># Strings should be retained (leak detected)</span>
+    <span class="n">retained</span> <span class="o">=</span> <span class="n">after_strings</span> <span class="o">-</span> <span class="n">before_strings</span>
+    <span class="nb">puts</span> <span class="s2">"Strings retained: </span><span class="si">#{</span><span class="n">retained</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="n">assert</span> <span class="n">retained</span> <span class="o">&gt;</span> <span class="mi">500</span><span class="p">,</span> <span class="s2">"Expected memory leak: strings not released after GC"</span>
+
+    <span class="c1"># Verify cache size</span>
+    <span class="n">assert_equal</span> <span class="mi">1000</span><span class="p">,</span> <span class="no">LeakyCache</span><span class="p">.</span><span class="nf">size</span>
+  <span class="k">end</span>
+
+  <span class="nb">test</span> <span class="s2">"no leak with local variables"</span> <span class="k">do</span>
+    <span class="no">GC</span><span class="p">.</span><span class="nf">start</span>
+    <span class="n">before_strings</span> <span class="o">=</span> <span class="no">ObjectSpace</span><span class="p">.</span><span class="nf">count_objects</span><span class="p">[</span><span class="ss">:T_STRING</span><span class="p">]</span>
+
+    <span class="c1"># Operation with local scope</span>
+    <span class="mi">1000</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+      <span class="n">local_var</span> <span class="o">=</span> <span class="s2">"value"</span> <span class="o">*</span> <span class="mi">1000</span>
+      <span class="c1"># local_var goes out of scope</span>
+    <span class="k">end</span>
+
+    <span class="no">GC</span><span class="p">.</span><span class="nf">start</span>
+    <span class="n">after_strings</span> <span class="o">=</span> <span class="no">ObjectSpace</span><span class="p">.</span><span class="nf">count_objects</span><span class="p">[</span><span class="ss">:T_STRING</span><span class="p">]</span>
+
+    <span class="n">retained</span> <span class="o">=</span> <span class="n">after_strings</span> <span class="o">-</span> <span class="n">before_strings</span>
+    <span class="nb">puts</span> <span class="s2">"Strings retained: </span><span class="si">#{</span><span class="n">retained</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="c1"># Should retain very few strings (no leak)</span>
+    <span class="n">assert</span> <span class="n">retained</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">"Local variables should be GC'd"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Run tests:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails <span class="nb">test test</span>/integration/memory_leak_test.rb
+
+</code></pre></div>
+<h2>Stretch (Optional)</h2>
+
+<ol>
+<li><strong>GC Statistics Monitoring:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># lib/middleware/gc_stats_middleware.rb</span>
+<span class="k">class</span> <span class="nc">GCStatsMiddleware</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+    <span class="vi">@app</span> <span class="o">=</span> <span class="n">app</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+    <span class="n">before_stat</span> <span class="o">=</span> <span class="no">GC</span><span class="p">.</span><span class="nf">stat</span>
+    <span class="n">before_time</span> <span class="o">=</span> <span class="no">Process</span><span class="p">.</span><span class="nf">clock_gettime</span><span class="p">(</span><span class="no">Process</span><span class="o">::</span><span class="no">CLOCK_MONOTONIC</span><span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="vi">@app</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+
+    <span class="n">after_time</span> <span class="o">=</span> <span class="no">Process</span><span class="p">.</span><span class="nf">clock_gettime</span><span class="p">(</span><span class="no">Process</span><span class="o">::</span><span class="no">CLOCK_MONOTONIC</span><span class="p">)</span>
+    <span class="n">after_stat</span> <span class="o">=</span> <span class="no">GC</span><span class="p">.</span><span class="nf">stat</span>
+
+    <span class="n">gc_count</span> <span class="o">=</span> <span class="n">after_stat</span><span class="p">[</span><span class="ss">:count</span><span class="p">]</span> <span class="o">-</span> <span class="n">before_stat</span><span class="p">[</span><span class="ss">:count</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">gc_count</span> <span class="o">&gt;</span> <span class="mi">0</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"[GC] </span><span class="si">#{</span><span class="n">gc_count</span><span class="si">}</span><span class="s2"> collections during request (</span><span class="si">#{</span><span class="p">((</span><span class="n">after_time</span> <span class="o">-</span> <span class="n">before_time</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">ms)"</span>
+    <span class="k">end</span>
+
+    <span class="n">response</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># config/application.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">middleware</span><span class="p">.</span><span class="nf">use</span> <span class="no">GCStatsMiddleware</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Test GC.compact effect:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Run in console</span>
+<span class="n">before_pages</span> <span class="o">=</span> <span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">[</span><span class="ss">:heap_allocated_pages</span><span class="p">]</span>
+<span class="no">GC</span><span class="p">.</span><span class="nf">compact</span>
+<span class="n">after_pages</span> <span class="o">=</span> <span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">[</span><span class="ss">:heap_allocated_pages</span><span class="p">]</span>
+<span class="nb">puts</span> <span class="s2">"Pages freed: </span><span class="si">#{</span><span class="n">before_pages</span> <span class="o">-</span> <span class="n">after_pages</span><span class="si">}</span><span class="s2">"</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Use derailed_benchmarks:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code>bundle add derailed_benchmarks <span class="nt">--group</span> development
+
+<span class="c"># Profile endpoint memory</span>
+<span class="nv">PATH_TO_HIT</span><span class="o">=</span><span class="s2">"/reports/user_summary"</span> bundle <span class="nb">exec </span>derailed <span class="nb">exec </span>perf:mem
+
+</code></pre></div>
+<h2>Time Estimate</h2>
+
+<p>22 minutes</p>
 
 <h2>Solution Notes</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p><strong>Key optimizations applied:</strong></p>
+
+<ol>
+<li><strong>Use pluck instead of all</strong>: Avoid loading full ActiveRecord objects (30-50% reduction)</li>
+<li><strong>String interpolation vs concatenation</strong>: Single allocation vs multiple (15-20% reduction)</li>
+<li><strong>Pre-allocate arrays</strong>: <code>Array.new(size)</code> vs incremental growth (10% reduction)</li>
+<li><strong>Avoid redundant .map/.merge</strong>: Build objects correctly first pass (20-30% reduction)</li>
+<li><strong>Reuse immutable values</strong>: Status strings, timestamps (5-10% reduction)</li>
+</ol>
+
+<p><strong>Common gotchas:</strong></p>
+
+<ul>
+<li><code>User.all.each</code> loads all records into memory; use <code>find_each</code> for batching</li>
+<li>String concatenation with <code>+</code> allocates new strings each time</li>
+<li><code>.map { |x| x.merge(...) }</code> creates intermediate hash copies</li>
+<li>Interpolation <code>&quot;#{var}&quot;</code> still allocates if var isn&#39;t already a string</li>
+<li>ObjectSpace.count_objects includes Ruby internals; focus on deltas, not absolute counts</li>
+</ul>
 
     
   </div>
@@ -766,74 +1283,308 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Traverse references from GC roots and mark reachable objects">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the primary purpose of Ruby's garbage collector mark phase?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  Free unreachable objects immediately
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  Traverse references from GC roots and mark reachable objects
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  Compact heap memory to reduce fragmentation
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  Count total memory usage across all objects
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> The mark phase identifies reachable objects by traversing from GC roots (stack variables, globals, constants); unreachable objects are freed in the sweep phase.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Each + operation creates a new String object instead of modifying in-place">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">Why does string concatenation with + in a loop cause high memory allocation?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  Strings are always immutable and require heap allocation
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  Each + operation creates a new String object instead of modifying in-place
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  The loop prevents garbage collection from running
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Ruby uses copy-on-write which duplicates strings
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> String concatenation allocates a new string for each + operation. Use string interpolation or << for better performance.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="2"
              >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 3 (2 points)</h4>
+          <p style="margin: 10px 0;">What command would you run to check how many heap pages are currently allocated in a running Ruby process?</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">GC.stat[:heap_allocated_pages] or GC.stat in a Rails console</p>
+            </div>
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Objects still in memory after GC runs">
+          <h4>Question 4 (1 points)</h4>
+          <p style="margin: 10px 0;">What does memory_profiler's total_retained metric measure?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  All objects allocated during profiling
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  Objects still in memory after GC runs
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  Memory leaked by the application
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  Size of the Ruby heap in bytes
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Retained objects survive GC and remain in memory, indicating they're still referenced. High retention suggests potential memory leaks.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Storing user session data in a class variable without expiration">
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">Which scenario is most likely to cause a memory leak in a Rails application?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  Using local variables inside a controller action
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  Storing user session data in a class variable without expiration
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  Creating temporary arrays in a background job
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  Loading ActiveRecord objects with .find_each
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Class variables are GC roots that persist forever. Without eviction policies, they accumulate objects that can't be garbage collected.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="2"
              >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">What method would you use to measure the memory size of a specific Ruby object including its referenced data?</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">ObjectSpace.memsize_of(object) after requiring 'objspace'</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Reduce heap fragmentation by moving live objects together">
+          <h4>Question 7 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the purpose of GC.compact in Ruby 2.7+?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  Force immediate garbage collection
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  Reduce heap fragmentation by moving live objects together
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  Clear all unreachable objects from memory
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  Disable garbage collection temporarily
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Compaction moves live objects to reduce memory fragmentation, improving memory locality. It's expensive but useful for long-running processes.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Pass the object ID and fetch fresh data in the job">
+          <h4>Question 8 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the recommended way to pass data to background jobs to avoid stale object issues?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  Pass the entire ActiveRecord object
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  Pass the object ID and fetch fresh data in the job
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  Serialize the object to JSON first
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Use a global variable to share state
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Passing IDs ensures the job fetches current data from the database. Serialized objects contain stale state from enqueue time.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 9 (2 points)</h4>
+          <p style="margin: 10px 0;">Name two Ruby GC environment variables you can tune to control garbage collection behavior.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">RUBY_GC_HEAP_GROWTH_FACTOR and RUBY_GC_HEAP_INIT_SLOTS (or MALLOC_ARENA_MAX)</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="derailed_benchmarks gem">
+          <h4>Question 10 (1 points)</h4>
+          <p style="margin: 10px 0;">What tool would you use to profile memory usage of an entire Rails request path including all dependencies?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(9, 0)">
+                  memory_profiler gem
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 1)">
+                  ObjectSpace.count_objects
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 2)">
+                  derailed_benchmarks gem
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 3)">
+                  GC.stat method
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> derailed_benchmarks profiles complete request paths including framework overhead, while memory_profiler focuses on specific code blocks.
+              </div>
+            
           
         </div>
       
@@ -847,7 +1598,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -863,33 +1614,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://jemma.dev/blog/gc-mark-and-sweep" target="_blank">Ruby Garbage Collection Deep Dive (Jemma Issroff)</a>
+            <div class="why">Comprehensive explanation of Ruby's tri-color mark-and-sweep algorithm with visual diagrams and code examples.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/SamSaffron/memory_profiler" target="_blank">memory_profiler Gem — GitHub Repository</a>
+            <div class="why">Official documentation for the memory_profiler gem, including usage patterns and interpreting profiling reports.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://patshaughnessy.net/ruby-under-a-microscope" target="_blank">Ruby Under a Microscope (Book by Pat Shaughnessy)</a>
+            <div class="why">Chapter 4 covers Ruby's heap structure, object slots, and garbage collection implementation in detail.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/schneems/derailed_benchmarks" target="_blank">derailed_benchmarks — Memory Profiling for Rails</a>
+            <div class="why">Created by Richard Schneeman, this tool profiles memory usage across entire Rails request paths and dependencies.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.youtube.com/watch?v=8Q7M513vewk" target="_blank">RubyConf 2018 — Compacting GC for MRI (Aaron Patterson)</a>
+            <div class="why">Aaron Patterson introduces compaction feature in Ruby 2.7, explaining heap fragmentation and performance impact.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.honeybadger.io/blog/ruby-memory-leaks/" target="_blank">Debugging Memory Leaks in Ruby (Honeybadger Blog)</a>
+            <div class="why">Practical guide to identifying memory leaks using ObjectSpace, heap dumps, and profiling tools in production Rails apps.</div>
+          </li>
+        
+          <li>
+            <a href="https://www.speedshop.co/2017/12/04/malloc-doubles-ruby-memory.html" target="_blank">Ruby GC Tuning Guide (Nate Berkopec)</a>
+            <div class="why">Explains MALLOC_ARENA_MAX and Ruby GC environment variables with benchmarks showing memory usage impact in production.</div>
           </li>
         
       </ul>

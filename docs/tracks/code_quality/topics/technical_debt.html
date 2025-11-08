@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,71 +656,163 @@
 
 <h2>What It Is</h2>
 
-<p>Technical Debt Assessment &amp; Management is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>Technical debt assessment is the systematic process of identifying, quantifying, and prioritizing code quality issues that slow down development velocity. Management involves creating remediation plans, communicating costs to stakeholders, and making strategic trade-offs between fixing debt and shipping features. The Technical Debt Quadrant categorizes debt as reckless/deliberate, reckless/inadvertent, prudent/deliberate, or prudent/inadvertent. Assessment frameworks like impact vs. effort matrices help prioritize which debt to tackle first. The goal is managing debt strategically to maintain sustainable velocity while delivering business value.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Unmanaged technical debt compounds like financial debt, with interest paid in slower development, increased bugs, and developer frustration. A Rails codebase with 30% test coverage and 5000-line God objects makes every feature take 3x longer to ship. Stakeholders only see &quot;slow developers,&quot; not technical costs. Senior engineers must quantify debt in business terms: &quot;This authentication system causes 2 security incidents per quarter and blocks our OAuth integration.&quot; The difference between thriving and drowning codebases is intentional debt management with clear payoff plans.</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li><strong>Quarterly planning:</strong> Allocate 15-25% capacity to debt reduction</li>
+<li><strong>Post-incident reviews:</strong> Build business case for fixing debt causing production issues</li>
+<li><strong>Architecture decisions:</strong> Use debt quadrant to decide when deliberate debt is acceptable</li>
+<li><strong>Team velocity decline:</strong> When velocity drops 30%+, assessment identifies root causes</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><strong>Treating all debt equally:</strong> Fix debt in high-change areas first. Use churn analysis to find hotspots: files changed frequently with quality issues. Refactoring rarely-touched code wastes time.</li>
+<li><strong>Communicating in technical terms:</strong> &quot;Better separation of concerns&quot; gets no buy-in. Instead: &quot;Checkout code has 12 bugs/quarter costing $50K. Two weeks refactoring reduces bugs 75% and doubles feature velocity.&quot; Business impact wins budgets.</li>
+<li><strong>Paying debt without preventing new debt:</strong> Implement guardrails: linting rules, code review standards, automated quality gates. Prevention is 10x cheaper than remediation.</li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>Technical Debt Quadrant</h2>
 
-<h3>Key Concept 1</h3>
+<p>Martin Fowler&#39;s quadrant classifies debt:</p>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<table><thead>
+<tr>
+<th></th>
+<th><strong>Deliberate</strong></th>
+<th><strong>Inadvertent</strong></th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Reckless</strong></td>
+<td>&quot;No time for design&quot;</td>
+<td>&quot;What&#39;s layering?&quot;</td>
+</tr>
+<tr>
+<td><strong>Prudent</strong></td>
+<td>&quot;Ship now, refactor later&quot;</td>
+<td>&quot;Now we know better&quot;</td>
+</tr>
+</tbody></table>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Reckless/Deliberate: No error handling</span>
+<span class="k">def</span> <span class="nf">charge_customer</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span>
+  <span class="no">Stripe</span><span class="o">::</span><span class="no">Charge</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">amount: </span><span class="n">amount</span><span class="p">,</span> <span class="ss">customer: </span><span class="n">current_user</span><span class="p">.</span><span class="nf">stripe_id</span><span class="p">)</span>
+  <span class="no">Order</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">user: </span><span class="n">current_user</span><span class="p">,</span> <span class="ss">total: </span><span class="n">amount</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="c1"># Prudent/Deliberate: Acceptable debt with plan</span>
+<span class="c1"># TODO: Extract to PaymentService (ticket #1234)</span>
+<span class="k">def</span> <span class="nf">charge_customer</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span>
+  <span class="n">charge</span> <span class="o">=</span> <span class="no">Stripe</span><span class="o">::</span><span class="no">Charge</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span><span class="ss">amount: </span><span class="n">amount</span><span class="p">,</span> <span class="ss">customer: </span><span class="n">current_user</span><span class="p">.</span><span class="nf">stripe_id</span><span class="p">)</span>
+<span class="k">rescue</span> <span class="no">Stripe</span><span class="o">::</span><span class="no">CardError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+  <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span><span class="p">(</span><span class="s2">"Payment failed: </span><span class="si">#{</span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+  <span class="kp">nil</span>
+<span class="k">else</span>
+  <span class="no">Order</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">user: </span><span class="n">current_user</span><span class="p">,</span> <span class="ss">total: </span><span class="n">amount</span><span class="p">,</span> <span class="ss">stripe_charge_id: </span><span class="n">charge</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+<span class="k">end</span>
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<p><strong>Key insight:</strong> Prudent/deliberate debt is acceptable if timeboxed and documented. Prevent reckless debt through code review.</p>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<hr>
+
+<h2>Impact vs. Effort Assessment</h2>
+
+<p>Use a 2x2 matrix to prioritize debt remediation by ROI:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>High Impact
+    │  Quick Wins     │  Big Bets
+    │  (Do First)     │  (Plan)
+    ├───────────────────────────
+    │  Low Value      │  Time Sinks
+    │  (Skip)         │  (Avoid)
+              Low Effort → High Effort
 </code></pre></div>
+<p><strong>Quick Wins:</strong> Adding indexes, extracting magic numbers, adding validations</p>
+
+<p><strong>Big Bets:</strong> Rewriting payment processing, breaking up God objects, adding comprehensive tests</p>
+
+<p><strong>Time Sinks:</strong> Refactoring rarely-touched code, premature optimization</p>
+
+<p><strong>Churn Analysis</strong> identifies hotspots: high change frequency + low quality. A 2500-line controller changed 127 times in 6 months with 25% coverage is a velocity killer.</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Find most-changed files</span>
+git log <span class="nt">--format</span><span class="o">=</span>format: <span class="nt">--name-only</span> <span class="nt">--since</span><span class="o">=</span><span class="s2">"3 months ago"</span> | <span class="se">\</span>
+  <span class="nb">grep</span> <span class="s2">"</span><span class="se">\.</span><span class="s2">rb$"</span> | <span class="nb">sort</span> | <span class="nb">uniq</span> <span class="nt">-c</span> | <span class="nb">sort</span> <span class="nt">-rn</span> | <span class="nb">head</span> <span class="nt">-20</span>
+
+<span class="c"># Check complexity</span>
+bundle <span class="nb">exec </span>flog app/controllers/orders_controller.rb
+</code></pre></div>
+<hr>
+
+<h2>Communicating Debt to Stakeholders</h2>
+
+<p><strong>Bad:</strong> &quot;We need to refactor ActiveRecord callbacks for better separation of concerns.&quot;</p>
+
+<p><strong>Good:</strong> &quot;Order processing causes 8 bugs/month because it&#39;s untested. Two weeks refactoring will reduce bugs 60%, cut feature delivery from 5 days to 2 days, and unblock payment integration. ROI: Invest 2 weeks, save 4 weeks/quarter.&quot;</p>
+
+<p><strong>Framework:</strong><br>
+1. State problem in business terms (slow features, lost revenue)<br>
+2. Quantify cost (dollars, time, incidents)<br>
+3. Present solution and ROI<br>
+4. Show opportunity cost</p>
+
+<hr>
+
+<h2>Debt vs. Features Trade-offs</h2>
+
+<p><strong>Sustainable balance:</strong> 15-25% of sprint capacity on debt reduction. Allocating 0% leads to velocity crashes; 50%+ means shipping too slowly.</p>
+
+<p><strong>Ship feature with debt when:</strong><br>
+- Business opportunity is time-sensitive<br>
+- Validating MVP before investing in quality<br>
+- Debt is isolated, documented, with plan to refactor within 2 sprints</p>
+
+<p><strong>Pay down debt when:</strong><br>
+- Velocity declined 30%+ over 6 months<br>
+- Bug rate climbing faster than you can fix<br>
+- New hires need &gt;4 weeks to be productive</p>
+
 <hr>
 
 <h2>Best Practices</h2>
 
-<ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
-</ol>
+<ul>
+<li><strong>Make debt visible:</strong> Maintain prioritized debt backlog with business impact. Review quarterly with stakeholders.</li>
+<li><strong>Allocate consistent capacity:</strong> Reserve 15-25% of every sprint for debt reduction.</li>
+<li><strong>Use the debt quadrant:</strong> Accept prudent/deliberate debt, prevent reckless debt.</li>
+<li><strong>Focus on hotspots:</strong> Fix frequently-changed code first. Use churn analysis for high-ROI targets.</li>
+<li><strong>Communicate in business terms:</strong> Lost revenue, slow features, customer churn—not technical jargon.</li>
+<li><strong>Prevent new debt:</strong> Code review standards, linting, quality gates. Prevention is 10x cheaper.</li>
+<li><strong>Track impact:</strong> Measure before/after metrics to justify continued investment.</li>
+</ul>
 
 <hr>
 
 <h2>Key Terms</h2>
 
 <ul>
-<li><strong>technical debt</strong></li>
-<li><strong>code smells</strong></li>
-<li><strong>debt quadrant</strong></li>
-<li><strong>refactoring budget</strong></li>
-<li><strong>trade-offs</strong></li>
+<li><strong>Technical debt</strong> - Code quality issues slowing future development</li>
+<li><strong>Debt quadrant</strong> - Framework: reckless/prudent × deliberate/inadvertent</li>
+<li><strong>Impact vs. effort</strong> - Prioritization matrix balancing value vs. cost</li>
+<li><strong>Churn analysis</strong> - Identifying frequently-changed files with quality issues</li>
+<li><strong>Quick wins</strong> - High-impact, low-effort debt items</li>
+<li><strong>Velocity drag</strong> - Compounding cost of debt on development speed</li>
 </ul>
 
 <hr>
 
 <h2>Summary</h2>
 
-<p>Technical Debt Assessment &amp; Management is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
+<p>Technical debt assessment systematically identifies quality issues blocking velocity. The debt quadrant distinguishes strategic debt from reckless rot. Impact vs. effort matrices prioritize remediation by ROI. Churn analysis finds hotspots where debt hurts most. Communicating in business terms wins stakeholder buy-in for quality investment. Sustainable teams allocate 15-25% capacity to debt reduction while balancing feature delivery. Master these frameworks to maintain long-term velocity and make strategic debt trade-offs.</p>
 
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<p><strong>Next steps:</strong> Complete the exercise to assess debt in a real codebase and create a prioritized remediation plan.</p>
 
     
   </div>
@@ -704,57 +822,426 @@
 <div id="exercise-tab" class="tab-content">
   <div class="content-section">
     
-      <h1>Exercise: Technical Debt Assessment &amp; Management</h1>
+      <h1>Exercise: Technical Debt Assessment &amp; Remediation Planning</h1>
 
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
+<p><strong>Estimated time:</strong> 60-90 minutes</p>
 
 <h2>Objective</h2>
 
-<p>Build hands-on experience with technical debt assessment &amp; management through practical implementation.</p>
+<p>Conduct a comprehensive technical debt assessment on a Rails e-commerce application. You&#39;ll analyze the codebase using the Technical Debt Quadrant, create an impact vs. effort matrix, perform churn analysis to identify hotspots, and deliver a stakeholder-ready remediation plan with business justification.</p>
 
 <h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new technical_debt_practice
-<span class="nb">cd </span>technical_debt_practice
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
+<p>You&#39;re inheriting &quot;ShopNow,&quot; a 3-year-old Rails e-commerce platform experiencing significant velocity decline:</p>
+
+<ul>
+<li>150,000 lines of Ruby code</li>
+<li>45% test coverage</li>
+<li>8 engineers (3 senior, 5 mid-level)</li>
+<li>500K monthly active users, $5M annual revenue</li>
+</ul>
+
+<p><strong>Recent Issues:</strong><br>
+- Checkout bugs: 12 incidents in past quarter<br>
+- Feature velocity down 40% over 6 months<br>
+- Onboarding takes 6 weeks vs. 2 weeks a year ago<br>
+- Production incidents up 60% year-over-year</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Clone sample repository (or use existing Rails app)</span>
+git clone git@github.com:company/shopnow.git
+<span class="nb">cd </span>shopnow
+
+<span class="c"># Run static analysis tools</span>
+bundle <span class="nb">exec </span>rubocop <span class="nt">--format</span> json <span class="o">&gt;</span> rubocop_report.json
+bundle <span class="nb">exec </span>flog app/ lib/ <span class="o">&gt;</span> flog_scores.txt
+bundle <span class="nb">exec </span>rails_best_practices <span class="nb">.</span>
+
+<span class="c"># Analyze test coverage</span>
+<span class="nv">COVERAGE</span><span class="o">=</span><span class="nb">true </span>bundle <span class="nb">exec </span>rspec
+open coverage/index.html
+
+<span class="c"># Perform churn analysis</span>
+git log <span class="nt">--format</span><span class="o">=</span>format: <span class="nt">--name-only</span> <span class="nt">--since</span><span class="o">=</span><span class="s2">"6 months ago"</span> | <span class="se">\</span>
+  <span class="nb">grep</span> <span class="s2">"</span><span class="se">\.</span><span class="s2">rb$"</span> | <span class="nb">sort</span> | <span class="nb">uniq</span> <span class="nt">-c</span> | <span class="nb">sort</span> <span class="nt">-rn</span> | <span class="nb">head</span> <span class="nt">-20</span>
 </code></pre></div>
 <h2>Tasks</h2>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
+<h3>Part 1: Debt Inventory &amp; Classification (25 minutes)</h3>
 
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
+<p><strong>Task 1.1:</strong> Create comprehensive debt inventory</p>
+
+<p>Identify 10-15 specific technical debt items in the codebase. For each item, document:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Use this template</span>
+<span class="k">class</span> <span class="nc">DebtItem</span>
+  <span class="nb">attr_accessor</span> <span class="ss">:id</span><span class="p">,</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">:description</span><span class="p">,</span> <span class="ss">:category</span><span class="p">,</span>
+                <span class="ss">:quadrant</span><span class="p">,</span> <span class="ss">:impact_score</span><span class="p">,</span> <span class="ss">:effort_score</span><span class="p">,</span>
+                <span class="ss">:affected_files</span><span class="p">,</span> <span class="ss">:business_impact</span>
+
+  <span class="k">def</span> <span class="nf">priority_score</span>
+    <span class="n">impact_score</span><span class="p">.</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">effort_score</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Example items to look for:</strong><br>
+- Missing test coverage in critical paths<br>
+- God objects (controllers/models &gt;500 lines)<br>
+- Missing database indexes causing N+1 queries<br>
+- Hardcoded configuration values<br>
+- No monitoring/observability for background jobs<br>
+- Security vulnerabilities from Brakeman<br>
+- High-complexity methods (flog score &gt;40)<br>
+- Fragile code with many production incidents</p>
+
+<p><strong>Task 1.2:</strong> Classify each item using Technical Debt Quadrant</p>
+
+<p>For each debt item, determine:<br>
+1. <strong>Was it deliberate?</strong> Did team knowingly cut corners?<br>
+2. <strong>Was it prudent?</strong> Was it a reasonable decision at the time?</p>
+
+<p>Assign to quadrant:<br>
+- <strong>Reckless/Deliberate:</strong> &quot;We don&#39;t have time for design&quot;<br>
+- <strong>Reckless/Inadvertent:</strong> &quot;What&#39;s layering?&quot;<br>
+- <strong>Prudent/Deliberate:</strong> &quot;Ship now, refactor later&quot;<br>
+- <strong>Prudent/Inadvertent:</strong> &quot;Now we know how we should&#39;ve done it&quot;</p>
+
+<p><strong>Acceptance criteria:</strong><br>
+- [ ] 10-15 specific debt items cataloged<br>
+- [ ] Each item has clear description and affected files<br>
+- [ ] Each item classified in debt quadrant<br>
+- [ ] Items cover multiple categories (testing, architecture, performance, security)</p>
+
+<h3>Part 2: Impact vs. Effort Assessment (20 minutes)</h3>
+
+<p><strong>Task 2.1:</strong> Score each debt item</p>
+
+<p>Assign impact score (1-10) based on:<br>
+- Frequency of changes to this code<br>
+- Bug rate / production incidents<br>
+- Number of engineers blocked<br>
+- Customer-facing impact</p>
+
+<p>Assign effort score (1-10) based on:<br>
+- Lines of code to change<br>
+- Test coverage (harder without tests)<br>
+- Number of dependent systems<br>
+- Team knowledge of area</p>
+
+<p><strong>Task 2.2:</strong> Calculate priority scores</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Create debt_assessment.rb</span>
+<span class="n">debt_items</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="p">{</span> <span class="ss">title: </span><span class="s2">"Missing indexes on orders"</span><span class="p">,</span> <span class="ss">impact: </span><span class="mi">8</span><span class="p">,</span> <span class="ss">effort: </span><span class="mi">2</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="ss">title: </span><span class="s2">"Zero test coverage - payments"</span><span class="p">,</span> <span class="ss">impact: </span><span class="mi">10</span><span class="p">,</span> <span class="ss">effort: </span><span class="mi">7</span> <span class="p">},</span>
+  <span class="c1"># ... add all items</span>
+<span class="p">]</span>
+
+<span class="n">sorted_items</span> <span class="o">=</span> <span class="n">debt_items</span><span class="p">.</span><span class="nf">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">item</span><span class="o">|</span>
+  <span class="n">item</span><span class="p">.</span><span class="nf">merge</span><span class="p">(</span><span class="ss">priority: </span><span class="n">item</span><span class="p">[</span><span class="ss">:impact</span><span class="p">].</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">item</span><span class="p">[</span><span class="ss">:effort</span><span class="p">])</span>
+<span class="k">end</span><span class="p">.</span><span class="nf">sort_by</span> <span class="p">{</span> <span class="o">|</span><span class="n">item</span><span class="o">|</span> <span class="o">-</span><span class="n">item</span><span class="p">[</span><span class="ss">:priority</span><span class="p">]</span> <span class="p">}</span>
+
+<span class="nb">puts</span> <span class="s2">"Priority Rankings:"</span>
+<span class="n">sorted_items</span><span class="p">.</span><span class="nf">each_with_index</span> <span class="k">do</span> <span class="o">|</span><span class="n">item</span><span class="p">,</span> <span class="n">i</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"</span><span class="si">#{</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="si">}</span><span class="s2">. </span><span class="si">#{</span><span class="n">item</span><span class="p">[</span><span class="ss">:title</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">#{</span><span class="n">item</span><span class="p">[</span><span class="ss">:priority</span><span class="p">].</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Task 2.3:</strong> Create impact vs. effort matrix</p>
+
+<p>Plot items on 2x2 matrix:<br>
+<code><br>
+HIGH IMPACT<br>
+    │  Quick Wins        │  Big Bets<br>
+    │  (Do First)        │  (Plan)<br>
+    ├─────────────────────────────<br>
+    │  Low Value         │  Time Sinks<br>
+    │  (Skip)            │  (Avoid)<br>
+                    LOW EFFORT → HIGH EFFORT<br>
+</code></p>
+
+<p><strong>Acceptance criteria:</strong><br>
+- [ ] Impact score (1-10) assigned to each item with justification<br>
+- [ ] Effort score (1-10) assigned to each item with justification<br>
+- [ ] Priority scores calculated (impact/effort ratio)<br>
+- [ ] Items sorted by priority score<br>
+- [ ] Visual matrix created showing all items</p>
+
+<h3>Part 3: Churn Analysis &amp; Hotspots (15 minutes)</h3>
+
+<p><strong>Task 3.1:</strong> Identify high-change files</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Find most-changed files in last 6 months</span>
+git log <span class="nt">--format</span><span class="o">=</span>format: <span class="nt">--name-only</span> <span class="nt">--since</span><span class="o">=</span><span class="s2">"6 months ago"</span> | <span class="se">\</span>
+  <span class="nb">grep</span> <span class="s2">"</span><span class="se">\.</span><span class="s2">rb$"</span> | <span class="nb">sort</span> | <span class="nb">uniq</span> <span class="nt">-c</span> | <span class="nb">sort</span> <span class="nt">-rn</span> | <span class="nb">head</span> <span class="nt">-20</span>
+
+<span class="c"># Check complexity of top files</span>
+bundle <span class="nb">exec </span>flog app/controllers/orders_controller.rb
+</code></pre></div>
+<p><strong>Task 3.2:</strong> Cross-reference with quality metrics</p>
+
+<p>For top 5 most-changed files, document:<br>
+- Change frequency (# commits)<br>
+- Complexity score (flog)<br>
+- Test coverage (%)<br>
+- Lines of code<br>
+- Production incidents traced to this file</p>
+
+<p><strong>Task 3.3:</strong> Identify 3-5 critical hotspots</p>
+
+<p>A hotspot is: <strong>high churn + low quality</strong></p>
+
+<p>Example:<br>
+```markdown</p>
+
+<h2>🔥 CRITICAL: orders_controller.rb</h2>
+
+<ul>
+<li>Churn: 127 changes in 6 months (HIGHEST)</li>
+<li>Complexity: 450.2 flog score (VERY HIGH)</li>
+<li>Coverage: 25% (LOW)</li>
+<li>LOC: 2,500 (GOD OBJECT)</li>
+<li>Priority: URGENT
+```</li>
+</ul>
+
+<p><strong>Acceptance criteria:</strong><br>
+- [ ] Churn analysis completed for past 6 months<br>
+- [ ] Top 10 most-changed files identified<br>
+- [ ] Complexity/coverage checked for high-churn files<br>
+- [ ] 3-5 critical hotspots documented<br>
+- [ ] Hotspots prioritized by impact on velocity</p>
+
+<h3>Part 4: Remediation Roadmap (20 minutes)</h3>
+
+<p><strong>Task 4.1:</strong> Create phased remediation plan</p>
+
+<p>Break work into 3 phases:</p>
+
+<p><strong>Phase 1: Quick Wins (1-2 weeks)</strong><br>
+- High impact, low effort items<br>
+- Deliver immediate ROI<br>
+- Build momentum</p>
+
+<p><strong>Phase 2: Critical Risk Reduction (4-8 weeks)</strong><br>
+- High impact, high effort items<br>
+- Address biggest velocity bottlenecks<br>
+- Reduce production risk</p>
+
+<p><strong>Phase 3: Long-term Improvements (8+ weeks)</strong><br>
+- Establish sustainable practices<br>
+- Prevent future debt<br>
+- Improve developer experience</p>
+
+<p><strong>Task 4.2:</strong> Define success metrics</p>
+
+<p>For each phase, specify:<br>
+- Velocity improvement target<br>
+- Quality metrics (coverage, incidents, complexity)<br>
+- Business metrics (feature throughput, bug rate)</p>
+
+<p><strong>Acceptance criteria:</strong><br>
+- [ ] Roadmap with 3 phases and timelines<br>
+- [ ] Each phase has specific deliverables<br>
+- [ ] Week-by-week breakdown for Phase 1 &amp; 2<br>
+- [ ] Success metrics defined for each phase<br>
+- [ ] Total investment estimated (engineer-weeks)<br>
+- [ ] Expected ROI calculated</p>
+
+<h3>Part 5: Stakeholder Communication (10 minutes)</h3>
+
+<p><strong>Task 5.1:</strong> Write executive summary</p>
+
+<p>Create non-technical document explaining:<br>
+1. The problem in business terms<br>
+2. Current business impact (quantified)<br>
+3. Proposed solution (3 phases)<br>
+4. Investment required<br>
+5. Expected returns (velocity, quality, revenue)<br>
+6. Break-even timeline<br>
+7. Clear recommendation</p>
+
+<p><strong>Bad:</strong> &quot;We need to refactor service layer for separation of concerns&quot;</p>
+
+<p><strong>Good:</strong> &quot;Our checkout code causes 12 bugs/quarter costing $50K revenue. 3 weeks refactoring will reduce bugs 75% and unblock payment integrations.&quot;</p>
+
+<p><strong>Task 5.2:</strong> Create debt backlog document</p>
+<div class="highlight"><pre class="highlight markdown"><code><span class="gh"># Q1 2024 Technical Debt Priorities</span>
+
+<span class="gu">## Critical (Blocking Business Goals)</span>
+<span class="gu">### 1. Add Test Coverage to Payment Processing</span>
+<span class="p">-</span> Impact: 15 incidents in 6 months, $50K lost revenue
+<span class="p">-</span> Business Cost: Blocks Stripe Connect integration
+<span class="p">-</span> Effort: 3 weeks
+<span class="p">-</span> ROI: Break-even in 2 months
+
+[Continue for top 5 items...]
 </code></pre></div>
 <p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
+- [ ] Executive summary written in non-technical language<br>
+- [ ] Business impact quantified in dollars/time<br>
+- [ ] ROI calculation included<br>
+- [ ] Clear recommendation stated<br>
+- [ ] Debt backlog document with top 5 items prioritized</p>
 
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
+<h2>Verification Steps</h2>
 
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
+<p>Your final deliverable should include:</p>
 
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
+<ol>
+<li><p><strong>Debt Inventory Spreadsheet</strong></p>
 
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
+<ul>
+<li>10-15 rows with: Title, Category, Quadrant, Impact, Effort, Priority, Files, Business Impact</li>
+</ul></li>
+<li><p><strong>Impact vs. Effort Matrix</strong></p>
 
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
-</code></pre></div>
+<ul>
+<li>Visual 2x2 grid with items plotted</li>
+<li>Color-coded by quadrant</li>
+</ul></li>
+<li><p><strong>Churn Analysis Report</strong></p>
+
+<ul>
+<li>Top 10 most-changed files</li>
+<li>Cross-reference with quality metrics</li>
+<li>3-5 hotspots identified and prioritized</li>
+</ul></li>
+<li><p><strong>Remediation Roadmap</strong></p>
+
+<ul>
+<li>3 phases with timelines</li>
+<li>Week-by-week breakdown</li>
+<li>Success metrics</li>
+<li>Investment estimate</li>
+</ul></li>
+<li><p><strong>Stakeholder Communication Document</strong></p>
+
+<ul>
+<li>Executive summary (1 page)</li>
+<li>Debt backlog (top 5 items)</li>
+<li>ROI justification</li>
+<li>Clear recommendation</li>
+</ul></li>
+<li><p><strong>Prevention Strategy</strong></p>
+
+<ul>
+<li>Code review standards</li>
+<li>CI quality gates</li>
+<li>Capacity allocation (e.g., 20% on debt)</li>
+</ul></li>
+</ol>
+
 <h2>Stretch Goals</h2>
 
 <ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
+<li>[ ] <strong>Automated analysis script:</strong> Ruby script that runs analysis tools and generates debt report</li>
+<li>[ ] <strong>Debt dashboard:</strong> Rails admin page showing current debt metrics with charts</li>
+<li>[ ] <strong>Cost calculator:</strong> Tool that estimates dollar cost of velocity decline</li>
+<li>[ ] <strong>Prevention checklist:</strong> Pre-commit hooks and CI checks to prevent new debt</li>
+<li>[ ] <strong>Quarterly review template:</strong> Agenda for stakeholder debt review meetings</li>
+<li>[ ] <strong>Velocity tracking:</strong> Before/after metrics for debt remediation efforts</li>
 </ul>
 
 <h2>Solution Notes</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p><strong>Common Assessment Mistakes:</strong></p>
+
+<ol>
+<li><p><strong>Scoring everything as high impact:</strong> Be ruthless. Not all debt matters equally. Focus on business impact.</p></li>
+<li><p><strong>Underestimating effort:</strong> Refactoring untested code takes 3x longer than you think. Account for writing tests first.</p></li>
+<li><p><strong>Forgetting churn:</strong> A messy file changed once/year &lt; moderately messy file changed daily.</p></li>
+<li><p><strong>Technical jargon:</strong> Stakeholders care about shipping faster, not &quot;separation of concerns.&quot;</p></li>
+</ol>
+
+<p><strong>Assessment Strategy:</strong></p>
+
+<p>Start with automated tools:<br>
+```bash</p>
+
+<h1>Static analysis</h1>
+
+<p>bundle exec rubocop<br>
+bundle exec flog app/ lib/<br>
+bundle exec brakeman</p>
+
+<h1>Coverage</h1>
+
+<p>COVERAGE=true bundle exec rspec</p>
+
+<h1>Churn</h1>
+
+<p>git log --format=format: --name-only --since=&quot;6 months ago&quot; | \<br>
+  grep &quot;.rb$&quot; | sort | uniq -c | sort -rn<br>
+```</p>
+
+<p>Then interview engineers:<br>
+- &quot;What part of codebase frustrates you most?&quot;<br>
+- &quot;Where do bugs come from repeatedly?&quot;<br>
+- &quot;What blocks you from shipping quickly?&quot;</p>
+
+<p>Review incident reports:<br>
+- Which code caused production issues?<br>
+- Are there patterns?</p>
+
+<p><strong>Prioritization Philosophy:</strong></p>
+
+<p>Goal is NOT zero debt. It&#39;s strategic management:<br>
+- Fix debt blocking velocity NOW<br>
+- Accept debt that doesn&#39;t hurt (yet)<br>
+- Prevent reckless debt via code review<br>
+- Time-box prudent/deliberate debt</p>
+
+<p><strong>Real-World Tips:</strong></p>
+
+<ol>
+<li><strong>Quick wins first:</strong> Build credibility with stakeholders by delivering fast ROI</li>
+<li><strong>Track before/after:</strong> Measure velocity improvement to justify continued investment</li>
+<li><strong>Make debt visible:</strong> Public backlog, quarterly reviews, dashboard</li>
+<li><strong>Allocate capacity:</strong> Reserve 15-25% of every sprint for debt</li>
+<li><strong>Prevent new debt:</strong> Code review standards, linting, quality gates</li>
+</ol>
+
+<p><strong>Example Priority Calculation:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># High priority: Quick win</span>
+<span class="p">{</span>
+  <span class="ss">title: </span><span class="s2">"Add indexes to orders table"</span><span class="p">,</span>
+  <span class="ss">impact: </span><span class="mi">8</span><span class="p">,</span>   <span class="c1"># Slow checkout, customer complaints</span>
+  <span class="ss">effort: </span><span class="mi">2</span><span class="p">,</span>   <span class="c1"># 1 hour to add</span>
+  <span class="ss">priority: </span><span class="mf">4.0</span>  <span class="c1"># DO THIS FIRST</span>
+<span class="p">}</span>
+
+<span class="c1"># Medium priority: Big bet</span>
+<span class="p">{</span>
+  <span class="ss">title: </span><span class="s2">"Refactor OrdersController"</span><span class="p">,</span>
+  <span class="ss">impact: </span><span class="mi">9</span><span class="p">,</span>   <span class="c1"># Blocks all checkout features</span>
+  <span class="ss">effort: </span><span class="mi">8</span><span class="p">,</span>   <span class="c1"># 2 weeks to refactor safely</span>
+  <span class="ss">priority: </span><span class="mf">1.125</span>  <span class="c1"># Plan carefully, high value</span>
+<span class="p">}</span>
+
+<span class="c1"># Low priority: Skip it</span>
+<span class="p">{</span>
+  <span class="ss">title: </span><span class="s2">"Rename variables in AdminController"</span><span class="p">,</span>
+  <span class="ss">impact: </span><span class="mi">2</span><span class="p">,</span>   <span class="c1"># Cosmetic, rarely touched</span>
+  <span class="ss">effort: </span><span class="mi">5</span><span class="p">,</span>   <span class="c1"># Tedious, many files</span>
+  <span class="ss">priority: </span><span class="mf">0.4</span>  <span class="c1"># NOT WORTH IT</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>Stakeholder Communication Template:</strong></p>
+<div class="highlight"><pre class="highlight markdown"><code><span class="gu">## The Problem</span>
+[State in business terms: slow features, lost revenue, bugs]
+
+<span class="gu">## Business Impact</span>
+[Quantify: $X lost, Y% slower, Z incidents]
+
+<span class="gu">## Solution</span>
+[3 phases with timelines]
+
+<span class="gu">## Investment &amp; Return</span>
+<span class="p">-</span> Investment: X engineer-weeks
+<span class="p">-</span> Return: +Y% velocity, -Z% incidents
+<span class="p">-</span> Break-even: N months
+
+<span class="gu">## Recommendation</span>
+[Clear ask: approve 16-week program]
+</code></pre></div>
+<h2>Time Estimate</h2>
+
+<p>60-90 minutes for complete assessment and deliverables</p>
 
     
   </div>
@@ -766,74 +1253,368 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Prudent/Deliberate - strategic decision to ship quickly with explicit plan to refactor later">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">In the Technical Debt Quadrant, which type of debt is most acceptable?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  Reckless/Deliberate - shipping without design to meet deadlines
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  Prudent/Deliberate - strategic decision to ship quickly with explicit plan to refactor later
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  Reckless/Inadvertent - lack of knowledge leading to poor architecture
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  Prudent/Inadvertent - learning debt from building with best knowledge at the time
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Prudent/Deliberate debt is a strategic business decision: ship an MVP to validate market fit, then refactor once you know it's worth investing in. The key is it's deliberate (documented, time-boxed) and prudent (reasonable given business context). This differs from reckless debt, which lacks a payoff plan and creates long-term rot.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="To prioritize debt remediation by ROI, focusing on high-impact, low-effort items first">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the primary purpose of using an impact vs. effort matrix for technical debt assessment?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  To document all technical debt in the codebase comprehensively
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  To prioritize debt remediation by ROI, focusing on high-impact, low-effort items first
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  To convince stakeholders that all technical debt must be eliminated
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  To track how much time engineers spend on refactoring vs features
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> The impact vs. effort matrix helps you prioritize which debt to tackle first by calculating ROI (priority = impact/effort). Quick wins (high impact, low effort) deliver immediate value and build credibility. Big bets (high impact, high effort) require careful planning. Low-impact items are skipped regardless of effort. This ensures limited time is spent where it matters most.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Identifying frequently-changed files with quality issues to find high-ROI refactoring targets">
+          <h4>Question 3 (2 points)</h4>
+          <p style="margin: 10px 0;">What is churn analysis and why is it valuable for technical debt assessment?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  Analyzing customer churn to prioritize features that improve retention
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  Identifying frequently-changed files with quality issues to find high-ROI refactoring targets
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  Measuring how often developers switch between tasks during a sprint
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  Tracking the rate at which technical debt accumulates over time
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Churn analysis identifies hotspots: files changed frequently that also have quality issues (low coverage, high complexity). A 2000-line controller changed 100 times in 6 months with 20% coverage is a velocity killer. Refactoring high-churn hotspots delivers the best ROI because every future change to that file becomes faster. Low-churn code, even if messy, can be left alone.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Translate debt to business impact: quantify lost revenue, slow features, and show ROI for fixes">
+          <h4>Question 4 (1 points)</h4>
+          <p style="margin: 10px 0;">How should you communicate technical debt to non-technical stakeholders?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  Explain architectural patterns like separation of concerns and SOLID principles
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  Request time for refactoring without specific justification since it's obviously needed
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  Translate debt to business impact: quantify lost revenue, slow features, and show ROI for fixes
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  Focus on code quality metrics like cyclomatic complexity and flog scores
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Stakeholders care about business outcomes, not technical purity. Instead of 'we need to refactor for better separation of concerns,' say 'our checkout code causes 12 bugs/quarter costing $50K revenue. Two weeks refactoring will reduce bugs 75% and double feature velocity.' Quantify the problem, solution cost, and ROI in business terms.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="15-25% - consistent investment prevents velocity decline">
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">What percentage of engineering capacity is typically recommended for technical debt reduction in sustainable development?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  0-5% - debt should be addressed only when blocking features
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  15-25% - consistent investment prevents velocity decline
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  50% - equal split between features and quality
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  100% for one quarter per year - dedicated refactoring sprints
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Sustainable teams allocate 15-25% of every sprint to debt reduction. This prevents debt from compounding and maintains long-term velocity. 0% debt time leads to velocity crashes within 6-12 months. 50%+ debt time means the business can't ship features fast enough to compete. Consistent small investments prevent the need for large refactoring projects.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="When the business opportunity is time-sensitive, the debt is isolated and documented, and you have a plan to refactor within 2 sprints">
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">When should you choose to ship a feature with technical debt rather than refactoring first?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  Always ship features first; technical quality can wait until later
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  When the business opportunity is time-sensitive, the debt is isolated and documented, and you have a plan to refactor within 2 sprints
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  Never; all features must be built with perfect architecture and full test coverage
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  Only when stakeholders explicitly demand it and sign off on accepting lower quality
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Strategic debt is acceptable when: (1) business opportunity is time-sensitive, (2) you're validating an MVP before investing in quality, (3) debt is isolated and won't cascade, and (4) you have an explicit, time-boxed plan to refactor. This is prudent/deliberate debt. Document it with TODO comments and ticket numbers. Never ship reckless debt or promise cleanup 'someday.'
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Code with high change frequency + low quality metrics; fixing it improves every future change">
+          <h4>Question 7 (2 points)</h4>
+          <p style="margin: 10px 0;">What is a 'hotspot' in technical debt assessment, and why is it a high priority?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  Any file with high cyclomatic complexity that should be refactored
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  Code with high change frequency + low quality metrics; fixing it improves every future change
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  Recent code written by junior developers that needs senior review
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  Production incidents that occur frequently and need immediate fixes
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> A hotspot is high churn (changed frequently) + low quality (untested, complex, fragile). Example: a 2500-line controller changed 127 times in 6 months with 25% coverage. Refactoring hotspots delivers the best ROI because every future feature touching that code becomes faster and safer. A messy file changed once per year isn't worth refactoring.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Prudent/Inadvertent">
+          <h4>Question 8 (1 points)</h4>
+          <p style="margin: 10px 0;">Which type of technical debt represents a learning opportunity where the team built something to the best of their knowledge but later discovered better approaches?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  Reckless/Deliberate
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  Reckless/Inadvertent
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  Prudent/Deliberate
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Prudent/Inadvertent
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Prudent/Inadvertent debt happens when you make the best decision given your knowledge at the time, but later learn better patterns. Example: 'We built this before learning about service objects.' This is natural and acceptable. It becomes a refactoring candidate once you've gained the knowledge, not a sign of recklessness. It's different from reckless/inadvertent debt, which comes from not knowing fundamentals.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Manage debt strategically to maintain sustainable velocity while delivering business value">
+          <h4>Question 9 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the primary goal of technical debt management?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(8, 0)">
+                  Eliminate all technical debt to achieve perfect code quality
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 1)">
+                  Document all shortcuts taken during development for future reference
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 2)">
+                  Manage debt strategically to maintain sustainable velocity while delivering business value
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 3)">
+                  Prevent engineers from writing any code that isn't perfectly architected
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> The goal is NOT zero debt, which is impossible and unnecessary. It's strategic management: fix debt that blocks velocity NOW, accept debt that doesn't hurt yet, prevent reckless debt, and time-box deliberate debt with payoff plans. Some debt is acceptable if it lets you ship faster and validate business assumptions. The key is intentional decisions, not perfection.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Skip them entirely; they're time sinks that don't deliver value">
+          <h4>Question 10 (1 points)</h4>
+          <p style="margin: 10px 0;">In the impact vs. effort matrix, what should you do with items that fall in the 'low impact, high effort' quadrant?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(9, 0)">
+                  Prioritize them first because they're the most challenging work
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 1)">
+                  Break them into smaller pieces until they become high impact
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 2)">
+                  Skip them entirely; they're time sinks that don't deliver value
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 3)">
+                  Schedule them for the next quarter when there's more capacity
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Low impact, high effort items are time sinks. Examples: refactoring rarely-touched code, renaming variables for consistency in stable code, premature optimization of non-bottlenecks. These waste time on low-value work. Focus on quick wins (high impact, low effort) and big bets (high impact, high effort). Don't let perfectionism drive you to polish code that doesn't matter.
+              </div>
+            
           
         </div>
       
@@ -847,7 +1628,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -863,33 +1644,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://martinfowler.com/bliki/TechnicalDebtQuadrant.html" target="_blank">Martin Fowler - Technical Debt Quadrant</a>
+            <div class="why">Foundational framework from Martin Fowler explaining the four types of technical debt (reckless/prudent × deliberate/inadvertent) and when debt is strategically acceptable vs. damaging.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.youtube.com/watch?v=pqeJFYwnkjE" target="_blank">Ward Cunningham - The WyCash Portfolio Management System</a>
+            <div class="why">Original 1992 video where Ward Cunningham coined the 'technical debt' metaphor, explaining how shipping quickly with plans to refactor is like financial debt that must be paid back with interest.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://pragprog.com/titles/atcrime2/your-code-as-a-crime-scene-second-edition/" target="_blank">Adam Tornhill - Your Code as a Crime Scene</a>
+            <div class="why">Book introducing hotspot analysis and churn metrics to identify problematic code. Shows how to use Git history to find files with high change frequency and poor quality for maximum refactoring ROI.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://codeclimate.com/blog/technical-debt" target="_blank">Code Climate - Technical Debt Assessment</a>
+            <div class="why">Practical guide to measuring technical debt with metrics like maintainability scores, test coverage, and complexity. Explains how to prioritize remediation using impact vs. effort matrices.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.construx.com/blog/managing-technical-debt/" target="_blank">Steve McConnell - Managing Technical Debt</a>
+            <div class="why">Comprehensive article on debt management strategies, capacity allocation models (15-25% for debt reduction), and communicating technical costs to stakeholders in business terms.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/flyerhzm/rails_best_practices" target="_blank">Rails Best Practices Gem</a>
+            <div class="why">Static analysis tool for Rails applications that detects code smells, N+1 queries, unused methods, and architectural violations to systematically identify technical debt in Rails codebases.</div>
+          </li>
+        
+          <li>
+            <a href="https://martinfowler.com/books/refactoring.html" target="_blank">Refactoring: Improving the Design of Existing Code (Martin Fowler)</a>
+            <div class="why">Authoritative book on identifying code smells and safely refactoring debt. Essential reading for understanding when and how to pay down technical debt through systematic code improvements.</div>
           </li>
         
       </ul>

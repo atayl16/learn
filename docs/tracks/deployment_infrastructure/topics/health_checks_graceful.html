@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,71 +656,333 @@
 
 <h2>What It Is</h2>
 
-<p>Health Checks &amp; Graceful Shutdowns is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>Health checks are HTTP endpoints that tell orchestrators (Kubernetes, ECS, load balancers) whether your app is ready to serve traffic. <strong>Liveness probes</strong> detect if the app is frozen or deadlocked (restart it). <strong>Readiness probes</strong> detect if it&#39;s ready to handle requests (remove from load balancer until ready). Rails 7.1 introduced the <code>/up</code> endpoint (<code>Rails::HealthController</code>) for basic health checks. Graceful shutdown means handling <strong>SIGTERM</strong> signals to drain connections and finish in-flight requests before terminating—critical for zero-downtime deployments where old pods/containers must exit cleanly as new ones spin up.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Without health checks, orchestrators send traffic to unhealthy instances, causing 502 errors and user-facing outages. In Kubernetes, pods without readiness checks receive traffic before booting completes—users hit &quot;database not ready&quot; errors during deploys. Graceful shutdown prevents dropped requests during rolling updates: when a pod receives SIGTERM, it has 10-30 seconds to finish active requests before being killed. Poorly configured shutdown handlers can leak database connections, orphan background jobs, or corrupt data mid-transaction. Senior Rails developers architect systems where deployments are invisible to users—no error spikes, no timeouts.</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li><strong>Kubernetes deployments:</strong> Readiness probes prevent traffic to unready pods; liveness probes restart frozen processes</li>
+<li><strong>Load balancers (ALB/NLB):</strong> Health checks remove unhealthy targets from rotation automatically</li>
+<li><strong>Rolling deployments:</strong> Graceful shutdown drains connections during blue-green or canary deploys</li>
+<li><strong>Database migrations:</strong> Custom readiness checks ensure migrations complete before serving traffic</li>
+<li><strong>Background workers (Sidekiq):</strong> Trap SIGTERM to finish jobs before shutdown, prevent job loss</li>
+<li><strong>Monitoring/alerting:</strong> Health endpoints feed uptime monitors (Datadog, New Relic)</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><strong>Using liveness checks for slow startup:</strong> If liveness probes fail during slow boot (asset compilation, cache warming), Kubernetes kills and restarts the pod in a crash loop. Fix: Use readiness checks for startup; liveness only for detecting deadlocks.</li>
+<li><strong>Ignoring SIGTERM in production:</strong> Default Rails servers (Puma) handle SIGTERM, but custom scripts or workers might not. If your container ignores SIGTERM, Kubernetes sends SIGKILL after <code>terminationGracePeriodSeconds</code> (default 30s), killing mid-request. Fix: Register signal handlers.</li>
+<li><strong>Health checks that trigger expensive operations:</strong> Querying every database table or calling external APIs in <code>/up</code> adds latency and load. Probes run every 5-10 seconds; expensive checks can DoS your own app. Fix: Keep checks lightweight—verify critical dependencies only.</li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>Readiness vs Liveness Probes</h2>
 
-<h3>Key Concept 1</h3>
+<h3>Readiness Probe</h3>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<p><strong>Purpose:</strong> Is the app ready to serve traffic right now?</p>
+
+<p><strong>When it fails:</strong> Remove from load balancer, but keep pod running.</p>
+
+<p><strong>Use cases:</strong><br>
+- App is booting (loading Rails, connecting to DB)<br>
+- Database migrations in progress<br>
+- Cache warming incomplete<br>
+- External dependency (Redis, Elasticsearch) unreachable</p>
+
+<p><strong>Example:</strong> <code>/up</code> endpoint returns 200 only after DB connection succeeds.</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="c1"># Kubernetes config</span>
+<span class="na">readinessProbe</span><span class="pi">:</span>
+  <span class="na">httpGet</span><span class="pi">:</span>
+    <span class="na">path</span><span class="pi">:</span> <span class="s">/up</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">3000</span>
+  <span class="na">initialDelaySeconds</span><span class="pi">:</span> <span class="m">10</span>
+  <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">5</span>
+  <span class="na">failureThreshold</span><span class="pi">:</span> <span class="m">3</span>
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<h3>Liveness Probe</h3>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<p><strong>Purpose:</strong> Is the app alive or deadlocked?</p>
+
+<p><strong>When it fails:</strong> Restart the pod.</p>
+
+<p><strong>Use cases:</strong><br>
+- Thread deadlock (all Puma workers stuck)<br>
+- Memory leak causing OOM (out of memory)<br>
+- Infinite loop in application code<br>
+- Unrecoverable errors (corrupted cache)</p>
+
+<p><strong>Example:</strong> Lightweight endpoint that just returns 200.</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="c1"># Kubernetes config</span>
+<span class="na">livenessProbe</span><span class="pi">:</span>
+  <span class="na">httpGet</span><span class="pi">:</span>
+    <span class="na">path</span><span class="pi">:</span> <span class="s">/up</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">3000</span>
+  <span class="na">initialDelaySeconds</span><span class="pi">:</span> <span class="m">30</span>
+  <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">10</span>
+  <span class="na">failureThreshold</span><span class="pi">:</span> <span class="m">5</span>
 </code></pre></div>
+<p><strong>Critical difference:</strong> Liveness failures restart the pod; readiness failures just stop traffic. Use conservative <code>failureThreshold</code> for liveness (5+) to avoid restart loops.</p>
+
+<hr>
+
+<h2>Rails 7.1 <code>/up</code> Endpoint</h2>
+
+<p>Rails 7.1 added <code>Rails::HealthController</code> with a <code>/up</code> route by default:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/routes.rb (automatically added)</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">get</span> <span class="s2">"up"</span> <span class="o">=&gt;</span> <span class="s2">"rails/health#show"</span><span class="p">,</span> <span class="ss">as: :rails_health_check</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>What it does:</strong><br>
+- Returns <code>200 OK</code> if the app is running<br>
+- Does <strong>not</strong> check database, Redis, or external services by default<br>
+- Intended for basic liveness checks</p>
+
+<p><strong>Accessing it:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code>curl http://localhost:3000/up
+<span class="c"># =&gt; 200 OK (body: empty)</span>
+</code></pre></div>
+<h3>Customizing Health Checks</h3>
+
+<p>For readiness checks, create a custom controller that verifies critical dependencies:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/health_controller.rb</span>
+<span class="k">class</span> <span class="nc">HealthController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="n">skip_before_action</span> <span class="ss">:verify_authenticity_token</span>
+
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="c1"># Check database connection</span>
+    <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="s2">"SELECT 1"</span><span class="p">)</span>
+
+    <span class="c1"># Check Redis (if using)</span>
+    <span class="no">Redis</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">ping</span> <span class="k">if</span> <span class="k">defined?</span><span class="p">(</span><span class="no">Redis</span><span class="p">)</span>
+
+    <span class="c1"># Check critical external service</span>
+    <span class="c1"># HTTParty.get("https://api.example.com/health", timeout: 2)</span>
+
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">status: </span><span class="s2">"ok"</span> <span class="p">},</span> <span class="ss">status: :ok</span>
+  <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span><span class="p">(</span><span class="s2">"Health check failed: </span><span class="si">#{</span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">status: </span><span class="s2">"error"</span><span class="p">,</span> <span class="ss">message: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span> <span class="p">},</span> <span class="ss">status: :service_unavailable</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/routes.rb</span>
+<span class="n">get</span> <span class="s2">"health"</span> <span class="o">=&gt;</span> <span class="s2">"health#show"</span>
+</code></pre></div>
+<p><strong>When to use custom checks:</strong><br>
+- Readiness probes (ensure DB/Redis ready)<br>
+- Advanced monitoring (report metrics to APM)<br>
+- Post-migration verification (ensure schema up to date)</p>
+
+<p><strong>When to use <code>/up</code>:</strong><br>
+- Liveness probes (simple &quot;is the process alive?&quot;)<br>
+- Load balancer health checks (lightweight)</p>
+
+<hr>
+
+<h2>Graceful Shutdown with SIGTERM</h2>
+
+<h3>How Shutdown Works</h3>
+
+<ol>
+<li>Orchestrator (Kubernetes) sends <strong>SIGTERM</strong> to pod</li>
+<li>Pod has <code>terminationGracePeriodSeconds</code> (default 30s) to exit cleanly</li>
+<li>During grace period:
+
+<ul>
+<li>Stop accepting new connections</li>
+<li>Finish in-flight requests</li>
+<li>Close database connections</li>
+<li>Flush logs</li>
+</ul></li>
+<li>If pod doesn&#39;t exit in time, <strong>SIGKILL</strong> force-kills it</li>
+</ol>
+
+<h3>Puma Graceful Shutdown</h3>
+
+<p>Puma (Rails default) handles SIGTERM gracefully:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/puma.rb</span>
+<span class="n">workers</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"WEB_CONCURRENCY"</span><span class="p">)</span> <span class="p">{</span> <span class="mi">2</span> <span class="p">}</span>
+<span class="n">threads_count</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"RAILS_MAX_THREADS"</span><span class="p">)</span> <span class="p">{</span> <span class="mi">5</span> <span class="p">}</span>
+<span class="n">threads</span> <span class="n">threads_count</span><span class="p">,</span> <span class="n">threads_count</span>
+
+<span class="n">preload_app!</span>
+
+<span class="c1"># Graceful shutdown configuration</span>
+<span class="n">worker_timeout</span> <span class="mi">30</span>  <span class="c1"># Time to wait for workers to finish</span>
+<span class="n">worker_shutdown_timeout</span> <span class="mi">15</span>  <span class="c1"># Force shutdown after this</span>
+
+<span class="n">on_worker_boot</span> <span class="k">do</span>
+  <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">establish_connection</span>
+<span class="k">end</span>
+
+<span class="c1"># Handle SIGTERM</span>
+<span class="n">on_worker_shutdown</span> <span class="k">do</span>
+  <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection_pool</span><span class="p">.</span><span class="nf">disconnect!</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>What happens on SIGTERM:</strong><br>
+1. Puma stops accepting new connections<br>
+2. Waits for active requests to complete (up to <code>worker_timeout</code>)<br>
+3. Closes worker threads gracefully<br>
+4. Exits with status 0</p>
+
+<h3>Custom Signal Handlers</h3>
+
+<p>For background workers or custom scripts:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># lib/graceful_shutdown.rb</span>
+<span class="k">class</span> <span class="nc">GracefulShutdown</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">trap_signals</span>
+    <span class="sx">%w[TERM INT]</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">signal</span><span class="o">|</span>
+      <span class="no">Signal</span><span class="p">.</span><span class="nf">trap</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span> <span class="k">do</span>
+        <span class="nb">puts</span> <span class="s2">"Received </span><span class="si">#{</span><span class="n">signal</span><span class="si">}</span><span class="s2">, shutting down gracefully..."</span>
+
+        <span class="c1"># Stop accepting new work</span>
+        <span class="vi">@shutting_down</span> <span class="o">=</span> <span class="kp">true</span>
+
+        <span class="c1"># Finish current work</span>
+        <span class="n">finish_in_flight_requests</span>
+
+        <span class="c1"># Cleanup</span>
+        <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection_pool</span><span class="p">.</span><span class="nf">disconnect!</span>
+        <span class="no">Redis</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">quit</span> <span class="k">if</span> <span class="k">defined?</span><span class="p">(</span><span class="no">Redis</span><span class="p">)</span>
+
+        <span class="nb">exit</span> <span class="mi">0</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">finish_in_flight_requests</span>
+    <span class="n">timeout</span> <span class="o">=</span> <span class="mi">30</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+
+    <span class="k">while</span> <span class="n">active_requests?</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">timeout</span>
+      <span class="nb">sleep</span> <span class="mf">0.5</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">active_requests?</span>
+    <span class="c1"># Check if any requests are still being processed</span>
+    <span class="c1"># Implementation depends on your architecture</span>
+    <span class="kp">false</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># In initializer or at top of script</span>
+<span class="no">GracefulShutdown</span><span class="p">.</span><span class="nf">trap_signals</span>
+</code></pre></div>
+<h3>Sidekiq Graceful Shutdown</h3>
+
+<p>Sidekiq automatically handles SIGTERM:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="c1"># config/sidekiq.yml</span>
+<span class="na">:timeout</span><span class="pi">:</span> <span class="m">25</span>  <span class="c1"># Time to finish jobs before forced shutdown</span>
+</code></pre></div>
+<p><strong>Behavior:</strong><br>
+- Stops fetching new jobs from Redis<br>
+- Waits up to <code>timeout</code> seconds for active jobs to finish<br>
+- Re-queues unfinished jobs (if job didn&#39;t <code>acknowledge</code> completion)</p>
+
+<p><strong>Best practice:</strong> Set <code>timeout</code> &lt; Kubernetes <code>terminationGracePeriodSeconds</code> to ensure Sidekiq exits before SIGKILL.</p>
+
+<hr>
+
+<h2>Zero-Downtime Deployments</h2>
+
+<h3>Rolling Update Strategy</h3>
+<div class="highlight"><pre class="highlight yaml"><code><span class="c1"># Kubernetes Deployment</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
+  <span class="na">strategy</span><span class="pi">:</span>
+    <span class="na">type</span><span class="pi">:</span> <span class="s">RollingUpdate</span>
+    <span class="na">rollingUpdate</span><span class="pi">:</span>
+      <span class="na">maxSurge</span><span class="pi">:</span> <span class="m">1</span>        <span class="c1"># Add 1 new pod before removing old</span>
+      <span class="na">maxUnavailable</span><span class="pi">:</span> <span class="m">0</span>  <span class="c1"># Never have fewer than 3 pods</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">terminationGracePeriodSeconds</span><span class="pi">:</span> <span class="m">60</span>
+      <span class="na">containers</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">rails</span>
+        <span class="na">readinessProbe</span><span class="pi">:</span>
+          <span class="na">httpGet</span><span class="pi">:</span>
+            <span class="na">path</span><span class="pi">:</span> <span class="s">/up</span>
+            <span class="na">port</span><span class="pi">:</span> <span class="m">3000</span>
+          <span class="na">initialDelaySeconds</span><span class="pi">:</span> <span class="m">15</span>
+</code></pre></div>
+<p><strong>Flow:</strong><br>
+1. New pod starts (replica 4/3)<br>
+2. Waits for readiness probe success (DB connected, app booted)<br>
+3. Adds new pod to service (receives traffic)<br>
+4. Old pod receives SIGTERM<br>
+5. Old pod drains connections (60s grace period)<br>
+6. Old pod exits<br>
+7. Repeat until all pods updated</p>
+
+<h3>Connection Draining</h3>
+
+<p><strong>Problem:</strong> Load balancer might send requests during SIGTERM grace period.</p>
+
+<p><strong>Solution:</strong> Use Kubernetes preStop hook to remove from service before SIGTERM:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">rails</span>
+    <span class="na">lifecycle</span><span class="pi">:</span>
+      <span class="na">preStop</span><span class="pi">:</span>
+        <span class="na">exec</span><span class="pi">:</span>
+          <span class="na">command</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">/bin/sh"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">-c"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">sleep</span><span class="nv"> </span><span class="s">15"</span><span class="pi">]</span>
+</code></pre></div>
+<p><strong>What this does:</strong><br>
+1. Kubernetes removes pod from service endpoints<br>
+2. Sleeps 15 seconds (allows load balancer to propagate)<br>
+3. Then sends SIGTERM to app<br>
+4. App drains remaining connections</p>
+
+<p><strong>Result:</strong> No new requests arrive during shutdown; only in-flight requests finish.</p>
+
 <hr>
 
 <h2>Best Practices</h2>
 
-<ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
-</ol>
+<ul>
+<li>Use <strong>readiness probes</strong> for startup/dependency checks; <strong>liveness probes</strong> for deadlock detection</li>
+<li>Keep liveness checks lightweight (just <code>/up</code>, no DB queries)</li>
+<li>Set <code>initialDelaySeconds</code> &gt; app boot time to avoid restart loops</li>
+<li>Use conservative <code>failureThreshold</code> (3-5) to tolerate transient failures</li>
+<li>Configure <code>terminationGracePeriodSeconds</code> &gt; longest request timeout</li>
+<li>Implement preStop hooks to drain connections before SIGTERM</li>
+<li>Log shutdown events for debugging (&quot;Received SIGTERM, draining...&quot;)</li>
+<li>Test graceful shutdown: <code>kubectl delete pod &lt;name&gt;</code> should show 0 downtime</li>
+<li>Monitor health check failures in production (alert on sustained failures)</li>
+<li>Use custom health controllers for readiness; <code>/up</code> for liveness</li>
+</ul>
 
 <hr>
 
 <h2>Key Terms</h2>
 
 <ul>
-<li><strong>health checks</strong></li>
-<li><strong>readiness probe</strong></li>
-<li><strong>liveness probe</strong></li>
-<li><strong>graceful shutdown</strong></li>
-<li><strong>SIGTERM</strong></li>
+<li><strong>Liveness probe</strong> - Detects if app is frozen; restarts on failure</li>
+<li><strong>Readiness probe</strong> - Detects if app is ready for traffic; removes from load balancer on failure</li>
+<li><strong>SIGTERM</strong> - Unix signal requesting graceful termination</li>
+<li><strong>SIGKILL</strong> - Unix signal forcing immediate termination (unblockable)</li>
+<li><strong>Connection draining</strong> - Finishing in-flight requests before shutdown</li>
+<li><strong>preStop hook</strong> - Kubernetes lifecycle hook executed before SIGTERM</li>
+<li><strong>terminationGracePeriodSeconds</strong> - Max time to shutdown before SIGKILL</li>
 </ul>
 
 <hr>
 
 <h2>Summary</h2>
 
-<p>Health Checks &amp; Graceful Shutdowns is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
+<p>Health checks enable orchestrators to route traffic only to healthy instances. Readiness probes ensure apps are ready before receiving requests; liveness probes restart deadlocked processes. Rails 7.1&#39;s <code>/up</code> endpoint provides basic health checks; custom controllers verify databases and dependencies. Graceful shutdown handles SIGTERM by draining connections and finishing requests before exit—critical for zero-downtime deployments. Kubernetes rolling updates combine readiness checks, preStop hooks, and graceful shutdown to deploy without user impact.</p>
 
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<p><strong>Next steps:</strong> Complete the exercise to implement custom health checks and graceful shutdown handlers.</p>
 
     
   </div>
@@ -706,55 +994,771 @@
     
       <h1>Exercise: Health Checks &amp; Graceful Shutdowns</h1>
 
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
-
 <h2>Objective</h2>
 
-<p>Build hands-on experience with health checks &amp; graceful shutdowns through practical implementation.</p>
+<p>Implement production-ready health check endpoints and graceful shutdown handlers for a Rails application, including readiness/liveness probes and SIGTERM handling.</p>
 
-<h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new health_checks_graceful_practice
-<span class="nb">cd </span>health_checks_graceful_practice
+<h2>Task</h2>
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
-</code></pre></div>
-<h2>Tasks</h2>
+<p>Build a comprehensive health monitoring system:</p>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
+<ol>
+<li>Create custom health check endpoints with database and dependency verification</li>
+<li>Configure Puma for graceful shutdown with connection draining</li>
+<li>Implement a signal handler for background workers</li>
+<li>Test health checks under various failure scenarios</li>
+<li>Verify graceful shutdown prevents dropped requests</li>
+</ol>
 
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
-</code></pre></div>
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
-
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
-
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
-
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
-
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
-
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
-</code></pre></div>
-<h2>Stretch Goals</h2>
+<h2>Acceptance Criteria</h2>
 
 <ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
+<li>[ ] Custom <code>/health</code> endpoint checks database, Redis, and returns appropriate status codes</li>
+<li>[ ] Lightweight <code>/up</code> endpoint exists for basic liveness checks</li>
+<li>[ ] Puma configured with graceful shutdown settings</li>
+<li>[ ] Signal handler traps SIGTERM and SIGINT for background workers</li>
+<li>[ ] Health endpoint returns 503 when dependencies are unavailable</li>
+<li>[ ] Graceful shutdown waits for in-flight requests before terminating</li>
+<li>[ ] Connection draining tested: no 502/504 errors during shutdown</li>
+<li>[ ] Health check response includes status details in JSON format</li>
 </ul>
 
+<h2>Setup Code</h2>
+
+<h3>Step 1: Create Rails Application</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create new Rails app</span>
+rails new health_demo <span class="nt">--database</span><span class="o">=</span>postgresql
+<span class="nb">cd </span>health_demo
+
+<span class="c"># Add Redis gem for dependency checking</span>
+bundle add redis
+
+<span class="c"># Generate a simple controller</span>
+bin/rails generate controller Pages index
+
+</code></pre></div>
+<p>Edit <code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">root</span> <span class="s1">'pages#index'</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Edit <code>app/views/pages/index.html.erb</code>:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="nt">&lt;h1&gt;</span>Health Check Demo<span class="nt">&lt;/h1&gt;</span>
+<span class="nt">&lt;p&gt;</span>Time: <span class="cp">&lt;%=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
+<span class="nt">&lt;p&gt;</span>This app demonstrates health checks and graceful shutdown.<span class="nt">&lt;/p&gt;</span>
+
+</code></pre></div>
+<h3>Step 2: Create Custom Health Controller</h3>
+
+<p>Create <code>app/controllers/health_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">HealthController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="n">skip_before_action</span> <span class="ss">:verify_authenticity_token</span>
+
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="n">checks</span> <span class="o">=</span> <span class="n">perform_health_checks</span>
+
+    <span class="k">if</span> <span class="n">checks</span><span class="p">[</span><span class="ss">:status</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"healthy"</span>
+      <span class="n">render</span> <span class="ss">json: </span><span class="n">checks</span><span class="p">,</span> <span class="ss">status: :ok</span>
+    <span class="k">else</span>
+      <span class="n">render</span> <span class="ss">json: </span><span class="n">checks</span><span class="p">,</span> <span class="ss">status: :service_unavailable</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">liveness</span>
+    <span class="c1"># Simple liveness check - just verify app is running</span>
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">status: </span><span class="s2">"ok"</span> <span class="p">},</span> <span class="ss">status: :ok</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">perform_health_checks</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="ss">status: </span><span class="s2">"healthy"</span><span class="p">,</span>
+      <span class="ss">timestamp: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">iso8601</span><span class="p">,</span>
+      <span class="ss">checks: </span><span class="p">{}</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Check database</span>
+    <span class="n">results</span><span class="p">[</span><span class="ss">:checks</span><span class="p">][</span><span class="ss">:database</span><span class="p">]</span> <span class="o">=</span> <span class="n">check_database</span>
+
+    <span class="c1"># Check Redis</span>
+    <span class="n">results</span><span class="p">[</span><span class="ss">:checks</span><span class="p">][</span><span class="ss">:redis</span><span class="p">]</span> <span class="o">=</span> <span class="n">check_redis</span>
+
+    <span class="c1"># Check disk space</span>
+    <span class="n">results</span><span class="p">[</span><span class="ss">:checks</span><span class="p">][</span><span class="ss">:disk</span><span class="p">]</span> <span class="o">=</span> <span class="n">check_disk_space</span>
+
+    <span class="c1"># Overall status</span>
+    <span class="n">unhealthy</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="ss">:checks</span><span class="p">].</span><span class="nf">values</span><span class="p">.</span><span class="nf">any?</span> <span class="p">{</span> <span class="o">|</span><span class="n">check</span><span class="o">|</span> <span class="n">check</span><span class="p">[</span><span class="ss">:status</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"ok"</span> <span class="p">}</span>
+    <span class="n">results</span><span class="p">[</span><span class="ss">:status</span><span class="p">]</span> <span class="o">=</span> <span class="n">unhealthy</span> <span class="p">?</span> <span class="s2">"unhealthy"</span> <span class="p">:</span> <span class="s2">"healthy"</span>
+
+    <span class="n">results</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">check_database</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+    <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="s2">"SELECT 1"</span><span class="p">)</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="p">((</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="p">{</span>
+      <span class="ss">status: </span><span class="s2">"ok"</span><span class="p">,</span>
+      <span class="ss">response_time_ms: </span><span class="n">duration</span>
+    <span class="p">}</span>
+  <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="p">{</span>
+      <span class="ss">status: </span><span class="s2">"error"</span><span class="p">,</span>
+      <span class="ss">error: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">check_redis</span>
+    <span class="k">return</span> <span class="p">{</span> <span class="ss">status: </span><span class="s2">"skipped"</span><span class="p">,</span> <span class="ss">message: </span><span class="s2">"Redis not configured"</span> <span class="p">}</span> <span class="k">unless</span> <span class="k">defined?</span><span class="p">(</span><span class="no">Redis</span><span class="p">)</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+    <span class="n">redis</span> <span class="o">=</span> <span class="no">Redis</span><span class="p">.</span><span class="nf">new</span>
+    <span class="n">redis</span><span class="p">.</span><span class="nf">ping</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="p">((</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="p">{</span>
+      <span class="ss">status: </span><span class="s2">"ok"</span><span class="p">,</span>
+      <span class="ss">response_time_ms: </span><span class="n">duration</span>
+    <span class="p">}</span>
+  <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="p">{</span>
+      <span class="ss">status: </span><span class="s2">"error"</span><span class="p">,</span>
+      <span class="ss">error: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span>
+    <span class="p">}</span>
+  <span class="k">ensure</span>
+    <span class="n">redis</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">quit</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">check_disk_space</span>
+    <span class="n">stat</span> <span class="o">=</span> <span class="no">Sys</span><span class="o">::</span><span class="no">Filesystem</span><span class="p">.</span><span class="nf">stat</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
+    <span class="n">percent_used</span> <span class="o">=</span> <span class="p">((</span><span class="n">stat</span><span class="p">.</span><span class="nf">blocks</span> <span class="o">-</span> <span class="n">stat</span><span class="p">.</span><span class="nf">blocks_available</span><span class="p">).</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">stat</span><span class="p">.</span><span class="nf">blocks</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">percent_used</span> <span class="o">&gt;</span> <span class="mi">90</span>
+      <span class="p">{</span>
+        <span class="ss">status: </span><span class="s2">"warning"</span><span class="p">,</span>
+        <span class="ss">percent_used: </span><span class="n">percent_used</span><span class="p">,</span>
+        <span class="ss">message: </span><span class="s2">"Disk usage above 90%"</span>
+      <span class="p">}</span>
+    <span class="k">else</span>
+      <span class="p">{</span>
+        <span class="ss">status: </span><span class="s2">"ok"</span><span class="p">,</span>
+        <span class="ss">percent_used: </span><span class="n">percent_used</span>
+      <span class="p">}</span>
+    <span class="k">end</span>
+  <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="p">{</span>
+      <span class="ss">status: </span><span class="s2">"error"</span><span class="p">,</span>
+      <span class="ss">error: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Add routes in <code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">root</span> <span class="s1">'pages#index'</span>
+
+  <span class="c1"># Health check endpoints</span>
+  <span class="n">get</span> <span class="s1">'health'</span> <span class="o">=&gt;</span> <span class="s1">'health#show'</span>      <span class="c1"># Readiness probe</span>
+  <span class="n">get</span> <span class="s1">'up'</span> <span class="o">=&gt;</span> <span class="s1">'health#liveness'</span>      <span class="c1"># Liveness probe</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 3: Configure Puma for Graceful Shutdown</h3>
+
+<p>Edit <code>config/puma.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Puma configuration for graceful shutdown</span>
+
+<span class="n">max_threads_count</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"RAILS_MAX_THREADS"</span><span class="p">)</span> <span class="p">{</span> <span class="mi">5</span> <span class="p">}</span>
+<span class="n">min_threads_count</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"RAILS_MIN_THREADS"</span><span class="p">)</span> <span class="p">{</span> <span class="n">max_threads_count</span> <span class="p">}</span>
+<span class="n">threads</span> <span class="n">min_threads_count</span><span class="p">,</span> <span class="n">max_threads_count</span>
+
+<span class="c1"># Workers for production</span>
+<span class="n">workers</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"WEB_CONCURRENCY"</span><span class="p">)</span> <span class="p">{</span> <span class="mi">2</span> <span class="p">}</span>
+
+<span class="c1"># Preload application for better performance</span>
+<span class="n">preload_app!</span>
+
+<span class="c1"># Port</span>
+<span class="n">port</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"PORT"</span><span class="p">)</span> <span class="p">{</span> <span class="mi">3000</span> <span class="p">}</span>
+
+<span class="c1"># Environment</span>
+<span class="n">environment</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"RAILS_ENV"</span><span class="p">)</span> <span class="p">{</span> <span class="s2">"development"</span> <span class="p">}</span>
+
+<span class="c1"># PID file</span>
+<span class="n">pidfile</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"PIDFILE"</span><span class="p">)</span> <span class="p">{</span> <span class="s2">"tmp/pids/server.pid"</span> <span class="p">}</span>
+
+<span class="c1"># Graceful shutdown settings</span>
+<span class="n">worker_timeout</span> <span class="mi">30</span>               <span class="c1"># Give workers 30 seconds to finish requests</span>
+<span class="n">worker_shutdown_timeout</span> <span class="mi">20</span>      <span class="c1"># Force shutdown after 20 seconds if still running</span>
+
+<span class="c1"># Restart command for phased-restart</span>
+<span class="n">plugin</span> <span class="ss">:tmp_restart</span>
+
+<span class="c1"># Lifecycle hooks</span>
+<span class="n">on_worker_boot</span> <span class="k">do</span>
+  <span class="c1"># Re-establish database connections for each worker</span>
+  <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">establish_connection</span> <span class="k">if</span> <span class="k">defined?</span><span class="p">(</span><span class="no">ActiveRecord</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="n">on_worker_shutdown</span> <span class="k">do</span>
+  <span class="c1"># Clean up resources when worker shuts down</span>
+  <span class="nb">puts</span> <span class="s2">"Worker </span><span class="si">#{</span><span class="no">Process</span><span class="p">.</span><span class="nf">pid</span><span class="si">}</span><span class="s2"> shutting down gracefully..."</span>
+  <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection_pool</span><span class="p">.</span><span class="nf">disconnect!</span> <span class="k">if</span> <span class="k">defined?</span><span class="p">(</span><span class="no">ActiveRecord</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="n">before_fork</span> <span class="k">do</span>
+  <span class="c1"># Close database connections before forking workers</span>
+  <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection_pool</span><span class="p">.</span><span class="nf">disconnect!</span> <span class="k">if</span> <span class="k">defined?</span><span class="p">(</span><span class="no">ActiveRecord</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="c1"># Gracefully handle SIGTERM</span>
+<span class="n">on_restart</span> <span class="k">do</span>
+  <span class="nb">puts</span> <span class="s2">"Puma master process restarting..."</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 4: Create Graceful Shutdown Handler for Workers</h3>
+
+<p>Create <code>lib/graceful_shutdown.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">GracefulShutdown</span>
+  <span class="k">class</span> <span class="nc">Handler</span>
+    <span class="nb">attr_reader</span> <span class="ss">:shutting_down</span><span class="p">,</span> <span class="ss">:active_tasks</span>
+
+    <span class="k">def</span> <span class="nf">initialize</span>
+      <span class="vi">@shutting_down</span> <span class="o">=</span> <span class="kp">false</span>
+      <span class="vi">@active_tasks</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="vi">@mutex</span> <span class="o">=</span> <span class="no">Mutex</span><span class="p">.</span><span class="nf">new</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">trap_signals</span>
+      <span class="sx">%w[TERM INT]</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">signal</span><span class="o">|</span>
+        <span class="no">Signal</span><span class="p">.</span><span class="nf">trap</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span> <span class="k">do</span>
+          <span class="n">handle_shutdown</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span>
+        <span class="k">end</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">start_task</span>
+      <span class="vi">@mutex</span><span class="p">.</span><span class="nf">synchronize</span> <span class="p">{</span> <span class="vi">@active_tasks</span> <span class="o">+=</span> <span class="mi">1</span> <span class="p">}</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">finish_task</span>
+      <span class="vi">@mutex</span><span class="p">.</span><span class="nf">synchronize</span> <span class="p">{</span> <span class="vi">@active_tasks</span> <span class="o">-=</span> <span class="mi">1</span> <span class="p">}</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">active_tasks?</span>
+      <span class="vi">@mutex</span><span class="p">.</span><span class="nf">synchronize</span> <span class="p">{</span> <span class="vi">@active_tasks</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">}</span>
+    <span class="k">end</span>
+
+    <span class="kp">private</span>
+
+    <span class="k">def</span> <span class="nf">handle_shutdown</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span>
+      <span class="k">return</span> <span class="k">if</span> <span class="vi">@shutting_down</span>
+
+      <span class="vi">@shutting_down</span> <span class="o">=</span> <span class="kp">true</span>
+      <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">[</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="si">}</span><span class="s2">] Received </span><span class="si">#{</span><span class="n">signal</span><span class="si">}</span><span class="s2">, initiating graceful shutdown..."</span>
+      <span class="nb">puts</span> <span class="s2">"[</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="si">}</span><span class="s2">] Active tasks: </span><span class="si">#{</span><span class="vi">@active_tasks</span><span class="si">}</span><span class="s2">"</span>
+
+      <span class="c1"># Stop accepting new work</span>
+      <span class="n">stop_accepting_work</span>
+
+      <span class="c1"># Wait for active tasks to complete</span>
+      <span class="n">wait_for_active_tasks</span>
+
+      <span class="c1"># Clean up resources</span>
+      <span class="n">cleanup_resources</span>
+
+      <span class="nb">puts</span> <span class="s2">"[</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="si">}</span><span class="s2">] Graceful shutdown complete"</span>
+      <span class="nb">exit</span> <span class="mi">0</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">stop_accepting_work</span>
+      <span class="nb">puts</span> <span class="s2">"[</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="si">}</span><span class="s2">] Stopped accepting new work"</span>
+      <span class="c1"># Mark that we're shutting down so new tasks are rejected</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">wait_for_active_tasks</span>
+      <span class="n">timeout</span> <span class="o">=</span> <span class="mi">30</span>
+      <span class="n">start_time</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+      <span class="n">last_count</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+      <span class="k">while</span> <span class="n">active_tasks?</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">timeout</span>
+        <span class="n">current_count</span> <span class="o">=</span> <span class="vi">@active_tasks</span>
+        <span class="k">if</span> <span class="n">current_count</span> <span class="o">!=</span> <span class="n">last_count</span>
+          <span class="nb">puts</span> <span class="s2">"[</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="si">}</span><span class="s2">] Waiting for </span><span class="si">#{</span><span class="n">current_count</span><span class="si">}</span><span class="s2"> active tasks..."</span>
+          <span class="n">last_count</span> <span class="o">=</span> <span class="n">current_count</span>
+        <span class="k">end</span>
+        <span class="nb">sleep</span> <span class="mf">0.5</span>
+      <span class="k">end</span>
+
+      <span class="k">if</span> <span class="n">active_tasks?</span>
+        <span class="nb">puts</span> <span class="s2">"[</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="si">}</span><span class="s2">] WARNING: Timeout reached, </span><span class="si">#{</span><span class="vi">@active_tasks</span><span class="si">}</span><span class="s2"> tasks still active"</span>
+      <span class="k">else</span>
+        <span class="nb">puts</span> <span class="s2">"[</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="si">}</span><span class="s2">] All tasks completed"</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">cleanup_resources</span>
+      <span class="nb">puts</span> <span class="s2">"[</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="si">}</span><span class="s2">] Cleaning up resources..."</span>
+
+      <span class="c1"># Close database connections</span>
+      <span class="k">if</span> <span class="k">defined?</span><span class="p">(</span><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">)</span>
+        <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection_pool</span><span class="p">.</span><span class="nf">disconnect!</span>
+        <span class="nb">puts</span> <span class="s2">"[</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="si">}</span><span class="s2">] Database connections closed"</span>
+      <span class="k">end</span>
+
+      <span class="c1"># Close Redis connections</span>
+      <span class="k">if</span> <span class="k">defined?</span><span class="p">(</span><span class="no">Redis</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="no">Redis</span><span class="p">.</span><span class="nf">current</span>
+        <span class="no">Redis</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">quit</span>
+        <span class="nb">puts</span> <span class="s2">"[</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="si">}</span><span class="s2">] Redis connection closed"</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">handler</span>
+    <span class="vi">@handler</span> <span class="o">||=</span> <span class="no">Handler</span><span class="p">.</span><span class="nf">new</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">trap_signals</span>
+    <span class="n">handler</span><span class="p">.</span><span class="nf">trap_signals</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 5: Create Background Worker Script</h3>
+
+<p>Create <code>bin/worker</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1">#!/usr/bin/env ruby</span>
+<span class="nb">require_relative</span> <span class="s1">'../config/environment'</span>
+<span class="nb">require_relative</span> <span class="s1">'../lib/graceful_shutdown'</span>
+
+<span class="c1"># Set up graceful shutdown</span>
+<span class="no">GracefulShutdown</span><span class="p">.</span><span class="nf">trap_signals</span>
+
+<span class="nb">puts</span> <span class="s2">"Worker started (PID: </span><span class="si">#{</span><span class="no">Process</span><span class="p">.</span><span class="nf">pid</span><span class="si">}</span><span class="s2">)"</span>
+<span class="nb">puts</span> <span class="s2">"Press Ctrl+C or send SIGTERM to test graceful shutdown"</span>
+
+<span class="c1"># Simulate background processing</span>
+<span class="kp">loop</span> <span class="k">do</span>
+  <span class="k">break</span> <span class="k">if</span> <span class="no">GracefulShutdown</span><span class="p">.</span><span class="nf">handler</span><span class="p">.</span><span class="nf">shutting_down</span>
+
+  <span class="no">GracefulShutdown</span><span class="p">.</span><span class="nf">handler</span><span class="p">.</span><span class="nf">start_task</span>
+
+  <span class="k">begin</span>
+    <span class="c1"># Simulate work (e.g., processing a job)</span>
+    <span class="nb">puts</span> <span class="s2">"[</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="si">}</span><span class="s2">] Processing task..."</span>
+    <span class="nb">sleep</span> <span class="mi">5</span>  <span class="c1"># Simulate 5-second task</span>
+
+    <span class="nb">puts</span> <span class="s2">"[</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="si">}</span><span class="s2">] Task completed"</span>
+  <span class="k">ensure</span>
+    <span class="no">GracefulShutdown</span><span class="p">.</span><span class="nf">handler</span><span class="p">.</span><span class="nf">finish_task</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Wait before next task</span>
+  <span class="nb">sleep</span> <span class="mi">2</span> <span class="k">unless</span> <span class="no">GracefulShutdown</span><span class="p">.</span><span class="nf">handler</span><span class="p">.</span><span class="nf">shutting_down</span>
+<span class="k">end</span>
+
+<span class="nb">puts</span> <span class="s2">"Worker exiting"</span>
+
+</code></pre></div>
+<p>Make it executable:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">chmod</span> +x bin/worker
+
+</code></pre></div>
+<h3>Step 6: Create Test Script for Health Checks</h3>
+
+<p>Create <code>bin/test_health</code>:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c">#!/bin/bash</span>
+
+<span class="nb">echo</span> <span class="s2">"Testing Health Check Endpoints"</span>
+<span class="nb">echo</span> <span class="s2">"================================"</span>
+<span class="nb">echo
+
+echo</span> <span class="s2">"1. Testing Liveness Endpoint (/up)"</span>
+<span class="nb">echo</span> <span class="s2">"-----------------------------------"</span>
+curl <span class="nt">-s</span> <span class="nt">-w</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">HTTP Status: %{http_code}</span><span class="se">\n</span><span class="s2">"</span> http://localhost:3000/up | jq <span class="nb">.</span>
+<span class="nb">echo
+
+echo</span> <span class="s2">"2. Testing Readiness Endpoint (/health)"</span>
+<span class="nb">echo</span> <span class="s2">"---------------------------------------"</span>
+curl <span class="nt">-s</span> <span class="nt">-w</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">HTTP Status: %{http_code}</span><span class="se">\n</span><span class="s2">"</span> http://localhost:3000/health | jq <span class="nb">.</span>
+<span class="nb">echo
+
+echo</span> <span class="s2">"3. Testing with Database Down"</span>
+<span class="nb">echo</span> <span class="s2">"-----------------------------"</span>
+<span class="nb">echo</span> <span class="s2">"Stop your database and run: curl http://localhost:3000/health"</span>
+<span class="nb">echo</span> <span class="s2">"Expected: HTTP 503 with error details"</span>
+<span class="nb">echo</span>
+
+</code></pre></div>
+<p>Make it executable:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">chmod</span> +x bin/test_health
+
+</code></pre></div>
+<h2>Verification Steps</h2>
+
+<h3>1. Test Health Endpoints</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Start Rails server</span>
+bin/rails server
+
+<span class="c"># In another terminal, test liveness endpoint</span>
+curl http://localhost:3000/up
+<span class="c"># Should return: {"status":"ok"}</span>
+
+<span class="c"># Test readiness endpoint</span>
+curl http://localhost:3000/health | jq <span class="nb">.</span>
+<span class="c"># Should return detailed health check with all dependencies</span>
+
+</code></pre></div>
+<p>Expected output:</p>
+<div class="highlight"><pre class="highlight json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"healthy"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2024-01-15T10:30:00Z"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"checks"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"database"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ok"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"response_time_ms"</span><span class="p">:</span><span class="w"> </span><span class="mf">2.34</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"redis"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"skipped"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Redis not configured"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"disk"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ok"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"percent_used"</span><span class="p">:</span><span class="w"> </span><span class="mf">45.67</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+</span></code></pre></div>
+<h3>2. Test Failed Health Check</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Stop PostgreSQL</span>
+<span class="nb">sudo </span>systemctl stop postgresql
+<span class="c"># or on macOS: brew services stop postgresql</span>
+
+<span class="c"># Test health endpoint</span>
+curl <span class="nt">-w</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Status: %{http_code}</span><span class="se">\n</span><span class="s2">"</span> http://localhost:3000/health | jq <span class="nb">.</span>
+
+<span class="c"># Should return HTTP 503 with error details</span>
+
+</code></pre></div>
+<h3>3. Test Graceful Shutdown</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Start Rails server in foreground</span>
+bin/rails server
+
+<span class="c"># In another terminal, send requests in a loop</span>
+<span class="k">while </span><span class="nb">true</span><span class="p">;</span> <span class="k">do
+  </span>curl <span class="nt">-s</span> http://localhost:3000 <span class="o">&gt;</span> /dev/null <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">"Success"</span> <span class="o">||</span> <span class="nb">echo</span> <span class="s2">"Failed"</span>
+  <span class="nb">sleep </span>0.5
+<span class="k">done</span>
+
+<span class="c"># In another terminal, gracefully stop server</span>
+<span class="nb">kill</span> <span class="nt">-TERM</span> <span class="si">$(</span><span class="nb">cat </span>tmp/pids/server.pid<span class="si">)</span>
+
+<span class="c"># Watch the server logs - should see:</span>
+<span class="c"># - "Puma master process shutting down"</span>
+<span class="c"># - "Worker shutting down gracefully"</span>
+<span class="c"># - No request failures during shutdown</span>
+
+</code></pre></div>
+<h3>4. Test Background Worker Graceful Shutdown</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Start worker</span>
+bin/worker
+
+<span class="c"># In another terminal, send SIGTERM</span>
+<span class="nb">kill</span> <span class="nt">-TERM</span> <span class="si">$(</span>pgrep <span class="nt">-f</span> <span class="s2">"bin/worker"</span><span class="si">)</span>
+
+<span class="c"># Should see:</span>
+<span class="c"># - "Received TERM, initiating graceful shutdown"</span>
+<span class="c"># - "Waiting for active tasks..."</span>
+<span class="c"># - "All tasks completed"</span>
+<span class="c"># - "Graceful shutdown complete"</span>
+
+</code></pre></div>
+<h3>5. Simulate Kubernetes-style Rolling Update</h3>
+
+<p>Create <code>bin/rolling_update_test</code>:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c">#!/bin/bash</span>
+
+<span class="nb">echo</span> <span class="s2">"Simulating Kubernetes Rolling Update"</span>
+<span class="nb">echo</span> <span class="s2">"====================================="</span>
+<span class="nb">echo</span>
+
+<span class="c"># Start server</span>
+bin/rails server <span class="nt">-p</span> 3000 &amp;
+<span class="nv">SERVER_PID</span><span class="o">=</span><span class="nv">$!</span>
+<span class="nb">sleep </span>5
+
+<span class="nb">echo</span> <span class="s2">"Server started (PID: </span><span class="nv">$SERVER_PID</span><span class="s2">)"</span>
+<span class="nb">echo</span>
+
+<span class="c"># Send continuous traffic</span>
+<span class="nb">echo</span> <span class="s2">"Starting traffic simulation..."</span>
+<span class="o">(</span>
+  <span class="k">for </span>i <span class="k">in</span> <span class="o">{</span>1..30<span class="o">}</span><span class="p">;</span> <span class="k">do
+    </span><span class="nv">response</span><span class="o">=</span><span class="si">$(</span>curl <span class="nt">-s</span> <span class="nt">-o</span> /dev/null <span class="nt">-w</span> <span class="s2">"%{http_code}"</span> http://localhost:3000/<span class="si">)</span>
+    <span class="k">if</span> <span class="o">[</span> <span class="s2">"</span><span class="nv">$response</span><span class="s2">"</span> <span class="o">=</span> <span class="s2">"200"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+      </span><span class="nb">echo</span> <span class="s2">"[</span><span class="nv">$i</span><span class="s2">] Success"</span>
+    <span class="k">else
+      </span><span class="nb">echo</span> <span class="s2">"[</span><span class="nv">$i</span><span class="s2">] Failed (HTTP </span><span class="nv">$response</span><span class="s2">)"</span>
+    <span class="k">fi
+    </span><span class="nb">sleep </span>1
+  <span class="k">done</span>
+<span class="o">)</span> &amp;
+<span class="nv">TRAFFIC_PID</span><span class="o">=</span><span class="nv">$!</span>
+
+<span class="c"># Wait 5 seconds, then send SIGTERM</span>
+<span class="nb">sleep </span>5
+<span class="nb">echo
+echo</span> <span class="s2">"Sending SIGTERM to server..."</span>
+<span class="nb">kill</span> <span class="nt">-TERM</span> <span class="nv">$SERVER_PID</span>
+
+<span class="c"># Wait for both to complete</span>
+<span class="nb">wait</span> <span class="nv">$TRAFFIC_PID</span>
+<span class="nb">wait</span> <span class="nv">$SERVER_PID</span>
+
+<span class="nb">echo
+echo</span> <span class="s2">"Test complete - check for any failed requests above"</span>
+
+</code></pre></div>
+<p>Make it executable and run:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">chmod</span> +x bin/rolling_update_test
+bin/rolling_update_test
+
+</code></pre></div>
+<h2>Stretch (Optional)</h2>
+
+<ol>
+<li><strong>Add Circuit Breaker Pattern:</strong></li>
+</ol>
+
+<p>Create <code>lib/health_check/circuit_breaker.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">HealthCheck</span>
+  <span class="k">class</span> <span class="nc">CircuitBreaker</span>
+    <span class="no">STATES</span> <span class="o">=</span> <span class="p">[</span><span class="ss">:closed</span><span class="p">,</span> <span class="ss">:open</span><span class="p">,</span> <span class="ss">:half_open</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="ss">failure_threshold: </span><span class="mi">5</span><span class="p">,</span> <span class="ss">timeout: </span><span class="mi">60</span><span class="p">)</span>
+      <span class="vi">@failure_threshold</span> <span class="o">=</span> <span class="n">failure_threshold</span>
+      <span class="vi">@timeout</span> <span class="o">=</span> <span class="n">timeout</span>
+      <span class="vi">@failures</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="vi">@state</span> <span class="o">=</span> <span class="ss">:closed</span>
+      <span class="vi">@opened_at</span> <span class="o">=</span> <span class="kp">nil</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">call</span>
+      <span class="k">case</span> <span class="vi">@state</span>
+      <span class="k">when</span> <span class="ss">:open</span>
+        <span class="k">return</span> <span class="n">open_state_result</span> <span class="k">if</span> <span class="n">should_remain_open?</span>
+        <span class="vi">@state</span> <span class="o">=</span> <span class="ss">:half_open</span>
+      <span class="k">end</span>
+
+      <span class="k">begin</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="k">yield</span>
+        <span class="n">on_success</span>
+        <span class="n">result</span>
+      <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+        <span class="n">on_failure</span>
+        <span class="k">raise</span> <span class="n">e</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="kp">private</span>
+
+    <span class="k">def</span> <span class="nf">should_remain_open?</span>
+      <span class="no">Time</span><span class="p">.</span><span class="nf">current</span> <span class="o">-</span> <span class="vi">@opened_at</span> <span class="o">&lt;</span> <span class="vi">@timeout</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">on_success</span>
+      <span class="vi">@failures</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="vi">@state</span> <span class="o">=</span> <span class="ss">:closed</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">on_failure</span>
+      <span class="vi">@failures</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="k">if</span> <span class="vi">@failures</span> <span class="o">&gt;=</span> <span class="vi">@failure_threshold</span>
+        <span class="vi">@state</span> <span class="o">=</span> <span class="ss">:open</span>
+        <span class="vi">@opened_at</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">open_state_result</span>
+      <span class="k">raise</span> <span class="s2">"Circuit breaker open - service unavailable"</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Add Metrics Export:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># In HealthController</span>
+<span class="k">def</span> <span class="nf">metrics</span>
+  <span class="n">checks</span> <span class="o">=</span> <span class="n">perform_health_checks</span>
+
+  <span class="c1"># Prometheus-style metrics</span>
+  <span class="n">metrics</span> <span class="o">=</span> <span class="p">[]</span>
+  <span class="n">metrics</span> <span class="o">&lt;&lt;</span> <span class="s2">"health_status{status=</span><span class="se">\"</span><span class="si">#{</span><span class="n">checks</span><span class="p">[</span><span class="ss">:status</span><span class="p">]</span><span class="si">}</span><span class="se">\"</span><span class="s2">} 1"</span>
+
+  <span class="n">checks</span><span class="p">[</span><span class="ss">:checks</span><span class="p">].</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="nb">name</span><span class="p">,</span> <span class="n">check</span><span class="o">|</span>
+    <span class="n">status_value</span> <span class="o">=</span> <span class="n">check</span><span class="p">[</span><span class="ss">:status</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"ok"</span> <span class="p">?</span> <span class="mi">1</span> <span class="p">:</span> <span class="mi">0</span>
+    <span class="n">metrics</span> <span class="o">&lt;&lt;</span> <span class="s2">"health_check_status{check=</span><span class="se">\"</span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="se">\"</span><span class="s2">} </span><span class="si">#{</span><span class="n">status_value</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="k">if</span> <span class="n">check</span><span class="p">[</span><span class="ss">:response_time_ms</span><span class="p">]</span>
+      <span class="n">metrics</span> <span class="o">&lt;&lt;</span> <span class="s2">"health_check_duration_ms{check=</span><span class="se">\"</span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="se">\"</span><span class="s2">} </span><span class="si">#{</span><span class="n">check</span><span class="p">[</span><span class="ss">:response_time_ms</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="n">render</span> <span class="ss">plain: </span><span class="n">metrics</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">),</span> <span class="ss">content_type: </span><span class="s1">'text/plain'</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Add Startup Probe:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># In HealthController</span>
+<span class="k">def</span> <span class="nf">startup</span>
+  <span class="c1"># Check if app has completed initialization</span>
+  <span class="k">if</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">initialized?</span>
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">status: </span><span class="s2">"ready"</span> <span class="p">},</span> <span class="ss">status: :ok</span>
+  <span class="k">else</span>
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">status: </span><span class="s2">"initializing"</span> <span class="p">},</span> <span class="ss">status: :service_unavailable</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Add Load Shedding:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/initializers/load_shedding.rb</span>
+<span class="k">class</span> <span class="nc">LoadShedding</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">shedding?</span>
+    <span class="c1"># Shed load if queue depth too high</span>
+    <span class="n">queue_depth</span> <span class="o">=</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">connection_pool</span><span class="p">.</span><span class="nf">stat</span><span class="p">[</span><span class="ss">:busy</span><span class="p">]</span>
+    <span class="n">max_queue</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"MAX_QUEUE_DEPTH"</span><span class="p">,</span> <span class="mi">10</span><span class="p">).</span><span class="nf">to_i</span>
+
+    <span class="n">queue_depth</span> <span class="o">&gt;</span> <span class="n">max_queue</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># In ApplicationController</span>
+<span class="n">before_action</span> <span class="ss">:check_load_shedding</span>
+
+<span class="k">def</span> <span class="nf">check_load_shedding</span>
+  <span class="k">if</span> <span class="no">LoadShedding</span><span class="p">.</span><span class="nf">shedding?</span>
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">error: </span><span class="s2">"Service temporarily unavailable"</span> <span class="p">},</span>
+           <span class="ss">status: :service_unavailable</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Kubernetes Deployment Configuration:</strong></li>
+</ol>
+
+<p>Create <code>k8s/deployment.yml</code>:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">rails-app</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
+  <span class="na">strategy</span><span class="pi">:</span>
+    <span class="na">type</span><span class="pi">:</span> <span class="s">RollingUpdate</span>
+    <span class="na">rollingUpdate</span><span class="pi">:</span>
+      <span class="na">maxSurge</span><span class="pi">:</span> <span class="m">1</span>
+      <span class="na">maxUnavailable</span><span class="pi">:</span> <span class="m">0</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">rails-app</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">rails-app</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">terminationGracePeriodSeconds</span><span class="pi">:</span> <span class="m">60</span>
+      <span class="na">containers</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">rails</span>
+        <span class="na">image</span><span class="pi">:</span> <span class="s">rails-app:latest</span>
+        <span class="na">ports</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">3000</span>
+
+        <span class="c1"># Startup probe - check if app has finished booting</span>
+        <span class="na">startupProbe</span><span class="pi">:</span>
+          <span class="na">httpGet</span><span class="pi">:</span>
+            <span class="na">path</span><span class="pi">:</span> <span class="s">/up</span>
+            <span class="na">port</span><span class="pi">:</span> <span class="m">3000</span>
+          <span class="na">initialDelaySeconds</span><span class="pi">:</span> <span class="m">0</span>
+          <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">5</span>
+          <span class="na">failureThreshold</span><span class="pi">:</span> <span class="m">12</span>  <span class="c1"># 60 seconds max (12 * 5s)</span>
+
+        <span class="c1"># Readiness probe - check if app is ready for traffic</span>
+        <span class="na">readinessProbe</span><span class="pi">:</span>
+          <span class="na">httpGet</span><span class="pi">:</span>
+            <span class="na">path</span><span class="pi">:</span> <span class="s">/health</span>
+            <span class="na">port</span><span class="pi">:</span> <span class="m">3000</span>
+          <span class="na">initialDelaySeconds</span><span class="pi">:</span> <span class="m">10</span>
+          <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">5</span>
+          <span class="na">failureThreshold</span><span class="pi">:</span> <span class="m">3</span>
+          <span class="na">successThreshold</span><span class="pi">:</span> <span class="m">1</span>
+          <span class="na">timeoutSeconds</span><span class="pi">:</span> <span class="m">3</span>
+
+        <span class="c1"># Liveness probe - check if app is alive</span>
+        <span class="na">livenessProbe</span><span class="pi">:</span>
+          <span class="na">httpGet</span><span class="pi">:</span>
+            <span class="na">path</span><span class="pi">:</span> <span class="s">/up</span>
+            <span class="na">port</span><span class="pi">:</span> <span class="m">3000</span>
+          <span class="na">initialDelaySeconds</span><span class="pi">:</span> <span class="m">30</span>
+          <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">10</span>
+          <span class="na">failureThreshold</span><span class="pi">:</span> <span class="m">5</span>
+          <span class="na">timeoutSeconds</span><span class="pi">:</span> <span class="m">3</span>
+
+        <span class="c1"># PreStop hook for connection draining</span>
+        <span class="na">lifecycle</span><span class="pi">:</span>
+          <span class="na">preStop</span><span class="pi">:</span>
+            <span class="na">exec</span><span class="pi">:</span>
+              <span class="na">command</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">/bin/sh"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">-c"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">sleep</span><span class="nv"> </span><span class="s">15"</span><span class="pi">]</span>
+
+        <span class="na">resources</span><span class="pi">:</span>
+          <span class="na">requests</span><span class="pi">:</span>
+            <span class="na">memory</span><span class="pi">:</span> <span class="s2">"</span><span class="s">256Mi"</span>
+            <span class="na">cpu</span><span class="pi">:</span> <span class="s2">"</span><span class="s">100m"</span>
+          <span class="na">limits</span><span class="pi">:</span>
+            <span class="na">memory</span><span class="pi">:</span> <span class="s2">"</span><span class="s">512Mi"</span>
+            <span class="na">cpu</span><span class="pi">:</span> <span class="s2">"</span><span class="s">500m"</span>
+
+</code></pre></div>
 <h2>Solution Notes</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p><strong>Common Gotchas:</strong></p>
+
+<ol>
+<li><p><strong>Health check too expensive:</strong> If health checks query large datasets or call slow external APIs, they can become a bottleneck. Keep checks lightweight - just verify connectivity, not functionality.</p></li>
+<li><p><strong>Liveness probe too aggressive:</strong> If <code>failureThreshold</code> is too low or <code>initialDelaySeconds</code> too short, pods restart in a loop during slow boots. Use conservative values.</p></li>
+<li><p><strong>No connection draining:</strong> Without a preStop hook, Kubernetes sends traffic during shutdown, causing 502 errors. Always implement preStop sleep.</p></li>
+<li><p><strong>Ignoring SIGTERM in workers:</strong> Custom background scripts must trap SIGTERM explicitly. Ruby doesn&#39;t handle it by default.</p></li>
+<li><p><strong>Database connection leaks:</strong> Always disconnect connections in shutdown handlers to avoid &quot;too many connections&quot; errors.</p></li>
+</ol>
+
+<p><strong>Testing Checklist:</strong></p>
+
+<ul>
+<li>[ ] Health endpoint returns 200 when all dependencies healthy</li>
+<li>[ ] Health endpoint returns 503 when database down</li>
+<li>[ ] Liveness endpoint always returns 200 (unless app deadlocked)</li>
+<li>[ ] Graceful shutdown logs &quot;shutting down gracefully&quot;</li>
+<li>[ ] No request failures during <code>kill -TERM</code></li>
+<li>[ ] Worker completes active tasks before exiting</li>
+<li>[ ] Database connections closed cleanly</li>
+<li>[ ] Kubernetes rolling update has 0 downtime</li>
+</ul>
+
+<h2>Time Estimate</h2>
+
+<p>25 minutes</p>
 
     
   </div>
@@ -766,74 +1770,368 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Readiness probes check if the app is ready for traffic and remove it from load balancer if it fails; liveness probes detect deadlocks and restart the pod if it fails">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the key difference between readiness and liveness probes in Kubernetes?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  Readiness probes check if the app is ready for traffic and remove it from load balancer if it fails; liveness probes detect deadlocks and restart the pod if it fails
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  Liveness probes check database connections; readiness probes only check if the process is running
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  Readiness probes run more frequently than liveness probes
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  Liveness probes are optional; readiness probes are required for all deployments
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Readiness failures stop traffic without restarting the pod—useful during boot or dependency outages. Liveness failures restart the pod—useful for deadlocks. Using liveness for startup checks causes restart loops.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Health checks run every 5-10 seconds; expensive operations add latency and can overload your own system">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">Why should health check endpoints avoid expensive operations like querying large datasets or calling external APIs?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  Health checks run every 5-10 seconds; expensive operations add latency and can overload your own system
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  Kubernetes limits health check response time to 100ms
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  Expensive operations prevent proper error handling
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Health checks cannot access databases or external services
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Health probes execute continuously (every few seconds). If each check queries multiple tables or external APIs, you're creating a self-inflicted DoS attack. Keep checks lightweight—verify connectivity, not full functionality.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Puma immediately stops accepting connections and waits for in-flight requests to complete before exiting">
+          <h4>Question 3 (2 points)</h4>
+          <p style="margin: 10px 0;">What happens when a Rails application receives a SIGTERM signal in production?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  Puma immediately stops accepting connections and waits for in-flight requests to complete before exiting
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  The application crashes immediately without cleanup
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  SIGTERM is ignored unless explicitly handled in application code
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  Rails automatically sends a 503 response to all pending requests
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Puma (Rails' default server) handles SIGTERM gracefully by default: stops accepting new connections, waits for active requests to finish (up to worker_timeout), then exits cleanly. This prevents dropped requests during deployments.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="It provides a lightweight liveness check that returns 200 OK without checking dependencies">
+          <h4>Question 4 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the purpose of Rails 7.1's built-in /up endpoint?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  It provides a lightweight liveness check that returns 200 OK without checking dependencies
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  It automatically checks database, Redis, and all external service health
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  It triggers asset precompilation when the app starts
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  It displays detailed performance metrics for monitoring
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Rails 7.1's /up endpoint (Rails::HealthController) is intentionally simple—it just returns 200 if the app is running. For readiness checks that verify dependencies, create a custom health controller.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="It delays SIGTERM to allow the load balancer time to remove the pod from rotation, preventing new traffic during shutdown">
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">Why is a Kubernetes preStop hook important for zero-downtime deployments?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  It delays SIGTERM to allow the load balancer time to remove the pod from rotation, preventing new traffic during shutdown
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  It automatically backs up the database before pod termination
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  It speeds up pod startup by preloading assets
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  It's required for health checks to function properly
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> When a pod shuts down, Kubernetes removes it from service endpoints, but load balancers need time to propagate this change. A preStop hook (sleep 15) ensures no new traffic arrives before SIGTERM starts draining connections.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Kubernetes sends SIGKILL to force-terminate the pod, potentially causing dropped requests or data corruption">
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">What happens if a pod doesn't exit within terminationGracePeriodSeconds?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  Kubernetes sends SIGKILL to force-terminate the pod, potentially causing dropped requests or data corruption
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  Kubernetes automatically extends the grace period until all requests complete
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  The pod continues running indefinitely until manually stopped
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  Kubernetes marks the deployment as failed and rolls back
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> If a pod doesn't exit gracefully within the grace period (default 30s), Kubernetes sends SIGKILL—an unblockable signal that immediately kills the process. This can drop requests, orphan jobs, or corrupt data. Always ensure worker_timeout < terminationGracePeriodSeconds.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="HTTP 503 Service Unavailable with error details in JSON">
+          <h4>Question 7 (1 points)</h4>
+          <p style="margin: 10px 0;">What should a custom health check endpoint return when dependencies are unavailable?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  HTTP 503 Service Unavailable with error details in JSON
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  HTTP 200 OK to prevent pod restart
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  HTTP 500 Internal Server Error
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  HTTP 404 Not Found
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> 503 Service Unavailable signals that the service is temporarily unable to handle requests (e.g., database down). Orchestrators use this to remove the pod from load balancers without restarting it. 200 would incorrectly signal 'ready for traffic.'
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Stop fetching new jobs, wait for active jobs to finish (up to timeout), then re-queue unfinished work">
+          <h4>Question 8 (2 points)</h4>
+          <p style="margin: 10px 0;">How should background workers (like Sidekiq) handle graceful shutdown?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  Stop fetching new jobs, wait for active jobs to finish (up to timeout), then re-queue unfinished work
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  Immediately terminate all running jobs and exit
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  Continue processing jobs until all queues are empty
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Ignore SIGTERM and rely on SIGKILL for shutdown
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Sidekiq's graceful shutdown: stops fetching new jobs from Redis, waits up to :timeout for active jobs to complete, then re-queues unfinished jobs. This prevents job loss during deployments. Set timeout < terminationGracePeriodSeconds.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="To tolerate transient failures and avoid restart loops caused by temporary spikes or network blips">
+          <h4>Question 9 (1 points)</h4>
+          <p style="margin: 10px 0;">Why should liveness probe failureThreshold be set conservatively (5+)?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(8, 0)">
+                  To tolerate transient failures and avoid restart loops caused by temporary spikes or network blips
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 1)">
+                  To ensure faster pod recovery during outages
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 2)">
+                  Kubernetes requires a minimum of 5 failures
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 3)">
+                  To reduce monitoring noise from health check failures
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> A low failureThreshold (e.g., 1-2) causes pods to restart on transient failures (brief CPU spike, network glitch). Conservative values (5+) tolerate temporary issues while still detecting real deadlocks. Readiness can use lower thresholds since it doesn't restart pods.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Always maintain full capacity (never fewer than replica count) by starting new pods before terminating old ones">
+          <h4>Question 10 (2 points)</h4>
+          <p style="margin: 10px 0;">In a Kubernetes rolling update, what is the purpose of maxUnavailable: 0 and maxSurge: 1?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(9, 0)">
+                  Always maintain full capacity (never fewer than replica count) by starting new pods before terminating old ones
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 1)">
+                  Minimize resource usage by updating pods one at a time
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 2)">
+                  Speed up deployments by updating all pods simultaneously
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 3)">
+                  Prevent database connection exhaustion during updates
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> maxUnavailable: 0 ensures you never have fewer than the desired replica count. maxSurge: 1 allows one extra pod during rollout. This guarantees zero downtime—new pods are ready before old ones terminate, maintaining capacity throughout the update.
+              </div>
+            
           
         </div>
       
@@ -847,7 +2145,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -863,33 +2161,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/" target="_blank">Kubernetes Liveness, Readiness, and Startup Probes</a>
+            <div class="why">Official Kubernetes documentation explaining probe types, configuration parameters, and best practices for health checks.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://guides.rubyonrails.org/configuring.html#config-health-endpoint" target="_blank">Rails 7.1 Health Check Endpoint</a>
+            <div class="why">Official Rails guide covering the built-in /up endpoint (Rails::HealthController) introduced in Rails 7.1.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/puma/puma/blob/master/docs/signals.md" target="_blank">Puma Graceful Shutdown Configuration</a>
+            <div class="why">Documentation on Puma's signal handling, worker lifecycle hooks, and graceful shutdown configuration for production deployments.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://learnk8s.io/graceful-shutdown" target="_blank">Zero Downtime Deployments with Kubernetes</a>
+            <div class="why">Comprehensive guide to achieving zero-downtime deployments using readiness probes, preStop hooks, and connection draining strategies.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/sidekiq/sidekiq/wiki/Signals" target="_blank">Sidekiq Signals and Graceful Shutdown</a>
+            <div class="why">Documentation on how Sidekiq handles SIGTERM, SIGINT, and graceful shutdown to prevent job loss during deployments.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://cloud.google.com/blog/products/containers-kubernetes/kubernetes-best-practices-terminating-with-grace" target="_blank">Container Termination Lifecycle (Google Cloud)</a>
+            <div class="why">Best practices for handling pod termination, understanding terminationGracePeriodSeconds, and implementing preStop hooks.</div>
+          </li>
+        
+          <li>
+            <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html" target="_blank">Health Check Patterns (AWS Load Balancer)</a>
+            <div class="why">AWS documentation on configuring health checks for Application Load Balancers, including interval, timeout, and threshold settings.</div>
           </li>
         
       </ul>

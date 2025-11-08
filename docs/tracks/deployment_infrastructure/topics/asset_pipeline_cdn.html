@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,71 +656,148 @@
 
 <h2>What It Is</h2>
 
-<p>Asset Pipeline &amp; CDN is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>The Rails asset pipeline manages static assets (JavaScript, CSS, images). Rails 7+ defaults to <strong>Propshaft</strong>, a streamlined alternative to legacy <strong>Sprockets</strong>. Propshaft compiles assets with digest fingerprints (e.g., <code>application-a1b2c3d4.css</code>) and serves them via CDN. CDNs like CloudFront or Cloudflare cache assets globally, reducing latency and offloading bandwidth. S3 integration enables stateless deployments by storing compiled assets separately from application servers.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Production Rails apps serve millions of asset requests. Without a CDN, every CSS/JS request hits your servers, wasting CPU and bandwidth. A well-configured asset pipeline with CDN reduces page load times by 60-80%, improves SEO, and cuts hosting costs. Asset fingerprinting ensures cache invalidation works—users get the latest version after deploys without manual cache purges. Propshaft simplifies configuration compared to Sprockets. Understanding cache headers (<code>Cache-Control</code>, <code>ETag</code>) prevents stale asset bugs in production.</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li><strong>Production deployments:</strong> Serve assets from CloudFront/Cloudflare to reduce server load</li>
+<li><strong>High-traffic apps:</strong> Offload 80%+ of requests to edge caches</li>
+<li><strong>Multi-region apps:</strong> CDN edge locations reduce latency globally</li>
+<li><strong>Stateless containers:</strong> Store assets in S3 instead of container filesystems</li>
+<li><strong>Zero-downtime deploys:</strong> Fingerprinted assets allow multiple app versions to coexist</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><p><strong>Missing fingerprinted assets in production:</strong> Forgetting <code>rails assets:precompile</code> before deployment causes 404 errors. Precompile assets during Docker builds, not at container runtime. Propshaft requires explicit precompilation.</p></li>
+<li><p><strong>Incorrect cache headers cause stale assets:</strong> Setting long cache TTLs on HTML pages breaks deployments. HTML should have <code>no-cache</code> or short TTLs; only fingerprinted assets get immutable caching. Misconfigured CDN behaviors serve old CSS to new HTML.</p></li>
+<li><p><strong>S3 upload missing files or permissions:</strong> Uploading only changed files breaks when old assets are purged. Always upload the full <code>public/assets/</code> directory. S3 bucket policies must allow public <code>GetObject</code>. Missing CORS headers break font/image requests.</p></li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>Propshaft vs Sprockets</h2>
 
-<h3>Key Concept 1</h3>
+<p><strong>Sprockets (Legacy):</strong> Rails 3.1-6.x default. Uses <code>//= require</code> directives, compiles Sass/CoffeeScript, manages dependencies. Complex but feature-rich.</p>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<p><strong>Propshaft (Rails 7+):</strong> Minimal pipeline focusing on fingerprinting only. Delegates JS/CSS bundling to esbuild/Vite/Tailwind. Faster, simpler configuration.</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile (Rails 7+)</span>
+<span class="n">gem</span> <span class="s2">"propshaft"</span>
+
+<span class="c1"># config/application.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">assets</span><span class="p">.</span><span class="nf">paths</span> <span class="o">&lt;&lt;</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">root</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s2">"app/assets/builds"</span><span class="p">)</span>
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<p><strong>Key difference:</strong> Propshaft delegates preprocessing to external tools. Sprockets does everything internally.</p>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<hr>
+
+<h2>Asset Fingerprinting</h2>
+
+<p>Fingerprinting appends a content hash to filenames: <code>application.css</code> → <code>application-9f8e7d6c.css</code>. When you deploy updated CSS, the filename changes, forcing browsers to fetch the new version instead of using stale cache.</p>
+
+<p>Rails computes SHA256 hash of file contents and stores mappings in <code>.manifest.json</code>:</p>
+<div class="highlight"><pre class="highlight json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"application.css"</span><span class="p">:</span><span class="w"> </span><span class="s2">"application-9f8e7d6c5b4a3.css"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>Helpers like <code>asset_path()</code> and <code>stylesheet_link_tag()</code> consult this manifest to generate correct URLs.</p>
+
+<hr>
+
+<h2>Precompilation</h2>
+
+<p>Production requires pre-built assets. Run <code>rails assets:precompile</code> to compile Sass/JS, generate fingerprinted files in <code>public/assets/</code>, and create <code>.manifest.json</code>.</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nv">RAILS_ENV</span><span class="o">=</span>production rails assets:precompile
 </code></pre></div>
+<p><strong>Docker integration:</strong> Precompile in builder stage, copy <code>public/assets/</code> to final image:</p>
+<div class="highlight"><pre class="highlight docker"><code><span class="k">FROM</span><span class="w"> </span><span class="s">ruby:3.2-alpine</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s">builder</span>
+<span class="k">RUN </span><span class="nv">SECRET_KEY_BASE</span><span class="o">=</span>dummy rails assets:precompile
+
+<span class="k">FROM</span><span class="s"> ruby:3.2-alpine</span>
+<span class="k">COPY</span><span class="s"> --from=builder /app/public/assets /app/public/assets</span>
+</code></pre></div>
+<p><strong>Critical config:</strong> Set <code>config.assets.compile = false</code> in production to prevent on-the-fly compilation (security risk).</p>
+
+<hr>
+
+<h2>CDN Integration</h2>
+
+<p><strong>CloudFront:</strong> Create S3 bucket → upload assets → create CloudFront distribution with S3 origin → set TTL to 1 year → configure Rails:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/environments/production.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">asset_host</span> <span class="o">=</span> <span class="s2">"https://d111111abcdef8.cloudfront.net"</span>
+</code></pre></div>
+<p><strong>Cloudflare:</strong> Add domain → create page rule for <code>/assets/*</code> with max TTL → configure Rails:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span><span class="p">.</span><span class="nf">asset_host</span> <span class="o">=</span> <span class="s2">"https://assets.myapp.com"</span>
+</code></pre></div>
+<p>Cloudflare auto-caches assets without requiring S3. CloudFront requires S3 origin but offers more control.</p>
+
+<hr>
+
+<h2>Cache Headers</h2>
+
+<p><strong>Fingerprinted assets:</strong> Set <code>Cache-Control: public, max-age=31536000, immutable</code> for 1-year caching. The <code>immutable</code> directive prevents unnecessary revalidation.</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/environments/production.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">public_file_server</span><span class="p">.</span><span class="nf">headers</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s2">"Cache-Control"</span> <span class="o">=&gt;</span> <span class="s2">"public, max-age=31536000, immutable"</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>HTML pages:</strong> Use <code>Cache-Control: no-cache</code> or short TTLs. HTML references fingerprinted assets, so it must always fetch the latest version to get new asset URLs.</p>
+
+<p><strong>ETags:</strong> Rails sets <code>ETag</code> headers for conditional requests. Use <code>fresh_when(@resource)</code> in controllers to return <code>304 Not Modified</code> when content hasn&#39;t changed.</p>
+
+<hr>
+
+<h2>Serving Assets from S3</h2>
+
+<p><strong>Using asset_sync gem:</strong> Automatically uploads assets after precompilation. Configure with AWS credentials, bucket name, and enable gzip compression.</p>
+
+<p><strong>Manual upload:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code>aws s3 <span class="nb">sync </span>public/assets s3://myapp-assets/assets <span class="se">\</span>
+  <span class="nt">--acl</span> public-read <span class="se">\</span>
+  <span class="nt">--cache-control</span> <span class="s2">"public, max-age=31536000, immutable"</span>
+</code></pre></div>
+<p><strong>CORS setup (for fonts/images):</strong> Add CORS policy to S3 bucket allowing GET requests from your domain.</p>
+
 <hr>
 
 <h2>Best Practices</h2>
 
-<ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
-</ol>
+<ul>
+<li>Use Propshaft for new apps; precompile assets in CI/CD before deployment</li>
+<li>Set <code>config.assets.compile = false</code> in production to catch missing assets early</li>
+<li>Use CloudFront/Cloudflare for multi-region apps; direct S3 for simple deployments</li>
+<li>Set <code>Cache-Control: immutable</code> on fingerprinted assets, short TTLs on HTML</li>
+<li>Upload full <code>public/assets/</code> to S3 on every deploy to handle deletions</li>
+<li>Monitor CDN cache hit rates (target &gt;95%)</li>
+</ul>
 
 <hr>
 
 <h2>Key Terms</h2>
 
 <ul>
-<li><strong>Propshaft</strong></li>
-<li><strong>Sprockets</strong></li>
-<li><strong>CDN</strong></li>
-<li><strong>asset fingerprinting</strong></li>
-<li><strong>precompilation</strong></li>
+<li><strong>Propshaft</strong> - Rails 7+ asset pipeline (simpler than Sprockets)</li>
+<li><strong>Asset fingerprinting</strong> - Appending content hash to filenames for cache invalidation</li>
+<li><strong>Precompilation</strong> - Building production assets via <code>rails assets:precompile</code></li>
+<li><strong>CDN</strong> - Global edge caches (CloudFront, Cloudflare)</li>
+<li><strong>Cache-Control</strong> - HTTP header controlling caching behavior</li>
+<li><strong>Immutable</strong> - Cache directive indicating file will never change</li>
+<li><strong>Asset host</strong> - Domain serving static assets</li>
 </ul>
 
 <hr>
 
 <h2>Summary</h2>
 
-<p>Asset Pipeline &amp; CDN is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
+<p>Rails asset pipelines (Propshaft/Sprockets) compile and fingerprint static assets for production. Propshaft delegates JS bundling to external tools for simpler configuration. Fingerprinting ensures cache invalidation—new deploys change filenames, forcing cache misses. Precompile assets during deployment (Docker/CI/CD), never at runtime. Use CloudFront or Cloudflare to serve assets from global edge caches, reducing latency by 60-80%. Set <code>Cache-Control: immutable</code> on fingerprinted files, short TTLs on HTML to prevent stale asset bugs.</p>
 
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<p><strong>Next steps:</strong> Complete the exercise to configure Propshaft and deploy assets to CloudFront.</p>
 
     
   </div>
@@ -706,55 +809,611 @@
     
       <h1>Exercise: Asset Pipeline &amp; CDN</h1>
 
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
-
 <h2>Objective</h2>
 
-<p>Build hands-on experience with asset pipeline &amp; cdn through practical implementation.</p>
+<p>Configure Propshaft asset pipeline, precompile assets with fingerprinting, upload to S3, and serve via CloudFront CDN with proper cache headers.</p>
 
-<h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new asset_pipeline_cdn_practice
-<span class="nb">cd </span>asset_pipeline_cdn_practice
+<h2>Task</h2>
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
-</code></pre></div>
-<h2>Tasks</h2>
+<p>Build a complete asset delivery pipeline for a Rails 7 application:</p>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
+<ol>
+<li>Configure Propshaft with asset fingerprinting</li>
+<li>Set up CSS/JS preprocessing with esbuild and Tailwind</li>
+<li>Precompile assets and verify fingerprints</li>
+<li>Create S3 bucket and upload assets</li>
+<li>Configure CloudFront distribution as CDN</li>
+<li>Update Rails to serve assets from CloudFront</li>
+<li>Verify cache headers and CDN performance</li>
+</ol>
 
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
-</code></pre></div>
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
-
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
-
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
-
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
-
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
-
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
-</code></pre></div>
-<h2>Stretch Goals</h2>
+<h2>Acceptance Criteria</h2>
 
 <ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
+<li>[ ] Propshaft configured with asset fingerprinting enabled</li>
+<li>[ ] CSS built with Tailwind, JS bundled with esbuild</li>
+<li>[ ] <code>rails assets:precompile</code> generates fingerprinted files in <code>public/assets/</code></li>
+<li>[ ] <code>.manifest.json</code> maps logical to fingerprinted paths</li>
+<li>[ ] S3 bucket created with public-read permissions</li>
+<li>[ ] All assets uploaded to S3 with correct <code>Cache-Control</code> headers</li>
+<li>[ ] CloudFront distribution serves assets from S3 origin</li>
+<li>[ ] <code>config.asset_host</code> points to CloudFront URL</li>
+<li>[ ] Asset URLs include CloudFront domain and fingerprints</li>
+<li>[ ] Browser receives <code>Cache-Control: public, max-age=31536000, immutable</code></li>
 </ul>
+
+<h2>Setup Code</h2>
+
+<h3>Step 1: Create Rails App with Propshaft</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create new Rails 7 app (Propshaft is default)</span>
+rails new asset_cdn_demo <span class="nt">--css</span><span class="o">=</span>tailwind <span class="nt">--javascript</span><span class="o">=</span>esbuild
+<span class="nb">cd </span>asset_cdn_demo
+
+<span class="c"># Verify Gemfile includes propshaft</span>
+<span class="nb">grep </span>propshaft Gemfile
+<span class="c"># Should see: gem "propshaft"</span>
+</code></pre></div>
+<p>If using an existing app, add Propshaft:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s2">"propshaft"</span>
+
+<span class="c1"># Remove sprockets-rails if present</span>
+<span class="c1"># gem "sprockets-rails"</span>
+</code></pre></div><div class="highlight"><pre class="highlight shell"><code>bundle <span class="nb">install</span>
+</code></pre></div>
+<h3>Step 2: Configure Asset Paths</h3>
+
+<p>Edit <code>config/application.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">AssetCdnDemo</span>
+  <span class="k">class</span> <span class="nc">Application</span> <span class="o">&lt;</span> <span class="no">Rails</span><span class="o">::</span><span class="no">Application</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">load_defaults</span> <span class="mf">7.1</span>
+
+    <span class="c1"># Add esbuild output directory to asset paths</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">assets</span><span class="p">.</span><span class="nf">paths</span> <span class="o">&lt;&lt;</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">root</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s2">"app/assets/builds"</span><span class="p">)</span>
+
+    <span class="c1"># Ensure fingerprinting is enabled (default in production)</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">assets</span><span class="p">.</span><span class="nf">digest</span> <span class="o">=</span> <span class="kp">true</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 3: Create Sample Assets</h3>
+
+<p>Generate a controller with views:</p>
+<div class="highlight"><pre class="highlight shell"><code>rails generate controller Pages home about
+</code></pre></div>
+<p>Edit <code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">root</span> <span class="s2">"pages#home"</span>
+  <span class="n">get</span> <span class="s2">"about"</span><span class="p">,</span> <span class="ss">to: </span><span class="s2">"pages#about"</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Add CSS to <code>app/assets/stylesheets/application.tailwind.css</code>:</p>
+<div class="highlight"><pre class="highlight css"><code><span class="c">/* Existing Tailwind imports */</span>
+<span class="k">@tailwind</span> <span class="n">base</span><span class="p">;</span>
+<span class="k">@tailwind</span> <span class="n">components</span><span class="p">;</span>
+<span class="k">@tailwind</span> <span class="n">utilities</span><span class="p">;</span>
+
+<span class="c">/* Custom styles */</span>
+<span class="k">@layer</span> <span class="n">components</span> <span class="p">{</span>
+  <span class="nc">.hero-section</span> <span class="p">{</span>
+    <span class="err">@apply</span> <span class="err">bg-gradient-to-r</span> <span class="err">from-blue-500</span> <span class="err">to-purple-600</span> <span class="err">text-white</span> <span class="err">py-20</span> <span class="err">px-6;</span>
+  <span class="p">}</span>
+
+  <span class="nc">.card</span> <span class="p">{</span>
+    <span class="err">@apply</span> <span class="err">bg-white</span> <span class="err">rounded-lg</span> <span class="err">shadow-lg</span> <span class="err">p-6</span> <span class="py">hover</span><span class="p">:</span><span class="n">shadow-xl</span> <span class="n">transition-shadow</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Add JavaScript to <code>app/javascript/application.js</code>:</p>
+<div class="highlight"><pre class="highlight javascript"><code><span class="c1">// Entry point for the build script in package.json</span>
+<span class="nx">console</span><span class="p">.</span><span class="nf">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">Asset CDN Demo - JavaScript loaded!</span><span class="dl">"</span><span class="p">)</span>
+
+<span class="c1">// Simple interactive feature</span>
+<span class="nb">document</span><span class="p">.</span><span class="nf">addEventListener</span><span class="p">(</span><span class="dl">'</span><span class="s1">turbo:load</span><span class="dl">'</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="nx">cards</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nf">querySelectorAll</span><span class="p">(</span><span class="dl">'</span><span class="s1">.card</span><span class="dl">'</span><span class="p">)</span>
+
+  <span class="nx">cards</span><span class="p">.</span><span class="nf">forEach</span><span class="p">(</span><span class="nx">card</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">card</span><span class="p">.</span><span class="nf">addEventListener</span><span class="p">(</span><span class="dl">'</span><span class="s1">click</span><span class="dl">'</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+      <span class="nx">card</span><span class="p">.</span><span class="nx">classList</span><span class="p">.</span><span class="nf">toggle</span><span class="p">(</span><span class="dl">'</span><span class="s1">border-4</span><span class="dl">'</span><span class="p">)</span>
+      <span class="nx">card</span><span class="p">.</span><span class="nx">classList</span><span class="p">.</span><span class="nf">toggle</span><span class="p">(</span><span class="dl">'</span><span class="s1">border-blue-500</span><span class="dl">'</span><span class="p">)</span>
+    <span class="p">})</span>
+  <span class="p">})</span>
+<span class="p">})</span>
+</code></pre></div>
+<p>Edit <code>app/views/pages/home.html.erb</code>:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"hero-section"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"max-w-4xl mx-auto text-center"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;h1</span> <span class="na">class=</span><span class="s">"text-5xl font-bold mb-4"</span><span class="nt">&gt;</span>Asset Pipeline <span class="err">&amp;</span> CDN Demo<span class="nt">&lt;/h1&gt;</span>
+    <span class="nt">&lt;p</span> <span class="na">class=</span><span class="s">"text-xl mb-8"</span><span class="nt">&gt;</span>Serving assets from CloudFront CDN<span class="nt">&lt;/p&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+
+<span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"container mx-auto px-6 py-12"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"grid grid-cols-1 md:grid-cols-3 gap-6"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"card"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;h2</span> <span class="na">class=</span><span class="s">"text-2xl font-bold mb-2"</span><span class="nt">&gt;</span>Propshaft<span class="nt">&lt;/h2&gt;</span>
+      <span class="nt">&lt;p&gt;</span>Modern asset pipeline for Rails 7+<span class="nt">&lt;/p&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+
+    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"card"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;h2</span> <span class="na">class=</span><span class="s">"text-2xl font-bold mb-2"</span><span class="nt">&gt;</span>CloudFront CDN<span class="nt">&lt;/h2&gt;</span>
+      <span class="nt">&lt;p&gt;</span>Global edge caching for low latency<span class="nt">&lt;/p&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+
+    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"card"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;h2</span> <span class="na">class=</span><span class="s">"text-2xl font-bold mb-2"</span><span class="nt">&gt;</span>S3 Storage<span class="nt">&lt;/h2&gt;</span>
+      <span class="nt">&lt;p&gt;</span>Scalable static asset hosting<span class="nt">&lt;/p&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+  <span class="nt">&lt;/div&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</code></pre></div>
+<p>Edit <code>app/views/layouts/application.html.erb</code> to verify asset helpers:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="cp">&lt;!DOCTYPE html&gt;</span>
+<span class="nt">&lt;html&gt;</span>
+  <span class="nt">&lt;head&gt;</span>
+    <span class="nt">&lt;title&gt;</span>AssetCdnDemo<span class="nt">&lt;/title&gt;</span>
+    <span class="nt">&lt;meta</span> <span class="na">name=</span><span class="s">"viewport"</span> <span class="na">content=</span><span class="s">"width=device-width,initial-scale=1"</span><span class="nt">&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="n">csrf_meta_tags</span> <span class="cp">%&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="n">csp_meta_tag</span> <span class="cp">%&gt;</span>
+
+    <span class="cp">&lt;%=</span> <span class="n">stylesheet_link_tag</span> <span class="s2">"application"</span><span class="p">,</span> <span class="s2">"data-turbo-track"</span><span class="p">:</span> <span class="s2">"reload"</span> <span class="cp">%&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="n">javascript_include_tag</span> <span class="s2">"application"</span><span class="p">,</span> <span class="s2">"data-turbo-track"</span><span class="p">:</span> <span class="s2">"reload"</span><span class="p">,</span> <span class="ss">defer: </span><span class="kp">true</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;/head&gt;</span>
+
+  <span class="nt">&lt;body&gt;</span>
+    <span class="cp">&lt;%=</span> <span class="k">yield</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</code></pre></div>
+<h3>Step 4: Test Development Assets</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Start CSS and JS build watchers (in separate terminals)</span>
+./bin/dev
+
+<span class="c"># Or manually:</span>
+<span class="c"># Terminal 1</span>
+rails server
+
+<span class="c"># Terminal 2</span>
+yarn build:css <span class="nt">--watch</span>
+
+<span class="c"># Terminal 3</span>
+yarn build <span class="nt">--watch</span>
+</code></pre></div>
+<p>Visit <a href="http://localhost:3000" target="_blank">http://localhost:3000</a> - verify styles and JavaScript work.</p>
+
+<h3>Step 5: Precompile Assets</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Clean any previous assets</span>
+<span class="nb">rm</span> <span class="nt">-rf</span> public/assets
+
+<span class="c"># Precompile for production</span>
+<span class="nv">RAILS_ENV</span><span class="o">=</span>production rails assets:precompile
+</code></pre></div>
+<p><strong>Verify fingerprinted files:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">ls</span> <span class="nt">-lh</span> public/assets/
+
+<span class="c"># Should see files like:</span>
+<span class="c"># application-9f8e7d6c5b4a3210.css</span>
+<span class="c"># application-a1b2c3d4e5f6a7b8.js</span>
+<span class="c"># .manifest.json</span>
+</code></pre></div>
+<p><strong>Inspect manifest:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">cat </span>public/assets/.manifest.json | jq
+</code></pre></div>
+<p>Output shows logical-to-fingerprinted mappings:</p>
+<div class="highlight"><pre class="highlight json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"application.css"</span><span class="p">:</span><span class="w"> </span><span class="s2">"application-9f8e7d6c5b4a3210.css"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"application.js"</span><span class="p">:</span><span class="w"> </span><span class="s2">"application-a1b2c3d4e5f6a7b8.js"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<h3>Step 6: Create S3 Bucket</h3>
+
+<p><strong>Prerequisites:</strong> AWS CLI installed and configured (<code>aws configure</code>)</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Set variables</span>
+<span class="nv">BUCKET_NAME</span><span class="o">=</span><span class="s2">"your-app-assets-</span><span class="si">$(</span><span class="nb">date</span> +%s<span class="si">)</span><span class="s2">"</span>
+<span class="nv">AWS_REGION</span><span class="o">=</span><span class="s2">"us-east-1"</span>
+
+<span class="c"># Create bucket</span>
+aws s3 mb s3://<span class="nv">$BUCKET_NAME</span> <span class="nt">--region</span> <span class="nv">$AWS_REGION</span>
+
+<span class="c"># Configure bucket for public-read access</span>
+aws s3api put-public-access-block <span class="se">\</span>
+  <span class="nt">--bucket</span> <span class="nv">$BUCKET_NAME</span> <span class="se">\</span>
+  <span class="nt">--public-access-block-configuration</span> <span class="se">\</span>
+  <span class="s2">"BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false"</span>
+
+<span class="c"># Add bucket policy for public read</span>
+<span class="nb">cat</span> <span class="o">&gt;</span> /tmp/bucket-policy.json <span class="o">&lt;&lt;</span><span class="sh">'</span><span class="no">EOF</span><span class="sh">'
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::BUCKET_NAME/*"
+    }
+  ]
+}
+</span><span class="no">EOF
+
+</span><span class="c"># Replace BUCKET_NAME in policy</span>
+<span class="nb">sed</span> <span class="nt">-i</span> <span class="s2">"s/BUCKET_NAME/</span><span class="nv">$BUCKET_NAME</span><span class="s2">/g"</span> /tmp/bucket-policy.json
+
+<span class="c"># Apply policy</span>
+aws s3api put-bucket-policy <span class="se">\</span>
+  <span class="nt">--bucket</span> <span class="nv">$BUCKET_NAME</span> <span class="se">\</span>
+  <span class="nt">--policy</span> file:///tmp/bucket-policy.json
+</code></pre></div>
+<h3>Step 7: Upload Assets to S3</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Sync assets with proper cache headers</span>
+aws s3 <span class="nb">sync </span>public/assets s3://<span class="nv">$BUCKET_NAME</span>/assets <span class="se">\</span>
+  <span class="nt">--acl</span> public-read <span class="se">\</span>
+  <span class="nt">--cache-control</span> <span class="s2">"public, max-age=31536000, immutable"</span> <span class="se">\</span>
+  <span class="nt">--exclude</span> <span class="s2">".manifest.json"</span>
+
+<span class="c"># Upload manifest separately with shorter cache (for debugging)</span>
+aws s3 <span class="nb">cp </span>public/assets/.manifest.json s3://<span class="nv">$BUCKET_NAME</span>/assets/ <span class="se">\</span>
+  <span class="nt">--acl</span> public-read <span class="se">\</span>
+  <span class="nt">--cache-control</span> <span class="s2">"public, max-age=3600"</span>
+</code></pre></div>
+<p><strong>Verify upload:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code>aws s3 <span class="nb">ls </span>s3://<span class="nv">$BUCKET_NAME</span>/assets/ <span class="nt">--recursive</span>
+
+<span class="c"># Test public URL (replace with your bucket name and filename)</span>
+curl <span class="nt">-I</span> https://<span class="nv">$BUCKET_NAME</span>.s3.amazonaws.com/assets/application-&lt;fingerprint&gt;.css
+</code></pre></div>
+<p>Should return:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>HTTP/1.1 200 OK
+Cache-Control: public, max-age=31536000, immutable
+Content-Type: text/css
+</code></pre></div>
+<h3>Step 8: Create CloudFront Distribution</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create distribution config</span>
+<span class="nb">cat</span> <span class="o">&gt;</span> /tmp/cloudfront-config.json <span class="o">&lt;&lt;</span><span class="no">EOF</span><span class="sh">
+{
+  "CallerReference": "asset-cdn-</span><span class="si">$(</span><span class="nb">date</span> +%s<span class="si">)</span><span class="sh">",
+  "Comment": "Asset CDN for Rails app",
+  "Enabled": true,
+  "Origins": {
+    "Quantity": 1,
+    "Items": [
+      {
+        "Id": "S3-</span><span class="nv">$BUCKET_NAME</span><span class="sh">",
+        "DomainName": "</span><span class="nv">$BUCKET_NAME</span><span class="sh">.s3.amazonaws.com",
+        "OriginPath": "/assets",
+        "S3OriginConfig": {
+          "OriginAccessIdentity": ""
+        }
+      }
+    ]
+  },
+  "DefaultCacheBehavior": {
+    "TargetOriginId": "S3-</span><span class="nv">$BUCKET_NAME</span><span class="sh">",
+    "ViewerProtocolPolicy": "redirect-to-https",
+    "AllowedMethods": {
+      "Quantity": 2,
+      "Items": ["GET", "HEAD"],
+      "CachedMethods": {
+        "Quantity": 2,
+        "Items": ["GET", "HEAD"]
+      }
+    },
+    "Compress": true,
+    "MinTTL": 0,
+    "DefaultTTL": 31536000,
+    "MaxTTL": 31536000,
+    "ForwardedValues": {
+      "QueryString": false,
+      "Cookies": {"Forward": "none"}
+    }
+  }
+}
+</span><span class="no">EOF
+
+</span><span class="c"># Create distribution</span>
+aws cloudfront create-distribution <span class="nt">--distribution-config</span> file:///tmp/cloudfront-config.json
+
+<span class="c"># Get distribution domain name (takes ~15 minutes to deploy)</span>
+aws cloudfront list-distributions <span class="nt">--query</span> <span class="s1">'DistributionList.Items[0].DomainName'</span> <span class="nt">--output</span> text
+</code></pre></div>
+<p><strong>Note:</strong> CloudFront deployment takes 10-20 minutes. Save the domain name (e.g., <code>d111111abcdef8.cloudfront.net</code>).</p>
+
+<p><strong>Alternative: Use AWS Console</strong></p>
+
+<ol>
+<li>Go to CloudFront → Create Distribution</li>
+<li>Origin domain: <code>your-bucket.s3.amazonaws.com</code></li>
+<li>Origin path: <code>/assets</code></li>
+<li>Viewer protocol policy: Redirect HTTP to HTTPS</li>
+<li>Compress objects automatically: Yes</li>
+<li>Cache policy: CachingOptimized</li>
+<li>Create distribution</li>
+</ol>
+
+<h3>Step 9: Configure Rails for CloudFront</h3>
+
+<p>Edit <code>config/environments/production.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span>
+  <span class="c1"># ... existing config ...</span>
+
+  <span class="c1"># Serve assets from CloudFront</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">asset_host</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"ASSET_HOST"</span><span class="p">,</span> <span class="s2">"https://d111111abcdef8.cloudfront.net"</span><span class="p">)</span>
+
+  <span class="c1"># Disable Rails static file serving (CDN serves assets)</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">public_file_server</span><span class="p">.</span><span class="nf">enabled</span> <span class="o">=</span> <span class="kp">false</span>
+
+  <span class="c1"># Don't fallback to assets pipeline if a precompiled asset is missed</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">assets</span><span class="p">.</span><span class="nf">compile</span> <span class="o">=</span> <span class="kp">false</span>
+
+  <span class="c1"># Enable serving of images, stylesheets, and JavaScripts from an asset server</span>
+  <span class="c1"># (Already set via config.asset_host)</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>For development testing, create <code>.env</code>:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">echo</span> <span class="s1">'ASSET_HOST=https://d111111abcdef8.cloudfront.net'</span> <span class="o">&gt;</span> .env
+</code></pre></div>
+<h3>Step 10: Test Asset URLs</h3>
+
+<p>Start Rails in production mode locally:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Set secret key for production</span>
+<span class="nb">export </span><span class="nv">SECRET_KEY_BASE</span><span class="o">=</span><span class="si">$(</span>rails secret<span class="si">)</span>
+<span class="nb">export </span><span class="nv">ASSET_HOST</span><span class="o">=</span>https://d111111abcdef8.cloudfront.net
+
+<span class="c"># Run production server</span>
+<span class="nv">RAILS_ENV</span><span class="o">=</span>production rails server <span class="nt">-e</span> production
+</code></pre></div>
+<p>Visit <a href="http://localhost:3000" target="_blank">http://localhost:3000</a>, view page source:</p>
+<div class="highlight"><pre class="highlight html"><code><span class="c">&lt;!-- Should see CloudFront URLs --&gt;</span>
+<span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">"stylesheet"</span> <span class="na">href=</span><span class="s">"https://d111111abcdef8.cloudfront.net/assets/application-9f8e7d6c.css"</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"https://d111111abcdef8.cloudfront.net/assets/application-a1b2c3d4.js"</span> <span class="na">defer</span><span class="nt">&gt;&lt;/script&gt;</span>
+</code></pre></div>
+<p><strong>Test in console:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">rails</span> <span class="n">console</span> <span class="o">-</span><span class="n">e</span> <span class="n">production</span>
+
+<span class="c1"># Test asset path helpers</span>
+<span class="no">ActionController</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">helpers</span><span class="p">.</span><span class="nf">asset_path</span><span class="p">(</span><span class="s2">"application.css"</span><span class="p">)</span>
+<span class="c1"># =&gt; "https://d111111abcdef8.cloudfront.net/assets/application-9f8e7d6c.css"</span>
+
+<span class="no">ActionController</span><span class="o">::</span><span class="no">Base</span><span class="p">.</span><span class="nf">helpers</span><span class="p">.</span><span class="nf">stylesheet_link_tag</span><span class="p">(</span><span class="s2">"application"</span><span class="p">)</span>
+<span class="c1"># =&gt; &lt;link rel="stylesheet" href="https://d111111abcdef8.cloudfront.net/assets/application-9f8e7d6c.css" /&gt;</span>
+</code></pre></div>
+<h3>Step 11: Verify Cache Headers</h3>
+
+<p>Use curl to check CloudFront cache headers:</p>
+<div class="highlight"><pre class="highlight shell"><code>curl <span class="nt">-I</span> https://d111111abcdef8.cloudfront.net/assets/application-9f8e7d6c.css
+</code></pre></div>
+<p>Expected headers:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>HTTP/2 200
+content-type: text/css
+cache-control: public, max-age=31536000, immutable
+x-cache: Hit from cloudfront
+age: 3600
+</code></pre></div>
+<p><strong><code>x-cache: Hit from cloudfront</code></strong> means CDN is serving cached asset (not hitting S3).</p>
+
+<p><strong>On first request:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>x-cache: Miss from cloudfront
+</code></pre></div>
+<p><strong>Second request:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>x-cache: Hit from cloudfront
+age: 10  # seconds since cached
+</code></pre></div>
+<h3>Step 12: Deployment Automation Script</h3>
+
+<p>Create <code>bin/deploy-assets.sh</code>:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c">#!/bin/bash</span>
+<span class="nb">set</span> <span class="nt">-e</span>
+
+<span class="nb">echo</span> <span class="s2">"==&gt; Precompiling assets..."</span>
+<span class="nv">RAILS_ENV</span><span class="o">=</span>production rails assets:precompile
+
+<span class="nb">echo</span> <span class="s2">"==&gt; Uploading to S3..."</span>
+aws s3 <span class="nb">sync </span>public/assets s3://<span class="nv">$BUCKET_NAME</span>/assets <span class="se">\</span>
+  <span class="nt">--acl</span> public-read <span class="se">\</span>
+  <span class="nt">--cache-control</span> <span class="s2">"public, max-age=31536000, immutable"</span> <span class="se">\</span>
+  <span class="nt">--delete</span> <span class="se">\</span>
+  <span class="nt">--exclude</span> <span class="s2">".manifest.json"</span>
+
+aws s3 <span class="nb">cp </span>public/assets/.manifest.json s3://<span class="nv">$BUCKET_NAME</span>/assets/ <span class="se">\</span>
+  <span class="nt">--acl</span> public-read <span class="se">\</span>
+  <span class="nt">--cache-control</span> <span class="s2">"public, max-age=3600"</span>
+
+<span class="nb">echo</span> <span class="s2">"==&gt; Invalidating CloudFront cache..."</span>
+<span class="nv">DISTRIBUTION_ID</span><span class="o">=</span><span class="si">$(</span>aws cloudfront list-distributions <span class="nt">--query</span> <span class="s1">'DistributionList.Items[0].Id'</span> <span class="nt">--output</span> text<span class="si">)</span>
+aws cloudfront create-invalidation <span class="se">\</span>
+  <span class="nt">--distribution-id</span> <span class="nv">$DISTRIBUTION_ID</span> <span class="se">\</span>
+  <span class="nt">--paths</span> <span class="s2">"/assets/*"</span>
+
+<span class="nb">echo</span> <span class="s2">"==&gt; Assets deployed successfully!"</span>
+</code></pre></div>
+<p>Make executable:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">chmod</span> +x bin/deploy-assets.sh
+
+<span class="c"># Set bucket name</span>
+<span class="nb">export </span><span class="nv">BUCKET_NAME</span><span class="o">=</span>your-app-assets-1234567890
+
+<span class="c"># Run deployment</span>
+./bin/deploy-assets.sh
+</code></pre></div>
+<h2>Verification Steps</h2>
+
+<h3>1. Verify Fingerprinting Works</h3>
+
+<p>Make a CSS change:</p>
+<div class="highlight"><pre class="highlight css"><code><span class="c">/* app/assets/stylesheets/application.tailwind.css */</span>
+<span class="nc">.hero-section</span> <span class="p">{</span>
+  <span class="err">@apply</span> <span class="err">bg-gradient-to-r</span> <span class="err">from-green-500</span> <span class="err">to-blue-600</span> <span class="err">text-white</span> <span class="err">py-20</span> <span class="err">px-6;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Recompile:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nv">RAILS_ENV</span><span class="o">=</span>production rails assets:precompile
+</code></pre></div>
+<p>Check new fingerprint:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">ls </span>public/assets/application-<span class="k">*</span>.css
+
+<span class="c"># Should see NEW fingerprint</span>
+<span class="c"># application-xyz789newHash.css</span>
+</code></pre></div>
+<h3>2. Verify CDN Cache Hit Rate</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Make multiple requests</span>
+<span class="k">for </span>i <span class="k">in</span> <span class="o">{</span>1..10<span class="o">}</span><span class="p">;</span> <span class="k">do
+  </span>curl <span class="nt">-I</span> https://d111111abcdef8.cloudfront.net/assets/application-9f8e7d6c.css | <span class="nb">grep </span>x-cache
+<span class="k">done</span>
+
+<span class="c"># Should see:</span>
+<span class="c"># x-cache: Miss from cloudfront  (first request)</span>
+<span class="c"># x-cache: Hit from cloudfront   (subsequent 9 requests)</span>
+</code></pre></div>
+<h3>3. Test Immutable Cache Directive</h3>
+<div class="highlight"><pre class="highlight shell"><code>curl <span class="nt">-I</span> https://d111111abcdef8.cloudfront.net/assets/application-9f8e7d6c.css | <span class="nb">grep</span> <span class="nt">-i</span> cache-control
+
+<span class="c"># Expected:</span>
+<span class="c"># cache-control: public, max-age=31536000, immutable</span>
+</code></pre></div>
+<h3>4. Performance Comparison</h3>
+
+<p>Test CloudFront vs direct S3:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># CloudFront (with edge caching)</span>
+<span class="nb">time </span>curl <span class="nt">-so</span> /dev/null https://d111111abcdef8.cloudfront.net/assets/application-9f8e7d6c.css
+<span class="c"># Real: ~50ms (from edge location)</span>
+
+<span class="c"># Direct S3 (no edge caching)</span>
+<span class="nb">time </span>curl <span class="nt">-so</span> /dev/null https://<span class="nv">$BUCKET_NAME</span>.s3.amazonaws.com/assets/application-9f8e7d6c.css
+<span class="c"># Real: ~200ms (from us-east-1)</span>
+</code></pre></div>
+<p>CloudFront should be 3-4x faster for global users.</p>
+
+<h2>Stretch Goals</h2>
+
+<h3>1. Implement asset_sync Gem</h3>
+
+<p>Automate S3 uploads:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s2">"asset_sync"</span>
+
+<span class="c1"># config/initializers/asset_sync.rb</span>
+<span class="k">if</span> <span class="k">defined?</span><span class="p">(</span><span class="no">AssetSync</span><span class="p">)</span>
+  <span class="no">AssetSync</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">fog_provider</span> <span class="o">=</span> <span class="s2">"AWS"</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">aws_access_key_id</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">[</span><span class="s2">"AWS_ACCESS_KEY_ID"</span><span class="p">]</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">aws_secret_access_key</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">[</span><span class="s2">"AWS_SECRET_ACCESS_KEY"</span><span class="p">]</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">fog_directory</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">[</span><span class="s2">"S3_BUCKET_NAME"</span><span class="p">]</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">fog_region</span> <span class="o">=</span> <span class="no">ENV</span><span class="p">[</span><span class="s2">"AWS_REGION"</span><span class="p">]</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">gzip_compression</span> <span class="o">=</span> <span class="kp">true</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">manifest</span> <span class="o">=</span> <span class="kp">true</span>
+    <span class="n">config</span><span class="p">.</span><span class="nf">existing_remote_files</span> <span class="o">=</span> <span class="s2">"keep"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Deploy:</p>
+<div class="highlight"><pre class="highlight shell"><code>rails assets:precompile
+<span class="c"># Automatically uploads to S3 after precompile</span>
+</code></pre></div>
+<h3>2. Add Brotli Compression</h3>
+
+<p>Generate compressed versions:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Install brotli</span>
+brew <span class="nb">install </span>brotli  <span class="c"># macOS</span>
+<span class="c"># apt-get install brotli  # Ubuntu</span>
+
+<span class="c"># Compress CSS and JS</span>
+find public/assets <span class="nt">-type</span> f <span class="se">\(</span> <span class="nt">-name</span> <span class="s2">"*.css"</span> <span class="nt">-o</span> <span class="nt">-name</span> <span class="s2">"*.js"</span> <span class="se">\)</span> <span class="nt">-exec</span> brotli <span class="o">{}</span> <span class="se">\;</span>
+
+<span class="c"># Upload with Content-Encoding</span>
+aws s3 <span class="nb">sync </span>public/assets s3://<span class="nv">$BUCKET_NAME</span>/assets <span class="se">\</span>
+  <span class="nt">--exclude</span> <span class="s2">"*"</span> <span class="se">\</span>
+  <span class="nt">--include</span> <span class="s2">"*.br"</span> <span class="se">\</span>
+  <span class="nt">--content-encoding</span> <span class="s2">"br"</span> <span class="se">\</span>
+  <span class="nt">--cache-control</span> <span class="s2">"public, max-age=31536000, immutable"</span>
+</code></pre></div>
+<h3>3. Implement Subresource Integrity (SRI)</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/initializers/propshaft.rb</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">config</span><span class="p">.</span><span class="nf">assets</span><span class="p">.</span><span class="nf">unknown_asset_fallback</span> <span class="o">=</span> <span class="kp">false</span>
+
+<span class="c1"># Generate SRI hashes</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">config</span><span class="p">.</span><span class="nf">assets</span><span class="p">.</span><span class="nf">resolve_with</span> <span class="o">&lt;&lt;</span> <span class="no">Propshaft</span><span class="o">::</span><span class="no">Resolver</span><span class="o">::</span><span class="no">Integrity</span><span class="p">.</span><span class="nf">new</span>
+</code></pre></div>
+<p>Update layout:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="cp">&lt;%=</span> <span class="n">stylesheet_link_tag</span> <span class="s2">"application"</span><span class="p">,</span> <span class="ss">integrity: </span><span class="kp">true</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%=</span> <span class="n">javascript_include_tag</span> <span class="s2">"application"</span><span class="p">,</span> <span class="ss">integrity: </span><span class="kp">true</span> <span class="cp">%&gt;</span>
+</code></pre></div>
+<p>Generates:</p>
+<div class="highlight"><pre class="highlight html"><code><span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">"stylesheet"</span> <span class="na">href=</span><span class="s">"https://cdn.example.com/assets/app.css"</span>
+  <span class="na">integrity=</span><span class="s">"sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxECu1E2XPmcrpVvWSLpU2kEGSq4R9B"</span> <span class="nt">/&gt;</span>
+</code></pre></div>
+<h3>4. Configure Multiple Asset Hosts (Sharding)</h3>
+
+<p>For parallelizing downloads:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/environments/production.rb</span>
+<span class="n">config</span><span class="p">.</span><span class="nf">action_controller</span><span class="p">.</span><span class="nf">asset_host</span> <span class="o">=</span> <span class="no">Proc</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="o">|</span><span class="n">source</span><span class="o">|</span>
+  <span class="s2">"https://assets</span><span class="si">#{</span><span class="no">Digest</span><span class="o">::</span><span class="no">MD5</span><span class="p">.</span><span class="nf">hexdigest</span><span class="p">(</span><span class="n">source</span><span class="p">).</span><span class="nf">to_i</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span> <span class="o">%</span> <span class="mi">4</span><span class="si">}</span><span class="s2">.example.com"</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Distributes assets across:<br>
+- <code>assets0.example.com</code><br>
+- <code>assets1.example.com</code><br>
+- <code>assets2.example.com</code><br>
+- <code>assets3.example.com</code></p>
+
+<h3>5. Monitor CloudFront with CloudWatch</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Get metrics</span>
+aws cloudwatch get-metric-statistics <span class="se">\</span>
+  <span class="nt">--namespace</span> AWS/CloudFront <span class="se">\</span>
+  <span class="nt">--metric-name</span> Requests <span class="se">\</span>
+  <span class="nt">--dimensions</span> <span class="nv">Name</span><span class="o">=</span>DistributionId,Value<span class="o">=</span><span class="nv">$DISTRIBUTION_ID</span> <span class="se">\</span>
+  <span class="nt">--start-time</span> 2024-01-01T00:00:00Z <span class="se">\</span>
+  <span class="nt">--end-time</span> 2024-01-02T00:00:00Z <span class="se">\</span>
+  <span class="nt">--period</span> 3600 <span class="se">\</span>
+  <span class="nt">--statistics</span> Sum
+</code></pre></div>
+<p>Track:<br>
+- Cache hit rate (target &gt;95%)<br>
+- 4xx/5xx error rates<br>
+- Data transfer out<br>
+- Request count</p>
 
 <h2>Solution Notes</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p><strong>Common Gotchas:</strong></p>
+
+<ol>
+<li><p><strong>Assets return 403 Forbidden:</strong> S3 bucket policy not set correctly. Verify <code>s3:GetObject</code> is public.</p></li>
+<li><p><strong>404 on asset URLs:</strong> Fingerprint changed but CloudFront has old cached version. Invalidate CloudFront cache:<br>
+<code>bash<br>
+aws cloudfront create-invalidation --distribution-id $DIST_ID --paths &quot;/*&quot;<br>
+</code></p></li>
+<li><p><strong>CSS not loading from CDN:</strong> Check CORS headers if using fonts. Add CORS policy to S3 bucket.</p></li>
+<li><p><strong>Assets recompile every time:</strong> <code>.manifest.json</code> is being deleted. Ensure it&#39;s preserved during deploys.</p></li>
+<li><p><strong>CloudFront serves stale assets:</strong> Check TTL settings. Fingerprints should change on content updates.</p></li>
+</ol>
+
+<p><strong>Cache Invalidation Best Practices:</strong></p>
+
+<ul>
+<li>Avoid frequent invalidations (costs money after 1000/month)</li>
+<li>Use fingerprinting instead of invalidations</li>
+<li>Only invalidate if you must fix a critical bug in deployed assets</li>
+<li>Invalidate specific paths, not <code>/*</code></li>
+</ul>
+
+<p><strong>Production Checklist:</strong></p>
+
+<ul>
+<li>[ ] <code>config.assets.compile = false</code> (no runtime compilation)</li>
+<li>[ ] <code>config.assets.digest = true</code> (fingerprinting enabled)</li>
+<li>[ ] CloudFront distribution uses HTTPS</li>
+<li>[ ] S3 bucket has public-read policy</li>
+<li>[ ] Cache-Control headers set to <code>max-age=31536000, immutable</code></li>
+<li>[ ] HTML pages have <code>no-cache</code> to avoid stale references</li>
+<li>[ ] Asset URLs include CloudFront domain</li>
+<li>[ ] CI/CD runs <code>rails assets:precompile</code> before deploy</li>
+<li>[ ] Assets uploaded to S3 after every deploy</li>
+</ul>
+
+<h2>Time Estimate</h2>
+
+<p>28 minutes</p>
 
     
   </div>
@@ -766,74 +1425,368 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="To append a content hash to filenames, enabling cache invalidation when assets change">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the primary purpose of asset fingerprinting in Rails?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  To compress assets for faster downloads
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  To append a content hash to filenames, enabling cache invalidation when assets change
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  To encrypt assets for security purposes
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  To organize assets into logical directories
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Fingerprinting generates a unique hash based on file content (e.g., application-9f8e7d6c.css). When content changes, the filename changes, forcing browsers to download the new version instead of using a stale cached copy. This solves the cache invalidation problem without manual purges.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Propshaft is simpler, delegates JS/CSS preprocessing to external tools (esbuild/Vite), and focuses only on asset serving with fingerprints">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">How does Propshaft differ from Sprockets in Rails 7+?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  Propshaft is slower but more feature-rich than Sprockets
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  Propshaft handles JavaScript bundling internally while Sprockets requires external tools
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  Propshaft is simpler, delegates JS/CSS preprocessing to external tools (esbuild/Vite), and focuses only on asset serving with fingerprints
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Propshaft and Sprockets are identical; Propshaft is just a rename
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Propshaft eliminates Sprockets' directive system (//= require) and preprocessing complexity. It expects precompiled CSS/JS from external tools and focuses on fingerprinting and serving. This makes it faster and easier to configure for modern Rails apps.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Cache-Control: public, max-age=31536000, immutable">
+          <h4>Question 3 (2 points)</h4>
+          <p style="margin: 10px 0;">What Cache-Control header should be set for fingerprinted assets?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  Cache-Control: no-cache, no-store
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  Cache-Control: public, max-age=3600
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  Cache-Control: public, max-age=31536000, immutable
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  Cache-Control: private, must-revalidate
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Fingerprinted assets never change (new content = new filename). Setting max-age to 1 year (31536000 seconds) with 'immutable' tells browsers and CDNs to cache aggressively without revalidation. This maximizes cache hit rates and reduces origin requests.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="HTML references fingerprinted asset URLs; if HTML is cached too long, it will serve old asset references after deployments">
+          <h4>Question 4 (2 points)</h4>
+          <p style="margin: 10px 0;">Why should HTML pages have different cache headers than fingerprinted assets?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  HTML is smaller than assets and doesn't need caching
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  HTML references fingerprinted asset URLs; if HTML is cached too long, it will serve old asset references after deployments
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  Browsers automatically cache HTML regardless of headers
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  CDNs cannot cache HTML pages
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> HTML contains references to fingerprinted assets. After a deploy, new HTML references new fingerprints (application-newHash.css). If HTML is cached for 1 year, users see old HTML with old asset references. HTML should have short TTLs (no-cache or max-age=300) while fingerprinted assets cache forever.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Mappings from logical asset paths (application.css) to fingerprinted paths (application-9f8e7d6c.css)">
+          <h4>Question 5 (1 points)</h4>
+          <p style="margin: 10px 0;">What does the .manifest.json file contain?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  A list of all Rails routes and their asset dependencies
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  Mappings from logical asset paths (application.css) to fingerprinted paths (application-9f8e7d6c.css)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  Configuration settings for the asset pipeline
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  A backup of all compiled assets
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Rails helpers like asset_path() and stylesheet_link_tag() consult .manifest.json to resolve logical names to fingerprinted files. For example, asset_path('application.css') looks up 'application.css' in the manifest and returns '/assets/application-9f8e7d6c.css'.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="During the deployment process (CI/CD or Docker build), before deploying the application">
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">When should rails assets:precompile be run?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  On every server restart in production
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  During the deployment process (CI/CD or Docker build), before deploying the application
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  Only when assets change, manually triggered by developers
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  Automatically on first request in production
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Precompilation is expensive (runs esbuild, Tailwind, generates fingerprints). Running it during deployment ensures compiled assets are ready before the app starts. In Docker, precompile in the builder stage. Never compile on-the-fly in production (config.assets.compile = false).
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="CDNs cache assets at edge locations globally, reducing latency and offloading requests from origin servers">
+          <h4>Question 7 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the benefit of using a CDN like CloudFront or Cloudflare for serving assets?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  CDNs compress assets more efficiently than Rails
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  CDNs cache assets at edge locations globally, reducing latency and offloading requests from origin servers
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  CDNs automatically optimize asset code (minify CSS/JS)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  CDNs are required for asset fingerprinting to work
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> CDNs have edge servers worldwide. When a user in Tokyo requests an asset, it's served from a nearby edge cache (~20ms) instead of traveling to your origin server in Virginia (~200ms). This reduces latency by 60-80% and can offload 95%+ of asset requests from your app servers.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="The CDN served the asset from its cache without contacting the origin server">
+          <h4>Question 8 (1 points)</h4>
+          <p style="margin: 10px 0;">What does the x-cache: Hit from cloudfront header indicate?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  The request bypassed the CDN and went directly to the origin server
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  The CDN served the asset from its cache without contacting the origin server
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  The asset failed to upload to the CDN
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  The CDN rejected the request due to invalid headers
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> x-cache: Hit means the asset was found in CloudFront's edge cache. x-cache: Miss means CloudFront fetched it from the origin (S3). High cache hit rates (>95%) indicate your caching strategy is working correctly.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Rails requires all assets to be present, and uploading only changed files can leave gaps if old assets are deleted">
+          <h4>Question 9 (2 points)</h4>
+          <p style="margin: 10px 0;">Why should you upload the full public/assets directory to S3 on every deploy instead of only changed files?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(8, 0)">
+                  S3 doesn't support incremental uploads
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 1)">
+                  Rails requires all assets to be present, and uploading only changed files can leave gaps if old assets are deleted
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 2)">
+                  Full uploads are faster than incremental uploads
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 3)">
+                  S3 automatically deduplicates identical files
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> If you delete an asset locally or rename it, uploading only 'changed' files won't remove the old version from S3, wasting space. Worse, if an asset is removed but .manifest.json still references it, you'll get 404s. Using aws s3 sync with --delete ensures S3 mirrors public/assets exactly.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Precompile assets in the builder stage, then COPY public/assets/ to the final stage">
+          <h4>Question 10 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the correct approach to handle asset precompilation in a multi-stage Dockerfile?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(9, 0)">
+                  Precompile assets in the final runtime stage using CMD rails assets:precompile
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 1)">
+                  Precompile assets in the builder stage, then COPY public/assets/ to the final stage
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 2)">
+                  Skip precompilation in Docker; compile assets on the host before building
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 3)">
+                  Use a separate Docker container just for asset compilation
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Asset precompilation requires Node.js, Yarn, and build tools (large dependencies). In a multi-stage build, the builder stage has these tools, compiles assets, then the final stage COPY only the compiled output. This keeps the runtime image small and avoids recompiling on every container start.
+              </div>
+            
           
         </div>
       
@@ -847,7 +1800,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -863,33 +1816,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://guides.rubyonrails.org/asset_pipeline.html" target="_blank">Rails Asset Pipeline Guide (Official)</a>
+            <div class="why">Official Rails documentation on asset pipeline fundamentals, fingerprinting, precompilation, and configuration options for both Sprockets and Propshaft.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/rails/propshaft" target="_blank">Propshaft - The Modern Asset Pipeline</a>
+            <div class="why">Official Propshaft repository with documentation on Rails 7+ asset pipeline, configuration examples, and migration guides from Sprockets.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/GettingStarted.html" target="_blank">AWS CloudFront Documentation - Getting Started</a>
+            <div class="why">Comprehensive guide to setting up CloudFront distributions, configuring cache behaviors, and integrating S3 as an origin for static assets.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://developers.cloudflare.com/cache/best-practices/" target="_blank">Cloudflare CDN - Caching Best Practices</a>
+            <div class="why">Best practices for CDN caching strategies, cache headers (Cache-Control, ETag), TTL configuration, and edge caching optimization.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://developer.mozilla.org/en-US/Web-Services/HTTP/Caching" target="_blank">MDN Web Docs - HTTP Caching</a>
+            <div class="why">Detailed explanation of HTTP caching mechanisms, Cache-Control directives (immutable, max-age), ETag validation, and browser caching behavior.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/AssetSync/asset_sync" target="_blank">Asset Sync Gem for Rails</a>
+            <div class="why">Gem for automatically syncing compiled Rails assets to S3 after precompilation, with configuration examples and deployment workflows.</div>
+          </li>
+        
+          <li>
+            <a href="https://hpbn.co/http-caching/" target="_blank">High Performance Browser Networking (Book Chapter)</a>
+            <div class="why">In-depth coverage of caching strategies, CDN architecture, edge caching, cache invalidation patterns, and performance optimization techniques.</div>
           </li>
         
       </ul>

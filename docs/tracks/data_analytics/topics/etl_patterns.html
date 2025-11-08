@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,71 +656,361 @@
 
 <h2>What It Is</h2>
 
-<p>ETL Patterns in Rails is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>ETL (Extract, Transform, Load) is a data pipeline pattern for moving data between systems. Extract reads data from sources (CSV files, APIs, databases). Transform validates, cleans, and normalizes the data. Load inserts or updates records in the target database. Idempotency ensures pipelines can re-run without duplicating data. Incremental refresh processes only changed records; full refresh replaces all data.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Production applications regularly import customer data, sync third-party APIs, migrate legacy systems, or aggregate analytics. Without proper ETL patterns, you risk data corruption, duplicate records, memory exhaustion, or failed imports that leave partial data. Rails developers must handle CSV files with millions of rows, validate data before insertion, recover from errors mid-import, and ensure imports are idempotent for safe retries.</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li>Import customer data from CSV files uploaded by users or partners</li>
+<li>Sync inventory, pricing, or product catalogs from third-party APIs</li>
+<li>Migrate data from legacy systems during platform transitions</li>
+<li>Aggregate event logs or metrics for analytics dashboards</li>
+<li>Reconcile data between microservices or external data warehouses</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><strong>Loading entire CSV into memory:</strong> Reading a 500MB CSV file with <code>CSV.read()</code> causes out-of-memory crashes. Stream rows with <code>CSV.foreach()</code> to process one row at a time, keeping memory constant.</li>
+<li><strong>No validation before insert:</strong> Invalid data (null emails, negative prices, malformed dates) causes database errors mid-import, leaving partial data. Validate each row; collect errors; rollback or skip invalid rows.</li>
+<li><strong>Non-idempotent imports without tracking:</strong> Re-running an ETL job creates duplicate records. Use unique constraints, upsert operations (<code>INSERT ON CONFLICT</code>), or track processed file checksums to safely re-run jobs.</li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>Extract Patterns</h2>
 
-<h3>Key Concept 1</h3>
+<h3>CSV Extraction</h3>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<p>Stream large files row-by-row to avoid memory issues:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CsvExtractor</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">extract</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="no">CSV</span><span class="p">.</span><span class="nf">foreach</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="ss">headers: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">header_converters: :symbol</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+      <span class="k">yield</span> <span class="n">row</span><span class="p">.</span><span class="nf">to_h</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Usage</span>
+<span class="no">CsvExtractor</span><span class="p">.</span><span class="nf">extract</span><span class="p">(</span><span class="s1">'customers.csv'</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="n">row</span> <span class="c1"># =&gt; { name: "John", email: "john@example.com" }</span>
+<span class="k">end</span>
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<p><strong>Options:</strong><br>
+- <code>headers: true</code>: first row becomes column names<br>
+- <code>header_converters: :symbol</code>: convert headers to symbols<br>
+- <code>encoding: &#39;UTF-8&#39;</code>: handle character encoding issues</p>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<h3>API Extraction</h3>
+
+<p>Paginate through API responses to handle large datasets:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ApiExtractor</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">extract</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)</span>
+    <span class="n">page</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="kp">loop</span> <span class="k">do</span>
+      <span class="n">response</span> <span class="o">=</span> <span class="no">HTTParty</span><span class="p">.</span><span class="nf">get</span><span class="p">(</span><span class="n">endpoint</span><span class="p">,</span> <span class="ss">query: </span><span class="p">{</span> <span class="ss">page: </span><span class="n">page</span><span class="p">,</span> <span class="ss">per_page: </span><span class="mi">100</span> <span class="p">})</span>
+      <span class="n">data</span> <span class="o">=</span> <span class="no">JSON</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">body</span><span class="p">)</span>
+
+      <span class="k">break</span> <span class="k">if</span> <span class="n">data</span><span class="p">.</span><span class="nf">empty?</span>
+
+      <span class="n">data</span><span class="p">.</span><span class="nf">each</span> <span class="p">{</span> <span class="o">|</span><span class="n">record</span><span class="o">|</span> <span class="k">yield</span> <span class="n">record</span> <span class="p">}</span>
+      <span class="n">page</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Handle rate limits with exponential backoff:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">response</span> <span class="o">=</span> <span class="no">HTTParty</span><span class="p">.</span><span class="nf">get</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">response</span><span class="p">.</span><span class="nf">code</span> <span class="o">==</span> <span class="mi">429</span>
+  <span class="n">retry_after</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="nf">headers</span><span class="p">[</span><span class="s1">'Retry-After'</span><span class="p">].</span><span class="nf">to_i</span>
+  <span class="nb">sleep</span><span class="p">(</span><span class="n">retry_after</span><span class="p">)</span>
+  <span class="k">retry</span>
+<span class="k">end</span>
 </code></pre></div>
 <hr>
 
-<h2>Best Practices</h2>
+<h2>Transform Patterns</h2>
 
-<ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
-</ol>
+<h3>Data Validation</h3>
+
+<p>Validate rows before loading to catch errors early:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CustomerTransformer</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">transform</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">errors</span> <span class="o">&lt;&lt;</span> <span class="s2">"Missing email"</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="ss">:email</span><span class="p">].</span><span class="nf">blank?</span>
+    <span class="n">errors</span> <span class="o">&lt;&lt;</span> <span class="s2">"Invalid email format"</span> <span class="k">unless</span> <span class="n">row</span><span class="p">[</span><span class="ss">:email</span><span class="p">]</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">match?</span><span class="p">(</span><span class="no">URI</span><span class="o">::</span><span class="no">MailTo</span><span class="o">::</span><span class="no">EMAIL_REGEXP</span><span class="p">)</span>
+    <span class="n">errors</span> <span class="o">&lt;&lt;</span> <span class="s2">"Negative age"</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="ss">:age</span><span class="p">].</span><span class="nf">to_i</span> <span class="o">&lt;</span> <span class="mi">0</span>
+
+    <span class="k">return</span> <span class="p">{</span> <span class="ss">valid: </span><span class="kp">false</span><span class="p">,</span> <span class="ss">errors: </span><span class="n">errors</span> <span class="p">}</span> <span class="k">if</span> <span class="n">errors</span><span class="p">.</span><span class="nf">any?</span>
+
+    <span class="p">{</span>
+      <span class="ss">valid: </span><span class="kp">true</span><span class="p">,</span>
+      <span class="ss">data: </span><span class="p">{</span>
+        <span class="ss">name: </span><span class="n">row</span><span class="p">[</span><span class="ss">:name</span><span class="p">]</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">strip</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">titleize</span><span class="p">,</span>
+        <span class="ss">email: </span><span class="n">row</span><span class="p">[</span><span class="ss">:email</span><span class="p">]</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">downcase</span><span class="p">,</span>
+        <span class="ss">age: </span><span class="n">row</span><span class="p">[</span><span class="ss">:age</span><span class="p">].</span><span class="nf">to_i</span><span class="p">,</span>
+        <span class="ss">created_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Data Normalization</h3>
+
+<p>Clean and standardize data:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">normalize_phone</span><span class="p">(</span><span class="n">phone</span><span class="p">)</span>
+  <span class="n">phone</span><span class="p">.</span><span class="nf">to_s</span><span class="p">.</span><span class="nf">gsub</span><span class="p">(</span><span class="sr">/\D/</span><span class="p">,</span> <span class="s1">''</span><span class="p">).</span><span class="nf">last</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># Extract 10 digits</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">parse_date</span><span class="p">(</span><span class="n">date_string</span><span class="p">)</span>
+  <span class="no">Date</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">date_string</span><span class="p">)</span>
+<span class="k">rescue</span> <span class="no">ArgumentError</span>
+  <span class="kp">nil</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">sanitize_amount</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span>
+  <span class="n">amount</span><span class="p">.</span><span class="nf">to_s</span><span class="p">.</span><span class="nf">gsub</span><span class="p">(</span><span class="sr">/[$,]/</span><span class="p">,</span> <span class="s1">''</span><span class="p">).</span><span class="nf">to_f</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Load Patterns</h2>
+
+<h3>Batch Inserts</h3>
+
+<p>Insert records in batches for performance:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CustomerLoader</span>
+  <span class="no">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">1000</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">load</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+    <span class="n">records</span><span class="p">.</span><span class="nf">each_slice</span><span class="p">(</span><span class="no">BATCH_SIZE</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">batch</span><span class="o">|</span>
+      <span class="no">Customer</span><span class="p">.</span><span class="nf">insert_all</span><span class="p">(</span>
+        <span class="n">batch</span><span class="p">,</span>
+        <span class="ss">returning: </span><span class="kp">false</span><span class="p">,</span>
+        <span class="ss">record_timestamps: </span><span class="kp">true</span>
+      <span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><code>insert_all</code> is 10-100x faster than individual <code>create</code> calls.</p>
+
+<h3>Upsert Pattern</h3>
+
+<p>Update existing records or insert new ones:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ProductLoader</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">load</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+    <span class="no">Product</span><span class="p">.</span><span class="nf">upsert_all</span><span class="p">(</span>
+      <span class="n">records</span><span class="p">,</span>
+      <span class="ss">unique_by: :sku</span><span class="p">,</span>  <span class="c1"># Unique constraint column</span>
+      <span class="ss">update_only: </span><span class="p">[</span><span class="ss">:name</span><span class="p">,</span> <span class="ss">:price</span><span class="p">,</span> <span class="ss">:updated_at</span><span class="p">]</span>  <span class="c1"># Don't update SKU</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Requires a unique index:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">add_index</span> <span class="ss">:products</span><span class="p">,</span> <span class="ss">:sku</span><span class="p">,</span> <span class="ss">unique: </span><span class="kp">true</span>
+</code></pre></div>
+<hr>
+
+<h2>Incremental vs Full Refresh</h2>
+
+<h3>Full Refresh</h3>
+
+<p>Replace all data (useful for small datasets):</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">FullRefreshLoader</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">load</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+    <span class="no">Product</span><span class="p">.</span><span class="nf">transaction</span> <span class="k">do</span>
+      <span class="no">Product</span><span class="p">.</span><span class="nf">delete_all</span>
+      <span class="no">Product</span><span class="p">.</span><span class="nf">insert_all</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Risk:</strong> If import fails mid-process, you lose all data. Use transaction and keep backup.</p>
+
+<h3>Incremental Refresh</h3>
+
+<p>Process only changed records since last run:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">IncrementalLoader</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">load</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+    <span class="n">last_sync</span> <span class="o">=</span> <span class="no">EtlRun</span><span class="p">.</span><span class="nf">last</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">completed_at</span> <span class="o">||</span> <span class="mi">1</span><span class="p">.</span><span class="nf">year</span><span class="p">.</span><span class="nf">ago</span>
+
+    <span class="n">records</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">record</span><span class="o">|</span>
+      <span class="k">next</span> <span class="k">if</span> <span class="n">record</span><span class="p">[</span><span class="ss">:updated_at</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">last_sync</span>
+
+      <span class="no">Product</span><span class="p">.</span><span class="nf">upsert</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="ss">unique_by: :external_id</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="no">EtlRun</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">completed_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Track last successful run to avoid reprocessing unchanged data.</p>
 
 <hr>
 
-<h2>Key Terms</h2>
+<h2>Idempotency in ETL</h2>
+
+<h3>File Checksum Tracking</h3>
+
+<p>Prevent re-importing the same file:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">IdempotentImporter</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">import</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="n">checksum</span> <span class="o">=</span> <span class="no">Digest</span><span class="o">::</span><span class="no">MD5</span><span class="p">.</span><span class="nf">file</span><span class="p">(</span><span class="n">file_path</span><span class="p">).</span><span class="nf">hexdigest</span>
+
+    <span class="k">if</span> <span class="no">ImportLog</span><span class="p">.</span><span class="nf">exists?</span><span class="p">(</span><span class="ss">file_checksum: </span><span class="n">checksum</span><span class="p">)</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"File already imported: </span><span class="si">#{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">"</span>
+      <span class="k">return</span>
+    <span class="k">end</span>
+
+    <span class="c1"># Run import</span>
+    <span class="n">perform_import</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+
+    <span class="no">ImportLog</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+      <span class="ss">file_name: </span><span class="no">File</span><span class="p">.</span><span class="nf">basename</span><span class="p">(</span><span class="n">file_path</span><span class="p">),</span>
+      <span class="ss">file_checksum: </span><span class="n">checksum</span><span class="p">,</span>
+      <span class="ss">imported_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Idempotent Upserts</h3>
+
+<p>Use unique constraints and upsert to safely re-run:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Migration</span>
+<span class="n">add_index</span> <span class="ss">:customers</span><span class="p">,</span> <span class="ss">:external_id</span><span class="p">,</span> <span class="ss">unique: </span><span class="kp">true</span>
+
+<span class="c1"># Import (safe to run multiple times)</span>
+<span class="no">Customer</span><span class="p">.</span><span class="nf">upsert_all</span><span class="p">(</span><span class="n">records</span><span class="p">,</span> <span class="ss">unique_by: :external_id</span><span class="p">)</span>
+</code></pre></div>
+<hr>
+
+<h2>Error Recovery</h2>
+
+<h3>Collect Errors Without Stopping</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ResilientImporter</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">import</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="n">successful</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">failed</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="no">CsvExtractor</span><span class="p">.</span><span class="nf">extract</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+      <span class="n">result</span> <span class="o">=</span> <span class="no">CustomerTransformer</span><span class="p">.</span><span class="nf">transform</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+      <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="ss">:valid</span><span class="p">]</span>
+        <span class="no">Customer</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="ss">:data</span><span class="p">])</span>
+        <span class="n">successful</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="k">else</span>
+        <span class="n">failed</span> <span class="o">&lt;&lt;</span> <span class="p">{</span> <span class="ss">row: </span><span class="n">row</span><span class="p">,</span> <span class="ss">errors: </span><span class="n">result</span><span class="p">[</span><span class="ss">:errors</span><span class="p">]</span> <span class="p">}</span>
+      <span class="k">end</span>
+    <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+      <span class="n">failed</span> <span class="o">&lt;&lt;</span> <span class="p">{</span> <span class="ss">row: </span><span class="n">row</span><span class="p">,</span> <span class="ss">errors: </span><span class="p">[</span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="p">]</span> <span class="p">}</span>
+    <span class="k">end</span>
+
+    <span class="p">{</span>
+      <span class="ss">successful: </span><span class="n">successful</span><span class="p">,</span>
+      <span class="ss">failed: </span><span class="n">failed</span><span class="p">.</span><span class="nf">count</span><span class="p">,</span>
+      <span class="ss">error_details: </span><span class="n">failed</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Dead Letter Queue for Failed Rows</h3>
+
+<p>Store failed rows for manual review:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">FailedImport</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="c1"># has columns: row_data (jsonb), error_message, source_file, created_at</span>
+<span class="k">end</span>
+
+<span class="c1"># In import job</span>
+<span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+  <span class="no">FailedImport</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+    <span class="ss">row_data: </span><span class="n">row</span><span class="p">,</span>
+    <span class="ss">error_message: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="p">,</span>
+    <span class="ss">source_file: </span><span class="n">file_path</span>
+  <span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Sidekiq for ETL Pipelines</h2>
+
+<p>Run imports asynchronously to avoid HTTP timeouts:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CsvImportJob</span>
+  <span class="kp">include</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Worker</span>
+  <span class="n">sidekiq_options</span> <span class="ss">queue: :etl</span><span class="p">,</span> <span class="ss">retry: </span><span class="mi">3</span>
+
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">successful: </span><span class="mi">0</span><span class="p">,</span> <span class="ss">failed: </span><span class="mi">0</span><span class="p">,</span> <span class="ss">errors: </span><span class="p">[]</span> <span class="p">}</span>
+
+    <span class="no">CsvExtractor</span><span class="p">.</span><span class="nf">extract</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+      <span class="n">result</span> <span class="o">=</span> <span class="no">CustomerTransformer</span><span class="p">.</span><span class="nf">transform</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+      <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="ss">:valid</span><span class="p">]</span>
+        <span class="no">Customer</span><span class="p">.</span><span class="nf">upsert</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="ss">:data</span><span class="p">],</span> <span class="ss">unique_by: :email</span><span class="p">)</span>
+        <span class="n">results</span><span class="p">[</span><span class="ss">:successful</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="k">else</span>
+        <span class="n">results</span><span class="p">[</span><span class="ss">:failed</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">results</span><span class="p">[</span><span class="ss">:errors</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="p">{</span> <span class="ss">row: </span><span class="n">row</span><span class="p">,</span> <span class="ss">errors: </span><span class="n">result</span><span class="p">[</span><span class="ss">:errors</span><span class="p">]</span> <span class="p">}</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Import complete: </span><span class="si">#{</span><span class="n">results</span><span class="si">}</span><span class="s2">"</span>
+    <span class="no">UserMailer</span><span class="p">.</span><span class="nf">import_summary</span><span class="p">(</span><span class="n">results</span><span class="p">).</span><span class="nf">deliver_now</span>
+  <span class="k">end</span>
+
+  <span class="n">sidekiq_retries_exhausted</span> <span class="k">do</span> <span class="o">|</span><span class="n">job</span><span class="p">,</span> <span class="n">exception</span><span class="o">|</span>
+    <span class="no">UserMailer</span><span class="p">.</span><span class="nf">import_failed</span><span class="p">(</span><span class="n">job</span><span class="p">[</span><span class="s1">'args'</span><span class="p">].</span><span class="nf">first</span><span class="p">,</span> <span class="n">exception</span><span class="p">).</span><span class="nf">deliver_now</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Enqueue</span>
+<span class="no">CsvImportJob</span><span class="p">.</span><span class="nf">perform_async</span><span class="p">(</span><span class="s1">'uploads/customers.csv'</span><span class="p">)</span>
+</code></pre></div>
+<hr>
+
+<h2>Trade-offs Box</h2>
 
 <ul>
-<li><strong>ETL</strong></li>
-<li><strong>data pipeline</strong></li>
-<li><strong>incremental refresh</strong></li>
-<li><strong>idempotency</strong></li>
-<li><strong>data validation</strong></li>
+<li><strong>Advantage:</strong> Streaming CSV reads handle files larger than memory; batch inserts are 10-100x faster than individual creates; upserts provide idempotency.</li>
+<li><strong>Cost:</strong> Error handling adds complexity; incremental refresh requires tracking state; background jobs delay feedback to users.</li>
+<li><strong>When to skip:</strong> For &lt;1000 records, inline processing is simpler; for real-time sync, consider webhooks instead of batch ETL.</li>
 </ul>
 
 <hr>
 
-<h2>Summary</h2>
+<h2>Debugging Checklist</h2>
 
-<p>ETL Patterns in Rails is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
+<p>When ETL jobs fail or produce incorrect data:</p>
 
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<ol>
+<li>Check file encoding: <code>file -I data.csv</code> (look for UTF-8 vs ISO-8859-1)</li>
+<li>Validate CSV structure: <code>head -20 data.csv | cat -A</code> (check delimiters, line endings)</li>
+<li>Test transformation logic in console with sample row</li>
+<li>Check database constraints: failed inserts often indicate missing unique indexes</li>
+<li>Review Sidekiq logs for memory errors: <code>tail -f log/sidekiq.log</code></li>
+<li>Monitor Redis memory: large ETL jobs can fill Redis queues</li>
+<li>Check for partial imports: count records before/after, verify transaction rollback</li>
+<li>Inspect failed imports table: <code>FailedImport.pluck(:error_message).tally</code></li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>ETL = Extract (read data), Transform (validate/clean), Load (insert/update)</li>
+<li>Stream large files with <code>CSV.foreach</code>, not <code>CSV.read</code>, to avoid memory issues</li>
+<li>Validate rows before loading; collect errors; use transactions for consistency</li>
+<li>Use <code>insert_all</code> for batch performance, <code>upsert_all</code> for idempotency</li>
+<li>Track file checksums or use unique constraints to prevent duplicate imports</li>
+<li>Run ETL jobs in Sidekiq; send email summaries; store failed rows for review</li>
+</ul>
 
     
   </div>
@@ -706,55 +1022,422 @@
     
       <h1>Exercise: ETL Patterns in Rails</h1>
 
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
-
 <h2>Objective</h2>
 
-<p>Build hands-on experience with etl patterns in rails through practical implementation.</p>
+<p>Build a complete ETL pipeline to import product data from CSV files with validation, error handling, idempotency, and background job processing.</p>
 
-<h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new etl_patterns_practice
-<span class="nb">cd </span>etl_patterns_practice
+<h2>Task</h2>
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
+<p>Create a product import system that:</p>
+
+<ol>
+<li>Extracts data from CSV files using streaming</li>
+<li>Validates and transforms each row</li>
+<li>Loads data using batch upserts</li>
+<li>Tracks import status and errors</li>
+<li>Runs asynchronously via Sidekiq</li>
+</ol>
+
+<h2>Acceptance Criteria</h2>
+
+<ul>
+<li>[ ] CSV extraction streams rows (not loaded into memory)</li>
+<li>[ ] Validator checks required fields and data types</li>
+<li>[ ] Transformer normalizes prices, SKUs, and product names</li>
+<li>[ ] Loader uses <code>upsert_all</code> with unique constraint on SKU</li>
+<li>[ ] Import job runs in Sidekiq with error tracking</li>
+<li>[ ] Failed rows stored in <code>FailedImport</code> model for review</li>
+<li>[ ] Import summary logged with success/failure counts</li>
+<li>[ ] Re-running import with same file is idempotent (no duplicates)</li>
+</ul>
+
+<h2>Verification Steps</h2>
+
+<ol>
+<li>Create sample CSV file:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">cat</span> <span class="o">&gt;</span> products.csv <span class="o">&lt;&lt;</span> <span class="sh">'</span><span class="no">EOF</span><span class="sh">'
+sku,name,price,category
+PROD-001,Wireless Mouse,</span><span class="nv">$29</span><span class="sh">.99,Electronics
+PROD-002,USB Cable,9.99,Electronics
+PROD-003,Notebook,invalid_price,Office
+,Missing SKU Product,19.99,Office
+PROD-004,Mechanical Keyboard,</span><span class="nv">$149</span><span class="sh">.99,Electronics
+</span><span class="no">EOF
+</span></code></pre></div>
+<ol>
+<li>Run import job:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># In Rails console</span>
+<span class="no">ProductImportJob</span><span class="p">.</span><span class="nf">perform_async</span><span class="p">(</span><span class="s1">'products.csv'</span><span class="p">)</span>
 </code></pre></div>
-<h2>Tasks</h2>
-
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
-
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
+<ol>
+<li>Check results:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Product</span><span class="p">.</span><span class="nf">count</span>  <span class="c1"># =&gt; 3 (valid products)</span>
+<span class="no">FailedImport</span><span class="p">.</span><span class="nf">count</span>  <span class="c1"># =&gt; 2 (invalid rows)</span>
+<span class="no">FailedImport</span><span class="p">.</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:error_message</span><span class="p">)</span>
+<span class="c1"># =&gt; ["Invalid price format", "Missing required field: sku"]</span>
 </code></pre></div>
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
+<ol>
+<li>Re-run import (should be idempotent):</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">ProductImportJob</span><span class="p">.</span><span class="nf">perform_async</span><span class="p">(</span><span class="s1">'products.csv'</span><span class="p">)</span>
+<span class="no">Product</span><span class="p">.</span><span class="nf">count</span>  <span class="c1"># =&gt; Still 3 (no duplicates)</span>
+</code></pre></div>
+<h2>Setup Code</h2>
 
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
+<h3>Step 1: Database Schema</h3>
 
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
+<p>Create models and migrations:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate model Product sku:string name:string price:decimal category:string
+bin/rails generate model FailedImport row_data:jsonb error_message:text source_file:string
+bin/rails generate model ImportLog file_name:string file_checksum:string row_count:integer successful_count:integer failed_count:integer
+</code></pre></div>
+<p>Edit migration to add unique constraint:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># db/migrate/xxx_create_products.rb</span>
+<span class="k">class</span> <span class="nc">CreateProducts</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">create_table</span> <span class="ss">:products</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:sku</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:name</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">decimal</span> <span class="ss">:price</span><span class="p">,</span> <span class="ss">precision: </span><span class="mi">10</span><span class="p">,</span> <span class="ss">scale: </span><span class="mi">2</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:category</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">timestamps</span>
+    <span class="k">end</span>
 
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
+    <span class="n">add_index</span> <span class="ss">:products</span><span class="p">,</span> <span class="ss">:sku</span><span class="p">,</span> <span class="ss">unique: </span><span class="kp">true</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Run migrations:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails db:migrate
+</code></pre></div>
+<h3>Step 2: CSV Extractor</h3>
 
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
+<p>Create <code>app/services/csv_extractor.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CsvExtractor</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">extract</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="n">row_count</span> <span class="o">=</span> <span class="mi">0</span>
 
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
+    <span class="no">CSV</span><span class="p">.</span><span class="nf">foreach</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="ss">headers: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">header_converters: :symbol</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+      <span class="n">row_count</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="k">yield</span> <span class="n">row</span><span class="p">.</span><span class="nf">to_h</span><span class="p">,</span> <span class="n">row_count</span>
+    <span class="k">end</span>
+
+    <span class="n">row_count</span>
+  <span class="k">rescue</span> <span class="no">Errno</span><span class="o">::</span><span class="no">ENOENT</span>
+    <span class="k">raise</span> <span class="s2">"File not found: </span><span class="si">#{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">rescue</span> <span class="no">CSV</span><span class="o">::</span><span class="no">MalformedCSVError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="k">raise</span> <span class="s2">"Invalid CSV format: </span><span class="si">#{</span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 3: Product Transformer</h3>
+
+<p>Create <code>app/services/product_transformer.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ProductTransformer</span>
+  <span class="no">EMAIL_REGEX</span> <span class="o">=</span> <span class="sr">/\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">transform</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="n">validate</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span> <span class="ss">valid: </span><span class="kp">false</span><span class="p">,</span> <span class="ss">errors: </span><span class="n">errors</span> <span class="p">}</span> <span class="k">if</span> <span class="n">errors</span><span class="p">.</span><span class="nf">any?</span>
+
+    <span class="p">{</span>
+      <span class="ss">valid: </span><span class="kp">true</span><span class="p">,</span>
+      <span class="ss">data: </span><span class="p">{</span>
+        <span class="ss">sku: </span><span class="n">normalize_sku</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="ss">:sku</span><span class="p">]),</span>
+        <span class="ss">name: </span><span class="n">normalize_name</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="ss">:name</span><span class="p">]),</span>
+        <span class="ss">price: </span><span class="n">parse_price</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="ss">:price</span><span class="p">]),</span>
+        <span class="ss">category: </span><span class="n">row</span><span class="p">[</span><span class="ss">:category</span><span class="p">]</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">strip</span><span class="p">,</span>
+        <span class="ss">updated_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">validate</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">errors</span> <span class="o">&lt;&lt;</span> <span class="s2">"Missing required field: sku"</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="ss">:sku</span><span class="p">].</span><span class="nf">blank?</span>
+    <span class="n">errors</span> <span class="o">&lt;&lt;</span> <span class="s2">"Missing required field: name"</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="ss">:name</span><span class="p">].</span><span class="nf">blank?</span>
+
+    <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="ss">:price</span><span class="p">].</span><span class="nf">present?</span>
+      <span class="n">price</span> <span class="o">=</span> <span class="n">parse_price</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="ss">:price</span><span class="p">])</span>
+      <span class="n">errors</span> <span class="o">&lt;&lt;</span> <span class="s2">"Invalid price format"</span> <span class="k">if</span> <span class="n">price</span><span class="p">.</span><span class="nf">nil?</span>
+      <span class="n">errors</span> <span class="o">&lt;&lt;</span> <span class="s2">"Price must be positive"</span> <span class="k">if</span> <span class="n">price</span> <span class="o">&amp;&amp;</span> <span class="n">price</span> <span class="o">&lt;=</span> <span class="mi">0</span>
+    <span class="k">else</span>
+      <span class="n">errors</span> <span class="o">&lt;&lt;</span> <span class="s2">"Missing required field: price"</span>
+    <span class="k">end</span>
+
+    <span class="n">errors</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">normalize_sku</span><span class="p">(</span><span class="n">sku</span><span class="p">)</span>
+    <span class="n">sku</span><span class="p">.</span><span class="nf">to_s</span><span class="p">.</span><span class="nf">strip</span><span class="p">.</span><span class="nf">upcase</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">normalize_name</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+    <span class="nb">name</span><span class="p">.</span><span class="nf">to_s</span><span class="p">.</span><span class="nf">strip</span><span class="p">.</span><span class="nf">titleize</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">parse_price</span><span class="p">(</span><span class="n">price_string</span><span class="p">)</span>
+    <span class="c1"># Remove currency symbols and commas: "$1,234.56" =&gt; 1234.56</span>
+    <span class="n">cleaned</span> <span class="o">=</span> <span class="n">price_string</span><span class="p">.</span><span class="nf">to_s</span><span class="p">.</span><span class="nf">gsub</span><span class="p">(</span><span class="sr">/[$,]/</span><span class="p">,</span> <span class="s1">''</span><span class="p">).</span><span class="nf">strip</span>
+    <span class="no">Float</span><span class="p">(</span><span class="n">cleaned</span><span class="p">)</span>
+  <span class="k">rescue</span> <span class="no">ArgumentError</span><span class="p">,</span> <span class="no">TypeError</span>
+    <span class="kp">nil</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 4: Product Loader</h3>
+
+<p>Create <code>app/services/product_loader.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ProductLoader</span>
+  <span class="no">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">1000</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">load</span><span class="p">(</span><span class="n">records</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">records</span><span class="p">.</span><span class="nf">empty?</span>
+
+    <span class="n">records</span><span class="p">.</span><span class="nf">each_slice</span><span class="p">(</span><span class="no">BATCH_SIZE</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">batch</span><span class="o">|</span>
+      <span class="no">Product</span><span class="p">.</span><span class="nf">upsert_all</span><span class="p">(</span>
+        <span class="n">batch</span><span class="p">,</span>
+        <span class="ss">unique_by: :sku</span><span class="p">,</span>
+        <span class="ss">update_only: </span><span class="p">[</span><span class="ss">:name</span><span class="p">,</span> <span class="ss">:price</span><span class="p">,</span> <span class="ss">:category</span><span class="p">,</span> <span class="ss">:updated_at</span><span class="p">]</span>
+      <span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">records</span><span class="p">.</span><span class="nf">size</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 5: Import Job</h3>
+
+<p>Create <code>app/jobs/product_import_job.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ProductImportJob</span>
+  <span class="kp">include</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Worker</span>
+  <span class="n">sidekiq_options</span> <span class="ss">queue: :etl</span><span class="p">,</span> <span class="ss">retry: </span><span class="mi">3</span>
+
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="n">checksum</span> <span class="o">=</span> <span class="n">calculate_checksum</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+
+    <span class="c1"># Check if already imported</span>
+    <span class="k">if</span> <span class="no">ImportLog</span><span class="p">.</span><span class="nf">exists?</span><span class="p">(</span><span class="ss">file_checksum: </span><span class="n">checksum</span><span class="p">)</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"File already imported: </span><span class="si">#{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">"</span>
+      <span class="k">return</span>
+    <span class="k">end</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">successful: </span><span class="p">[],</span> <span class="ss">failed: </span><span class="p">[],</span> <span class="ss">total: </span><span class="mi">0</span> <span class="p">}</span>
+
+    <span class="no">CsvExtractor</span><span class="p">.</span><span class="nf">extract</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="p">,</span> <span class="n">row_number</span><span class="o">|</span>
+      <span class="n">results</span><span class="p">[</span><span class="ss">:total</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="n">result</span> <span class="o">=</span> <span class="no">ProductTransformer</span><span class="p">.</span><span class="nf">transform</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+      <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="ss">:valid</span><span class="p">]</span>
+        <span class="n">results</span><span class="p">[</span><span class="ss">:successful</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="n">result</span><span class="p">[</span><span class="ss">:data</span><span class="p">]</span>
+      <span class="k">else</span>
+        <span class="n">results</span><span class="p">[</span><span class="ss">:failed</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="p">{</span> <span class="ss">row: </span><span class="n">row</span><span class="p">,</span> <span class="ss">row_number: </span><span class="n">row_number</span><span class="p">,</span> <span class="ss">errors: </span><span class="n">result</span><span class="p">[</span><span class="ss">:errors</span><span class="p">]</span> <span class="p">}</span>
+        <span class="n">record_failure</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="ss">:errors</span><span class="p">],</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">row_number</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="c1"># Batch load successful records</span>
+    <span class="n">loaded_count</span> <span class="o">=</span> <span class="no">ProductLoader</span><span class="p">.</span><span class="nf">load</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="ss">:successful</span><span class="p">])</span>
+
+    <span class="c1"># Log import summary</span>
+    <span class="no">ImportLog</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+      <span class="ss">file_name: </span><span class="no">File</span><span class="p">.</span><span class="nf">basename</span><span class="p">(</span><span class="n">file_path</span><span class="p">),</span>
+      <span class="ss">file_checksum: </span><span class="n">checksum</span><span class="p">,</span>
+      <span class="ss">row_count: </span><span class="n">results</span><span class="p">[</span><span class="ss">:total</span><span class="p">],</span>
+      <span class="ss">successful_count: </span><span class="n">loaded_count</span><span class="p">,</span>
+      <span class="ss">failed_count: </span><span class="n">results</span><span class="p">[</span><span class="ss">:failed</span><span class="p">].</span><span class="nf">size</span>
+    <span class="p">)</span>
+
+    <span class="n">log_summary</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">loaded_count</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="ss">:failed</span><span class="p">].</span><span class="nf">size</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="n">sidekiq_retries_exhausted</span> <span class="k">do</span> <span class="o">|</span><span class="n">job</span><span class="p">,</span> <span class="n">exception</span><span class="o">|</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span> <span class="s2">"Import job failed permanently: </span><span class="si">#{</span><span class="n">job</span><span class="p">[</span><span class="s1">'args'</span><span class="p">].</span><span class="nf">first</span><span class="si">}</span><span class="s2">"</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span> <span class="s2">"Error: </span><span class="si">#{</span><span class="n">exception</span><span class="p">.</span><span class="nf">message</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">calculate_checksum</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="no">Digest</span><span class="o">::</span><span class="no">MD5</span><span class="p">.</span><span class="nf">file</span><span class="p">(</span><span class="n">file_path</span><span class="p">).</span><span class="nf">hexdigest</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">record_failure</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">source_file</span><span class="p">,</span> <span class="n">row_number</span><span class="p">)</span>
+    <span class="no">FailedImport</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+      <span class="ss">row_data: </span><span class="n">row</span><span class="p">.</span><span class="nf">merge</span><span class="p">(</span><span class="ss">row_number: </span><span class="n">row_number</span><span class="p">),</span>
+      <span class="ss">error_message: </span><span class="n">errors</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">'; '</span><span class="p">),</span>
+      <span class="ss">source_file: </span><span class="n">source_file</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">log_summary</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">successful</span><span class="p">,</span> <span class="n">failed</span><span class="p">)</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"="</span> <span class="o">*</span> <span class="mi">60</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Import Summary for </span><span class="si">#{</span><span class="no">File</span><span class="p">.</span><span class="nf">basename</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"="</span> <span class="o">*</span> <span class="mi">60</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Successful: </span><span class="si">#{</span><span class="n">successful</span><span class="si">}</span><span class="s2">"</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Failed: </span><span class="si">#{</span><span class="n">failed</span><span class="si">}</span><span class="s2">"</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"="</span> <span class="o">*</span> <span class="mi">60</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 6: Configure Sidekiq</h3>
+
+<p>Add to <code>Gemfile</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">gem</span> <span class="s1">'sidekiq'</span>
+</code></pre></div>
+<p>Install:</p>
+<div class="highlight"><pre class="highlight shell"><code>bundle <span class="nb">install</span>
+</code></pre></div>
+<p>Create <code>config/initializers/sidekiq.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Sidekiq</span><span class="p">.</span><span class="nf">configure_server</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">redis</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">url: </span><span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'REDIS_URL'</span><span class="p">,</span> <span class="s1">'redis://localhost:6379/1'</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
+
+<span class="no">Sidekiq</span><span class="p">.</span><span class="nf">configure_client</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">redis</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">url: </span><span class="no">ENV</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'REDIS_URL'</span><span class="p">,</span> <span class="s1">'redis://localhost:6379/1'</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Configure ActiveJob in <code>config/application.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span><span class="p">.</span><span class="nf">active_job</span><span class="p">.</span><span class="nf">queue_adapter</span> <span class="o">=</span> <span class="ss">:sidekiq</span>
+</code></pre></div>
+<h3>Step 7: Test the Pipeline</h3>
+
+<p>Start Redis and Sidekiq:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Terminal 1</span>
+redis-server
+
+<span class="c"># Terminal 2</span>
+bundle <span class="nb">exec </span>sidekiq <span class="nt">-q</span> etl
+</code></pre></div>
+<p>In Rails console:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Create test CSV</span>
+<span class="nb">require</span> <span class="s1">'csv'</span>
+<span class="no">CSV</span><span class="p">.</span><span class="nf">open</span><span class="p">(</span><span class="s1">'test_products.csv'</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">csv</span><span class="o">|</span>
+  <span class="n">csv</span> <span class="o">&lt;&lt;</span> <span class="p">[</span><span class="s1">'sku'</span><span class="p">,</span> <span class="s1">'name'</span><span class="p">,</span> <span class="s1">'price'</span><span class="p">,</span> <span class="s1">'category'</span><span class="p">]</span>
+  <span class="n">csv</span> <span class="o">&lt;&lt;</span> <span class="p">[</span><span class="s1">'PROD-001'</span><span class="p">,</span> <span class="s1">'Wireless Mouse'</span><span class="p">,</span> <span class="s1">'$29.99'</span><span class="p">,</span> <span class="s1">'Electronics'</span><span class="p">]</span>
+  <span class="n">csv</span> <span class="o">&lt;&lt;</span> <span class="p">[</span><span class="s1">'PROD-002'</span><span class="p">,</span> <span class="s1">'USB Cable'</span><span class="p">,</span> <span class="s1">'9.99'</span><span class="p">,</span> <span class="s1">'Electronics'</span><span class="p">]</span>
+  <span class="n">csv</span> <span class="o">&lt;&lt;</span> <span class="p">[</span><span class="s1">'PROD-003'</span><span class="p">,</span> <span class="s1">'Notebook'</span><span class="p">,</span> <span class="s1">'invalid'</span><span class="p">,</span> <span class="s1">'Office'</span><span class="p">]</span>
+  <span class="n">csv</span> <span class="o">&lt;&lt;</span> <span class="p">[</span><span class="s1">''</span><span class="p">,</span> <span class="s1">'Missing SKU'</span><span class="p">,</span> <span class="s1">'19.99'</span><span class="p">,</span> <span class="s1">'Office'</span><span class="p">]</span>
+  <span class="n">csv</span> <span class="o">&lt;&lt;</span> <span class="p">[</span><span class="s1">'PROD-004'</span><span class="p">,</span> <span class="s1">'Keyboard'</span><span class="p">,</span> <span class="s1">'$149.99'</span><span class="p">,</span> <span class="s1">'Electronics'</span><span class="p">]</span>
+<span class="k">end</span>
+
+<span class="c1"># Enqueue import</span>
+<span class="no">ProductImportJob</span><span class="p">.</span><span class="nf">perform_async</span><span class="p">(</span><span class="s1">'test_products.csv'</span><span class="p">)</span>
+
+<span class="c1"># Wait a few seconds, then check results</span>
+<span class="no">Product</span><span class="p">.</span><span class="nf">count</span>  <span class="c1"># =&gt; 3</span>
+<span class="no">Product</span><span class="p">.</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:sku</span><span class="p">,</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:price</span><span class="p">)</span>
+<span class="c1"># =&gt; [["PROD-001", "Wireless Mouse", 29.99], ...]</span>
+
+<span class="no">FailedImport</span><span class="p">.</span><span class="nf">count</span>  <span class="c1"># =&gt; 2</span>
+<span class="no">FailedImport</span><span class="p">.</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:error_message</span><span class="p">)</span>
+<span class="c1"># =&gt; ["Invalid price format", "Missing required field: sku"]</span>
+
+<span class="c1"># Check import log</span>
+<span class="n">log</span> <span class="o">=</span> <span class="no">ImportLog</span><span class="p">.</span><span class="nf">last</span>
+<span class="n">log</span><span class="p">.</span><span class="nf">successful_count</span>  <span class="c1"># =&gt; 3</span>
+<span class="n">log</span><span class="p">.</span><span class="nf">failed_count</span>  <span class="c1"># =&gt; 2</span>
+
+<span class="c1"># Test idempotency - re-run same file</span>
+<span class="no">ProductImportJob</span><span class="p">.</span><span class="nf">perform_async</span><span class="p">(</span><span class="s1">'test_products.csv'</span><span class="p">)</span>
+<span class="c1"># Should skip (file checksum already exists)</span>
+<span class="no">Product</span><span class="p">.</span><span class="nf">count</span>  <span class="c1"># =&gt; Still 3</span>
 </code></pre></div>
 <h2>Stretch Goals</h2>
 
-<ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
-</ul>
+<ol>
+<li><strong>Add email notifications:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># In ProductImportJob after import completes</span>
+<span class="no">AdminMailer</span><span class="p">.</span><span class="nf">import_summary</span><span class="p">(</span>
+  <span class="ss">file: </span><span class="n">file_path</span><span class="p">,</span>
+  <span class="ss">successful: </span><span class="n">loaded_count</span><span class="p">,</span>
+  <span class="ss">failed: </span><span class="n">results</span><span class="p">[</span><span class="ss">:failed</span><span class="p">].</span><span class="nf">size</span><span class="p">,</span>
+  <span class="ss">failed_rows: </span><span class="n">results</span><span class="p">[</span><span class="ss">:failed</span><span class="p">]</span>
+<span class="p">).</span><span class="nf">deliver_now</span>
+</code></pre></div>
+<ol>
+<li><strong>Add progress tracking with Redis:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+  <span class="c1"># Set total rows</span>
+  <span class="no">Redis</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">set</span><span class="p">(</span><span class="s2">"import:</span><span class="si">#{</span><span class="n">jid</span><span class="si">}</span><span class="s2">:total"</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="ss">:total</span><span class="p">])</span>
+
+  <span class="c1"># Update progress in loop</span>
+  <span class="no">Redis</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">incr</span><span class="p">(</span><span class="s2">"import:</span><span class="si">#{</span><span class="n">jid</span><span class="si">}</span><span class="s2">:processed"</span><span class="p">)</span>
+
+  <span class="c1"># Check progress from another process</span>
+  <span class="n">progress</span> <span class="o">=</span> <span class="no">Redis</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">get</span><span class="p">(</span><span class="s2">"import:</span><span class="si">#{</span><span class="n">jid</span><span class="si">}</span><span class="s2">:processed"</span><span class="p">).</span><span class="nf">to_i</span>
+  <span class="n">total</span> <span class="o">=</span> <span class="no">Redis</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">get</span><span class="p">(</span><span class="s2">"import:</span><span class="si">#{</span><span class="n">jid</span><span class="si">}</span><span class="s2">:total"</span><span class="p">).</span><span class="nf">to_i</span>
+  <span class="n">percent</span> <span class="o">=</span> <span class="p">(</span><span class="n">progress</span><span class="p">.</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<ol>
+<li><strong>Add retry mechanism for failed rows:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">RetryFailedImportJob</span>
+  <span class="kp">include</span> <span class="no">Sidekiq</span><span class="o">::</span><span class="no">Worker</span>
+
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">failed_import_id</span><span class="p">)</span>
+    <span class="n">failed</span> <span class="o">=</span> <span class="no">FailedImport</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">failed_import_id</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="no">ProductTransformer</span><span class="p">.</span><span class="nf">transform</span><span class="p">(</span><span class="n">failed</span><span class="p">.</span><span class="nf">row_data</span><span class="p">.</span><span class="nf">symbolize_keys</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="ss">:valid</span><span class="p">]</span>
+      <span class="no">Product</span><span class="p">.</span><span class="nf">upsert</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="ss">:data</span><span class="p">],</span> <span class="ss">unique_by: :sku</span><span class="p">)</span>
+      <span class="n">failed</span><span class="p">.</span><span class="nf">destroy</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span> <span class="s2">"Retry successful for row </span><span class="si">#{</span><span class="n">failed</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">else</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span> <span class="s2">"Retry failed: </span><span class="si">#{</span><span class="n">result</span><span class="p">[</span><span class="ss">:errors</span><span class="p">].</span><span class="nf">join</span><span class="p">(</span><span class="s1">', '</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<ol>
+<li><strong>Add API extraction:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ApiProductImporter</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">import</span><span class="p">(</span><span class="n">api_endpoint</span><span class="p">)</span>
+    <span class="n">page</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="kp">loop</span> <span class="k">do</span>
+      <span class="n">response</span> <span class="o">=</span> <span class="no">HTTParty</span><span class="p">.</span><span class="nf">get</span><span class="p">(</span><span class="n">api_endpoint</span><span class="p">,</span> <span class="ss">query: </span><span class="p">{</span> <span class="ss">page: </span><span class="n">page</span><span class="p">,</span> <span class="ss">per_page: </span><span class="mi">100</span> <span class="p">})</span>
+      <span class="n">products</span> <span class="o">=</span> <span class="no">JSON</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">body</span><span class="p">)</span>
+
+      <span class="k">break</span> <span class="k">if</span> <span class="n">products</span><span class="p">.</span><span class="nf">empty?</span>
+
+      <span class="n">products</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">product</span><span class="o">|</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="no">ProductTransformer</span><span class="p">.</span><span class="nf">transform</span><span class="p">(</span><span class="n">product</span><span class="p">.</span><span class="nf">symbolize_keys</span><span class="p">)</span>
+        <span class="no">Product</span><span class="p">.</span><span class="nf">upsert</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="ss">:data</span><span class="p">],</span> <span class="ss">unique_by: :sku</span><span class="p">)</span> <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="ss">:valid</span><span class="p">]</span>
+      <span class="k">end</span>
+
+      <span class="n">page</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2>Time Estimate</h2>
+
+<p>25 minutes</p>
 
 <h2>Solution Notes</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p><strong>Common gotchas:</strong><br>
+- Forgetting unique index on <code>sku</code> causes <code>upsert_all</code> to fail<br>
+- Not streaming CSV leads to memory issues with large files<br>
+- Missing error handling for file encoding issues (try <code>encoding: &#39;UTF-8&#39;</code> option)<br>
+- Not tracking import status means you can&#39;t detect duplicate imports<br>
+- Batch size too large (&gt;5000) can cause memory spikes</p>
+
+<p><strong>Performance tips:</strong><br>
+- Use <code>insert_all</code> instead of <code>upsert_all</code> if you know records are new (2x faster)<br>
+- Process in larger batches (5000-10000) for faster imports<br>
+- Disable AR callbacks during bulk import: <code>Product.insert_all(batch, record_timestamps: true)</code><br>
+- Use database triggers for complex validation instead of Rails validations</p>
 
     
   </div>
@@ -837,6 +1520,50 @@ bundle add <span class="o">[</span>gems to be specified]
           
         </div>
       
+        <div class="question"
+             data-question-id="6"
+             data-kind=""
+             data-points=""
+             >
+          <h4>Question 7 ( points)</h4>
+          <p style="margin: 10px 0;"></p>
+
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind=""
+             data-points=""
+             >
+          <h4>Question 8 ( points)</h4>
+          <p style="margin: 10px 0;"></p>
+
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind=""
+             data-points=""
+             >
+          <h4>Question 9 ( points)</h4>
+          <p style="margin: 10px 0;"></p>
+
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind=""
+             data-points=""
+             >
+          <h4>Question 10 ( points)</h4>
+          <p style="margin: 10px 0;"></p>
+
+          
+        </div>
+      
 
       <div style="margin-top: 30px; display: flex; gap: 10px;">
         <button onclick="checkAnswers()" style="padding: 12px 24px; background: #CC0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600;">
@@ -863,32 +1590,37 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
+            <a href="https://guides.rubyonrails.org/active_record_basics.html#create" target="_blank">Rails Guides — Active Record Basics (insert_all, upsert_all)</a>
             <div class="why"></div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
+            <a href="https://ruby-doc.org/stdlib-3.1.0/libdoc/csv/rdoc/CSV.html" target="_blank">Ruby CSV Documentation</a>
             <div class="why"></div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
+            <a href="https://github.com/mperham/sidekiq/wiki/Best-Practices" target="_blank">Sidekiq Best Practices for Data Processing</a>
             <div class="why"></div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
+            <a href="https://thoughtbot.com/blog/importing-large-datasets-in-rails" target="_blank">ETL Best Practices in Ruby (thoughtbot)</a>
             <div class="why"></div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
+            <a href="https://www.postgresql.org/docs/current/sql-insert.html#SQL-ON-CONFLICT" target="_blank">PostgreSQL UPSERT and ON CONFLICT</a>
             <div class="why"></div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
+            <a href="https://www.youtube.com/watch?v=9Kq2FJHh684" target="_blank">RailsConf 2019 — Importing Data at Scale (Derek Prior)</a>
+            <div class="why"></div>
+          </li>
+        
+          <li>
+            <a href="https://blog.arkency.com/tags/import/" target="_blank">Data Import Patterns in Rails (Arkency Blog)</a>
             <div class="why"></div>
           </li>
         

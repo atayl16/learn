@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,72 +656,229 @@
 
 <h2>What It Is</h2>
 
-<p>Concurrency Primitives (Ractor, Fiber, Thread) is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>Ruby provides three concurrency primitives: Thread for concurrent execution, Fiber for cooperative multitasking, and Ractor for true parallelism. Each operates differently under Ruby&#39;s Global VM Lock (GVL), which prevents true parallel execution of Ruby code in threads. Understanding when to use each primitive and how to write thread-safe code with Mutex is critical for building performant, scalable Rails applications.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Most Rails apps use background job processors (Sidekiq, GoodJob) that rely on threads for concurrency. Without understanding thread safety, you&#39;ll ship race conditions that corrupt data in production. Knowing when the GVL allows parallelism (I/O-bound work) versus when it doesn&#39;t (CPU-bound work) helps you optimize throughput. Ractors (Ruby 3.0+) enable CPU parallelism but require copying data between actors. Fibers power Async gems and cooperative task switching.</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li><strong>Thread:</strong> I/O-bound tasks (HTTP calls, DB queries) where threads yield the GVL during waits. Most Sidekiq workers use threads.</li>
+<li><strong>Fiber:</strong> Event-driven systems (web servers like Falcon), cooperative scheduling, or when you need manual control over task switching.</li>
+<li><strong>Ractor:</strong> CPU-bound parallel processing (image resizing, data transformation) where you need to bypass the GVL.</li>
+<li><strong>Mutex:</strong> Protecting shared state (instance variables, class variables, globals) accessed by multiple threads.</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><strong>Assuming threads = parallelism:</strong> Ruby&#39;s GVL prevents parallel Ruby code execution. Threads help with I/O concurrency but won&#39;t parallelize CPU work. Use Ractors for true parallelism.</li>
+<li><strong>Missing Mutex protection:</strong> Concurrent writes to shared state (incrementing counters, modifying hashes) cause race conditions. Always use Mutex to synchronize access.</li>
+<li><strong>Passing mutable objects to Ractors:</strong> Ractors require deep-copying most objects or using shareable frozen objects. Passing mutable state raises <code>Ractor::IsolationError</code>.</li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>Thread: Concurrent Execution</h2>
 
-<h3>Key Concept 1</h3>
+<p>Threads run concurrently but share memory. The GVL prevents parallel Ruby code execution but releases during I/O:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Concurrent I/O (3 HTTP calls in parallel)</span>
+<span class="n">threads</span> <span class="o">=</span> <span class="mi">3</span><span class="p">.</span><span class="nf">times</span><span class="p">.</span><span class="nf">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+  <span class="no">Thread</span><span class="p">.</span><span class="nf">new</span> <span class="k">do</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="no">Net</span><span class="o">::</span><span class="no">HTTP</span><span class="p">.</span><span class="nf">get</span><span class="p">(</span><span class="no">URI</span><span class="p">(</span><span class="s2">"https://api.example.com/</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span><span class="p">))</span>
+    <span class="nb">puts</span> <span class="s2">"Got response </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+<span class="n">threads</span><span class="p">.</span><span class="nf">each</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:join</span><span class="p">)</span>  <span class="c1"># Wait for all threads</span>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
 </code></pre></div>
-<h3>Key Concept 2</h3>
-
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
-</code></pre></div>
-<hr>
-
-<h2>Best Practices</h2>
-
-<ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
-</ol>
+<p><strong>Key behavior:</strong><br>
+- Threads share memory (instance variables, globals)<br>
+- GVL allows one thread to execute Ruby code at a time<br>
+- I/O operations (HTTP, DB, file reads) release the GVL, enabling concurrency<br>
+- CPU-bound work (parsing, computation) holds the GVL, blocking other threads</p>
 
 <hr>
 
-<h2>Key Terms</h2>
+<h2>Fiber: Cooperative Multitasking</h2>
+
+<p>Fibers are lightweight, manually-scheduled execution contexts:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">fiber</span> <span class="o">=</span> <span class="no">Fiber</span><span class="p">.</span><span class="nf">new</span> <span class="k">do</span>
+  <span class="nb">puts</span> <span class="s2">"Fiber started"</span>
+  <span class="no">Fiber</span><span class="p">.</span><span class="nf">yield</span> <span class="s2">"paused"</span>
+  <span class="nb">puts</span> <span class="s2">"Fiber resumed"</span>
+  <span class="s2">"done"</span>
+<span class="k">end</span>
+
+<span class="nb">puts</span> <span class="n">fiber</span><span class="p">.</span><span class="nf">resume</span>  <span class="c1"># =&gt; "Fiber started", returns "paused"</span>
+<span class="nb">puts</span> <span class="n">fiber</span><span class="p">.</span><span class="nf">resume</span>  <span class="c1"># =&gt; "Fiber resumed", returns "done"</span>
+
+</code></pre></div>
+<p><strong>When to use Fibers:</strong><br>
+- Building custom schedulers (Async gem uses Fibers for async/await)<br>
+- Event-driven servers (Falcon web server)<br>
+- Generators or lazy evaluation</p>
+
+<p><strong>Not for:</strong> Typical Rails apps. Stick with threads unless you need fine-grained control over scheduling.</p>
+
+<hr>
+
+<h2>Ractor: True Parallelism (Ruby 3.0+)</h2>
+
+<p>Ractors are isolated execution units that run in parallel:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Parallel CPU work (bypasses GVL)</span>
+<span class="n">ractor</span> <span class="o">=</span> <span class="no">Ractor</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">name: </span><span class="s2">"worker"</span><span class="p">)</span> <span class="k">do</span>
+  <span class="n">data</span> <span class="o">=</span> <span class="no">Ractor</span><span class="p">.</span><span class="nf">receive</span>  <span class="c1"># Wait for message</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="n">data</span><span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">n</span><span class="o">|</span> <span class="n">n</span> <span class="o">*</span> <span class="n">n</span> <span class="p">}</span>  <span class="c1"># CPU-bound work</span>
+  <span class="n">result</span>
+<span class="k">end</span>
+
+<span class="n">ractor</span><span class="p">.</span><span class="nf">send</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="nb">puts</span> <span class="n">ractor</span><span class="p">.</span><span class="nf">take</span>  <span class="c1"># =&gt; [1, 4, 9, 16, 25]</span>
+
+</code></pre></div>
+<p><strong>Key constraints:</strong><br>
+- Ractors don&#39;t share memory (copies or moves data between actors)<br>
+- Most objects are deep-copied when sent<br>
+- Frozen, immutable objects can be shared without copying<br>
+- Raises <code>Ractor::IsolationError</code> for unshareable objects (I/O, Threads)</p>
+
+<p><strong>Use cases:</strong><br>
+- Parallel data processing (CSV parsing, image resizing)<br>
+- Multi-core utilization for CPU-heavy tasks<br>
+- Replacing forking for parallelism in memory-constrained environments</p>
+
+<hr>
+
+<h2>Mutex: Thread Safety</h2>
+
+<p>Mutex (mutual exclusion) prevents race conditions by serializing access to shared state:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Counter</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="vi">@mutex</span> <span class="o">=</span> <span class="no">Mutex</span><span class="p">.</span><span class="nf">new</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">increment</span>
+    <span class="vi">@mutex</span><span class="p">.</span><span class="nf">synchronize</span> <span class="k">do</span>
+      <span class="vi">@count</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c1"># Atomic: no race condition</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">value</span>
+    <span class="vi">@mutex</span><span class="p">.</span><span class="nf">synchronize</span> <span class="p">{</span> <span class="vi">@count</span> <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Without Mutex, concurrent increments lose updates</span>
+<span class="n">counter</span> <span class="o">=</span> <span class="no">Counter</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">threads</span> <span class="o">=</span> <span class="mi">10</span><span class="p">.</span><span class="nf">times</span><span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="no">Thread</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="mi">100</span><span class="p">.</span><span class="nf">times</span> <span class="p">{</span> <span class="n">counter</span><span class="p">.</span><span class="nf">increment</span> <span class="p">}</span> <span class="p">}</span> <span class="p">}</span>
+<span class="n">threads</span><span class="p">.</span><span class="nf">each</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:join</span><span class="p">)</span>
+<span class="nb">puts</span> <span class="n">counter</span><span class="p">.</span><span class="nf">value</span>  <span class="c1"># =&gt; 1000 (correct with Mutex)</span>
+
+</code></pre></div>
+<p><strong>Critical sections:</strong><br>
+- Any code modifying shared state (instance vars, class vars, globals) needs Mutex<br>
+- Read-modify-write operations (<code>@count += 1</code>) are NOT atomic without Mutex<br>
+- Thread-safe data structures (Queue, SizedQueue) use Mutex internally</p>
+
+<hr>
+
+<h2>The Global VM Lock (GVL)</h2>
+
+<p>Ruby&#39;s GVL ensures only one thread executes Ruby code at a time:</p>
+
+<p><strong>When GVL is released:</strong><br>
+- I/O operations (network, disk, DB queries)<br>
+- C extensions that call <code>rb_thread_call_without_gvl</code><br>
+- Sleep, blocking system calls</p>
+
+<p><strong>When GVL is held:</strong><br>
+- Pure Ruby computation (loops, method calls, parsing)<br>
+- Object allocation, garbage collection</p>
+
+<p><strong>Implication:</strong> 10 threads doing CPU work won&#39;t run faster than 1 thread. But 10 threads doing HTTP calls can run 10x faster than sequential calls.</p>
+
+<hr>
+
+<h2>Decision Matrix</h2>
+
+<table><thead>
+<tr>
+<th>Primitive</th>
+<th>Use For</th>
+<th>Parallelism</th>
+<th>Shares Memory</th>
+<th>Complexity</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><strong>Thread</strong></td>
+<td>I/O-bound concurrency (Sidekiq, HTTP)</td>
+<td>No (GVL)</td>
+<td>Yes</td>
+<td>Low</td>
+</tr>
+<tr>
+<td><strong>Fiber</strong></td>
+<td>Custom schedulers, event loops</td>
+<td>No</td>
+<td>Yes</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><strong>Ractor</strong></td>
+<td>CPU-bound parallelism</td>
+<td>Yes (bypasses GVL)</td>
+<td>No (copies)</td>
+<td>High</td>
+</tr>
+</tbody></table>
+
+<p><strong>Rule of thumb:</strong><br>
+- Start with threads for background jobs and I/O<br>
+- Use Ractors when profiling shows CPU is the bottleneck<br>
+- Use Fibers only for event-driven architectures or frameworks</p>
+
+<hr>
+
+<h2>Trade-offs Box</h2>
 
 <ul>
-<li><strong>Thread</strong></li>
-<li><strong>Fiber</strong></li>
-<li><strong>Ractor</strong></li>
-<li><strong>GVL</strong></li>
-<li><strong>Mutex</strong></li>
-<li><strong>thread-safety</strong></li>
+<li><strong>Threads:</strong> Easy to use but limited by GVL for CPU work. Risk race conditions without Mutex.</li>
+<li><strong>Fibers:</strong> Full control over scheduling but requires manual yielding. Hard to debug.</li>
+<li><strong>Ractors:</strong> True parallelism but high overhead (copying data) and API restrictions.</li>
 </ul>
 
 <hr>
 
-<h2>Summary</h2>
+<h2>Debugging Checklist</h2>
 
-<p>Concurrency Primitives (Ractor, Fiber, Thread) is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
+<p>When concurrency fails:</p>
 
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<ol>
+<li>Check for race conditions — add Mutex around shared state modifications</li>
+<li>Profile with <code>thread_id</code> logging — see which thread is executing what</li>
+<li>Verify GVL release — use <code>strace</code> or profiler to confirm I/O releases GVL</li>
+<li>Test under concurrency — <code>10.times.map { Thread.new { ... } }</code> to trigger races</li>
+<li>Check Ractor isolation errors — ensure sent objects are frozen or copyable</li>
+<li>Use <code>Thread.current.backtrace</code> to debug deadlocks</li>
+<li>Monitor thread count — too many threads cause scheduler thrashing</li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>Ruby has three concurrency primitives: Thread (concurrent, GVL-limited), Fiber (cooperative), Ractor (parallel)</li>
+<li>GVL prevents parallel Ruby execution but releases during I/O</li>
+<li>Threads excel at I/O-bound work; Ractors handle CPU-bound parallelism</li>
+<li>Always use Mutex to protect shared state from race conditions</li>
+<li>Fibers are for custom schedulers, not typical Rails apps</li>
+</ul>
 
     
   </div>
@@ -705,57 +888,217 @@
 <div id="exercise-tab" class="tab-content">
   <div class="content-section">
     
-      <h1>Exercise: Concurrency Primitives (Ractor, Fiber, Thread)</h1>
-
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
+      <h1>Exercise: Concurrency Primitives</h1>
 
 <h2>Objective</h2>
 
-<p>Build hands-on experience with concurrency primitives (ractor, fiber, thread) through practical implementation.</p>
+<p>Build thread-safe code with Mutex, observe race conditions without synchronization, and compare Thread/Fiber/Ractor behavior under I/O and CPU workloads.</p>
 
-<h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new concurrency_primitives_practice
-<span class="nb">cd </span>concurrency_primitives_practice
+<h2>Task</h2>
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
-</code></pre></div>
-<h2>Tasks</h2>
+<p>Create a Ruby script that:</p>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
+<ol>
+<li>Demonstrates a race condition in a counter (without Mutex)</li>
+<li>Fixes the race condition using Mutex</li>
+<li>Compares Thread vs Sequential execution for I/O-bound HTTP calls</li>
+<li>(Optional) Uses Ractor for parallel CPU-bound work</li>
+</ol>
 
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
-</code></pre></div>
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
-
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
-
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
-
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
-
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
-
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
-</code></pre></div>
-<h2>Stretch Goals</h2>
+<h2>Acceptance Criteria</h2>
 
 <ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
+<li>[ ] Counter without Mutex produces incorrect results under concurrent access</li>
+<li>[ ] Counter with Mutex produces correct results (1000 increments = 1000)</li>
+<li>[ ] 5 threads making HTTP calls complete faster than sequential calls</li>
+<li>[ ] Script logs timing for sequential vs concurrent execution</li>
+<li><a href="Stretch" target="_blank"> </a> Ractor example processes array in parallel and returns results</li>
 </ul>
 
-<h2>Solution Notes</h2>
+<h2>Setup Code</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p>Create <code>concurrency_demo.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s1">'net/http'</span>
+<span class="nb">require</span> <span class="s1">'benchmark'</span>
+
+<span class="c1"># Part 1: Race Condition Demo</span>
+<span class="k">class</span> <span class="nc">UnsafeCounter</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@count</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">increment</span>
+    <span class="c1"># NOT atomic: read @count, add 1, write @count</span>
+    <span class="vi">@count</span> <span class="o">+=</span> <span class="mi">1</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">value</span>
+    <span class="vi">@count</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">SafeCounter</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="vi">@mutex</span> <span class="o">=</span> <span class="no">Mutex</span><span class="p">.</span><span class="nf">new</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">increment</span>
+    <span class="vi">@mutex</span><span class="p">.</span><span class="nf">synchronize</span> <span class="k">do</span>
+      <span class="vi">@count</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">value</span>
+    <span class="vi">@mutex</span><span class="p">.</span><span class="nf">synchronize</span> <span class="p">{</span> <span class="vi">@count</span> <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="nb">puts</span> <span class="s2">"=== Part 1: Race Condition Demo ==="</span>
+
+<span class="c1"># Test unsafe counter</span>
+<span class="n">unsafe</span> <span class="o">=</span> <span class="no">UnsafeCounter</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">threads</span> <span class="o">=</span> <span class="mi">10</span><span class="p">.</span><span class="nf">times</span><span class="p">.</span><span class="nf">map</span> <span class="k">do</span>
+  <span class="no">Thread</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="mi">100</span><span class="p">.</span><span class="nf">times</span> <span class="p">{</span> <span class="n">unsafe</span><span class="p">.</span><span class="nf">increment</span> <span class="p">}</span> <span class="p">}</span>
+<span class="k">end</span>
+<span class="n">threads</span><span class="p">.</span><span class="nf">each</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:join</span><span class="p">)</span>
+<span class="nb">puts</span> <span class="s2">"Unsafe counter (expected 1000): </span><span class="si">#{</span><span class="n">unsafe</span><span class="p">.</span><span class="nf">value</span><span class="si">}</span><span class="s2">"</span>
+
+<span class="c1"># Test safe counter</span>
+<span class="n">safe</span> <span class="o">=</span> <span class="no">SafeCounter</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">threads</span> <span class="o">=</span> <span class="mi">10</span><span class="p">.</span><span class="nf">times</span><span class="p">.</span><span class="nf">map</span> <span class="k">do</span>
+  <span class="no">Thread</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="mi">100</span><span class="p">.</span><span class="nf">times</span> <span class="p">{</span> <span class="n">safe</span><span class="p">.</span><span class="nf">increment</span> <span class="p">}</span> <span class="p">}</span>
+<span class="k">end</span>
+<span class="n">threads</span><span class="p">.</span><span class="nf">each</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:join</span><span class="p">)</span>
+<span class="nb">puts</span> <span class="s2">"Safe counter (expected 1000): </span><span class="si">#{</span><span class="n">safe</span><span class="p">.</span><span class="nf">value</span><span class="si">}</span><span class="s2">"</span>
+
+<span class="c1"># Part 2: I/O Concurrency with Threads</span>
+<span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== Part 2: I/O-Bound Concurrency ==="</span>
+
+<span class="k">def</span> <span class="nf">fetch_url</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+  <span class="n">uri</span> <span class="o">=</span> <span class="no">URI</span><span class="p">(</span><span class="s2">"https://jsonplaceholder.typicode.com/posts/</span><span class="si">#{</span><span class="nb">id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+  <span class="no">Net</span><span class="o">::</span><span class="no">HTTP</span><span class="p">.</span><span class="nf">get</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="c1"># Sequential execution</span>
+<span class="n">sequential_time</span> <span class="o">=</span> <span class="no">Benchmark</span><span class="p">.</span><span class="nf">realtime</span> <span class="k">do</span>
+  <span class="mi">5</span><span class="p">.</span><span class="nf">times</span> <span class="p">{</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span> <span class="n">fetch_url</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
+<span class="nb">puts</span> <span class="s2">"Sequential (5 HTTP calls): </span><span class="si">#{</span><span class="n">sequential_time</span><span class="p">.</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">s"</span>
+
+<span class="c1"># Concurrent execution with threads</span>
+<span class="n">concurrent_time</span> <span class="o">=</span> <span class="no">Benchmark</span><span class="p">.</span><span class="nf">realtime</span> <span class="k">do</span>
+  <span class="n">threads</span> <span class="o">=</span> <span class="mi">5</span><span class="p">.</span><span class="nf">times</span><span class="p">.</span><span class="nf">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+    <span class="no">Thread</span><span class="p">.</span><span class="nf">new</span> <span class="p">{</span> <span class="n">fetch_url</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">}</span>
+  <span class="k">end</span>
+  <span class="n">threads</span><span class="p">.</span><span class="nf">each</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:join</span><span class="p">)</span>
+<span class="k">end</span>
+<span class="nb">puts</span> <span class="s2">"Concurrent (5 threads): </span><span class="si">#{</span><span class="n">concurrent_time</span><span class="p">.</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">s"</span>
+<span class="nb">puts</span> <span class="s2">"Speedup: </span><span class="si">#{</span><span class="p">(</span><span class="n">sequential_time</span> <span class="o">/</span> <span class="n">concurrent_time</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">x"</span>
+
+</code></pre></div>
+<h2>Verification Steps</h2>
+
+<ol>
+<li>Run the script:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code>ruby concurrency_demo.rb
+
+</code></pre></div>
+<ol>
+<li>Expected output:</li>
+</ol>
+<div class="highlight"><pre class="highlight plaintext"><code>=== Part 1: Race Condition Demo ===
+Unsafe counter (expected 1000): 987  # ← Wrong! Race condition
+Safe counter (expected 1000): 1000   # ← Correct with Mutex
+
+=== Part 2: I/O-Bound Concurrency ===
+Sequential (5 HTTP calls): 2.34s
+Concurrent (5 threads): 0.52s
+Speedup: 4.5x  # ← Threads excel at I/O
+
+</code></pre></div>
+<ol>
+<li>Observations:
+
+<ul>
+<li>Unsafe counter loses increments due to race conditions</li>
+<li>Safe counter with Mutex is always correct</li>
+<li>Threads provide 4-5x speedup for I/O-bound work (HTTP calls)</li>
+</ul></li>
+</ol>
+
+<h2>Part 3: Fiber Example (Stretch)</h2>
+
+<p>Add this to demonstrate Fiber&#39;s manual control:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== Part 3: Fiber Manual Control ==="</span>
+
+<span class="n">fiber</span> <span class="o">=</span> <span class="no">Fiber</span><span class="p">.</span><span class="nf">new</span> <span class="k">do</span>
+  <span class="nb">puts</span> <span class="s2">"Fiber: Starting task"</span>
+  <span class="no">Fiber</span><span class="p">.</span><span class="nf">yield</span> <span class="s2">"paused at checkpoint 1"</span>
+  <span class="nb">puts</span> <span class="s2">"Fiber: Resumed, continuing"</span>
+  <span class="no">Fiber</span><span class="p">.</span><span class="nf">yield</span> <span class="s2">"paused at checkpoint 2"</span>
+  <span class="nb">puts</span> <span class="s2">"Fiber: Finished"</span>
+  <span class="s2">"done"</span>
+<span class="k">end</span>
+
+<span class="nb">puts</span> <span class="s2">"Main: Resuming fiber..."</span>
+<span class="nb">puts</span> <span class="s2">"Result: </span><span class="si">#{</span><span class="n">fiber</span><span class="p">.</span><span class="nf">resume</span><span class="si">}</span><span class="s2">"</span>  <span class="c1"># =&gt; "paused at checkpoint 1"</span>
+<span class="nb">puts</span> <span class="s2">"Main: Doing other work..."</span>
+<span class="nb">puts</span> <span class="s2">"Result: </span><span class="si">#{</span><span class="n">fiber</span><span class="p">.</span><span class="nf">resume</span><span class="si">}</span><span class="s2">"</span>  <span class="c1"># =&gt; "paused at checkpoint 2"</span>
+<span class="nb">puts</span> <span class="s2">"Main: Final resume..."</span>
+<span class="nb">puts</span> <span class="s2">"Result: </span><span class="si">#{</span><span class="n">fiber</span><span class="p">.</span><span class="nf">resume</span><span class="si">}</span><span class="s2">"</span>  <span class="c1"># =&gt; "done"</span>
+
+</code></pre></div>
+<h2>Part 4: Ractor Parallel Processing (Stretch, Ruby 3.0+)</h2>
+
+<p>Add this to compare Ractor parallelism:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== Part 4: Ractor Parallel Processing ==="</span>
+
+<span class="c1"># CPU-bound work: sum of squares</span>
+<span class="k">def</span> <span class="nf">cpu_work</span><span class="p">(</span><span class="n">numbers</span><span class="p">)</span>
+  <span class="n">numbers</span><span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">n</span><span class="o">|</span> <span class="n">n</span> <span class="o">**</span> <span class="mi">2</span> <span class="p">}.</span><span class="nf">sum</span>
+<span class="k">end</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">..</span><span class="mi">1_000_000</span><span class="p">).</span><span class="nf">to_a</span>
+
+<span class="c1"># Sequential</span>
+<span class="n">sequential_cpu</span> <span class="o">=</span> <span class="no">Benchmark</span><span class="p">.</span><span class="nf">realtime</span> <span class="k">do</span>
+  <span class="n">cpu_work</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="k">end</span>
+<span class="nb">puts</span> <span class="s2">"Sequential CPU work: </span><span class="si">#{</span><span class="n">sequential_cpu</span><span class="p">.</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">s"</span>
+
+<span class="c1"># Parallel with Ractors (split into 4 chunks)</span>
+<span class="n">parallel_cpu</span> <span class="o">=</span> <span class="no">Benchmark</span><span class="p">.</span><span class="nf">realtime</span> <span class="k">do</span>
+  <span class="n">chunk_size</span> <span class="o">=</span> <span class="n">data</span><span class="p">.</span><span class="nf">size</span> <span class="o">/</span> <span class="mi">4</span>
+  <span class="n">ractors</span> <span class="o">=</span> <span class="mi">4</span><span class="p">.</span><span class="nf">times</span><span class="p">.</span><span class="nf">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">i</span><span class="o">|</span>
+    <span class="n">chunk</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">chunk_size</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">]</span>
+    <span class="no">Ractor</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">nums</span><span class="o">|</span>
+      <span class="n">nums</span><span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">n</span><span class="o">|</span> <span class="n">n</span> <span class="o">**</span> <span class="mi">2</span> <span class="p">}.</span><span class="nf">sum</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+  <span class="n">results</span> <span class="o">=</span> <span class="n">ractors</span><span class="p">.</span><span class="nf">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:take</span><span class="p">)</span>
+  <span class="n">results</span><span class="p">.</span><span class="nf">sum</span>
+<span class="k">end</span>
+<span class="nb">puts</span> <span class="s2">"Parallel (4 Ractors): </span><span class="si">#{</span><span class="n">parallel_cpu</span><span class="p">.</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">s"</span>
+<span class="nb">puts</span> <span class="s2">"Speedup: </span><span class="si">#{</span><span class="p">(</span><span class="n">sequential_cpu</span> <span class="o">/</span> <span class="n">parallel_cpu</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">x"</span>
+
+</code></pre></div>
+<p><strong>Note:</strong> Ractor speedup depends on CPU cores. On a 4-core machine, expect ~3x speedup.</p>
+
+<h2>Discussion Questions</h2>
+
+<ol>
+<li>Why does the unsafe counter lose increments?</li>
+<li>When would you choose Fiber over Thread?</li>
+<li>Why do threads speed up HTTP calls but not pure computation?</li>
+<li>What happens if you remove <code>Mutex.synchronize</code> from the safe counter?</li>
+<li>When should you use Ractor instead of forking processes?</li>
+</ol>
+
+<h2>Time Estimate</h2>
+
+<p>25 minutes (15 min for Parts 1-2, 10 min for stretch goals)</p>
 
     
   </div>
@@ -767,74 +1110,317 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Parallel execution of Ruby code across threads">
+          <h4>Question 1 (1 points)</h4>
+          <p style="margin: 10px 0;">What does Ruby's Global VM Lock (GVL) prevent?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  All concurrent execution
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  Parallel execution of Ruby code across threads
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  I/O operations from running concurrently
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  Ractors from running in parallel
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> The GVL ensures only one thread executes Ruby code at a time, but releases during I/O.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="During I/O operations (HTTP, DB queries, file reads)">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">When is the GVL released, allowing concurrent thread execution?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  During pure Ruby computation (loops, method calls)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  During I/O operations (HTTP, DB queries, file reads)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  During garbage collection
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Never, threads always block each other
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> I/O operations release the GVL, enabling threads to run concurrently.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Without Mutex, read-modify-write operations cause race conditions">
+          <h4>Question 3 (2 points)</h4>
+          <p style="margin: 10px 0;">Why do you need Mutex when multiple threads access shared state?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  Threads automatically copy instance variables
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  Without Mutex, read-modify-write operations cause race conditions
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  Mutex speeds up thread execution
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  Ruby's GVL prevents race conditions
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Operations like @count += 1 are not atomic. Mutex serializes access to prevent lost updates.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Threads share memory; Ractors isolate memory and copy data">
+          <h4>Question 4 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the primary difference between Thread and Ractor?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  Threads share memory; Ractors isolate memory and copy data
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  Threads are faster than Ractors
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  Ractors are deprecated in Ruby 3
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  Threads require Mutex; Ractors don't
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Ractors achieve parallelism by isolating memory and copying/moving data between actors.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="For building custom schedulers or event-driven systems">
+          <h4>Question 5 (1 points)</h4>
+          <p style="margin: 10px 0;">When should you use Fiber instead of Thread?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  For I/O-bound background jobs
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  For building custom schedulers or event-driven systems
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  For parallel CPU-bound processing
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  For database queries
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Fibers provide manual control over task switching, useful for event loops and custom schedulers.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="2"
              >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">Explain why 10 threads doing CPU-bound work won't run faster than 1 thread in Ruby.</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Ruby's GVL prevents parallel Ruby code execution. Only one thread can execute Ruby code at a time, so CPU-bound work doesn't benefit from threads.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="short"
+             data-points="3"
+             >
+          <h4>Question 7 (3 points)</h4>
+          <p style="margin: 10px 0;">Write code showing how to protect a shared counter from race conditions using Mutex.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">class Counter
+  def initialize
+    @count = 0
+    @mutex = Mutex.new
+  end
+  def increment
+    @mutex.synchronize { @count += 1 }
+  end
+end
+</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="The object is deep-copied">
+          <h4>Question 8 (1 points)</h4>
+          <p style="margin: 10px 0;">What happens if you pass a mutable object to a Ractor?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  The object is shared between Ractors
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  The object is deep-copied
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  Ractor raises Ractor::IsolationError
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  The Ractor freezes the object
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Ractors copy most objects to maintain isolation, unless they are frozen and shareable.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Ractor">
+          <h4>Question 9 (1 points)</h4>
+          <p style="margin: 10px 0;">Which concurrency primitive bypasses the GVL to achieve true parallelism?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(8, 0)">
+                  Thread
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 1)">
+                  Fiber
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 2)">
+                  Ractor
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 3)">
+                  Mutex
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Ractors run in parallel on multiple CPU cores, bypassing the GVL.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 10 (2 points)</h4>
+          <p style="margin: 10px 0;">When would you choose Ractor over forking processes for parallelism?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Use Ractors when you need to share frozen data efficiently or avoid the memory overhead of forking entire process space. Ractors are lighter than forks.</p>
+            </div>
           
         </div>
       
@@ -848,7 +1434,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -864,33 +1450,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://ruby-doc.org/core-3.1.0/Thread.html" target="_blank">Ruby Documentation — Thread</a>
+            <div class="why">Official Thread API documentation covering synchronization, thread locals, and lifecycle.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://ruby-doc.org/core-3.1.0/Ractor.html" target="_blank">Ruby Documentation — Ractor</a>
+            <div class="why">Official Ractor documentation explaining parallel execution, message passing, and isolation.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://ruby-doc.org/core-3.1.0/Fiber.html" target="_blank">Ruby Documentation — Fiber</a>
+            <div class="why">Official Fiber API for cooperative multitasking and manual scheduling.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.youtube.com/watch?v=uvHF7NHwOME" target="_blank">Concurrency in Ruby 3 with Guilds (Koichi Sasada)</a>
+            <div class="why">Talk by Ruby core team member on GVL, Ractor design, and parallelism in Ruby 3.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://www.jstorimer.com/products/working-with-ruby-threads" target="_blank">Working with Ruby Threads (Book by Jesse Storimer)</a>
+            <div class="why">Comprehensive guide to thread safety, GVL behavior, and concurrency patterns.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/mperham/sidekiq/wiki/Advanced-Options#concurrency" target="_blank">Sidekiq Documentation — Concurrency</a>
+            <div class="why">Real-world thread usage in production background job processor, including thread safety tips.</div>
+          </li>
+        
+          <li>
+            <a href="https://www.speedshop.co/2020/05/11/the-ruby-gvl-and-scaling.html" target="_blank">Understanding the Ruby Global VM Lock (GVL)</a>
+            <div class="why">In-depth article on GVL behavior, I/O concurrency, and when threads provide speedup.</div>
           </li>
         
       </ul>

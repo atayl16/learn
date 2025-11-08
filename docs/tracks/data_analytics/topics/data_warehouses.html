@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,71 +656,208 @@
 
 <h2>What It Is</h2>
 
-<p>Working with Data Warehouses is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>Data warehouses are specialized databases optimized for analytical queries (OLAP) rather than transactional operations (OLTP). Services like Snowflake and BigQuery store historical data aggregated from multiple sources. Rails applications sync data to warehouses via scheduled jobs, then query aggregated results for dashboards, reports, and business intelligence. Warehouses handle complex analytical queries (e.g., multi-year trends, cohort analysis) that would cripple production databases.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Production databases are optimized for fast writes and small reads (e.g., loading a user&#39;s profile). Running analytics queries like &quot;calculate revenue by region for 3 years&quot; locks tables and starves application traffic. Seniors separate concerns: transactional data stays in Postgres, analytical data lives in the warehouse. This architecture prevents slow reports from taking down production while enabling analysts to query terabytes of data without Rails developers writing custom code.</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li><strong>Business intelligence dashboards:</strong> Aggregate metrics across millions of rows (revenue, retention, churn)</li>
+<li><strong>Historical trend analysis:</strong> Multi-year comparisons that require scanning entire tables</li>
+<li><strong>Data science workflows:</strong> Export cleaned datasets for ML model training</li>
+<li><strong>Cross-system analytics:</strong> Join data from Rails, CRM, payment processors, and third-party APIs</li>
+<li><strong>Compliance and auditing:</strong> Immutable event logs required for SOC2, GDPR, or financial regulations</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><strong>Syncing sensitive data without masking:</strong> Warehouses often have looser access controls than production. Sync PII (emails, addresses) hashed or redacted to prevent data leaks.</li>
+<li><strong>Full syncs on large tables:</strong> Re-exporting 10 million rows nightly wastes bandwidth and warehouse storage. Use incremental syncs with <code>updated_at</code> filters and upsert logic.</li>
+<li><strong>Querying warehouses in request/response cycles:</strong> Warehouse queries take seconds to minutes. Cache results in Redis or run queries in background jobs, never in controllers.</li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>OLAP vs OLTP</h2>
 
-<h3>Key Concept 1</h3>
+<p><strong>OLTP (Online Transaction Processing):</strong> Optimized for many small, fast reads/writes. Rails apps use Postgres/MySQL for OLTP.</p>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<p><strong>OLAP (Online Analytical Processing):</strong> Optimized for complex aggregations across large datasets. Warehouses use columnar storage and distributed execution.</p>
+
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># OLTP: Fast single-row lookup</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># 2ms</span>
+
+<span class="c1"># OLAP: Aggregate millions of rows</span>
+<span class="c1"># SELECT date_trunc('month', created_at), COUNT(*)</span>
+<span class="c1"># FROM users</span>
+<span class="c1"># GROUP BY 1</span>
+<span class="c1"># ORDER BY 1;</span>
+<span class="c1"># (10+ seconds on production DB, &lt;1s on warehouse)</span>
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<p><strong>Why separate systems?</strong><br>
+- OLTP indexes optimize for point lookups; OLAP scans entire columns<br>
+- OLTP locks rows during writes; OLAP is read-only or append-only<br>
+- OLTP stores current state; OLAP stores historical snapshots</p>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<hr>
+
+<h2>Connecting Rails to BigQuery</h2>
+
+<p>BigQuery uses service account JSON credentials and the <code>google-cloud-bigquery</code> gem.</p>
+
+<p><strong>Setup:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'google-cloud-bigquery'</span>
+
+<span class="c1"># config/initializers/bigquery.rb</span>
+<span class="nb">require</span> <span class="s1">'google/cloud/bigquery'</span>
+
+<span class="no">BIGQUERY</span> <span class="o">=</span> <span class="no">Google</span><span class="o">::</span><span class="no">Cloud</span><span class="o">::</span><span class="no">Bigquery</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span>
+  <span class="ss">project_id: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'GCP_PROJECT_ID'</span><span class="p">],</span>
+  <span class="ss">credentials: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'GCP_CREDENTIALS_PATH'</span><span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><strong>Query example:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/services/revenue_report.rb</span>
+<span class="k">class</span> <span class="nc">RevenueReport</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">monthly_revenue</span><span class="p">(</span><span class="n">year</span><span class="p">)</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="o">&lt;&lt;~</span><span class="no">SQL</span><span class="sh">
+      SELECT
+        DATE_TRUNC(created_at, MONTH) as month,
+        SUM(amount) as revenue
+      FROM `project.dataset.orders`
+      WHERE EXTRACT(YEAR FROM created_at) = @year
+      GROUP BY month
+      ORDER BY month
+</span><span class="no">    SQL</span>
+
+    <span class="no">BIGQUERY</span><span class="p">.</span><span class="nf">query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="ss">params: </span><span class="p">{</span> <span class="ss">year: </span><span class="n">year</span> <span class="p">}).</span><span class="nf">to_a</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 </code></pre></div>
 <hr>
 
-<h2>Best Practices</h2>
+<h2>Connecting Rails to Snowflake</h2>
 
-<ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
-</ol>
+<p>Snowflake uses ODBC or REST API via the <code>snowflake-connector-ruby</code> gem or HTTP calls.</p>
+
+<p><strong>Setup:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'snowflake-connector-ruby'</span>
+
+<span class="c1"># config/initializers/snowflake.rb</span>
+<span class="nb">require</span> <span class="s1">'snowflake-connector-ruby'</span>
+
+<span class="no">SNOWFLAKE</span> <span class="o">=</span> <span class="no">SnowflakeConnector</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span>
+  <span class="ss">account: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'SNOWFLAKE_ACCOUNT'</span><span class="p">],</span>
+  <span class="ss">user: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'SNOWFLAKE_USER'</span><span class="p">],</span>
+  <span class="ss">password: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'SNOWFLAKE_PASSWORD'</span><span class="p">],</span>
+  <span class="ss">warehouse: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'SNOWFLAKE_WAREHOUSE'</span><span class="p">],</span>
+  <span class="ss">database: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'SNOWFLAKE_DATABASE'</span><span class="p">],</span>
+  <span class="ss">schema: </span><span class="s1">'PUBLIC'</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><strong>Query example:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">result</span> <span class="o">=</span> <span class="no">SNOWFLAKE</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="s2">"SELECT COUNT(*) FROM events WHERE user_id = ?"</span><span class="p">,</span> <span class="p">[</span><span class="n">user_id</span><span class="p">])</span>
+<span class="n">result</span><span class="p">.</span><span class="nf">first</span><span class="p">[</span><span class="s1">'COUNT(*)'</span><span class="p">]</span>
+</code></pre></div>
+<hr>
+
+<h2>Data Sync Strategies</h2>
+
+<h3>Full Sync</h3>
+
+<p>Export entire table on every run. Simple but wasteful for large datasets.</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/jobs/user_sync_job.rb</span>
+<span class="k">class</span> <span class="nc">UserSyncJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="k">def</span> <span class="nf">perform</span>
+    <span class="n">users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="ss">:id</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:created_at</span><span class="p">,</span> <span class="ss">:plan</span><span class="p">).</span><span class="nf">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:attributes</span><span class="p">)</span>
+    <span class="no">BIGQUERY</span><span class="p">.</span><span class="nf">insert</span><span class="p">(</span><span class="s1">'users'</span><span class="p">,</span> <span class="n">users</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Use when:</strong> Table is small (&lt;100k rows) or data changes unpredictably.</p>
+
+<h3>Incremental Sync</h3>
+
+<p>Export only new/updated records since last sync.</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">IncrementalUserSyncJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="k">def</span> <span class="nf">perform</span>
+    <span class="n">last_sync</span> <span class="o">=</span> <span class="no">SyncLog</span><span class="p">.</span><span class="nf">last_sync_time</span><span class="p">(</span><span class="s1">'users'</span><span class="p">)</span>
+    <span class="n">users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s1">'updated_at &gt; ?'</span><span class="p">,</span> <span class="n">last_sync</span><span class="p">).</span><span class="nf">select</span><span class="p">(</span><span class="ss">:id</span><span class="p">,</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">:updated_at</span><span class="p">)</span>
+
+    <span class="no">BIGQUERY</span><span class="p">.</span><span class="nf">insert</span><span class="p">(</span><span class="s1">'users'</span><span class="p">,</span> <span class="n">users</span><span class="p">.</span><span class="nf">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:attributes</span><span class="p">))</span>
+    <span class="no">SyncLog</span><span class="p">.</span><span class="nf">record_sync</span><span class="p">(</span><span class="s1">'users'</span><span class="p">,</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Use when:</strong> Table is large and has <code>updated_at</code> timestamp.</p>
+
+<h3>Change Data Capture (CDC)</h3>
+
+<p>Stream database changes in real-time via tools like Debezium or AWS DMS.</p>
+
+<p><strong>Use when:</strong> Near real-time analytics required (e.g., fraud detection).</p>
 
 <hr>
 
-<h2>Key Terms</h2>
+<h2>Querying from Rails</h2>
+
+<p><strong>Anti-pattern: Synchronous queries</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># DON'T: Blocks request for 30+ seconds</span>
+<span class="k">def</span> <span class="nf">dashboard</span>
+  <span class="vi">@revenue</span> <span class="o">=</span> <span class="no">BIGQUERY</span><span class="p">.</span><span class="nf">query</span><span class="p">(</span><span class="s2">"SELECT SUM(amount) FROM orders"</span><span class="p">).</span><span class="nf">first</span><span class="p">[</span><span class="s1">'total'</span><span class="p">]</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Pattern 1: Background jobs + caching</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">DashboardMetricsJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="k">def</span> <span class="nf">perform</span>
+    <span class="n">revenue</span> <span class="o">=</span> <span class="no">BIGQUERY</span><span class="p">.</span><span class="nf">query</span><span class="p">(</span><span class="s2">"SELECT SUM(amount) FROM orders"</span><span class="p">).</span><span class="nf">first</span><span class="p">[</span><span class="s1">'total'</span><span class="p">]</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">write</span><span class="p">(</span><span class="s1">'dashboard:revenue'</span><span class="p">,</span> <span class="n">revenue</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">1</span><span class="p">.</span><span class="nf">hour</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Controller</span>
+<span class="k">def</span> <span class="nf">dashboard</span>
+  <span class="vi">@revenue</span> <span class="o">=</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s1">'dashboard:revenue'</span><span class="p">)</span> <span class="p">{</span> <span class="s1">'Loading...'</span> <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Pattern 2: Materialize results in Postgres</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Sync aggregated results from warehouse to local table</span>
+<span class="k">class</span> <span class="nc">SyncDashboardMetricsJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="k">def</span> <span class="nf">perform</span>
+    <span class="n">metrics</span> <span class="o">=</span> <span class="no">BIGQUERY</span><span class="p">.</span><span class="nf">query</span><span class="p">(</span><span class="s2">"SELECT metric, value FROM dashboard_metrics"</span><span class="p">).</span><span class="nf">to_a</span>
+    <span class="n">metrics</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+      <span class="no">DashboardMetric</span><span class="p">.</span><span class="nf">upsert</span><span class="p">({</span> <span class="ss">metric: </span><span class="n">row</span><span class="p">[</span><span class="s1">'metric'</span><span class="p">],</span> <span class="ss">value: </span><span class="n">row</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span> <span class="p">})</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Trade-offs</h2>
 
 <ul>
-<li><strong>data warehouse</strong></li>
-<li><strong>Snowflake</strong></li>
-<li><strong>BigQuery</strong></li>
-<li><strong>OLAP</strong></li>
-<li><strong>data sync</strong></li>
+<li><strong>Advantage:</strong> Warehouses scale to petabytes and handle complex analytics without impacting production.</li>
+<li><strong>Cost:</strong> Additional infrastructure ($100+/month), data sync complexity, eventual consistency (data lags behind production).</li>
+<li><strong>When to skip:</strong> Small apps (&lt;100k users), simple reporting needs met by Postgres views, budget constraints.</li>
 </ul>
 
 <hr>
 
-<h2>Summary</h2>
+<h2>One-Minute Recap</h2>
 
-<p>Working with Data Warehouses is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
-
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<ul>
+<li>Data warehouses (Snowflake, BigQuery) handle OLAP workloads; production databases handle OLTP</li>
+<li>Use incremental syncs for large tables to avoid re-exporting millions of rows</li>
+<li>Never query warehouses synchronously in controllers; use background jobs and caching</li>
+<li>Separate transactional data (Postgres) from analytical data (warehouse) to prevent analytics queries from degrading user experience</li>
+</ul>
 
     
   </div>
@@ -706,55 +869,165 @@
     
       <h1>Exercise: Working with Data Warehouses</h1>
 
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
-
 <h2>Objective</h2>
 
-<p>Build hands-on experience with working with data warehouses through practical implementation.</p>
+<p>Connect a Rails application to BigQuery and implement an incremental data sync job that exports order data to the warehouse for analytics.</p>
 
-<h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new data_warehouses_practice
-<span class="nb">cd </span>data_warehouses_practice
+<h2>Task</h2>
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
+<p>Your e-commerce Rails app needs to sync order data to BigQuery for business intelligence reporting. Build a sync job that exports only new/updated orders since the last sync, then query BigQuery from Rails to generate a revenue report.</p>
+
+<p><strong>Setup:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Install BigQuery gem</span>
+bundle add google-cloud-bigquery
+
+<span class="c"># Set environment variables</span>
+<span class="nb">export </span><span class="nv">GCP_PROJECT_ID</span><span class="o">=</span><span class="s2">"your-project-id"</span>
+<span class="nb">export </span><span class="nv">GCP_CREDENTIALS_PATH</span><span class="o">=</span><span class="s2">"/path/to/service-account.json"</span>
 </code></pre></div>
-<h2>Tasks</h2>
+<p><strong>Assume this schema:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">create_table</span> <span class="ss">:orders</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">references</span> <span class="ss">:user</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">decimal</span> <span class="ss">:amount</span><span class="p">,</span> <span class="ss">precision: </span><span class="mi">10</span><span class="p">,</span> <span class="ss">scale: </span><span class="mi">2</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:status</span>  <span class="c1"># 'pending', 'completed', 'refunded'</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">timestamps</span>
+<span class="k">end</span>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
-
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
+<span class="n">create_table</span> <span class="ss">:sync_logs</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:table_name</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">datetime</span> <span class="ss">:last_sync_at</span>
+  <span class="n">t</span><span class="p">.</span><span class="nf">timestamps</span>
+<span class="k">end</span>
 </code></pre></div>
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
+<p><strong>BigQuery table schema:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">dataset</span><span class="p">.</span><span class="n">orders</span> <span class="p">(</span>
+  <span class="n">id</span> <span class="n">INT64</span><span class="p">,</span>
+  <span class="n">user_id</span> <span class="n">INT64</span><span class="p">,</span>
+  <span class="n">amount</span> <span class="nb">NUMERIC</span><span class="p">,</span>
+  <span class="n">status</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">created_at</span> <span class="nb">TIMESTAMP</span><span class="p">,</span>
+  <span class="n">updated_at</span> <span class="nb">TIMESTAMP</span>
+<span class="p">);</span>
+</code></pre></div>
+<h2>Acceptance Criteria</h2>
 
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
+<h3>Part 1: Configure BigQuery Connection (5 minutes)</h3>
 
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
+<ul>
+<li>[ ] Create <code>config/initializers/bigquery.rb</code> with authenticated BigQuery client</li>
+<li>[ ] Add environment variables for project ID and credentials path</li>
+<li>[ ] Verify connection: query <code>SELECT 1</code> successfully returns result</li>
+</ul>
 
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
+<h3>Part 2: Build Incremental Sync Job (15 minutes)</h3>
 
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
+<ul>
+<li>[ ] Create <code>app/jobs/sync_orders_to_bigquery_job.rb</code></li>
+<li>[ ] Implement incremental sync logic:
 
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
+<ul>
+<li>Query <code>SyncLog</code> for last sync timestamp for &#39;orders&#39; table</li>
+<li>Select orders where <code>updated_at &gt; last_sync_timestamp</code></li>
+<li>Insert/update rows in BigQuery using <code>insert</code> or streaming API</li>
+<li>Record new sync timestamp in <code>SyncLog</code></li>
+</ul></li>
+<li>[ ] Handle edge case: first run when <code>SyncLog</code> is empty (sync all orders or last 30 days)</li>
+<li>[ ] Add error handling and logging for failed syncs</li>
+</ul>
+
+<p><strong>Starter code:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">SyncOrdersToBigqueryJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="k">def</span> <span class="nf">perform</span>
+    <span class="n">last_sync</span> <span class="o">=</span> <span class="no">SyncLog</span><span class="p">.</span><span class="nf">find_by</span><span class="p">(</span><span class="ss">table_name: </span><span class="s1">'orders'</span><span class="p">)</span><span class="o">&amp;</span><span class="p">.</span><span class="nf">last_sync_at</span> <span class="o">||</span> <span class="mi">30</span><span class="p">.</span><span class="nf">days</span><span class="p">.</span><span class="nf">ago</span>
+    <span class="n">current_sync</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+
+    <span class="n">orders</span> <span class="o">=</span> <span class="no">Order</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s1">'updated_at &gt; ?'</span><span class="p">,</span> <span class="n">last_sync</span><span class="p">)</span>
+                  <span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="ss">:id</span><span class="p">,</span> <span class="ss">:user_id</span><span class="p">,</span> <span class="ss">:amount</span><span class="p">,</span> <span class="ss">:status</span><span class="p">,</span> <span class="ss">:created_at</span><span class="p">,</span> <span class="ss">:updated_at</span><span class="p">)</span>
+
+    <span class="c1"># TODO: Insert orders into BigQuery</span>
+    <span class="c1"># TODO: Handle errors</span>
+    <span class="c1"># TODO: Update SyncLog</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Part 3: Query BigQuery for Revenue Report (10 minutes)</h3>
+
+<ul>
+<li>[ ] Create <code>app/services/bigquery_revenue_report.rb</code></li>
+<li>[ ] Write method <code>daily_revenue(start_date, end_date)</code> that queries BigQuery for completed orders grouped by day</li>
+<li>[ ] Return results as array of hashes: <code>[{date: &#39;2024-01-01&#39;, revenue: 1250.00}, ...]</code></li>
+<li>[ ] Add caching layer using Rails.cache to avoid re-querying BigQuery for same date ranges</li>
+</ul>
+
+<p><strong>SQL query:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="k">SELECT</span>
+  <span class="nb">DATE</span><span class="p">(</span><span class="n">created_at</span><span class="p">)</span> <span class="k">as</span> <span class="nb">date</span><span class="p">,</span>
+  <span class="k">SUM</span><span class="p">(</span><span class="n">amount</span><span class="p">)</span> <span class="k">as</span> <span class="n">revenue</span>
+<span class="k">FROM</span> <span class="nv">`project.dataset.orders`</span>
+<span class="k">WHERE</span> <span class="n">status</span> <span class="o">=</span> <span class="s1">'completed'</span>
+  <span class="k">AND</span> <span class="n">created_at</span> <span class="k">BETWEEN</span> <span class="o">@</span><span class="n">start_date</span> <span class="k">AND</span> <span class="o">@</span><span class="n">end_date</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="nb">date</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="nb">date</span><span class="p">;</span>
+</code></pre></div>
+<h3>Part 4: Testing &amp; Verification (5 minutes)</h3>
+
+<ul>
+<li>[ ] Create 100 test orders with varying timestamps</li>
+<li>[ ] Run sync job and verify orders appear in BigQuery</li>
+<li>[ ] Update 10 orders and run sync again; verify only 10 rows are synced</li>
+<li>[ ] Query revenue report and verify totals match Rails database</li>
+</ul>
+
+<p><strong>Verification commands:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Rails console</span>
+rails c
+
+<span class="c"># Create test data</span>
+100.times <span class="o">{</span> |i| Order.create!<span class="o">(</span>user_id: 1, amount: rand<span class="o">(</span>10..100<span class="o">)</span>, status: <span class="s1">'completed'</span>, created_at: i.days.ago<span class="o">)</span> <span class="o">}</span>
+
+<span class="c"># Run sync</span>
+SyncOrdersToBigqueryJob.perform_now
+
+<span class="c"># Check SyncLog</span>
+SyncLog.find_by<span class="o">(</span>table_name: <span class="s1">'orders'</span><span class="o">)</span>.last_sync_at
+
+<span class="c"># Query BigQuery</span>
+BigqueryRevenueReport.daily_revenue<span class="o">(</span>30.days.ago.to_date, Date.today<span class="o">)</span>
+</code></pre></div>
+<p><strong>BigQuery verification:</strong></p>
+<div class="highlight"><pre class="highlight sql"><code><span class="c1">-- Count rows</span>
+<span class="k">SELECT</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="nv">`project.dataset.orders`</span><span class="p">;</span>
+
+<span class="c1">-- Check recent syncs</span>
+<span class="k">SELECT</span> <span class="n">id</span><span class="p">,</span> <span class="n">updated_at</span> <span class="k">FROM</span> <span class="nv">`project.dataset.orders`</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">updated_at</span> <span class="k">DESC</span> <span class="k">LIMIT</span> <span class="mi">10</span><span class="p">;</span>
 </code></pre></div>
 <h2>Stretch Goals</h2>
 
 <ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
+<li>[ ] Add data validation: skip orders with invalid amounts (NULL, negative)</li>
+<li>[ ] Implement batch processing: sync in chunks of 1000 rows to avoid memory issues</li>
+<li>[ ] Add a <code>SyncOrdersController</code> that triggers sync and displays sync status</li>
+<li>[ ] Mask PII: hash email addresses before syncing users table</li>
+<li>[ ] Implement retry logic for transient BigQuery API errors using exponential backoff</li>
 </ul>
 
 <h2>Solution Notes</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p><strong>Common gotchas:</strong><br>
+- BigQuery insert API has quotas (10,000 rows/sec); batch large syncs<br>
+- Timestamps must be formatted as ISO 8601 strings or Unix timestamps<br>
+- BigQuery schema requires exact column name matches; use <code>select</code> to project columns<br>
+- First sync can timeout on large tables; run as background job with progress tracking<br>
+- Upsert logic: BigQuery doesn&#39;t support <code>ON CONFLICT</code>; use <code>MERGE</code> statements or delete + insert pattern</p>
+
+<p><strong>Performance tips:</strong><br>
+- Use streaming inserts for low-latency syncs; batch inserts for high-volume syncs<br>
+- Partition BigQuery tables by date for faster queries on time-series data<br>
+- Index Rails <code>updated_at</code> column to speed up incremental queries</p>
+
+<h2>Time Estimate</h2>
+
+<p>35 minutes</p>
 
     
   </div>
@@ -766,74 +1039,308 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="OLTP is optimized for fast reads/writes of small datasets; OLAP is optimized for complex aggregations across large datasets">
+          <h4>Question 1 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the primary difference between OLTP and OLAP databases?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  OLTP is for analytics; OLAP is for transactions
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  OLTP is optimized for fast reads/writes of small datasets; OLAP is optimized for complex aggregations across large datasets
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  OLTP uses SQL; OLAP uses NoSQL
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  OLTP stores current data; OLAP stores only historical data
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> OLTP databases (like Postgres) handle transactional workloads with many small reads/writes. OLAP databases (like BigQuery) handle analytical workloads with complex aggregations across millions of rows.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Warehouse queries take seconds to minutes and would timeout HTTP requests">
+          <h4>Question 2 (1 points)</h4>
+          <p style="margin: 10px 0;">Why should you avoid running warehouse queries synchronously in Rails controllers?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  Data warehouses don't support real-time queries
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  Warehouse queries take seconds to minutes and would timeout HTTP requests
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  It violates MVC architecture
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  BigQuery charges per request
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Warehouse queries scan large datasets and can take 10+ seconds. Running them in controllers blocks the request/response cycle, causing timeouts and poor user experience.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="2"
              >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 3 (2 points)</h4>
+          <p style="margin: 10px 0;">Explain the difference between full sync and incremental sync. When would you use each strategy?</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Full sync exports the entire table every run; incremental sync exports only new/updated rows since last sync. Use full sync for small tables (<100k rows) or when data changes unpredictably. Use incremental sync for large tables with updated_at timestamps to avoid re-exporting millions of rows.</p>
+            </div>
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Incremental sync using updated_at timestamps">
+          <h4>Question 4 (2 points)</h4>
+          <p style="margin: 10px 0;">You have a Rails app with 10 million orders. Which sync strategy is most appropriate?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  Full sync every hour to ensure data accuracy
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  Incremental sync using updated_at timestamps
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  Real-time sync on every order creation
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  Manual exports to CSV files
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Incremental syncs with updated_at filters export only changed rows, avoiding the bandwidth and processing cost of re-exporting 10 million rows. Full syncs would waste resources; real-time sync adds complexity for minimal benefit.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Warehouses often have looser access controls; PII should be masked or redacted">
+          <h4>Question 5 (1 points)</h4>
+          <p style="margin: 10px 0;">What is a key security concern when syncing production data to a data warehouse?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  Warehouses are slower than production databases
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  Warehouses often have looser access controls; PII should be masked or redacted
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  Warehouse queries are more expensive
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  Warehouses cannot store encrypted data
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Data warehouses are often accessible to analysts, data scientists, and third-party BI tools. Syncing sensitive PII (emails, addresses) without masking increases risk of data leaks.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
+             data-kind="short"
+             data-points="2"
              >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the recommended pattern for displaying BigQuery results in a Rails dashboard? Why?</p>
 
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Query BigQuery in a background job and cache results in Redis or Rails.cache for 1+ hours. This avoids blocking HTTP requests with slow warehouse queries. Alternatively, materialize aggregated results into a local Postgres table for instant reads.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="google-cloud-bigquery">
+          <h4>Question 7 (1 points)</h4>
+          <p style="margin: 10px 0;">Which Ruby gem is commonly used to connect Rails to Google BigQuery?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  pg
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  google-cloud-bigquery
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  bigquery-rails
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  sequel
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> The google-cloud-bigquery gem provides the official Google Cloud client for Ruby, supporting authentication, queries, and data insertion.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="updated_at">
+          <h4>Question 8 (1 points)</h4>
+          <p style="margin: 10px 0;">When implementing incremental syncs, what column is typically used to identify changed records?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  id
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  created_at
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  updated_at
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  deleted_at
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> The updated_at timestamp tracks when each record was last modified, allowing incremental syncs to query WHERE updated_at > last_sync_time to find only changed rows.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 9 (2 points)</h4>
+          <p style="margin: 10px 0;">Why would you separate transactional data (Postgres) from analytical data (warehouse) instead of running all queries on the production database?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Analytical queries scan millions of rows and can lock tables, starving application traffic and degrading user experience. Warehouses are optimized for OLAP workloads and scale independently, preventing analytics from impacting production performance.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="A method for streaming database changes in real-time to the warehouse">
+          <h4>Question 10 (1 points)</h4>
+          <p style="margin: 10px 0;">What is Change Data Capture (CDC) in the context of data warehouses?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(9, 0)">
+                  A manual process for exporting CSV files
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 1)">
+                  A method for streaming database changes in real-time to the warehouse
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 2)">
+                  A backup strategy for disaster recovery
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 3)">
+                  A SQL query pattern for aggregating data
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> CDC tools like Debezium or AWS DMS capture database transaction logs and stream changes to the warehouse in near real-time, enabling low-latency analytics without batch jobs.
+              </div>
+            
           
         </div>
       
@@ -847,7 +1354,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -863,33 +1370,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://cloud.google.com/bigquery/docs" target="_blank">Google Cloud BigQuery Documentation</a>
+            <div class="why">Official documentation for BigQuery covering SQL syntax, streaming inserts, batch loading, and Ruby client library usage.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://docs.snowflake.com/en/developer-guide/ruby/ruby-driver" target="_blank">Snowflake Documentation — Getting Started with Ruby</a>
+            <div class="why">Guide to connecting Ruby applications to Snowflake using the snowflake-connector-ruby gem, including authentication and query examples.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://cloud.google.com/bigquery/docs/streaming-data-into-bigquery" target="_blank">BigQuery Streaming API Best Practices</a>
+            <div class="why">Best practices for streaming data into BigQuery from Rails, including quotas, error handling, and performance tuning for incremental syncs.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://martinfowler.com/bliki/OlapVsOltp.html" target="_blank">Martin Fowler — OLTP vs OLAP</a>
+            <div class="why">Clear explanation of OLTP (transactional) vs OLAP (analytical) database architectures and when to use each.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://guides.rubyonrails.org/active_job_basics.html" target="_blank">Rails Guides — Active Job Basics</a>
+            <div class="why">How to implement background jobs in Rails for data sync tasks, including scheduling, error handling, and retries.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://debezium.io/" target="_blank">Debezium — Change Data Capture for Rails</a>
+            <div class="why">Open-source CDC platform for streaming database changes to warehouses in real-time, supporting Postgres and MySQL.</div>
+          </li>
+        
+          <li>
+            <a href="https://thoughtbot.com/blog/analytics-for-rails-apps" target="_blank">Thoughtbot — Data Warehousing for Rails Apps</a>
+            <div class="why">Practical guide to setting up analytics pipelines for Rails applications, including data warehouse integrations and sync patterns.</div>
           </li>
         
       </ul>

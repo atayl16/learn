@@ -494,23 +494,49 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      .container { padding: 12px; }
       .track-grid, .topic-grid { grid-template-columns: 1fr; }
       .tabs { overflow-x: auto; }
+
+      /* Make header much more compact on mobile */
+      header {
+        padding: 8px 0;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        opacity: 0.8;
+        margin: 0;
+      }
       header .container {
         flex-direction: column;
         align-items: stretch;
-        gap: 15px;
+        gap: 8px;
+        padding: 8px 12px;
       }
       .search-container {
         margin: 0;
         max-width: 100%;
         order: 1;
       }
+      .search-input {
+        padding: 8px 12px 8px 35px;
+        font-size: 14px;
+      }
       header > .container > div:first-child { order: 0; }
       .dark-mode-toggle {
         order: 2;
         align-self: flex-end;
+        padding: 6px 10px;
+        font-size: 16px;
       }
+
+      /* Navigation */
+      nav { margin: 8px 0; }
       .topic-navigation { flex-direction: column; }
       .nav-button { min-width: 100%; }
     }
@@ -521,7 +547,7 @@
     <div class="container">
       <div>
         <h1>💎 Rails Seniority Coach</h1>
-        <p>Mid → Senior: 41 Topics Across 8 Tracks</p>
+        <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
       </div>
       <div class="search-container">
         <span class="search-icon">🔍</span>
@@ -630,71 +656,406 @@
 
 <h2>What It Is</h2>
 
-<p>CI/CD Pipelines is a crucial skill for senior Rails developers. [Content to be added]</p>
+<p>CI/CD (Continuous Integration/Continuous Deployment) automates testing and deployment of Rails apps through pipelines that run on every commit. GitHub Actions is GitHub&#39;s built-in automation platform that executes workflows defined in <code>.github/workflows/*.yml</code> files. A typical Rails workflow runs RSpec tests, lints code with RuboCop, checks dependencies with Bundler Audit, and deploys to production on merge. Workflows consist of jobs that run in parallel or sequence, each containing steps that execute shell commands or reusable actions.</p>
 
 <h2>Why It Matters</h2>
 
-<p>Understanding this topic helps you build more robust, scalable applications and make better architectural decisions in production environments.</p>
+<p>Manual testing and deployments are error-prone and slow. CI catches regressions within minutes—before code reaches production. Matrix testing runs tests across multiple Ruby versions (3.1, 3.2, 3.3) simultaneously, ensuring compatibility. Automated deployments eliminate &quot;Friday fear&quot; and enable multiple daily releases. Caching gems and bundler dependencies cuts build times from 5 minutes to 30 seconds. Poor CI configuration costs dev time: a 10-minute pipeline run 50 times daily wastes 8 hours of team time waiting for feedback.</p>
 
 <h2>When to Use</h2>
 
 <ul>
-<li>[Scenario 1 to be added]</li>
-<li>[Scenario 2 to be added]</li>
-<li>[Scenario 3 to be added]</li>
+<li><strong>Every commit:</strong> Run tests, linting, security checks on pull requests</li>
+<li><strong>Main branch merges:</strong> Deploy to staging automatically</li>
+<li><strong>Tagged releases:</strong> Deploy to production with <code>git tag v1.2.3</code></li>
+<li><strong>Scheduled jobs:</strong> Run nightly dependency updates, database backups</li>
+<li><strong>Matrix testing:</strong> Verify compatibility across Ruby 3.1, 3.2, 3.3 and Rails 7.0, 7.1</li>
+<li><strong>Pre-deployment checks:</strong> Validate migrations, asset compilation, secrets</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
 
 <ol>
-<li><strong>Pitfall 1:</strong> [Description to be added]</li>
-<li><strong>Pitfall 2:</strong> [Description to be added]</li>
-<li><strong>Pitfall 3:</strong> [Description to be added]</li>
+<li><strong>Uncached dependencies waste time:</strong> Running <code>bundle install</code> without caching installs 200+ gems on every run, taking 3-5 minutes. Fix: Use <code>actions/cache</code> to persist <code>vendor/bundle</code> between runs, reducing install time to 10 seconds.</li>
+<li><strong>Running tests serially instead of parallel:</strong> RSpec with 1000 tests takes 8 minutes serially but 2 minutes across 4 parallel jobs. Fix: Use <code>ci-queue</code> or RSpec&#39;s <code>--split</code> to distribute tests across matrix runners.</li>
+<li><strong>Secrets in workflow files or logs:</strong> Hardcoding <code>DATABASE_URL</code> in workflows leaks credentials. Fix: Use GitHub Secrets and never echo secret values in steps.</li>
 </ol>
 
 <hr>
 
-<h2>Core Concepts</h2>
+<h2>GitHub Actions Workflow Basics</h2>
 
-<h3>Key Concept 1</h3>
+<h3>Workflow File Structure</h3>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<p>Workflows live in <code>.github/workflows/</code> and trigger on events (push, pull_request, schedule):</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="c1"># .github/workflows/ci.yml</span>
+<span class="na">name</span><span class="pi">:</span> <span class="s">CI</span>
+
+<span class="na">on</span><span class="pi">:</span>
+  <span class="na">push</span><span class="pi">:</span>
+    <span class="na">branches</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">]</span>
+  <span class="na">pull_request</span><span class="pi">:</span>
+    <span class="na">branches</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">]</span>
+
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">test</span><span class="pi">:</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Set up Ruby</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">ruby/setup-ruby@v1</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">ruby-version</span><span class="pi">:</span> <span class="m">3.2</span>
+          <span class="na">bundler-cache</span><span class="pi">:</span> <span class="kc">true</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run tests</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="s">bundle exec rspec</span>
+
 </code></pre></div>
-<h3>Key Concept 2</h3>
+<p><strong>Key concepts:</strong><br>
+- <code>on:</code> defines triggers (push, pull_request, schedule)<br>
+- <code>jobs:</code> defines what to run (test, lint, deploy)<br>
+- <code>runs-on:</code> selects runner OS (ubuntu-latest, macos-latest)<br>
+- <code>steps:</code> sequence of actions or shell commands</p>
 
-<p>[Content to be added with code examples]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Example code to be added</span>
+<hr>
+
+<h2>Rails CI Pipeline Example</h2>
+
+<h3>Complete Workflow with Tests, Linting, and Security</h3>
+<div class="highlight"><pre class="highlight yaml"><code><span class="c1"># .github/workflows/ci.yml</span>
+<span class="na">name</span><span class="pi">:</span> <span class="s">Rails CI</span>
+
+<span class="na">on</span><span class="pi">:</span>
+  <span class="na">push</span><span class="pi">:</span>
+    <span class="na">branches</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">,</span> <span class="nv">develop</span><span class="pi">]</span>
+  <span class="na">pull_request</span><span class="pi">:</span>
+    <span class="na">branches</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">]</span>
+
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">lint</span><span class="pi">:</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Set up Ruby</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">ruby/setup-ruby@v1</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">ruby-version</span><span class="pi">:</span> <span class="m">3.2</span>
+          <span class="na">bundler-cache</span><span class="pi">:</span> <span class="kc">true</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run RuboCop</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="s">bundle exec rubocop --parallel</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Security audit</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">bundle exec bundler-audit --update</span>
+          <span class="s">bundle exec brakeman -q -w2</span>
+
+  <span class="na">test</span><span class="pi">:</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+
+    <span class="na">services</span><span class="pi">:</span>
+      <span class="na">postgres</span><span class="pi">:</span>
+        <span class="na">image</span><span class="pi">:</span> <span class="s">postgres:15</span>
+        <span class="na">env</span><span class="pi">:</span>
+          <span class="na">POSTGRES_USER</span><span class="pi">:</span> <span class="s">postgres</span>
+          <span class="na">POSTGRES_PASSWORD</span><span class="pi">:</span> <span class="s">postgres</span>
+          <span class="na">POSTGRES_DB</span><span class="pi">:</span> <span class="s">test_db</span>
+        <span class="na">ports</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">5432:5432</span>
+        <span class="na">options</span><span class="pi">:</span> <span class="pi">&gt;-</span>
+          <span class="s">--health-cmd pg_isready</span>
+          <span class="s">--health-interval 10s</span>
+          <span class="s">--health-timeout 5s</span>
+          <span class="s">--health-retries 5</span>
+
+      <span class="na">redis</span><span class="pi">:</span>
+        <span class="na">image</span><span class="pi">:</span> <span class="s">redis:7-alpine</span>
+        <span class="na">ports</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">6379:6379</span>
+
+    <span class="na">env</span><span class="pi">:</span>
+      <span class="na">RAILS_ENV</span><span class="pi">:</span> <span class="s">test</span>
+      <span class="na">DATABASE_URL</span><span class="pi">:</span> <span class="s">postgres://postgres:postgres@localhost:5432/test_db</span>
+      <span class="na">REDIS_URL</span><span class="pi">:</span> <span class="s">redis://localhost:6379/0</span>
+
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Set up Ruby</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">ruby/setup-ruby@v1</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">ruby-version</span><span class="pi">:</span> <span class="m">3.2</span>
+          <span class="na">bundler-cache</span><span class="pi">:</span> <span class="kc">true</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install dependencies</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">sudo apt-get update</span>
+          <span class="s">sudo apt-get install -y postgresql-client libpq-dev</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Setup database</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">bundle exec rails db:schema:load</span>
+          <span class="s">bundle exec rails db:seed</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Precompile assets</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="s">bundle exec rails assets:precompile</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run tests</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="s">bundle exec rspec --format progress --format RspecJunitFormatter --out tmp/rspec-results.xml</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Upload test results</span>
+        <span class="na">if</span><span class="pi">:</span> <span class="s">always()</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/upload-artifact@v4</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">name</span><span class="pi">:</span> <span class="s">rspec-results</span>
+          <span class="na">path</span><span class="pi">:</span> <span class="s">tmp/rspec-results.xml</span>
+
 </code></pre></div>
+<p><strong>Key features:</strong><br>
+- <strong>Services:</strong> Postgres and Redis run as Docker containers<br>
+- <strong>Health checks:</strong> Wait for Postgres to be ready before running tests<br>
+- <strong>Database setup:</strong> Load schema instead of running migrations (faster)<br>
+- <strong>Test artifacts:</strong> Upload results for debugging failed runs</p>
+
+<hr>
+
+<h2>Matrix Testing Across Ruby Versions</h2>
+
+<p>Run tests against multiple Ruby and Rails versions in parallel:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">test</span><span class="pi">:</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+
+    <span class="na">strategy</span><span class="pi">:</span>
+      <span class="na">fail-fast</span><span class="pi">:</span> <span class="kc">false</span>
+      <span class="na">matrix</span><span class="pi">:</span>
+        <span class="na">ruby</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">3.1'</span><span class="pi">,</span> <span class="s1">'</span><span class="s">3.2'</span><span class="pi">,</span> <span class="s1">'</span><span class="s">3.3'</span><span class="pi">]</span>
+        <span class="na">rails</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">7.0'</span><span class="pi">,</span> <span class="s1">'</span><span class="s">7.1'</span><span class="pi">]</span>
+        <span class="na">exclude</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">ruby</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.1'</span>
+            <span class="na">rails</span><span class="pi">:</span> <span class="s1">'</span><span class="s">7.1'</span>
+
+    <span class="na">env</span><span class="pi">:</span>
+      <span class="na">BUNDLE_GEMFILE</span><span class="pi">:</span> <span class="s">gemfiles/rails_${{ matrix.rails }}.gemfile</span>
+
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Set up Ruby ${{ matrix.ruby }}</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">ruby/setup-ruby@v1</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">ruby-version</span><span class="pi">:</span> <span class="s">${{ matrix.ruby }}</span>
+          <span class="na">bundler-cache</span><span class="pi">:</span> <span class="kc">true</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run tests (Ruby ${{ matrix.ruby }}, Rails ${{ matrix.rails }})</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="s">bundle exec rspec</span>
+
+</code></pre></div>
+<p><strong>Result:</strong> 5 parallel jobs testing Ruby 3.1/3.2/3.3 against Rails 7.0/7.1 (excluding incompatible Ruby 3.1 + Rails 7.1).</p>
+
+<hr>
+
+<h2>Caching Dependencies</h2>
+
+<h3>Bundle Caching with setup-ruby</h3>
+
+<p>The <code>ruby/setup-ruby</code> action includes built-in caching:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Set up Ruby</span>
+  <span class="na">uses</span><span class="pi">:</span> <span class="s">ruby/setup-ruby@v1</span>
+  <span class="na">with</span><span class="pi">:</span>
+    <span class="na">ruby-version</span><span class="pi">:</span> <span class="m">3.2</span>
+    <span class="na">bundler-cache</span><span class="pi">:</span> <span class="kc">true</span>  <span class="c1"># Caches vendor/bundle automatically</span>
+
+</code></pre></div>
+<p><strong>Cache key:</strong> Based on <code>Gemfile.lock</code>, OS, and Ruby version. Cache invalidates when dependencies change.</p>
+
+<h3>Manual Caching for Custom Setups</h3>
+<div class="highlight"><pre class="highlight yaml"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Cache gems</span>
+  <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/cache@v4</span>
+  <span class="na">with</span><span class="pi">:</span>
+    <span class="na">path</span><span class="pi">:</span> <span class="s">vendor/bundle</span>
+    <span class="na">key</span><span class="pi">:</span> <span class="s">${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}</span>
+    <span class="na">restore-keys</span><span class="pi">:</span> <span class="pi">|</span>
+      <span class="s">${{ runner.os }}-gems-</span>
+
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install dependencies</span>
+  <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+    <span class="s">bundle config path vendor/bundle</span>
+    <span class="s">bundle install --jobs 4 --retry 3</span>
+
+</code></pre></div>
+<p><strong>Performance impact:</strong> First run 4m 20s → subsequent runs 12s.</p>
+
+<hr>
+
+<h2>Secrets Management</h2>
+
+<h3>GitHub Secrets</h3>
+
+<p>Store sensitive values in Settings → Secrets and variables → Actions:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">deploy</span><span class="pi">:</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Deploy to production</span>
+        <span class="na">env</span><span class="pi">:</span>
+          <span class="na">DEPLOY_KEY</span><span class="pi">:</span> <span class="s">${{ secrets.SSH_PRIVATE_KEY }}</span>
+          <span class="na">DATABASE_URL</span><span class="pi">:</span> <span class="s">${{ secrets.PRODUCTION_DATABASE_URL }}</span>
+          <span class="na">SECRET_KEY_BASE</span><span class="pi">:</span> <span class="s">${{ secrets.RAILS_SECRET_KEY_BASE }}</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">bundle exec cap production deploy</span>
+
+</code></pre></div>
+<p><strong>Best practices:</strong><br>
+- Never log secret values: <code>echo ${{ secrets.API_KEY }}</code> redacts output<br>
+- Use environment-specific secrets: <code>STAGING_DATABASE_URL</code>, <code>PRODUCTION_DATABASE_URL</code><br>
+- Rotate secrets regularly and use least-privilege access</p>
+
+<h3>Encrypted Credentials</h3>
+
+<p>Rails encrypted credentials work in CI with the master key:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Decrypt credentials</span>
+  <span class="na">env</span><span class="pi">:</span>
+    <span class="na">RAILS_MASTER_KEY</span><span class="pi">:</span> <span class="s">${{ secrets.RAILS_MASTER_KEY }}</span>
+  <span class="na">run</span><span class="pi">:</span> <span class="s">bundle exec rails credentials:show</span>
+
+</code></pre></div>
+<p>Store <code>config/master.key</code> content as a GitHub secret.</p>
+
+<hr>
+
+<h2>Deployment Workflows</h2>
+
+<h3>Continuous Deployment on Main Merge</h3>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">name</span><span class="pi">:</span> <span class="s">Deploy</span>
+
+<span class="na">on</span><span class="pi">:</span>
+  <span class="na">push</span><span class="pi">:</span>
+    <span class="na">branches</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">]</span>
+
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">deploy</span><span class="pi">:</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+    <span class="na">if</span><span class="pi">:</span> <span class="s">github.ref == 'refs/heads/main'</span>
+
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Deploy to Heroku</span>
+        <span class="na">env</span><span class="pi">:</span>
+          <span class="na">HEROKU_API_KEY</span><span class="pi">:</span> <span class="s">${{ secrets.HEROKU_API_KEY }}</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">git remote add heroku https://heroku:$HEROKU_API_KEY@git.heroku.com/myapp.git</span>
+          <span class="s">git push heroku main</span>
+
+</code></pre></div>
+<h3>Tag-Based Production Releases</h3>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">on</span><span class="pi">:</span>
+  <span class="na">push</span><span class="pi">:</span>
+    <span class="na">tags</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s1">'</span><span class="s">v*'</span>
+
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">deploy</span><span class="pi">:</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Deploy to production</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">bundle exec cap production deploy</span>
+
+</code></pre></div>
+<p>Trigger with: <code>git tag v1.2.3 &amp;&amp; git push --tags</code></p>
+
+<hr>
+
+<h2>Parallel Test Execution</h2>
+
+<h3>RSpec Parallel with CI Node Index</h3>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">strategy</span><span class="pi">:</span>
+  <span class="na">matrix</span><span class="pi">:</span>
+    <span class="na">ci_node_total</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">4</span><span class="pi">]</span>
+    <span class="na">ci_node_index</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">0</span><span class="pi">,</span> <span class="nv">1</span><span class="pi">,</span> <span class="nv">2</span><span class="pi">,</span> <span class="nv">3</span><span class="pi">]</span>
+
+<span class="na">steps</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run tests</span>
+    <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+      <span class="s">bundle exec rspec --tag ~slow \</span>
+        <span class="s">--only-failures \</span>
+        <span class="s">$(bundle exec rspec --dry-run spec | \</span>
+          <span class="s">awk "NR % ${{ matrix.ci_node_total }} == ${{ matrix.ci_node_index }}")</span>
+
+</code></pre></div>
+<p><strong>Result:</strong> 8-minute test suite runs in 2 minutes across 4 parallel jobs.</p>
+
 <hr>
 
 <h2>Best Practices</h2>
 
-<ol>
-<li><strong>Practice 1:</strong> [Description to be added]</li>
-<li><strong>Practice 2:</strong> [Description to be added]</li>
-<li><strong>Practice 3:</strong> [Description to be added]</li>
-</ol>
+<ul>
+<li>Use <code>bundler-cache: true</code> for automatic gem caching</li>
+<li>Run fast jobs (lint) before slow jobs (tests) to fail fast</li>
+<li>Use matrix testing to verify Ruby/Rails version compatibility</li>
+<li>Store all secrets in GitHub Secrets, never in code</li>
+<li>Enable branch protection: require CI to pass before merge</li>
+<li>Set reasonable timeouts: <code>timeout-minutes: 15</code> prevents runaway jobs</li>
+<li>Use <code>services:</code> for Postgres/Redis instead of installing manually</li>
+<li>Cache <code>node_modules</code> for JavaScript asset compilation</li>
+<li>Run security audits (Bundler Audit, Brakeman) on every PR</li>
+<li>Deploy staging automatically on main merge, production on tags</li>
+</ul>
 
+<hr>
+
+<h2>Debugging Failed Workflows</h2>
+
+<p><strong>View logs:</strong> Click failed job → expand step to see output</p>
+
+<p><strong>Re-run with debug logging:</strong></p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Debug workflow</span>
+  <span class="na">run</span><span class="pi">:</span> <span class="s">echo "::debug::Database URL is $DATABASE_URL"</span>
+
+</code></pre></div>
+<p>Enable debug logging: Settings → Secrets → Add <code>ACTIONS_STEP_DEBUG=true</code></p>
+
+<p><strong>SSH into runner (for debugging):</strong></p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Setup tmate session</span>
+  <span class="na">uses</span><span class="pi">:</span> <span class="s">mxschmitt/action-tmate@v3</span>
+  <span class="na">if</span><span class="pi">:</span> <span class="s">failure()</span>
+
+</code></pre></div>
+<p><strong>Check service health:</strong></p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Test Postgres connection</span>
+  <span class="na">run</span><span class="pi">:</span> <span class="s">pg_isready -h localhost -p </span><span class="m">5432</span>
+
+</code></pre></div>
 <hr>
 
 <h2>Key Terms</h2>
 
 <ul>
-<li><strong>GitHub Actions</strong></li>
-<li><strong>CI/CD</strong></li>
-<li><strong>workflows</strong></li>
-<li><strong>test automation</strong></li>
-<li><strong>deployment pipelines</strong></li>
+<li><strong>Workflow</strong> - YAML file defining automation (<code>.github/workflows/ci.yml</code>)</li>
+<li><strong>Job</strong> - Set of steps running on the same runner</li>
+<li><strong>Step</strong> - Individual task (checkout code, run tests)</li>
+<li><strong>Action</strong> - Reusable step (e.g., <code>actions/checkout@v4</code>)</li>
+<li><strong>Runner</strong> - VM executing jobs (ubuntu-latest, macos-latest)</li>
+<li><strong>Matrix</strong> - Run job multiple times with different configurations</li>
+<li><strong>Service</strong> - Docker container (Postgres, Redis) for job</li>
+<li><strong>Secret</strong> - Encrypted environment variable for sensitive data</li>
+<li><strong>Artifact</strong> - File uploaded from workflow (test reports, logs)</li>
 </ul>
 
 <hr>
 
 <h2>Summary</h2>
 
-<p>CI/CD Pipelines is essential for mid-to-senior level progression. Master these concepts to level up your Rails expertise.</p>
+<p>CI/CD automates testing and deployment through GitHub Actions workflows triggered on every commit. Workflows define jobs (test, lint, deploy) that run in parallel, with steps executing shell commands or reusable actions. Caching gems with <code>bundler-cache: true</code> reduces install time from minutes to seconds. Matrix testing verifies compatibility across Ruby/Rails versions. Store secrets in GitHub Secrets, never in code. Continuous deployment merges to main deploy staging automatically; production deploys on tagged releases. Parallel test execution splits specs across runners, cutting feedback time by 75%.</p>
 
-<p><strong>Next steps:</strong> Complete the exercise and checkpoint quiz to solidify your understanding.</p>
+<p><strong>Next steps:</strong> Complete the exercise to build a production-ready GitHub Actions workflow for a Rails app.</p>
 
     
   </div>
@@ -706,55 +1067,670 @@
     
       <h1>Exercise: CI/CD Pipelines</h1>
 
-<p><strong>Estimated time:</strong> 20-25 minutes</p>
-
 <h2>Objective</h2>
 
-<p>Build hands-on experience with ci/cd pipelines through practical implementation.</p>
+<p>Build a production-ready GitHub Actions CI/CD pipeline for a Rails application with automated testing, linting, security scanning, and deployment workflows.</p>
 
-<h2>Setup</h2>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create a new Rails app or use existing one</span>
-rails new ci_cd_pipelines_practice
-<span class="nb">cd </span>ci_cd_pipelines_practice
+<h2>Task</h2>
 
-<span class="c"># Add necessary gems</span>
-bundle add <span class="o">[</span>gems to be specified]
-</code></pre></div>
-<h2>Tasks</h2>
+<p>Set up comprehensive CI/CD automation for a Rails app:</p>
 
-<h3>Part 1: Basic Implementation (10 minutes)</h3>
+<ol>
+<li>Create GitHub Actions workflows for testing and linting</li>
+<li>Configure service containers for Postgres and Redis</li>
+<li>Implement dependency caching to speed up builds</li>
+<li>Add security scanning with Bundler Audit and Brakeman</li>
+<li>Set up deployment automation for staging and production</li>
+<li>Configure secrets management for sensitive credentials</li>
+</ol>
 
-<p><strong>Task 1.1:</strong> [Implementation task to be added]</p>
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Starter code to be added</span>
-</code></pre></div>
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]<br>
-- [ ] [Criterion 3]</p>
-
-<h3>Part 2: Advanced Usage (10 minutes)</h3>
-
-<p><strong>Task 2.1:</strong> [Advanced task to be added]</p>
-
-<p><strong>Acceptance criteria:</strong><br>
-- [ ] [Criterion 1]<br>
-- [ ] [Criterion 2]</p>
-
-<h3>Part 3: Testing &amp; Verification (5 minutes)</h3>
-
-<p><strong>Task 3.1:</strong> Verify your implementation</p>
-<div class="highlight"><pre class="highlight shell"><code><span class="c"># Test commands to be added</span>
-</code></pre></div>
-<h2>Stretch Goals</h2>
+<h2>Acceptance Criteria</h2>
 
 <ul>
-<li>[ ] [Stretch goal 1]</li>
-<li>[ ] [Stretch goal 2]</li>
+<li>[ ] Workflow runs tests automatically on every pull request</li>
+<li>[ ] RuboCop linting runs in parallel with tests</li>
+<li>[ ] Bundler caching reduces dependency installation time by 90%+</li>
+<li>[ ] Postgres and Redis services configured and healthy before tests</li>
+<li>[ ] Security audits (Bundler Audit, Brakeman) run on every PR</li>
+<li>[ ] Staging deploys automatically on main branch merge</li>
+<li>[ ] Production deploys on git tag push (v*.<em>.</em>)</li>
+<li>[ ] Secrets stored in GitHub Secrets, not in workflow files</li>
+<li>[ ] Workflow completes in under 5 minutes for typical changes</li>
 </ul>
 
+<h2>Verification Steps</h2>
+
+<ol>
+<li>Push code and verify workflow runs:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code>git add <span class="nb">.</span>
+git commit <span class="nt">-m</span> <span class="s2">"Add CI/CD pipeline"</span>
+git push origin feature-branch
+
+<span class="c"># Navigate to GitHub Actions tab to see workflow running</span>
+
+</code></pre></div>
+<ol>
+<li>Check caching effectiveness:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># First run should install all gems (3-5 minutes)</span>
+<span class="c"># Second run should use cache (10-30 seconds)</span>
+
+<span class="c"># View cache hits in workflow logs:</span>
+<span class="c"># "Cache restored from key: Linux-gems-abc123..."</span>
+
+</code></pre></div>
+<ol>
+<li>Verify tests run with services:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Workflow logs should show:</span>
+<span class="c"># ✓ Postgres health check passed</span>
+<span class="c"># ✓ Database schema loaded</span>
+<span class="c"># ✓ RSpec tests passed</span>
+
+</code></pre></div>
+<ol>
+<li>Test deployment workflow:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create and push a tag to trigger production deployment</span>
+git tag v1.0.0
+git push <span class="nt">--tags</span>
+
+<span class="c"># Check Actions tab for deploy job</span>
+
+</code></pre></div>
+<h2>Setup Code</h2>
+
+<h3>Step 1: Create Rails Application</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create new Rails app with RSpec</span>
+rails new cicd_demo <span class="nt">--database</span><span class="o">=</span>postgresql <span class="nt">--skip-test</span>
+<span class="nb">cd </span>cicd_demo
+
+<span class="c"># Add testing and linting gems</span>
+<span class="nb">cat</span> <span class="o">&gt;&gt;</span> Gemfile <span class="o">&lt;&lt;</span> <span class="sh">'</span><span class="no">EOF</span><span class="sh">'
+
+group :development, :test do
+  gem 'rspec-rails', '~&gt; 6.0'
+  gem 'factory_bot_rails'
+  gem 'faker'
+  gem 'rubocop', require: false
+  gem 'rubocop-rails', require: false
+  gem 'rubocop-rspec', require: false
+  gem 'brakeman', require: false
+  gem 'bundler-audit', require: false
+end
+
+group :test do
+  gem 'shoulda-matchers', '~&gt; 5.0'
+  gem 'database_cleaner-active_record'
+  gem 'rspec_junit_formatter'
+end
+</span><span class="no">EOF
+
+</span>bundle <span class="nb">install</span>
+
+<span class="c"># Initialize RSpec</span>
+rails generate rspec:install
+
+</code></pre></div>
+<h3>Step 2: Create Sample Model and Tests</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Generate a simple model to test</span>
+rails generate model Article title:string body:text published:boolean
+rails db:migrate
+
+</code></pre></div>
+<p>Edit <code>spec/models/article_spec.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s1">'rails_helper'</span>
+
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">Article</span><span class="p">,</span> <span class="ss">type: :model</span> <span class="k">do</span>
+  <span class="n">describe</span> <span class="s1">'validations'</span> <span class="k">do</span>
+    <span class="n">it</span> <span class="p">{</span> <span class="n">should</span> <span class="n">validate_presence_of</span><span class="p">(</span><span class="ss">:title</span><span class="p">)</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="n">describe</span> <span class="s1">'#published?'</span> <span class="k">do</span>
+    <span class="n">it</span> <span class="s1">'returns true when published is true'</span> <span class="k">do</span>
+      <span class="n">article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">title: </span><span class="s1">'Test'</span><span class="p">,</span> <span class="ss">body: </span><span class="s1">'Body'</span><span class="p">,</span> <span class="ss">published: </span><span class="kp">true</span><span class="p">)</span>
+      <span class="n">expect</span><span class="p">(</span><span class="n">article</span><span class="p">.</span><span class="nf">published?</span><span class="p">).</span><span class="nf">to</span> <span class="n">be</span> <span class="kp">true</span>
+    <span class="k">end</span>
+
+    <span class="n">it</span> <span class="s1">'returns false when published is false'</span> <span class="k">do</span>
+      <span class="n">article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span><span class="ss">title: </span><span class="s1">'Test'</span><span class="p">,</span> <span class="ss">body: </span><span class="s1">'Body'</span><span class="p">,</span> <span class="ss">published: </span><span class="kp">false</span><span class="p">)</span>
+      <span class="n">expect</span><span class="p">(</span><span class="n">article</span><span class="p">.</span><span class="nf">published?</span><span class="p">).</span><span class="nf">to</span> <span class="n">be</span> <span class="kp">false</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Edit <code>app/models/article.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">validates</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Configure Shoulda Matchers in <code>spec/rails_helper.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># At the end of the file, add:</span>
+<span class="no">Shoulda</span><span class="o">::</span><span class="no">Matchers</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">integrate</span> <span class="k">do</span> <span class="o">|</span><span class="n">with</span><span class="o">|</span>
+    <span class="n">with</span><span class="p">.</span><span class="nf">test_framework</span> <span class="ss">:rspec</span>
+    <span class="n">with</span><span class="p">.</span><span class="nf">library</span> <span class="ss">:rails</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 3: Configure RuboCop</h3>
+
+<p>Create <code>.rubocop.yml</code>:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">require</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">rubocop-rails</span>
+  <span class="pi">-</span> <span class="s">rubocop-rspec</span>
+
+<span class="na">AllCops</span><span class="pi">:</span>
+  <span class="na">NewCops</span><span class="pi">:</span> <span class="s">enable</span>
+  <span class="na">TargetRubyVersion</span><span class="pi">:</span> <span class="m">3.2</span>
+  <span class="na">Exclude</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s1">'</span><span class="s">bin/**/*'</span>
+    <span class="pi">-</span> <span class="s1">'</span><span class="s">db/schema.rb'</span>
+    <span class="pi">-</span> <span class="s1">'</span><span class="s">node_modules/**/*'</span>
+    <span class="pi">-</span> <span class="s1">'</span><span class="s">vendor/**/*'</span>
+
+<span class="na">Style/Documentation</span><span class="pi">:</span>
+  <span class="na">Enabled</span><span class="pi">:</span> <span class="kc">false</span>
+
+<span class="na">Metrics/BlockLength</span><span class="pi">:</span>
+  <span class="na">Exclude</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s1">'</span><span class="s">spec/**/*'</span>
+    <span class="pi">-</span> <span class="s1">'</span><span class="s">config/environments/*'</span>
+
+<span class="na">RSpec/ExampleLength</span><span class="pi">:</span>
+  <span class="na">Max</span><span class="pi">:</span> <span class="m">15</span>
+
+<span class="na">RSpec/MultipleExpectations</span><span class="pi">:</span>
+  <span class="na">Max</span><span class="pi">:</span> <span class="m">5</span>
+
+</code></pre></div>
+<h3>Step 4: Create GitHub Actions CI Workflow</h3>
+
+<p>Create <code>.github/workflows/ci.yml</code>:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">name</span><span class="pi">:</span> <span class="s">CI</span>
+
+<span class="na">on</span><span class="pi">:</span>
+  <span class="na">push</span><span class="pi">:</span>
+    <span class="na">branches</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">,</span> <span class="nv">develop</span><span class="pi">]</span>
+  <span class="na">pull_request</span><span class="pi">:</span>
+    <span class="na">branches</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">]</span>
+
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">lint</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">Lint (RuboCop)</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Checkout code</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Set up Ruby</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">ruby/setup-ruby@v1</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">ruby-version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.2'</span>
+          <span class="na">bundler-cache</span><span class="pi">:</span> <span class="kc">true</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run RuboCop</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="s">bundle exec rubocop --parallel --format progress</span>
+
+  <span class="na">security</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">Security Audit</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Checkout code</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Set up Ruby</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">ruby/setup-ruby@v1</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">ruby-version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.2'</span>
+          <span class="na">bundler-cache</span><span class="pi">:</span> <span class="kc">true</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run Bundler Audit</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">bundle exec bundler-audit --update</span>
+          <span class="s">bundle exec bundler-audit check</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run Brakeman</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="s">bundle exec brakeman --quiet --no-pager</span>
+
+  <span class="na">test</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">Test (RSpec)</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+
+    <span class="na">services</span><span class="pi">:</span>
+      <span class="na">postgres</span><span class="pi">:</span>
+        <span class="na">image</span><span class="pi">:</span> <span class="s">postgres:15-alpine</span>
+        <span class="na">env</span><span class="pi">:</span>
+          <span class="na">POSTGRES_USER</span><span class="pi">:</span> <span class="s">postgres</span>
+          <span class="na">POSTGRES_PASSWORD</span><span class="pi">:</span> <span class="s">postgres</span>
+          <span class="na">POSTGRES_DB</span><span class="pi">:</span> <span class="s">cicd_demo_test</span>
+        <span class="na">ports</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">5432:5432</span>
+        <span class="na">options</span><span class="pi">:</span> <span class="pi">&gt;-</span>
+          <span class="s">--health-cmd pg_isready</span>
+          <span class="s">--health-interval 10s</span>
+          <span class="s">--health-timeout 5s</span>
+          <span class="s">--health-retries 5</span>
+
+      <span class="na">redis</span><span class="pi">:</span>
+        <span class="na">image</span><span class="pi">:</span> <span class="s">redis:7-alpine</span>
+        <span class="na">ports</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">6379:6379</span>
+        <span class="na">options</span><span class="pi">:</span> <span class="pi">&gt;-</span>
+          <span class="s">--health-cmd "redis-cli ping"</span>
+          <span class="s">--health-interval 10s</span>
+          <span class="s">--health-timeout 5s</span>
+          <span class="s">--health-retries 5</span>
+
+    <span class="na">env</span><span class="pi">:</span>
+      <span class="na">RAILS_ENV</span><span class="pi">:</span> <span class="s">test</span>
+      <span class="na">DATABASE_URL</span><span class="pi">:</span> <span class="s">postgres://postgres:postgres@localhost:5432/cicd_demo_test</span>
+      <span class="na">REDIS_URL</span><span class="pi">:</span> <span class="s">redis://localhost:6379/0</span>
+
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Checkout code</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Set up Ruby</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">ruby/setup-ruby@v1</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">ruby-version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.2'</span>
+          <span class="na">bundler-cache</span><span class="pi">:</span> <span class="kc">true</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install system dependencies</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">sudo apt-get update</span>
+          <span class="s">sudo apt-get install -y postgresql-client libpq-dev</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Setup database</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">bundle exec rails db:schema:load</span>
+          <span class="s">bundle exec rails db:migrate</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run RSpec tests</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">bundle exec rspec \</span>
+            <span class="s">--format progress \</span>
+            <span class="s">--format RspecJunitFormatter \</span>
+            <span class="s">--out tmp/rspec-results.xml</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Upload test results</span>
+        <span class="na">if</span><span class="pi">:</span> <span class="s">always()</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/upload-artifact@v4</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">name</span><span class="pi">:</span> <span class="s">rspec-results</span>
+          <span class="na">path</span><span class="pi">:</span> <span class="s">tmp/rspec-results.xml</span>
+          <span class="na">retention-days</span><span class="pi">:</span> <span class="m">7</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Upload coverage</span>
+        <span class="na">if</span><span class="pi">:</span> <span class="s">always()</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/upload-artifact@v4</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">name</span><span class="pi">:</span> <span class="s">coverage</span>
+          <span class="na">path</span><span class="pi">:</span> <span class="s">coverage/</span>
+          <span class="na">retention-days</span><span class="pi">:</span> <span class="m">7</span>
+
+</code></pre></div>
+<h3>Step 5: Create Deployment Workflow</h3>
+
+<p>Create <code>.github/workflows/deploy.yml</code>:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">name</span><span class="pi">:</span> <span class="s">Deploy</span>
+
+<span class="na">on</span><span class="pi">:</span>
+  <span class="na">push</span><span class="pi">:</span>
+    <span class="na">branches</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">main</span>
+    <span class="na">tags</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s1">'</span><span class="s">v*'</span>
+
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">deploy-staging</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">Deploy to Staging</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+    <span class="na">if</span><span class="pi">:</span> <span class="s">github.ref == 'refs/heads/main' &amp;&amp; !startsWith(github.ref, 'refs/tags/')</span>
+
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Checkout code</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Deploy to staging</span>
+        <span class="na">env</span><span class="pi">:</span>
+          <span class="na">STAGING_DEPLOY_KEY</span><span class="pi">:</span> <span class="s">${{ secrets.STAGING_DEPLOY_KEY }}</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">echo "Deploying to staging environment..."</span>
+          <span class="s"># Example: Deploy to Heroku staging</span>
+          <span class="s"># git remote add staging https://heroku:$STAGING_DEPLOY_KEY@git.heroku.com/myapp-staging.git</span>
+          <span class="s"># git push staging main</span>
+
+  <span class="na">deploy-production</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">Deploy to Production</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+    <span class="na">if</span><span class="pi">:</span> <span class="s">startsWith(github.ref, 'refs/tags/v')</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">name</span><span class="pi">:</span> <span class="s">production</span>
+      <span class="na">url</span><span class="pi">:</span> <span class="s">https://myapp.com</span>
+
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Checkout code</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Set up Ruby</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">ruby/setup-ruby@v1</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">ruby-version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.2'</span>
+          <span class="na">bundler-cache</span><span class="pi">:</span> <span class="kc">true</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Deploy to production</span>
+        <span class="na">env</span><span class="pi">:</span>
+          <span class="na">PRODUCTION_DEPLOY_KEY</span><span class="pi">:</span> <span class="s">${{ secrets.PRODUCTION_DEPLOY_KEY }}</span>
+          <span class="na">RAILS_MASTER_KEY</span><span class="pi">:</span> <span class="s">${{ secrets.RAILS_MASTER_KEY }}</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">echo "Deploying version ${{ github.ref_name }} to production..."</span>
+          <span class="s"># Example: Deploy with Capistrano</span>
+          <span class="s"># bundle exec cap production deploy</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create GitHub Release</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/create-release@v1</span>
+        <span class="na">env</span><span class="pi">:</span>
+          <span class="na">GITHUB_TOKEN</span><span class="pi">:</span> <span class="s">${{ secrets.GITHUB_TOKEN }}</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">tag_name</span><span class="pi">:</span> <span class="s">${{ github.ref_name }}</span>
+          <span class="na">release_name</span><span class="pi">:</span> <span class="s">Release ${{ github.ref_name }}</span>
+          <span class="na">body</span><span class="pi">:</span> <span class="pi">|</span>
+            <span class="s">Production deployment of ${{ github.ref_name }}</span>
+            <span class="s">Deployed at: ${{ github.event.head_commit.timestamp }}</span>
+          <span class="na">draft</span><span class="pi">:</span> <span class="kc">false</span>
+          <span class="na">prerelease</span><span class="pi">:</span> <span class="kc">false</span>
+
+</code></pre></div>
+<h3>Step 6: Add Caching Optimization</h3>
+
+<p>Create <code>.github/workflows/ci-optimized.yml</code> for comparison:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">name</span><span class="pi">:</span> <span class="s">CI (Optimized with Manual Caching)</span>
+
+<span class="na">on</span><span class="pi">:</span>
+  <span class="na">workflow_dispatch</span><span class="pi">:</span>  <span class="c1"># Manual trigger for testing</span>
+
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">test-with-cache</span><span class="pi">:</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+
+    <span class="na">services</span><span class="pi">:</span>
+      <span class="na">postgres</span><span class="pi">:</span>
+        <span class="na">image</span><span class="pi">:</span> <span class="s">postgres:15-alpine</span>
+        <span class="na">env</span><span class="pi">:</span>
+          <span class="na">POSTGRES_USER</span><span class="pi">:</span> <span class="s">postgres</span>
+          <span class="na">POSTGRES_PASSWORD</span><span class="pi">:</span> <span class="s">postgres</span>
+          <span class="na">POSTGRES_DB</span><span class="pi">:</span> <span class="s">test</span>
+        <span class="na">ports</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">5432:5432</span>
+        <span class="na">options</span><span class="pi">:</span> <span class="pi">&gt;-</span>
+          <span class="s">--health-cmd pg_isready</span>
+          <span class="s">--health-interval 10s</span>
+          <span class="s">--health-timeout 5s</span>
+          <span class="s">--health-retries 5</span>
+
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Set up Ruby</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">ruby/setup-ruby@v1</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">ruby-version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.2'</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Cache gems</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/cache@v4</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">path</span><span class="pi">:</span> <span class="s">vendor/bundle</span>
+          <span class="na">key</span><span class="pi">:</span> <span class="s">${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}</span>
+          <span class="na">restore-keys</span><span class="pi">:</span> <span class="pi">|</span>
+            <span class="s">${{ runner.os }}-gems-</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Cache node modules</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/cache@v4</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">path</span><span class="pi">:</span> <span class="s">node_modules</span>
+          <span class="na">key</span><span class="pi">:</span> <span class="s">${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}</span>
+          <span class="na">restore-keys</span><span class="pi">:</span> <span class="pi">|</span>
+            <span class="s">${{ runner.os }}-node-</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install dependencies</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">bundle config path vendor/bundle</span>
+          <span class="s">bundle install --jobs 4 --retry 3</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Setup database</span>
+        <span class="na">env</span><span class="pi">:</span>
+          <span class="na">DATABASE_URL</span><span class="pi">:</span> <span class="s">postgres://postgres:postgres@localhost:5432/test</span>
+          <span class="na">RAILS_ENV</span><span class="pi">:</span> <span class="s">test</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="s">bundle exec rails db:schema:load</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run tests</span>
+        <span class="na">env</span><span class="pi">:</span>
+          <span class="na">DATABASE_URL</span><span class="pi">:</span> <span class="s">postgres://postgres:postgres@localhost:5432/test</span>
+          <span class="na">RAILS_ENV</span><span class="pi">:</span> <span class="s">test</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="s">bundle exec rspec</span>
+
+</code></pre></div>
+<h3>Step 7: Configure GitHub Secrets</h3>
+
+<p>In your GitHub repository, go to Settings → Secrets and variables → Actions, and add:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>STAGING_DEPLOY_KEY=&lt;your-staging-deploy-key&gt;
+PRODUCTION_DEPLOY_KEY=&lt;your-production-deploy-key&gt;
+RAILS_MASTER_KEY=&lt;contents-of-config/master.key&gt;
+</code></pre></div>
+<p><strong>For testing locally without real deployment:</strong><br>
+You can add placeholder values:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># These won't actually deploy but will test the workflow structure</span>
+<span class="nv">STAGING_DEPLOY_KEY</span><span class="o">=</span>placeholder_staging_key
+<span class="nv">PRODUCTION_DEPLOY_KEY</span><span class="o">=</span>placeholder_production_key
+<span class="nv">RAILS_MASTER_KEY</span><span class="o">=</span>placeholder_master_key
+
+</code></pre></div>
+<h3>Step 8: Test the Workflow</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Initialize git repository</span>
+git init
+git add <span class="nb">.</span>
+git commit <span class="nt">-m</span> <span class="s2">"Initial commit with CI/CD pipeline"</span>
+
+<span class="c"># Create GitHub repo and push</span>
+gh repo create cicd-demo <span class="nt">--public</span> <span class="nt">--source</span><span class="o">=</span><span class="nb">.</span> <span class="nt">--remote</span><span class="o">=</span>origin <span class="nt">--push</span>
+
+<span class="c"># Create a feature branch and PR</span>
+git checkout <span class="nt">-b</span> add-feature
+<span class="nb">echo</span> <span class="s2">"# New feature"</span> <span class="o">&gt;&gt;</span> README.md
+git add README.md
+git commit <span class="nt">-m</span> <span class="s2">"Add feature documentation"</span>
+git push origin add-feature
+
+<span class="c"># Create pull request</span>
+gh <span class="nb">pr </span>create <span class="nt">--title</span> <span class="s2">"Add feature"</span> <span class="nt">--body</span> <span class="s2">"Testing CI pipeline"</span>
+
+</code></pre></div>
+<p>Navigate to GitHub Actions tab to watch the workflow run.</p>
+
+<h3>Step 9: Verify Caching Performance</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># First workflow run (no cache):</span>
+<span class="c"># Expected time: 3-5 minutes</span>
+
+<span class="c"># Make a small change and push again</span>
+git commit <span class="nt">--allow-empty</span> <span class="nt">-m</span> <span class="s2">"Trigger CI again"</span>
+git push origin add-feature
+
+<span class="c"># Second run (with cache):</span>
+<span class="c"># Expected time: 1-2 minutes (60-70% faster)</span>
+
+</code></pre></div>
+<p>Check workflow logs for cache hit messages:<br>
+<code><br>
+Cache restored from key: Linux-gems-abc123def456...<br>
+</code></p>
+
+<h3>Step 10: Test Deployment Workflow</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Merge PR to main (triggers staging deployment)</span>
+gh <span class="nb">pr </span>merge <span class="nt">--squash</span>
+
+<span class="c"># Wait for staging deployment to complete</span>
+
+<span class="c"># Create production release tag</span>
+git checkout main
+git pull origin main
+git tag v1.0.0
+git push origin v1.0.0
+
+<span class="c"># Check Actions tab for production deployment</span>
+
+</code></pre></div>
+<h2>Stretch (Optional)</h2>
+
+<ol>
+<li><strong>Add matrix testing for multiple Ruby versions:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">test</span><span class="pi">:</span>
+    <span class="na">strategy</span><span class="pi">:</span>
+      <span class="na">fail-fast</span><span class="pi">:</span> <span class="kc">false</span>
+      <span class="na">matrix</span><span class="pi">:</span>
+        <span class="na">ruby</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">3.1'</span><span class="pi">,</span> <span class="s1">'</span><span class="s">3.2'</span><span class="pi">,</span> <span class="s1">'</span><span class="s">3.3'</span><span class="pi">]</span>
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Set up Ruby ${{ matrix.ruby }}</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">ruby/setup-ruby@v1</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">ruby-version</span><span class="pi">:</span> <span class="s">${{ matrix.ruby }}</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Implement parallel test execution:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">strategy</span><span class="pi">:</span>
+  <span class="na">matrix</span><span class="pi">:</span>
+    <span class="na">ci_node_total</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">4</span><span class="pi">]</span>
+    <span class="na">ci_node_index</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">0</span><span class="pi">,</span> <span class="nv">1</span><span class="pi">,</span> <span class="nv">2</span><span class="pi">,</span> <span class="nv">3</span><span class="pi">]</span>
+
+<span class="na">steps</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run parallel tests</span>
+    <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+      <span class="s">bundle exec rspec $(bundle exec rspec --dry-run spec | \</span>
+        <span class="s">grep _spec.rb | \</span>
+        <span class="s">awk "NR % ${{ matrix.ci_node_total }} == ${{ matrix.ci_node_index }}")</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Add code coverage reporting:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Add to Gemfile</span>
+gem <span class="s1">'simplecov'</span>, require: <span class="nb">false</span>
+
+</code></pre></div>
+<p>Edit <code>spec/spec_helper.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s1">'simplecov'</span>
+<span class="no">SimpleCov</span><span class="p">.</span><span class="nf">start</span> <span class="s1">'rails'</span>
+
+</code></pre></div>
+<p>Update workflow to upload coverage:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Upload coverage to Codecov</span>
+  <span class="na">uses</span><span class="pi">:</span> <span class="s">codecov/codecov-action@v3</span>
+  <span class="na">with</span><span class="pi">:</span>
+    <span class="na">files</span><span class="pi">:</span> <span class="s">./coverage/.resultset.json</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Add scheduled dependency updates:</strong></li>
+</ol>
+
+<p>Create <code>.github/workflows/scheduled.yml</code>:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">name</span><span class="pi">:</span> <span class="s">Scheduled Tasks</span>
+
+<span class="na">on</span><span class="pi">:</span>
+  <span class="na">schedule</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">cron</span><span class="pi">:</span> <span class="s1">'</span><span class="s">0</span><span class="nv"> </span><span class="s">2</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">1'</span>  <span class="c1"># Every Monday at 2am UTC</span>
+
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">dependency-check</span><span class="pi">:</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Set up Ruby</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">ruby/setup-ruby@v1</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">ruby-version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.2'</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Check for outdated gems</span>
+        <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">bundle outdated --strict</span>
+          <span class="s">bundle exec bundler-audit check --update</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Add workflow status badge to README:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight markdown"><code><span class="gh"># CI/CD Demo</span>
+
+<span class="p">![</span><span class="nv">CI</span><span class="p">](</span><span class="sx">https://github.com/yourusername/cicd-demo/workflows/CI/badge.svg</span><span class="p">)</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Implement manual approval for production deployments:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">deploy-production</span><span class="pi">:</span>
+  <span class="na">environment</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">production</span>
+    <span class="c1"># Requires manual approval in GitHub UI</span>
+
+</code></pre></div>
 <h2>Solution Notes</h2>
 
-<p>[Solution hints and common gotchas to be added]</p>
+<p><strong>Common Gotchas:</strong></p>
+
+<ol>
+<li><p><strong>Services not ready:</strong> If tests fail with &quot;connection refused&quot;, add health checks and increase health check intervals.</p></li>
+<li><p><strong>Cache not working:</strong> Ensure <code>Gemfile.lock</code> is committed. Cache key uses its hash to determine when to invalidate.</p></li>
+<li><p><strong>Secrets not available:</strong> GitHub Secrets are only available in workflows triggered by repository events, not forked PRs (security feature).</p></li>
+<li><p><strong>Database connection errors:</strong> Ensure <code>DATABASE_URL</code> matches the service configuration exactly, including port 5432.</p></li>
+<li><p><strong>Asset precompilation fails:</strong> Set <code>SECRET_KEY_BASE=dummy</code> in env or skip asset compilation in test environment.</p></li>
+</ol>
+
+<p><strong>Performance Optimization Tips:</strong></p>
+
+<ul>
+<li>Use <code>bundler-cache: true</code> instead of manual caching for simplicity</li>
+<li>Run lint jobs before test jobs (faster feedback on style issues)</li>
+<li>Use <code>fail-fast: false</code> in matrix to see all failures, not just first</li>
+<li>Set <code>timeout-minutes: 15</code> to prevent runaway jobs</li>
+<li>Use <code>if: always()</code> for artifact uploads to capture results even on failure</li>
+</ul>
+
+<p><strong>Security Best Practices:</strong></p>
+
+<ul>
+<li>Never commit secrets to workflow files or code</li>
+<li>Use environment protection rules for production deployments</li>
+<li>Rotate secrets regularly</li>
+<li>Use least-privilege access for deploy keys</li>
+<li>Enable branch protection to require CI before merge</li>
+<li>Use Dependabot to automate dependency updates</li>
+</ul>
+
+<p><strong>Debugging Failed Workflows:</strong></p>
+
+<ol>
+<li>Check &quot;Set up job&quot; step for service startup issues</li>
+<li>Review database setup logs for migration errors</li>
+<li>Use <code>run: env | sort</code> to inspect environment variables</li>
+<li>Add debug statements: <code>run: echo &quot;::debug::Variable value is $VAR&quot;</code></li>
+<li>Enable step debugging: Settings → Secrets → Add <code>ACTIONS_STEP_DEBUG=true</code></li>
+</ol>
+
+<h2>Time Estimate</h2>
+
+<p>24 minutes</p>
 
     
   </div>
@@ -766,74 +1742,368 @@ bundle add <span class="o">[</span>gems to be specified]
     
       
       <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
-        <p><strong>Passing Score:</strong>  points</p>
+        <p><strong>Passing Score:</strong> 7 points</p>
         <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
       </div>
 
       
         <div class="question"
              data-question-id="0"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 1 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="It automatically caches gems based on Gemfile.lock, reducing bundle install time from minutes to seconds">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the primary purpose of using `bundler-cache: true` in the ruby/setup-ruby GitHub Action?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  It caches the entire Ruby installation to speed up future workflow runs
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  It automatically caches gems based on Gemfile.lock, reducing bundle install time from minutes to seconds
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  It enables automatic deployment when dependencies change
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  It compresses the bundle directory to save disk space
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> The bundler-cache option automatically manages gem caching using Gemfile.lock as the cache key. When dependencies haven't changed, it restores cached gems instead of reinstalling them, typically reducing install time from 3-5 minutes to 10-30 seconds.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="1"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 2 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Services provide isolated, reproducible environments with health checks and run in parallel with setup steps">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">Why should you use the `services:` section in GitHub Actions for database containers instead of installing Postgres directly on the runner?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  Services run faster than native installations
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  Services provide isolated, reproducible environments with health checks and run in parallel with setup steps
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  Services are required by GitHub Actions; you cannot install databases directly
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Services automatically migrate your database schema
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Service containers run in Docker with defined health checks, ensuring the database is ready before tests run. They provide clean, isolated environments for each workflow run and can start in parallel with other setup steps, improving performance.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="2"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 3 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="env: DEPLOY_KEY=${{ secrets.DEPLOY_KEY }}">
+          <h4>Question 3 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the correct way to access a GitHub Secret named DEPLOY_KEY in a workflow step?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  env: DEPLOY_KEY=$DEPLOY_KEY
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  env: DEPLOY_KEY=${{ secrets.DEPLOY_KEY }}
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  secrets: DEPLOY_KEY=true
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  uses: secrets/DEPLOY_KEY@v1
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> GitHub Secrets are accessed using the ${{ secrets.SECRET_NAME }} syntax and exposed as environment variables. GitHub automatically redacts secret values in logs for security.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="3"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 4 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Runs the workflow when a pull request is opened, synchronized (new commits pushed), or reopened">
+          <h4>Question 4 (1 points)</h4>
+          <p style="margin: 10px 0;">What does the `on: pull_request` trigger do in a GitHub Actions workflow?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  Runs the workflow when a pull request is merged to main
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  Runs the workflow when a pull request is opened, synchronized (new commits pushed), or reopened
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  Runs the workflow only when a pull request is approved
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  Runs the workflow when pull request comments are added
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> The pull_request trigger activates on PR open, synchronize (new commits), and reopen events by default. This ensures CI runs on every code change in a PR, catching issues before merge.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="4"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 5 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="They run the same job in parallel with different configurations (e.g., Ruby 3.1, 3.2, 3.3), testing compatibility faster">
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">How do matrix builds improve CI pipeline efficiency?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  They reduce the total number of tests that need to run
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  They run the same job in parallel with different configurations (e.g., Ruby 3.1, 3.2, 3.3), testing compatibility faster
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  They automatically fix failing tests
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  They cache results across different Ruby versions
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Matrix builds create multiple parallel jobs from a single job definition with different variable values. This allows testing across Ruby versions, Rails versions, or database types simultaneously instead of sequentially, reducing total feedback time.
+              </div>
+            
           
         </div>
       
         <div class="question"
              data-question-id="5"
-             data-kind=""
-             data-points=""
-             >
-          <h4>Question 6 ( points)</h4>
-          <p style="margin: 10px 0;"></p>
+             data-kind="mcq"
+             data-points="2"
+             data-correct="While GitHub redacts the exact secret value, derived values or partial echoes might leak information">
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the security risk of running `echo ${{ secrets.API_KEY }}` in a workflow step?</p>
 
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  There is no risk; GitHub automatically redacts secret values in all logs
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  While GitHub redacts the exact secret value, derived values or partial echoes might leak information
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  The secret becomes permanently exposed in the repository history
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  Secrets can only be used in deploy jobs, not test jobs
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> GitHub redacts exact matches of secret values in logs, but echoing secrets can still leak information through substring matches, base64 encoding, or other transformations. Never intentionally log secrets or use them in commands that produce visible output.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="schema:load is faster because it loads the schema definition directly instead of running all migrations sequentially">
+          <h4>Question 7 (2 points)</h4>
+          <p style="margin: 10px 0;">Why should you run `rails db:schema:load` instead of `rails db:migrate` in CI environments?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  Migrations don't work in Docker containers
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  schema:load is faster because it loads the schema definition directly instead of running all migrations sequentially
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  migrate requires production credentials
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  schema:load automatically seeds the database
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> In CI, you start with a fresh database each run. schema:load reads db/schema.rb and creates the schema directly, taking seconds. Running all migrations sequentially can take minutes on projects with hundreds of migrations.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Runs the step even if previous steps failed, useful for uploading test artifacts">
+          <h4>Question 8 (1 points)</h4>
+          <p style="margin: 10px 0;">What does the `if: always()` condition do in a workflow step?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  Runs the step on every commit, regardless of branch
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  Runs the step even if previous steps failed, useful for uploading test artifacts
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  Runs the step only on the main branch
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Forces the step to retry until it succeeds
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> By default, steps are skipped if previous steps fail. if: always() ensures the step runs regardless of previous step status, which is critical for uploading test results or logs from failed test runs.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="They ensure the service is ready (e.g., Postgres accepting connections) before running dependent steps like database setup">
+          <h4>Question 9 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the purpose of health checks in service containers?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(8, 0)">
+                  They monitor service performance and send alerts
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 1)">
+                  They ensure the service is ready (e.g., Postgres accepting connections) before running dependent steps like database setup
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 2)">
+                  They automatically restart services that crash
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 3)">
+                  They optimize service memory usage
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Health checks (--health-cmd pg_isready) probe the service until it's operational. Without health checks, subsequent steps might try to connect to Postgres before it's ready, causing connection errors and test failures.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="on: push: tags: ['v*']">
+          <h4>Question 10 (1 points)</h4>
+          <p style="margin: 10px 0;">Which workflow trigger is best for deploying to production on version releases?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(9, 0)">
+                  on: push: branches: [main]
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 1)">
+                  on: push: tags: ['v*']
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 2)">
+                  on: pull_request: types: [closed]
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 3)">
+                  on: schedule: cron: '0 0 * * *'
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Triggering on tag pushes matching 'v*' (e.g., v1.2.3) allows explicit, versioned production releases. This gives teams control over when production deployments occur, separating them from regular main branch merges that might deploy to staging.
+              </div>
+            
           
         </div>
       
@@ -847,7 +2117,7 @@ bundle add <span class="o">[</span>gems to be specified]
         </button>
       </div>
 
-      <div class="score-display" data-passing=""></div>
+      <div class="score-display" data-passing="7"></div>
     
   </div>
 </div>
@@ -863,33 +2133,38 @@ bundle add <span class="o">[</span>gems to be specified]
       <ul class="reference-list">
         
           <li>
-            <a href="https://example.com" target="_blank">[Official Documentation - to be added]</a>
-            <div class="why"></div>
+            <a href="https://docs.github.com/en/actions" target="_blank">GitHub Actions Documentation</a>
+            <div class="why">Official comprehensive guide covering workflow syntax, triggers, jobs, steps, secrets, and GitHub Actions marketplace. Essential for understanding YAML configuration and GitHub Actions concepts.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Guide/Tutorial - to be added]</a>
-            <div class="why"></div>
+            <a href="https://github.com/ruby/setup-ruby" target="_blank">ruby/setup-ruby Action</a>
+            <div class="why">Official Ruby setup action with built-in bundler caching. Explains bundler-cache option, version matrix configuration, and best practices for Ruby CI workflows.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Book Chapter - to be added]</a>
-            <div class="why"></div>
+            <a href="https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-ruby" target="_blank">Testing Rails Applications with GitHub Actions</a>
+            <div class="why">GitHub's official guide for setting up Rails CI pipelines, including service containers for Postgres, Redis caching strategies, and common Rails-specific configurations.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Conference Talk - to be added]</a>
-            <div class="why"></div>
+            <a href="https://docs.github.com/en/actions/using-containerized-services/about-service-containers" target="_blank">GitHub Actions: Using Service Containers</a>
+            <div class="why">In-depth explanation of service containers, health checks, networking, and how to configure databases and dependencies for CI jobs.</div>
           </li>
         
           <li>
-            <a href="https://example.com" target="_blank">[Blog Post - to be added]</a>
-            <div class="why"></div>
+            <a href="https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows" target="_blank">Caching Dependencies in GitHub Actions</a>
+            <div class="why">Comprehensive guide to cache actions, cache keys, restore keys, and strategies for optimizing build times by caching gems, node modules, and build artifacts.</div>
           </li>
         
           <li>
-            <a href="https://github.com/example/repo" target="_blank">[GitHub Repository - to be added]</a>
-            <div class="why"></div>
+            <a href="https://docs.github.com/en/actions/security-guides/encrypted-secrets" target="_blank">Encrypted Secrets in GitHub Actions</a>
+            <div class="why">Security best practices for managing secrets, environment-specific secrets, secret redaction in logs, and using secrets safely in workflows.</div>
+          </li>
+        
+          <li>
+            <a href="https://evilmartians.com/chronicles/system-of-a-test-setting-up-end-to-end-rails-testing" target="_blank">Evil Martians: Rails Testing Best Practices</a>
+            <div class="why">Production-tested Rails CI strategies including parallel testing, test organization, and real-world optimization techniques from a leading Rails consultancy.</div>
           </li>
         
       </ul>
