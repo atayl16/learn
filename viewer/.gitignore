@@ -1,0 +1,14 @@
+# Static site output
+dist/
+
+# Ruby/Bundler
+.bundle/
+vendor/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

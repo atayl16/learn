@@ -42,8 +42,15 @@ class RailsSeniorityCoach < Sinatra::Base
     return [] unless Dir.exist?(track_dir)
 
     Dir.glob(File.join(track_dir, '*.yml')).map do |file|
-      YAML.load_file(file)['topic']
-    end.sort_by { |t| t['name'] }
+      data = YAML.load_file(file)
+      # Handle both 'topic' and 'skill' keys (legacy compatibility)
+      topic_data = data['topic'] || data['skill']
+      next unless topic_data
+
+      # Normalize: skill files use 'title' instead of 'name'
+      topic_data['name'] ||= topic_data['title']
+      topic_data
+    end.compact.sort_by { |t| t['name'] }
   end
 
   # Load topic content

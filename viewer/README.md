@@ -7,9 +7,16 @@ A lightweight Sinatra-based web application to browse the Rails Seniority Coach 
 - **Browse all 8 tracks** with topic listings
 - **Read topic content** with tabbed interface (Overview, Exercise, Checkpoint, References)
 - **Take checkpoint quizzes** with instant scoring (client-side, no auth required)
+- **Search functionality** - real-time search across all topics
+- **Progress tracking** - mark topics complete with localStorage persistence
+- **Dark mode** - toggle with persistent preference
+- **Keyboard shortcuts** - navigate with arrow keys, search with `/`
+- **Prev/Next navigation** - seamless topic browsing
+- **Code copy buttons** - one-click copying of code samples
 - **Markdown rendering** with syntax highlighting for code samples
 - **Responsive design** works on desktop and mobile
 - **No database** - reads directly from YAML/Markdown files
+- **Static site generation** - export to GitHub Pages-ready HTML
 
 ## Installation
 
@@ -40,12 +47,14 @@ Then visit: **http://localhost:4567**
 ### Files
 
 - `app.rb` - Main Sinatra application
+- `build_static.rb` - Static site generator for GitHub Pages
 - `views/layout.erb` - HTML layout with CSS and JavaScript
 - `views/index.erb` - Track listing page
 - `views/track.erb` - Topic listing for a track
 - `views/topic.erb` - Full topic view with tabs
 - `Gemfile` - Ruby dependencies
 - `config.ru` - Rack configuration
+- `DEPLOYMENT.md` - GitHub Pages deployment guide
 
 ### How It Works
 
@@ -113,15 +122,23 @@ EXPOSE 4567
 CMD ["bundle", "exec", "puma", "-p", "4567"]
 ```
 
-### Static Export (Optional)
+### GitHub Pages (Static Site)
 
-To generate static HTML files:
+Generate a static HTML version for GitHub Pages:
 
 ```bash
-# Install wget
-wget --mirror --convert-links --adjust-extension --page-requisites \
-     --no-parent http://localhost:4567 -P ./static
+cd viewer
+ruby build_static.rb
 ```
+
+This creates a `dist/` folder with 50 self-contained HTML files (1 index + 8 tracks + 41 topics).
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for detailed deployment instructions including:
+- Deploying to `gh-pages` branch
+- Using `/docs` folder
+- Custom domain setup
+
+The static site includes ALL features (search, dark mode, progress tracking, quizzes) with no backend required.
 
 ## Customization
 
