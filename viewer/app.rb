@@ -62,6 +62,17 @@ class RailsSeniorityCoach < Sinatra::Base
     }
   end
 
+  # Find previous and next topics in a track
+  def find_adjacent_topics(topics, current_topic_key)
+    current_index = topics.find_index { |t| t['key'] == current_topic_key }
+    return { prev: nil, next: nil } unless current_index
+
+    {
+      prev: current_index > 0 ? topics[current_index - 1] : nil,
+      next: current_index < topics.length - 1 ? topics[current_index + 1] : nil
+    }
+  end
+
   # Routes
   get '/' do
     @tracks = load_tracks
@@ -87,6 +98,7 @@ class RailsSeniorityCoach < Sinatra::Base
     halt 404 unless @topic_config
 
     @content = load_topic_content(params[:track_key], params[:topic_key])
+    @adjacent = find_adjacent_topics(@topics, params[:topic_key])
     erb :topic
   end
 

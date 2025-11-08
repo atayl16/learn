@@ -2,21 +2,72 @@
   <a href="/tracks/<%= params[:track_key] %>">← <%= @track['name'] %></a>
 </nav>
 
+<!-- Previous/Next Navigation -->
+<div class="topic-navigation">
+  <% if @adjacent[:prev] %>
+    <a href="/tracks/<%= params[:track_key] %>/topics/<%= @adjacent[:prev]['key'] %>" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title"><%= @adjacent[:prev]['name'] %></div>
+      </div>
+    </a>
+  <% else %>
+    <div class="nav-button prev" style="opacity: 0.3; cursor: not-allowed;">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Start of track</div>
+      </div>
+    </div>
+  <% end %>
+
+  <% if @adjacent[:next] %>
+    <a href="/tracks/<%= params[:track_key] %>/topics/<%= @adjacent[:next]['key'] %>" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title"><%= @adjacent[:next]['name'] %></div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  <% else %>
+    <div class="nav-button next" style="opacity: 0.3; cursor: not-allowed;">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">End of track</div>
+      </div>
+      <span class="arrow">→</span>
+    </div>
+  <% end %>
+</div>
+
 <div style="margin-bottom: 30px;">
-  <h1><%= @topic_config['name'] %></h1>
-  <div style="margin: 15px 0;">
-    <% depth = @topic_config['depth_target'] %>
-    <% if depth == 'Strong' %>
-      <span class="badge badge-strong">Strong</span>
-    <% elsif depth == 'Working' %>
-      <span class="badge badge-working">Working</span>
-    <% else %>
-      <span class="badge badge-exposure">Exposure</span>
-    <% end %>
-    &nbsp;
-    <span style="color: #666;">
-      📖 <%= @topic_config['est_minutes_read'] %> min read &nbsp; | &nbsp; 💻 <%= @topic_config['est_minutes_exercise'] %> min exercise
-    </span>
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+    <div style="flex: 1;">
+      <h1><%= @topic_config['name'] %></h1>
+      <div style="margin: 15px 0;">
+        <% depth = @topic_config['depth_target'] %>
+        <% if depth == 'Strong' %>
+          <span class="badge badge-strong">Strong</span>
+        <% elsif depth == 'Working' %>
+          <span class="badge badge-working">Working</span>
+        <% else %>
+          <span class="badge badge-exposure">Exposure</span>
+        <% end %>
+        &nbsp;
+        <span style="color: var(--text-secondary);">
+          📖 <%= @topic_config['est_minutes_read'] %> min read &nbsp; | &nbsp; 💻 <%= @topic_config['est_minutes_exercise'] %> min exercise
+        </span>
+      </div>
+    </div>
+    <button
+      id="mark-complete-btn"
+      class="complete-button"
+      data-track-key="<%= params[:track_key] %>"
+      data-topic-key="<%= params[:topic_key] %>"
+      onclick="markTopicComplete('<%= params[:track_key] %>', '<%= params[:topic_key] %>')">
+      Mark Complete
+    </button>
   </div>
 
   <% if @topic_config['objectives'] %>
@@ -122,7 +173,7 @@
 <div id="references-tab" class="tab-content">
   <div class="content-section">
     <% if @content[:references] %>
-      <p style="margin-bottom: 20px; color: #666;">
+      <p style="margin-bottom: 20px; color: var(--text-secondary);">
         Curated sources to deepen your understanding. All references point to official documentation,
         canonical books, or reputable technical content.
       </p>
@@ -135,7 +186,46 @@
         <% end %>
       </ul>
     <% else %>
-      <p style="color: #999;">References not available.</p>
+      <p style="color: var(--text-muted);">References not available.</p>
     <% end %>
   </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="topic-navigation">
+  <% if @adjacent[:prev] %>
+    <a href="/tracks/<%= params[:track_key] %>/topics/<%= @adjacent[:prev]['key'] %>" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title"><%= @adjacent[:prev]['name'] %></div>
+      </div>
+    </a>
+  <% else %>
+    <div class="nav-button prev" style="opacity: 0.3; cursor: not-allowed;">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Start of track</div>
+      </div>
+    </div>
+  <% end %>
+
+  <% if @adjacent[:next] %>
+    <a href="/tracks/<%= params[:track_key] %>/topics/<%= @adjacent[:next]['key'] %>" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title"><%= @adjacent[:next]['name'] %></div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  <% else %>
+    <div class="nav-button next" style="opacity: 0.3; cursor: not-allowed;">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">End of track</div>
+      </div>
+      <span class="arrow">→</span>
+    </div>
+  <% end %>
 </div>

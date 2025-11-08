@@ -16,16 +16,17 @@
 
 <h2 style="margin: 30px 0 20px 0;">Topics (<%= @topics.length %>)</h2>
 
-<div class="track-grid">
+<div class="topic-grid">
   <% @topics.each do |topic| %>
-    <div class="topic-card">
+    <div class="topic-card" data-track-key="<%= @track['key'] %>" data-topic-key="<%= topic['key'] %>">
+      <div class="completion-badge">✓</div>
       <a href="/tracks/<%= @track['key'] %>/topics/<%= topic['key'] %>">
         <h3><%= topic['name'] %></h3>
-        <p style="color: #666; font-size: 14px; margin: 10px 0;">
+        <p style="color: var(--text-secondary); font-size: 14px; margin: 10px 0;">
           <%= topic['objectives']&.first || 'Learn the fundamentals' %>
         </p>
         <div style="margin-top: 15px; font-size: 13px;">
-          <div style="margin: 5px 0;">
+          <div style="margin: 5px 0; color: var(--text-secondary);">
             📖 <%= topic['est_minutes_read'] || 10 %> min read
             &nbsp; | &nbsp;
             💻 <%= topic['est_minutes_exercise'] || 20 %> min exercise
