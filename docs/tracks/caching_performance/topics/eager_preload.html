@@ -820,8 +820,8 @@
 <p><strong>Use scopes:</strong><br>
 ```ruby<br>
 class Post &lt; ApplicationRecord<br>
-  scope :with<em>author, -&gt; { includes(:author) }<br>
-  scope :with</em>full_details, -&gt; { includes(author: :company, tags: :category) }<br>
+  scope :with_author, -&gt; { includes(:author) }<br>
+  scope :with_full_details, -&gt; { includes(author: :company, tags: :category) }<br>
 end</p>
 
 <h1>Clean controller</h1>
@@ -951,7 +951,7 @@ Post.includes(:author).limit(10).to_a
 
 <h1>eager_load (forced JOIN)</h1>
 
-<p>Post.eager<em>load(:author).limit(10).to</em>a</p>
+<p>Post.eager_load(:author).limit(10).to_a</p>
 
 <h1>Should show LEFT JOIN</h1>
 
@@ -1045,9 +1045,9 @@ require &#39;test_helper&#39;</p>
     posts.each { |p| p.user.name }<br>
   end</p>
 
-<p>test &quot;eager<em>load forces LEFT JOIN&quot; do<br>
-    puts &quot;\n=== eager</em>load (forced JOIN) ===&quot;<br>
-    posts = Post.eager<em>load(:user).limit(10).to</em>a<br>
+<p>test &quot;eager_load forces LEFT JOIN&quot; do<br>
+    puts &quot;\n=== eager_load (forced JOIN) ===&quot;<br>
+    posts = Post.eager_load(:user).limit(10).to_a<br>
     posts.each { |p| p.user.name }<br>
   end</p>
 

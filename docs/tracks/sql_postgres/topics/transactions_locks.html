@@ -661,8 +661,8 @@
 <p><strong>Atomicity:</strong> All operations succeed or none do. Rollback on failure.<br>
 ```ruby<br>
 ActiveRecord::Base.transaction do<br>
-  account<em>a.update!(balance: account</em>a.balance - 100)<br>
-  account<em>b.update!(balance: account</em>b.balance + 100)<br>
+  account_a.update!(balance: account_a.balance - 100)<br>
+  account_b.update!(balance: account_b.balance + 100)<br>
 end</p>
 
 <h1>Both updates succeed or both roll back</h1>
@@ -842,11 +842,11 @@ SELECT * FROM pg_stat_activity WHERE wait_event_type = &#39;Lock&#39;;<br>
 
 <p><strong>Exclusive lock:</strong><br>
 ```ruby<br>
-ActiveRecord::Base.connection.execute(&quot;SELECT pg<em>advisory</em>lock(12345)&quot;)</p>
+ActiveRecord::Base.connection.execute(&quot;SELECT pg_advisory_lock(12345)&quot;)</p>
 
 <h1>Do work</h1>
 
-<p>ActiveRecord::Base.connection.execute(&quot;SELECT pg<em>advisory</em>unlock(12345)&quot;)<br>
+<p>ActiveRecord::Base.connection.execute(&quot;SELECT pg_advisory_unlock(12345)&quot;)<br>
 ```</p>
 
 <p><strong>Try lock (non-blocking):</strong><br>
@@ -865,13 +865,13 @@ end<br>
 
 <h1>Ensure only one Sidekiq job processes a resource</h1>
 
-<p>def perform(resource<em>id)<br>
-  lock</em>id = Zlib.crc32(&quot;process<em>#{resource</em>id}&quot;)<br>
-  if ActiveRecord::Base.connection.select<em>value(&quot;SELECT pg</em>try<em>advisory</em>lock(#{lock<em>id})&quot;)<br>
+<p>def perform(resource_id)<br>
+  lock_id = Zlib.crc32(&quot;process_#{resource_id}&quot;)<br>
+  if ActiveRecord::Base.connection.select_value(&quot;SELECT pg_try_advisory_lock(#{lock_id})&quot;)<br>
     begin<br>
-      process</em>resource(resource<em>id)<br>
+      process_resource(resource_id)<br>
     ensure<br>
-      ActiveRecord::Base.connection.execute(&quot;SELECT pg</em>advisory<em>unlock(#{lock</em>id})&quot;)<br>
+      ActiveRecord::Base.connection.execute(&quot;SELECT pg_advisory_unlock(#{lock_id})&quot;)<br>
     end<br>
   else<br>
     # Skip; another job is processing<br>
@@ -972,8 +972,8 @@ end</p>
 
 <h1>Schema</h1>
 
-<p>create<em>table :tickets do |t|<br>
-  t.string :seat</em>number, null: false<br>
+<p>create_table :tickets do |t|<br>
+  t.string :seat_number, null: false<br>
   t.string :status, default: &#39;available&#39;<br>
   t.references :user, foreign_key: true<br>
   t.timestamps<br>

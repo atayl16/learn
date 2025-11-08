@@ -862,8 +862,8 @@ time bin/rails runner &#39;puts &quot;Booted&quot;&#39;<br>
 
 <h1>config/environments/development.rb</h1>
 
-<p>config.after<em>initialize do<br>
-  Rails.logger.info &quot;Boot completed in #{Time.now - Rails.application.config.beginning</em>time}s&quot;<br>
+<p>config.after_initialize do<br>
+  Rails.logger.info &quot;Boot completed in #{Time.now - Rails.application.config.beginning_time}s&quot;<br>
 end</p>
 
 <h1>config/application.rb</h1>

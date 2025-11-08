@@ -630,7 +630,7 @@
 
 <h2>What It Is</h2>
 
-<p>EXPLAIN shows how Postgres executes a query without running it. EXPLAIN ANALYZE executes the query and shows actual timing and row counts. Query plans reveal whether Postgres uses indexes, performs sequential scans, or chooses expensive joins. pg<em>stat</em>statements tracks query performance over time in production.</p>
+<p>EXPLAIN shows how Postgres executes a query without running it. EXPLAIN ANALYZE executes the query and shows actual timing and row counts. Query plans reveal whether Postgres uses indexes, performs sequential scans, or chooses expensive joins. pg_stat_statements tracks query performance over time in production.</p>
 
 <h2>Why It Matters</h2>
 
@@ -642,7 +642,7 @@
 <li><strong>Slow queries:</strong> Run EXPLAIN ANALYZE on any query taking over 100ms</li>
 <li><strong>Before adding indexes:</strong> Verify Postgres will actually use the proposed index</li>
 <li><strong>After adding indexes:</strong> Confirm the query plan changed and performance improved</li>
-<li><strong>Production monitoring:</strong> Enable pg<em>stat</em>statements to track slowest queries over time</li>
+<li><strong>Production monitoring:</strong> Enable pg_stat_statements to track slowest queries over time</li>
 </ul>
 
 <h2>Three Common Pitfalls</h2>
@@ -791,7 +791,7 @@ Sort  (cost=12345.67..13456.78 rows=50000 width=200)<br>
 
 <hr>
 
-<h2>Using pg<em>stat</em>statements</h2>
+<h2>Using pg_stat_statements</h2>
 
 <p>Enable in postgresql.conf:<br>
 <code><br>
@@ -843,7 +843,7 @@ SELECT pg_stat_statements_reset();<br>
 <li>Identify highest-cost nodes (sorts, nested loops, seq scans)</li>
 <li>For joins, verify join columns are indexed</li>
 <li>Check for &quot;Sort Method: external merge Disk&quot; and increase work_mem if needed</li>
-<li>Use pg<em>stat</em>statements to find slowest queries over time in production</li>
+<li>Use pg_stat_statements to find slowest queries over time in production</li>
 </ol>
 
 <hr>
@@ -855,7 +855,7 @@ SELECT pg_stat_statements_reset();<br>
 <li>Seq Scan reads entire table; Index Scan uses index; Index Only Scan reads index only</li>
 <li>Nested loops are fast for small datasets but slow for large joins</li>
 <li>High-cost nodes (sorts, seq scans) indicate missing indexes or bad query structure</li>
-<li>pg<em>stat</em>statements tracks slowest queries in production over time</li>
+<li>pg_stat_statements tracks slowest queries in production over time</li>
 </ul>
 
     
@@ -881,8 +881,8 @@ SELECT pg_stat_statements_reset();<br>
 
 <h1>Assume this schema with 100,000 orders</h1>
 
-<p>create<em>table :orders do |t|<br>
-  t.references :user, null: false, foreign</em>key: true<br>
+<p>create_table :orders do |t|<br>
+  t.references :user, null: false, foreign_key: true<br>
   t.string :status  # &#39;pending&#39;, &#39;completed&#39;, &#39;cancelled&#39;<br>
   t.decimal :total, precision: 10, scale: 2<br>
   t.timestamps<br>
@@ -917,13 +917,13 @@ LIMIT 20;
 <li>Check for &quot;Seq Scan&quot; or high-cost nodes in the plan</li>
 <li>Add composite index and run <code>ANALYZE orders;</code> to update statistics</li>
 <li>Run <code>EXPLAIN (ANALYZE, BUFFERS)</code> again and compare execution time</li>
-<li>Verify &quot;Index Scan using index<em>orders</em>on<em>user</em>id<em>status</em>created_at&quot; appears</li>
+<li>Verify &quot;Index Scan using index_orders_on_user_id_status_created_at&quot; appears</li>
 <li>Document improvement: &quot;Execution Time: X ms → Y ms&quot;</li>
 </ol>
 
 <h2>Stretch (Optional)</h2>
 
-<p>Enable pg<em>stat</em>statements in your local Postgres and query it to find the slowest queries after running several test queries.</p>
+<p>Enable pg_stat_statements in your local Postgres and query it to find the slowest queries after running several test queries.</p>
 
 <h2>Time Estimate</h2>
 

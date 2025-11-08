@@ -919,11 +919,11 @@ end<br>
 Rails.application.configure do<br>
   # ... existing config</p>
 
-<p>config.after<em>initialize do<br>
+<p>config.after_initialize do<br>
     Bullet.enable = true<br>
     Bullet.alert = true           # Browser alert<br>
     Bullet.console = true         # Terminal output<br>
-    Bullet.rails</em>logger = true    # Log file<br>
+    Bullet.rails_logger = true    # Log file<br>
   end<br>
 end<br>
 ```</p>
@@ -1029,9 +1029,9 @@ end<br>
 
 <h1>Log queries for each and observe SQL differences</h1>
 
-<p>Post.includes(:user).where(users: { name: &quot;User 1&quot; }).to<em>a<br>
-Post.eager</em>load(:user).where(users: { name: &quot;User 1&quot; }).to<em>a<br>
-Post.preload(:user).where(users: { name: &quot;User 1&quot; }).to</em>a<br>
+<p>Post.includes(:user).where(users: { name: &quot;User 1&quot; }).to_a<br>
+Post.eager_load(:user).where(users: { name: &quot;User 1&quot; }).to_a<br>
+Post.preload(:user).where(users: { name: &quot;User 1&quot; }).to_a<br>
 ```</p></li>
 <li><p>Test when N+1 is acceptable:<br>
 ```ruby</p>

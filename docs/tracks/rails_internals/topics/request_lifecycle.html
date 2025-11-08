@@ -914,7 +914,7 @@ end<br>
 <p>Edit <code>app/controllers/posts_controller.rb</code>:<br>
 ```ruby<br>
 class PostsController &lt; ApplicationController<br>
-  before<em>action :log</em>filter_start</p>
+  before_action :log_filter_start</p>
 
 <p>def index<br>
     @posts = Post.all<br>
@@ -923,7 +923,7 @@ class PostsController &lt; ApplicationController<br>
 
 <p>private</p>
 
-<p>def log<em>filter</em>start<br>
+<p>def log_filter_start<br>
     Rails.logger.info &quot;Filter started at #{Time.now}&quot;<br>
   end<br>
 end<br>

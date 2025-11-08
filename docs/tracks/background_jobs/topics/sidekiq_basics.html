@@ -901,12 +901,12 @@ redis-server
 </code></pre></div>
 <p>Create <code>config/initializers/sidekiq.rb</code>:<br>
 ```ruby<br>
-Sidekiq.configure<em>server do |config|<br>
-  config.redis = { url: ENV.fetch(&#39;REDIS</em>URL&#39;, &#39;redis://localhost:6379/1&#39;) }<br>
+Sidekiq.configure_server do |config|<br>
+  config.redis = { url: ENV.fetch(&#39;REDIS_URL&#39;, &#39;redis://localhost:6379/1&#39;) }<br>
 end</p>
 
-<p>Sidekiq.configure<em>client do |config|<br>
-  config.redis = { url: ENV.fetch(&#39;REDIS</em>URL&#39;, &#39;redis://localhost:6379/1&#39;) }<br>
+<p>Sidekiq.configure_client do |config|<br>
+  config.redis = { url: ENV.fetch(&#39;REDIS_URL&#39;, &#39;redis://localhost:6379/1&#39;) }<br>
 end<br>
 ```</p>
 
@@ -923,8 +923,8 @@ config.active_job.queue_adapter = :sidekiq<br>
 class NotificationJob &lt; ApplicationJob<br>
   queue_as :mailers</p>
 
-<p>def perform(user<em>id)<br>
-    Rails.logger.info &quot;NotificationJob: Processing user #{user</em>id}&quot;<br>
+<p>def perform(user_id)<br>
+    Rails.logger.info &quot;NotificationJob: Processing user #{user_id}&quot;<br>
     sleep 2  # Simulate email sending<br>
     Rails.logger.info &quot;NotificationJob: Completed user #{user_id}&quot;<br>
   end<br>
@@ -939,8 +939,8 @@ class ReportWorker<br>
   include Sidekiq::Worker<br>
   sidekiq_options queue: :reports, retry: 3</p>
 
-<p>def perform(report<em>id)<br>
-    Rails.logger.info &quot;ReportWorker: Generating report #{report</em>id}&quot;<br>
+<p>def perform(report_id)<br>
+    Rails.logger.info &quot;ReportWorker: Generating report #{report_id}&quot;<br>
     sleep 5  # Simulate slow report generation<br>
     Rails.logger.info &quot;ReportWorker: Completed report #{report_id}&quot;<br>
   end<br>
@@ -967,13 +967,13 @@ end<br>
 
 <h1>ActiveJob syntax</h1>
 
-<p>NotificationJob.perform<em>later(123)<br>
-NotificationJob.set(wait: 10.seconds).perform</em>later(456)</p>
+<p>NotificationJob.perform_later(123)<br>
+NotificationJob.set(wait: 10.seconds).perform_later(456)</p>
 
 <h1>Native Sidekiq syntax</h1>
 
-<p>ReportWorker.perform<em>async(789)<br>
-ReportWorker.perform</em>in(1.minute, 999)<br>
+<p>ReportWorker.perform_async(789)<br>
+ReportWorker.perform_in(1.minute, 999)<br>
 ReportWorker.perform_at(Time.now + 5.minutes, 111)<br>
 ```</p>
 

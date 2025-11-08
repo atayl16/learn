@@ -690,7 +690,7 @@
 <p><strong>Behavior:</strong><br>
 ```ruby<br>
 post = Post.find(1)<br>
-old<em>key = post.cache</em>key<em>with</em>version</p>
+old_key = post.cache_key_with_version</p>
 
 <h1>=&gt; &quot;posts/1-20250108120000000000000&quot;</h1>
 
@@ -700,7 +700,7 @@ old<em>key = post.cache</em>key<em>with</em>version</p>
 
 <h1>Post&#39;s updated_at is touched</h1>
 
-<p>post.reload.cache<em>key</em>with_version</p>
+<p>post.reload.cache_key_with_version</p>
 
 <h1>=&gt; &quot;posts/1-20250108120100000000000&quot; (new timestamp)</h1>
 <div class="highlight"><pre class="highlight plaintext"><code>
@@ -731,9 +731,9 @@ Nest caches to reuse unchanged fragments:
 &lt;% end %&gt;
 </code></pre></div>
 <p><strong>Scenario: User edits comment ID 42 on post ID 5:</strong><br>
-1. Comment 42&#39;s cache expires (updated<em>at changed)<br>
+1. Comment 42&#39;s cache expires (updated_at changed)<br>
 2. Post 5&#39;s cache expires (touched by comment)<br>
-3. Outer &quot;posts&quot; cache expires (Post 5&#39;s updated</em>at changed)<br>
+3. Outer &quot;posts&quot; cache expires (Post 5&#39;s updated_at changed)<br>
 4. On re-render:<br>
    - Outer cache misses → renders all posts<br>
    - Post 5 cache misses → renders post with comments<br>
@@ -790,8 +790,8 @@ end<br>
 
 <h1>Cache expires when user OR their posts change</h1>
 
-<p>Rails.cache.fetch([@user, @user.posts.maximum(:updated<em>at)]) do<br>
-  render</em>user_dashboard(@user)<br>
+<p>Rails.cache.fetch([@user, @user.posts.maximum(:updated_at)]) do<br>
+  render_user_dashboard(@user)<br>
 end<br>
 ```</p>
 
@@ -806,13 +806,13 @@ end<br>
 
 <h1>1000 concurrent requests hit this</h1>
 
-<p>Rails.cache.fetch(&quot;expensive<em>data&quot;, expires</em>in: 1.hour) do<br>
+<p>Rails.cache.fetch(&quot;expensive_data&quot;, expires_in: 1.hour) do<br>
   # All 1000 threads execute this slow query<br>
   ExpensiveCalculation.run<br>
 end<br>
 ```</p>
 
-<p><strong>Solution 1: race<em>condition</em>ttl</strong><br>
+<p><strong>Solution 1: race_condition_ttl</strong><br>
 <code>ruby<br>
 Rails.cache.fetch(&quot;expensive_data&quot;, expires_in: 1.hour, race_condition_ttl: 10.seconds) do<br>
   ExpensiveCalculation.run<br>
@@ -825,11 +825,11 @@ end<br>
 ```ruby<br>
 gem &#39;redlock&#39;</p>
 
-<p>lock<em>manager = Redlock::Client.new([ENV[&#39;REDIS</em>URL&#39;]])</p>
+<p>lock_manager = Redlock::Client.new([ENV[&#39;REDIS_URL&#39;]])</p>
 
-<p>lock<em>manager.lock(&quot;expensive</em>data<em>lock&quot;, 10</em>000) do |locked|<br>
+<p>lock_manager.lock(&quot;expensive_data_lock&quot;, 10_000) do |locked|<br>
   if locked<br>
-    Rails.cache.fetch(&quot;expensive<em>data&quot;, expires</em>in: 1.hour) do<br>
+    Rails.cache.fetch(&quot;expensive_data&quot;, expires_in: 1.hour) do<br>
       ExpensiveCalculation.run<br>
     end<br>
   else<br>
@@ -848,12 +848,12 @@ end<br>
 
 <h1>Good for: approximate data, external APIs, statistics</h1>
 
-<p>Rails.cache.fetch(&quot;stats/daily<em>revenue&quot;, expires</em>in: 15.minutes) do<br>
+<p>Rails.cache.fetch(&quot;stats/daily_revenue&quot;, expires_in: 15.minutes) do<br>
   calculate_revenue<br>
 end<br>
 ```</p>
 
-<p><strong>Event-based (cache<em>key</em>with_version):</strong><br>
+<p><strong>Event-based (cache_key_with_version):</strong><br>
 <code>erb<br>
 &lt;!-- Good for: user-facing content that must be fresh --&gt;<br>
 &lt;% cache post do %&gt;<br>
@@ -909,7 +909,7 @@ end<br>
 <li>Inspect cache contents: <code>Rails.cache.read(key)</code> to see stored value</li>
 <li>Test cache expiration: update record, verify cache key changes</li>
 <li>Monitor stampede: check logs for simultaneous slow queries</li>
-<li>Validate race<em>condition</em>ttl: ensure stale data acceptable for brief window</li>
+<li>Validate race_condition_ttl: ensure stale data acceptable for brief window</li>
 <li>Profile cache hit rate: low rate suggests over-invalidation</li>
 </ol>
 
@@ -996,7 +996,7 @@ Cache HIT: comments/2-20250108120000<br>
 ```</p>
 
 <ol>
-<li>Test race<em>condition</em>ttl prevents stampede (simulate concurrent requests)</li>
+<li>Test race_condition_ttl prevents stampede (simulate concurrent requests)</li>
 </ol>
 
 <h2>Setup Code</h2>
@@ -1038,13 +1038,13 @@ end<br>
 
 <p>Create <code>config/initializers/cache_instrumentation.rb</code>:<br>
 ```ruby<br>
-ActiveSupport::Notifications.subscribe(&quot;cache<em>read.active</em>support&quot;) do |<em>args|<br>
-  event = ActiveSupport::Notifications::Event.new(</em>args)<br>
+ActiveSupport::Notifications.subscribe(&quot;cache_read.active_support&quot;) do |*args|<br>
+  event = ActiveSupport::Notifications::Event.new(*args)<br>
   hit = event.payload[:hit]<br>
   key = event.payload[:key]</p>
 
 <p># Shorten key for readability<br>
-  short<em>key = key.to</em>s.split(&quot;/&quot;).last(2).join(&quot;/&quot;)<br>
+  short_key = key.to_s.split(&quot;/&quot;).last(2).join(&quot;/&quot;)<br>
   Rails.logger.info &quot;CACHE #{hit ? &#39;HIT&#39; : &#39;MISS&#39;}: #{short_key}&quot;<br>
 end<br>
 ```</p>
@@ -1068,13 +1068,13 @@ end<br>
 
 <!-- Outer cache: all posts -->
 
-<p>&lt;% cache [&quot;posts&quot;, &quot;all&quot;, @posts.maximum(:updated<em>at)] do %&gt;<br>
+<p>&lt;% cache [&quot;posts&quot;, &quot;all&quot;, @posts.maximum(:updated_at)] do %&gt;<br>
   <div id="posts"><br>
     &lt;% @posts.each do |post| %&gt;<br>
       &lt;!-- Middle cache: individual post --&gt;<br>
       &lt;% cache post do %&gt;<br>
         <div class="post"><br>
-          <h2>&lt;%= link</em>to post.title, post %&gt;</h2><br>
+          <h2>&lt;%= link_to post.title, post %&gt;</h2><br>
           <p>&lt;%= post.body %&gt;</p></p>
 <div class="highlight"><pre class="highlight plaintext"><code>      &lt;div class="comments"&gt;
         &lt;h3&gt;Comments:&lt;/h3&gt;
@@ -1092,7 +1092,7 @@ end<br>
 <p></div><br>
 &lt;% end %&gt;</p>
 
-<p>&lt;%= link<em>to &quot;New post&quot;, new</em>post_path %&gt;<br>
+<p>&lt;%= link_to &quot;New post&quot;, new_post_path %&gt;<br>
 ```</p>
 
 <p>Edit <code>app/controllers/posts_controller.rb</code>:<br>
@@ -1128,20 +1128,20 @@ end<br>
 <p>Create <code>app/models/statistics.rb</code>:<br>
 ```ruby<br>
 class Statistics<br>
-  def self.total<em>comments<br>
+  def self.total_comments<br>
     # Without prevention: cache stampede on expiration<br>
-    Rails.cache.fetch(&quot;stats/total</em>comments&quot;, expires_in: 1.hour) do<br>
+    Rails.cache.fetch(&quot;stats/total_comments&quot;, expires_in: 1.hour) do<br>
       sleep 2 # Simulate expensive query<br>
       Comment.count<br>
     end<br>
   end</p>
 
-<p>def self.total<em>comments</em>safe<br>
-    # With race<em>condition</em>ttl: serves stale data during regeneration<br>
+<p>def self.total_comments_safe<br>
+    # With race_condition_ttl: serves stale data during regeneration<br>
     Rails.cache.fetch(<br>
-      &quot;stats/total<em>comments</em>safe&quot;,<br>
-      expires<em>in: 1.hour,<br>
-      race</em>condition_ttl: 10.seconds<br>
+      &quot;stats/total_comments_safe&quot;,<br>
+      expires_in: 1.hour,<br>
+      race_condition_ttl: 10.seconds<br>
     ) do<br>
       sleep 2 # Simulate expensive query<br>
       Comment.count<br>
@@ -1166,11 +1166,11 @@ threads.each(&amp;:join)</p>
 
 <h1>Logs show all 10 threads ran the slow query</h1>
 
-<h1>With race<em>condition</em>ttl</h1>
+<h1>With race_condition_ttl</h1>
 
-<p>Rails.cache.delete(&quot;stats/total<em>comments</em>safe&quot;)<br>
+<p>Rails.cache.delete(&quot;stats/total_comments_safe&quot;)<br>
 threads = 10.times.map do<br>
-  Thread.new { Statistics.total<em>comments</em>safe }<br>
+  Thread.new { Statistics.total_comments_safe }<br>
 end<br>
 threads.each(&amp;:join)</p>
 
@@ -1245,13 +1245,13 @@ bin/rails cache:test_efficiency<br>
 <p><code>app/controllers/application_controller.rb</code>:<br>
 ```ruby<br>
 class ApplicationController &lt; ActionController::Base<br>
-  around<em>action :track</em>cache_stats</p>
+  around_action :track_cache_stats</p>
 
 <p>private</p>
 
-<p>def track<em>cache</em>stats<br>
-    @cache<em>hits = 0<br>
-    @cache</em>misses = 0</p>
+<p>def track_cache_stats<br>
+    @cache_hits = 0<br>
+    @cache_misses = 0</p>
 <div class="highlight"><pre class="highlight plaintext"><code>subscriber = ActiveSupport::Notifications.subscribe("cache_read.active_support") do |*args|
   event = ActiveSupport::Notifications::Event.new(*args)
   if event.payload[:hit]

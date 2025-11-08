@@ -913,8 +913,8 @@ payment = Payment.create!(amount: 100, status: &#39;pending&#39;)<br>
 
 <h1>Set environment to trigger failures</h1>
 
-<p>ENV[&#39;SIMULATE<em>FAILURE&#39;] = &#39;true&#39;<br>
-ChargePaymentJob.perform</em>later(payment.id)<br>
+<p>ENV[&#39;SIMULATE_FAILURE&#39;] = &#39;true&#39;<br>
+ChargePaymentJob.perform_later(payment.id)<br>
 ```</p></li>
 <li><p>After 3 retries, check DLQ:<br>
 <code>ruby<br>
@@ -933,10 +933,10 @@ dead_job.item[&#39;error_message&#39;]  # Shows ApiError<br>
 ```ruby<br>
 class CreatePayments &lt; ActiveRecord::Migration[7.0]<br>
   def change<br>
-    create<em>table :payments do |t|<br>
+    create_table :payments do |t|<br>
       t.decimal :amount, precision: 10, scale: 2<br>
       t.string :status<br>
-      t.string :stripe</em>charge_id<br>
+      t.string :stripe_charge_id<br>
       t.timestamps<br>
     end</p>
 <div class="highlight"><pre class="highlight plaintext"><code>add_index :payments, :stripe_charge_id, unique: true
@@ -958,12 +958,12 @@ bin/rails db:migrate<br>
 class ChargePaymentJob &lt; ApplicationJob<br>
   queue_as :payments</p>
 
-<p>retry<em>on StandardError, wait: :exponentially</em>longer, attempts: 3<br>
+<p>retry_on StandardError, wait: :exponentially_longer, attempts: 3<br>
   discard_on ActiveRecord::RecordNotFound</p>
 
-<p>def perform(payment<em>id)<br>
-    payment = Payment.find(payment</em>id)<br>
-    idempotency<em>key = &quot;payment:charge:#{payment.id}:#{payment.updated</em>at.to_i}&quot;</p>
+<p>def perform(payment_id)<br>
+    payment = Payment.find(payment_id)<br>
+    idempotency_key = &quot;payment:charge:#{payment.id}:#{payment.updated_at.to_i}&quot;</p>
 <div class="highlight"><pre class="highlight plaintext"><code># Check if already processed
 if redis.exists?(idempotency_key)
   Rails.logger.info "Payment #{payment.id} already charged (idempotency), skipping"
@@ -993,7 +993,7 @@ Rails.logger.info "Payment #{payment.id} charged successfully: #{charge_id}"
     @redis ||= Redis.new(url: ENV.fetch(&#39;REDIS_URL&#39;, &#39;redis://localhost:6379/1&#39;))<br>
   end</p>
 
-<p>def simulate<em>stripe</em>charge(amount)<br>
+<p>def simulate_stripe_charge(amount)<br>
     sleep 1<br>
     &quot;ch_#{SecureRandom.hex(12)}&quot;  # Fake Stripe charge ID<br>
   end</p>
@@ -1010,8 +1010,8 @@ class PaymentProcessor<br>
   include Sidekiq::Worker<br>
   sidekiq_options retry: 3, queue: :payments</p>
 
-<p>def perform(payment<em>id)<br>
-    payment = Payment.find(payment</em>id)</p>
+<p>def perform(payment_id)<br>
+    payment = Payment.find(payment_id)</p>
 <div class="highlight"><pre class="highlight plaintext"><code>if ENV['SIMULATE_FAILURE'] == 'true'
   raise ApiError, "Temporary API failure"
 end
@@ -1021,7 +1021,7 @@ payment.update!(status: 'completed', stripe_charge_id: charge_id)
 </code></pre></div>
 <p>end</p>
 
-<p>sidekiq<em>retry</em>in do |count, exception|<br>
+<p>sidekiq_retry_in do |count, exception|<br>
     case exception<br>
     when ApiError<br>
       30  # Wait 30 seconds between retries<br>
@@ -1030,9 +1030,9 @@ payment.update!(status: 'completed', stripe_charge_id: charge_id)
     end<br>
   end</p>
 
-<p>sidekiq<em>retries</em>exhausted do |job, exception|<br>
-    payment<em>id = job[&#39;args&#39;].first<br>
-    Rails.logger.error &quot;Payment #{payment</em>id} failed permanently: #{exception.message}&quot;</p>
+<p>sidekiq_retries_exhausted do |job, exception|<br>
+    payment_id = job[&#39;args&#39;].first<br>
+    Rails.logger.error &quot;Payment #{payment_id} failed permanently: #{exception.message}&quot;</p>
 <div class="highlight"><pre class="highlight plaintext"><code># Notify monitoring system
 # Bugsnag.notify(exception, payment_id: payment_id)
 
@@ -1051,8 +1051,8 @@ end<br>
 ```ruby<br>
 namespace :sidekiq do<br>
   desc &quot;Show dead jobs&quot;<br>
-  task dead<em>jobs: :environment do<br>
-    dead</em>set = Sidekiq::DeadSet.new<br>
+  task dead_jobs: :environment do<br>
+    dead_set = Sidekiq::DeadSet.new<br>
     puts &quot;Dead jobs: #{dead_set.size}&quot;</p>
 <div class="highlight"><pre class="highlight plaintext"><code>dead_set.each do |job|
   puts "\n---"
@@ -1065,9 +1065,9 @@ end
 <p>end</p>
 
 <p>desc &quot;Retry all dead jobs&quot;<br>
-  task retry<em>dead: :environment do<br>
+  task retry_dead: :environment do<br>
     count = Sidekiq::DeadSet.new.size<br>
-    Sidekiq::DeadSet.new.retry</em>all<br>
+    Sidekiq::DeadSet.new.retry_all<br>
     puts &quot;Retried #{count} dead jobs&quot;<br>
   end</p>
 
@@ -1091,8 +1091,8 @@ end<br>
 
 <h1>Enqueue twice</h1>
 
-<p>ChargePaymentJob.perform<em>later(payment.id)<br>
-ChargePaymentJob.perform</em>later(payment.id)</p>
+<p>ChargePaymentJob.perform_later(payment.id)<br>
+ChargePaymentJob.perform_later(payment.id)</p>
 
 <h1>Watch Sidekiq logs - second job should skip</h1>
 

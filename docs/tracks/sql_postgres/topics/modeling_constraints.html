@@ -690,15 +690,15 @@ CREATE TABLE orders (<br>
 
 <p><strong>On delete options:</strong><br>
 ```ruby<br>
-t.references :user, foreign<em>key: { on</em>delete: :cascade }</p>
+t.references :user, foreign_key: { on_delete: :cascade }</p>
 
 <h1>Deletes orders when user is deleted</h1>
 
-<p>t.references :user, foreign<em>key: { on</em>delete: :nullify }</p>
+<p>t.references :user, foreign_key: { on_delete: :nullify }</p>
 
 <h1>Sets user_id to NULL when user is deleted</h1>
 
-<p>t.references :user, foreign<em>key: { on</em>delete: :restrict }</p>
+<p>t.references :user, foreign_key: { on_delete: :restrict }</p>
 
 <h1>Prevents deleting user with orders (default)</h1>
 <div class="highlight"><pre class="highlight plaintext"><code>
@@ -723,7 +723,7 @@ CREATE UNIQUE INDEX index_users_on_email ON users (email);<br>
 
 <p><strong>Multi-column (composite unique):</strong><br>
 ```ruby<br>
-add<em>index :enrollments, [:user</em>id, :course_id], unique: true</p>
+add_index :enrollments, [:user_id, :course_id], unique: true</p>
 
 <h1>Ensures user can enroll in each course only once</h1>
 <div class="highlight"><pre class="highlight plaintext"><code>
@@ -812,7 +812,7 @@ change_column_null :users, :email, false<br>
 
 <h1>Step 2: Add constraint</h1>
 
-<p>change<em>column</em>null :users, :email, false<br>
+<p>change_column_null :users, :email, false<br>
 ```</p>
 
 <hr>
@@ -827,10 +827,10 @@ execute &lt;&lt;-SQL<br>
   CREATE EXTENSION IF NOT EXISTS btree_gist;</p>
 
 <p>ALTER TABLE reservations<br>
-  ADD CONSTRAINT no<em>overlap<br>
+  ADD CONSTRAINT no_overlap<br>
   EXCLUDE USING gist (<br>
-    room</em>id WITH =,<br>
-    tsrange(start<em>time, end</em>time) WITH &amp;&amp;<br>
+    room_id WITH =,<br>
+    tsrange(start_time, end_time) WITH &amp;&amp;<br>
   );<br>
 SQL<br>
 ```</p>
@@ -845,7 +845,7 @@ SQL<br>
 ```ruby<br>
 user = User.create(email: existing_email)</p>
 
-<h1>ActiveRecord::RecordNotUnique: PG::UniqueViolation: ERROR:  duplicate key value violates unique constraint &quot;index<em>users</em>on_email&quot;</h1>
+<h1>ActiveRecord::RecordNotUnique: PG::UniqueViolation: ERROR:  duplicate key value violates unique constraint &quot;index_users_on_email&quot;</h1>
 
 <p>begin<br>
   User.create!(email: existing_email)<br>

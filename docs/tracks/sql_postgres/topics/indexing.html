@@ -698,11 +698,11 @@ add_index :posts, [:user_id, :published_at]<br>
 
 <p><strong>Effective queries:</strong><br>
 ```sql<br>
--- Uses index: starts with user<em>id<br>
-SELECT * FROM posts WHERE user</em>id = 5 ORDER BY published_at DESC;</p>
+-- Uses index: starts with user_id<br>
+SELECT * FROM posts WHERE user_id = 5 ORDER BY published_at DESC;</p>
 
-<p>-- Uses index: filters user<em>id, sorts published</em>at<br>
-SELECT * FROM posts WHERE user<em>id = 5 AND published</em>at &gt; &#39;2024-01-01&#39;;<br>
+<p>-- Uses index: filters user_id, sorts published_at<br>
+SELECT * FROM posts WHERE user_id = 5 AND published_at &gt; &#39;2024-01-01&#39;;<br>
 ```</p>
 
 <p><strong>Ineffective queries:</strong><br>
@@ -805,8 +805,8 @@ SELECT name, created_at FROM users WHERE email = &#39;user@example.com&#39;;<br>
 
 <h1>Fast: disable indexes, bulk insert, rebuild</h1>
 
-<p>remove<em>index :users, :email<br>
-User.insert</em>all(records)<br>
+<p>remove_index :users, :email<br>
+User.insert_all(records)<br>
 add_index :users, :email<br>
 ```</p>
 
@@ -845,7 +845,7 @@ add_index :users, :email<br>
 <li>Composite indexes require queries to filter leftmost columns first</li>
 <li>Partial indexes are smaller and faster when filtering specific subsets</li>
 <li>GIN indexes support JSONB and array queries; GiST supports ranges and full-text</li>
-<li>Too many indexes slow writes; verify usage with EXPLAIN ANALYZE and pg<em>stat</em>user_indexes</li>
+<li>Too many indexes slow writes; verify usage with EXPLAIN ANALYZE and pg_stat_user_indexes</li>
 </ul>
 
     
@@ -871,12 +871,12 @@ add_index :users, :email<br>
 
 <h1>Assume this schema</h1>
 
-<p>create<em>table :posts do |t|<br>
+<p>create_table :posts do |t|<br>
   t.references :user, null: false<br>
   t.string :title, null: false<br>
   t.text :body<br>
   t.string :status  # &#39;draft&#39;, &#39;published&#39;, &#39;archived&#39;<br>
-  t.datetime :published</em>at<br>
+  t.datetime :published_at<br>
   t.timestamps<br>
 end<br>
 ```</p>
@@ -886,11 +886,11 @@ end<br>
 
 <h1>Query 1: User&#39;s published posts sorted by date</h1>
 
-<p>Post.where(user<em>id: 5, status: &#39;published&#39;).order(published</em>at: :desc).limit(20)</p>
+<p>Post.where(user_id: 5, status: &#39;published&#39;).order(published_at: :desc).limit(20)</p>
 
 <h1>Query 2: Recently published posts (homepage)</h1>
 
-<p>Post.where(status: &#39;published&#39;).where(&#39;published<em>at &gt; ?&#39;, 1.week.ago).order(published</em>at: :desc)</p>
+<p>Post.where(status: &#39;published&#39;).where(&#39;published_at &gt; ?&#39;, 1.week.ago).order(published_at: :desc)</p>
 
 <h1>Query 3: User&#39;s drafts</h1>
 

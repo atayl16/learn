@@ -679,17 +679,17 @@ JOIN avg_orders ON orders.total &gt; avg_orders.avg_total;<br>
 <p><strong>Rails (raw SQL):</strong><br>
 ```ruby<br>
 sql = &lt;&lt;-SQL<br>
-  WITH avg<em>orders AS (<br>
-    SELECT AVG(total) AS avg</em>total FROM orders<br>
+  WITH avg_orders AS (<br>
+    SELECT AVG(total) AS avg_total FROM orders<br>
   )<br>
   SELECT users.*<br>
   FROM users<br>
-  JOIN orders ON orders.user<em>id = users.id<br>
-  CROSS JOIN avg</em>orders<br>
-  WHERE orders.total &gt; avg<em>orders.avg</em>total<br>
+  JOIN orders ON orders.user_id = users.id<br>
+  CROSS JOIN avg_orders<br>
+  WHERE orders.total &gt; avg_orders.avg_total<br>
 SQL</p>
 
-<p>User.find<em>by</em>sql(sql)<br>
+<p>User.find_by_sql(sql)<br>
 ```</p>
 
 <p><strong>Multiple CTEs:</strong><br>
@@ -725,20 +725,20 @@ end<br>
 
 <p><strong>Recursive query:</strong><br>
 ```sql<br>
-WITH RECURSIVE category<em>tree AS (<br>
+WITH RECURSIVE category_tree AS (<br>
   -- Base case: root categories<br>
-  SELECT id, name, parent</em>id, 1 AS level<br>
+  SELECT id, name, parent_id, 1 AS level<br>
   FROM categories<br>
   WHERE parent_id IS NULL</p>
 
 <p>UNION ALL</p>
 
 <p>-- Recursive case: children<br>
-  SELECT c.id, c.name, c.parent<em>id, ct.level + 1<br>
+  SELECT c.id, c.name, c.parent_id, ct.level + 1<br>
   FROM categories c<br>
-  JOIN category</em>tree ct ON c.parent<em>id = ct.id<br>
+  JOIN category_tree ct ON c.parent_id = ct.id<br>
 )<br>
-SELECT * FROM category</em>tree ORDER BY level, name;<br>
+SELECT * FROM category_tree ORDER BY level, name;<br>
 ```</p>
 
 <hr>
@@ -777,15 +777,15 @@ SELECT * FROM ranked_products WHERE rank &lt;= 3;<br>
 <p><strong>Rails:</strong><br>
 ```ruby<br>
 sql = &lt;&lt;-SQL<br>
-  WITH ranked<em>products AS (<br>
+  WITH ranked_products AS (<br>
     SELECT products.*,<br>
-           ROW</em>NUMBER() OVER (PARTITION BY category<em>id ORDER BY sales DESC) AS rank<br>
+           ROW_NUMBER() OVER (PARTITION BY category_id ORDER BY sales DESC) AS rank<br>
     FROM products<br>
   )<br>
-  SELECT * FROM ranked</em>products WHERE rank &lt;= 3<br>
+  SELECT * FROM ranked_products WHERE rank &lt;= 3<br>
 SQL</p>
 
-<p>Product.find<em>by</em>sql(sql)<br>
+<p>Product.find_by_sql(sql)<br>
 ```</p>
 
 <hr>
@@ -842,12 +842,12 @@ sql = &lt;&lt;-SQL<br>
   SELECT<br>
     date,<br>
     price,<br>
-    LAG(price) OVER (ORDER BY date) AS prev<em>price,<br>
-    price - LAG(price) OVER (ORDER BY date) AS price</em>change<br>
+    LAG(price) OVER (ORDER BY date) AS prev_price,<br>
+    price - LAG(price) OVER (ORDER BY date) AS price_change<br>
   FROM stock_prices<br>
 SQL</p>
 
-<p>StockPrice.find<em>by</em>sql(sql)<br>
+<p>StockPrice.find_by_sql(sql)<br>
 ```</p>
 
 <hr>
@@ -913,21 +913,21 @@ SELECT * FROM users WHERE id IN (SELECT user_id FROM high_value_orders);<br>
 
 <h1>ROW_NUMBER with partition</h1>
 
-<p>window = Arel::Nodes::Window.new.partition(Product.arel<em>table[:category</em>id]).order(Product.arel<em>table[:sales].desc)<br>
-row</em>number = Arel::Nodes::NamedFunction.new(&#39;ROW_NUMBER&#39;, []).over(window)</p>
+<p>window = Arel::Nodes::Window.new.partition(Product.arel_table[:category_id]).order(Product.arel_table[:sales].desc)<br>
+row_number = Arel::Nodes::NamedFunction.new(&#39;ROW_NUMBER&#39;, []).over(window)</p>
 
-<p>Product.select(Product.arel<em>table[Arel.star], row</em>number.as(&#39;rank&#39;))<br>
+<p>Product.select(Product.arel_table[Arel.star], row_number.as(&#39;rank&#39;))<br>
 ```</p>
 
 <p><strong>Raw SQL (simpler):</strong><br>
 ```ruby<br>
 sql = &lt;&lt;-SQL<br>
   SELECT products.*,<br>
-         ROW<em>NUMBER() OVER (PARTITION BY category</em>id ORDER BY sales DESC) AS rank<br>
+         ROW_NUMBER() OVER (PARTITION BY category_id ORDER BY sales DESC) AS rank<br>
   FROM products<br>
 SQL</p>
 
-<p>Product.find<em>by</em>sql(sql)<br>
+<p>Product.find_by_sql(sql)<br>
 ```</p>
 
 <hr>
@@ -953,7 +953,7 @@ SQL</p>
 <li>Replace window functions with GROUP BY if row-level details aren&#39;t needed</li>
 <li>Check for redundant window definitions; reuse WINDOW clause for multiple functions</li>
 <li>Use MATERIALIZED keyword if CTE result is reused multiple times</li>
-<li>Profile query with pg<em>stat</em>statements to identify bottlenecks</li>
+<li>Profile query with pg_stat_statements to identify bottlenecks</li>
 </ol>
 
 <hr>
@@ -963,7 +963,7 @@ SQL</p>
 <ul>
 <li>CTEs (WITH) break complex queries into readable named steps</li>
 <li>Recursive CTEs query hierarchical data like org charts or category trees</li>
-<li>ROW<em>NUMBER assigns unique ranks; RANK/DENSE</em>RANK handle ties differently</li>
+<li>ROW_NUMBER assigns unique ranks; RANK/DENSE_RANK handle ties differently</li>
 <li>LAG/LEAD access previous/next rows for calculating deltas or streaks</li>
 <li>Window functions partition data with PARTITION BY and order with ORDER BY</li>
 </ul>
@@ -997,10 +997,10 @@ SQL</p>
   t.timestamps<br>
 end</p>
 
-<p>create<em>table :products do |t|<br>
+<p>create_table :products do |t|<br>
   t.string :name<br>
   t.string :category<br>
-  t.integer :sales</em>count<br>
+  t.integer :sales_count<br>
   t.decimal :price, precision: 10, scale: 2<br>
   t.timestamps<br>
 end<br>
@@ -1015,7 +1015,7 @@ end<br>
 <h2>Acceptance Criteria</h2>
 
 <ul>
-<li>[ ] Query 1: Use ROW<em>NUMBER with PARTITION BY category and ORDER BY sales</em>count DESC</li>
+<li>[ ] Query 1: Use ROW_NUMBER with PARTITION BY category and ORDER BY sales_count DESC</li>
 <li>[ ] Query 2: Use SUM() OVER with ORDER BY for running total</li>
 <li>[ ] Query 3: Use LAG() to get previous price and calculate difference</li>
 <li>[ ] Query 4: Use a CTE to calculate average order total, then filter users</li>
@@ -1029,7 +1029,7 @@ end<br>
 <li>Insert sample data: 10 categories, 50 products, 100 orders from 20 users</li>
 <li>Run Query 1 and verify exactly 3 products per category (or fewer if category has &lt; 3 products)</li>
 <li>Run Query 2 and manually verify running total matches sum of all previous orders</li>
-<li>Run Query 3 and verify price<em>change = current</em>price - previous_price</li>
+<li>Run Query 3 and verify price_change = current_price - previous_price</li>
 <li>Run Query 4 and verify all returned users have sum(orders.total) &gt; average</li>
 <li>Check query plans: ensure indexes are used where appropriate</li>
 </ol>

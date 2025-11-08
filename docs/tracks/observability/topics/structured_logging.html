@@ -634,7 +634,7 @@
 
 <h2>Why It Matters</h2>
 
-<p>Plain text logs require regex parsing and break when formats change. Structured logs provide queryable fields out of the box, enabling fast searches like &quot;all 500 errors for user<em>id 123&quot; or &quot;requests slower than 1 second on /api/orders.&quot; Adding custom fields (request</em>id, user<em>id, tenant</em>id) connects logs across services for distributed tracing. Production debugging becomes data analysis instead of grep archaeology.</p>
+<p>Plain text logs require regex parsing and break when formats change. Structured logs provide queryable fields out of the box, enabling fast searches like &quot;all 500 errors for user_id 123&quot; or &quot;requests slower than 1 second on /api/orders.&quot; Adding custom fields (request_id, user_id, tenant_id) connects logs across services for distributed tracing. Production debugging becomes data analysis instead of grep archaeology.</p>
 
 <h2>When to Use</h2>
 
@@ -651,7 +651,7 @@
 <ol>
 <li><strong>Logging sensitive data:</strong> Passwords, tokens, and credit card numbers in log params create security risks and compliance violations. Configure lograge to filter these fields explicitly using <code>config.lograge.ignore_custom</code>.</li>
 <li><strong>Overwhelming log volume:</strong> Logging every SQL query or external API call in JSON creates massive storage costs. Use log levels (info vs debug) and sample high-traffic endpoints instead of logging everything.</li>
-<li><strong>Missing request_id correlation:</strong> Without request<em>id, you cannot track a single request through middleware, controllers, jobs, and background tasks. Rails generates request</em>id by default; ensure your log aggregator indexes it.</li>
+<li><strong>Missing request_id correlation:</strong> Without request_id, you cannot track a single request through middleware, controllers, jobs, and background tasks. Rails generates request_id by default; ensure your log aggregator indexes it.</li>
 </ol>
 
 <hr>
@@ -696,7 +696,7 @@ Completed 200 OK in 45ms (Views: 32.1ms | ActiveRecord: 0.5ms)
 
 <h2>Adding Custom Fields</h2>
 
-<p>Enhance logs with user<em>id and tenant</em>id:</p>
+<p>Enhance logs with user_id and tenant_id:</p>
 <div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/environments/production.rb</span>
 <span class="n">config</span><span class="p">.</span><span class="nf">lograge</span><span class="p">.</span><span class="nf">custom_options</span> <span class="o">=</span> <span class="nb">lambda</span> <span class="k">do</span> <span class="o">|</span><span class="n">event</span><span class="o">|</span>
   <span class="n">payload</span> <span class="o">=</span> <span class="n">event</span><span class="p">.</span><span class="nf">payload</span>
@@ -793,7 +793,7 @@ end<br>
 <li>Verify lograge is enabled: <code>Rails.configuration.lograge.enabled</code> returns <code>true</code></li>
 <li>Check formatter: <code>Rails.configuration.lograge.formatter</code> should be <code>Lograge::Formatters::Json</code></li>
 <li>Inspect custom_options: Ensure lambda doesn&#39;t raise exceptions</li>
-<li>Test append<em>info</em>to_payload: Add <code>logger.info</code> to verify it runs</li>
+<li>Test append_info_to_payload: Add <code>logger.info</code> to verify it runs</li>
 <li>Check log destination: <code>STDOUT</code> for containers, <code>log/production.log</code> for VMs</li>
 <li>Verify filtered parameters: <code>Rails.application.config.filter_parameters</code></li>
 <li>Search aggregator for request_id: Confirms logs are shipping correctly</li>
@@ -807,7 +807,7 @@ end<br>
 <ul>
 <li>Structured logs use JSON key-value pairs instead of plain text for queryable fields</li>
 <li>Lograge condenses Rails request logs to single-line JSON with method, path, status, duration</li>
-<li>Add custom fields (user<em>id, request</em>id) via append<em>info</em>to_payload for cross-service correlation</li>
+<li>Add custom fields (user_id, request_id) via append_info_to_payload for cross-service correlation</li>
 <li>Filter sensitive params (password, token) to prevent security leaks</li>
 <li>JSON logs integrate seamlessly with Datadog, CloudWatch, ELK for production debugging</li>
 </ul>
@@ -824,7 +824,7 @@ end<br>
 
 <h2>Objective</h2>
 
-<p>Configure lograge for JSON logging, add custom fields (user<em>id and request</em>id), and filter sensitive parameters from logs.</p>
+<p>Configure lograge for JSON logging, add custom fields (user_id and request_id), and filter sensitive parameters from logs.</p>
 
 <h2>Task</h2>
 
@@ -832,7 +832,7 @@ end<br>
 
 <ol>
 <li>Install and configure lograge with JSON formatting</li>
-<li>Add custom fields: request<em>id, user</em>id, and remote IP</li>
+<li>Add custom fields: request_id, user_id, and remote IP</li>
 <li>Configure parameter filtering for passwords and API tokens</li>
 <li>Make test requests and verify JSON log output</li>
 <li>Confirm sensitive params appear as [FILTERED]</li>
@@ -843,7 +843,7 @@ end<br>
 <ul>
 <li>[ ] Lograge installed and enabled in development/production</li>
 <li>[ ] Logs output as single-line JSON per request</li>
-<li>[ ] JSON includes: method, path, status, duration, request<em>id, user</em>id</li>
+<li>[ ] JSON includes: method, path, status, duration, request_id, user_id</li>
 <li>[ ] Password parameters appear as [FILTERED] in logs</li>
 <li>[ ] Health check endpoint <code>/health</code> skipped from logging</li>
 <li>[ ] Log output readable via <code>tail -f log/development.log</code></li>

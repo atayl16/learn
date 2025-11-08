@@ -729,7 +729,7 @@ User.active.recent.admins
 </code></pre></div>
 <p><strong>Scopes with arguments:</strong><br>
 ```ruby<br>
-scope :created<em>after, -&gt;(date) { where(&quot;created</em>at &gt; ?&quot;, date) }</p>
+scope :created_after, -&gt;(date) { where(&quot;created_at &gt; ?&quot;, date) }</p>
 
 <p>User.created_after(1.month.ago)<br>
 ```</p>
@@ -920,8 +920,8 @@ User.where.not(role: "guest")
 <ol>
 <li><p>Run in console:<br>
 ```ruby<br>
-users = User.active.joins(:posts).where(posts: { published: true, created<em>at: 7.days.ago.. }).distinct<br>
-puts users.to</em>sql</p>
+users = User.active.joins(:posts).where(posts: { published: true, created_at: 7.days.ago.. }).distinct<br>
+puts users.to_sql</p>
 
 <h1>Verify SQL has JOIN and WHERE clauses</h1>
 <div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>

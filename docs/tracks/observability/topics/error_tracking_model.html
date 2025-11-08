@@ -634,7 +634,7 @@
 
 <h2>Why It Matters</h2>
 
-<p>Application logs mix errors with normal requests, making it hard to spot new failures. Error trackers surface critical issues immediately via alerts and group thousands of identical errors into single issues to prevent alert fatigue. Adding context (user<em>id, request</em>id, environment variables) connects errors to specific users or deployments for faster debugging. Release tracking identifies which deploy introduced a regression.</p>
+<p>Application logs mix errors with normal requests, making it hard to spot new failures. Error trackers surface critical issues immediately via alerts and group thousands of identical errors into single issues to prevent alert fatigue. Adding context (user_id, request_id, environment variables) connects errors to specific users or deployments for faster debugging. Release tracking identifies which deploy introduced a regression.</p>
 
 <h2>When to Use</h2>
 
@@ -650,7 +650,7 @@
 
 <ol>
 <li><strong>Tracking too many errors:</strong> Logging validation errors or expected exceptions (404s, authentication failures) creates noise. Use before_send callbacks to filter routine errors and focus on unexpected failures.</li>
-<li><strong>Missing critical context:</strong> Errors without user<em>id, request</em>id, or custom tags are hard to reproduce. Configure context in initializers and controllers to include tenant, feature flags, and experiment variants.</li>
+<li><strong>Missing critical context:</strong> Errors without user_id, request_id, or custom tags are hard to reproduce. Configure context in initializers and controllers to include tenant, feature flags, and experiment variants.</li>
 <li><strong>Alert fatigue:</strong> Sending Slack/email for every error trains teams to ignore alerts. Set thresholds (10 errors in 5 minutes) or alert only on new error types to maintain urgency.</li>
 </ol>
 
@@ -839,7 +839,7 @@ curl https://sentry.io/api/0/organizations/my-org/releases/ <span class="se">\</
 
 <ul>
 <li>Error trackers (Sentry, Rollbar, Honeybadger) capture exceptions with context instead of mixing them into logs</li>
-<li>Add user<em>id, tenant</em>id, and request<em>id via before</em>action for debugging context</li>
+<li>Add user_id, tenant_id, and request_id via before_action for debugging context</li>
 <li>Fingerprinting groups similar errors to prevent duplicate alerts</li>
 <li>Release tracking connects errors to specific deploys via git commit SHA</li>
 <li>Filter routine errors (validations, 404s) with before_send callbacks to prevent alert fatigue</li>
@@ -857,7 +857,7 @@ curl https://sentry.io/api/0/organizations/my-org/releases/ <span class="se">\</
 
 <h2>Objective</h2>
 
-<p>Integrate Sentry for error tracking, add custom context (user<em>id, request</em>id), and configure filtering to reduce noise.</p>
+<p>Integrate Sentry for error tracking, add custom context (user_id, request_id), and configure filtering to reduce noise.</p>
 
 <h2>Task</h2>
 
@@ -875,7 +875,7 @@ curl https://sentry.io/api/0/organizations/my-org/releases/ <span class="se">\</
 
 <ul>
 <li>[ ] Sentry gem installed and initialized with DSN</li>
-<li>[ ] Errors include user<em>id, email, and request</em>id in context</li>
+<li>[ ] Errors include user_id, email, and request_id in context</li>
 <li>[ ] Custom tags added: tenant_id and environment</li>
 <li>[ ] before_send callback filters ActiveRecord::RecordInvalid errors</li>
 <li>[ ] Test exception appears in Sentry with all context fields</li>

@@ -632,7 +632,7 @@
 
 <h2>What It Is</h2>
 
-<p>Job scheduling runs tasks at specific times or intervals using cron-like syntax (sidekiq-cron) or one-time delays (perform<em>in/perform</em>at). Deduplication prevents multiple instances of the same job from queuing or executing simultaneously using sidekiq-unique-jobs. Safe context passing means serializing primitives (IDs, strings, numbers) instead of ActiveRecord objects.</p>
+<p>Job scheduling runs tasks at specific times or intervals using cron-like syntax (sidekiq-cron) or one-time delays (perform_in/perform_at). Deduplication prevents multiple instances of the same job from queuing or executing simultaneously using sidekiq-unique-jobs. Safe context passing means serializing primitives (IDs, strings, numbers) instead of ActiveRecord objects.</p>
 
 <h2>Why It Matters</h2>
 
@@ -922,20 +922,20 @@
 ```ruby<br>
 Sidekiq::Cron::Job.all.each { |job| puts &quot;#{job.name}: #{job.cron}&quot; }</p>
 
-<h1>Should show: cleanup<em>expired</em>trials: 0 3 * * *</h1>
+<h1>Should show: cleanup_expired_trials: 0 3 * * *</h1>
 <div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
 <li><p>Schedule a reminder and verify it&#39;s unique:<br>
 ```ruby<br>
-user = User.create!(email: &#39;<a href="mailto:test@example.com" target="_blank">test@example.com</a>&#39;, trial<em>end</em>date: 5.days.from_now)</p></li>
+user = User.create!(email: &#39;<a href="mailto:test@example.com" target="_blank">test@example.com</a>&#39;, trial_end_date: 5.days.from_now)</p></li>
 </ol>
 
 <h1>Enqueue once</h1>
 
-<p>TrialReminderWorker.perform<em>at(user.trial</em>end_date - 3.days, user.id)</p>
+<p>TrialReminderWorker.perform_at(user.trial_end_date - 3.days, user.id)</p>
 
 <h1>Try to enqueue duplicate</h1>
 
-<p>TrialReminderWorker.perform<em>at(user.trial</em>end_date - 3.days, user.id)</p>
+<p>TrialReminderWorker.perform_at(user.trial_end_date - 3.days, user.id)</p>
 
 <h1>Check scheduled set - should only have 1 job</h1>
 
@@ -965,19 +965,19 @@ bundle install<br>
 require &#39;sidekiq/cron/web&#39;<br>
 require &#39;sidekiq-unique-jobs/web&#39;</p>
 
-<p>Sidekiq.configure<em>server do |config|<br>
-  config.redis = { url: ENV.fetch(&#39;REDIS</em>URL&#39;, &#39;redis://localhost:6379/1&#39;) }</p>
+<p>Sidekiq.configure_server do |config|<br>
+  config.redis = { url: ENV.fetch(&#39;REDIS_URL&#39;, &#39;redis://localhost:6379/1&#39;) }</p>
 
 <p># Load cron schedule<br>
-  schedule<em>file = &#39;config/schedule.yml&#39;<br>
-  if File.exist?(schedule</em>file)<br>
-    schedule = YAML.load<em>file(schedule</em>file)<br>
-    Sidekiq::Cron::Job.load<em>from</em>hash(schedule)<br>
+  schedule_file = &#39;config/schedule.yml&#39;<br>
+  if File.exist?(schedule_file)<br>
+    schedule = YAML.load_file(schedule_file)<br>
+    Sidekiq::Cron::Job.load_from_hash(schedule)<br>
   end<br>
 end</p>
 
-<p>Sidekiq.configure<em>client do |config|<br>
-  config.redis = { url: ENV.fetch(&#39;REDIS</em>URL&#39;, &#39;redis://localhost:6379/1&#39;) }<br>
+<p>Sidekiq.configure_client do |config|<br>
+  config.redis = { url: ENV.fetch(&#39;REDIS_URL&#39;, &#39;redis://localhost:6379/1&#39;) }<br>
 end</p>
 
 <p>SidekiqUniqueJobs.configure do |config|<br>
@@ -989,7 +989,7 @@ end<br>
 
 <p>Create <code>config/schedule.yml</code>:<br>
 ```yaml<br>
-cleanup<em>expired</em>trials:<br>
+cleanup_expired_trials:<br>
   cron: &quot;0 3 * * *&quot;  # Daily at 3 AM UTC<br>
   class: &quot;CleanupExpiredTrialsWorker&quot;<br>
   queue: maintenance<br>
@@ -1009,10 +1009,10 @@ cleanup<em>expired</em>trials:<br>
 ```ruby<br>
 class CreateUsers &lt; ActiveRecord::Migration[7.0]<br>
   def change<br>
-    create<em>table :users do |t|<br>
+    create_table :users do |t|<br>
       t.string :email, null: false<br>
-      t.datetime :trial</em>end<em>date<br>
-      t.boolean :subscription</em>active, default: false<br>
+      t.datetime :trial_end_date<br>
+      t.boolean :subscription_active, default: false<br>
       t.timestamps<br>
     end</p>
 <div class="highlight"><pre class="highlight plaintext"><code>add_index :users, :email, unique: true
@@ -1058,12 +1058,12 @@ end<br>
 ```ruby<br>
 class TrialReminderWorker<br>
   include Sidekiq::Worker<br>
-  sidekiq<em>options queue: :notifications,<br>
-                  lock: :until</em>executed,<br>
+  sidekiq_options queue: :notifications,<br>
+                  lock: :until_executed,<br>
                   on_conflict: :log</p>
 
-<p>def perform(user<em>id)<br>
-    user = User.find(user</em>id)</p>
+<p>def perform(user_id)<br>
+    user = User.find(user_id)</p>
 <div class="highlight"><pre class="highlight plaintext"><code># Skip if already subscribed
 if user.subscription_active
   Rails.logger.info "User #{user_id} already subscribed, skipping reminder"
@@ -1106,12 +1106,12 @@ end<br>
 <p>Add to <code>app/models/user.rb</code>:<br>
 ```ruby<br>
 class User &lt; ApplicationRecord<br>
-  after<em>create :schedule</em>trial_reminder</p>
+  after_create :schedule_trial_reminder</p>
 
 <p>private</p>
 
-<p>def schedule<em>trial</em>reminder<br>
-    return unless trial<em>end</em>date.present?<br>
+<p>def schedule_trial_reminder<br>
+    return unless trial_end_date.present?<br>
     return if subscription_active?</p>
 <div class="highlight"><pre class="highlight plaintext"><code>reminder_time = trial_end_date - 3.days
 
@@ -1179,7 +1179,7 @@ end<br>
 <span class="no">NotificationWorker</span><span class="p">.</span><span class="nf">perform_at</span><span class="p">(</span><span class="n">send_time</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
 </code></pre></div>
 <ol>
-<li>Implement custom uniqueness key (ignore trial<em>end</em>date changes):</li>
+<li>Implement custom uniqueness key (ignore trial_end_date changes):</li>
 </ol>
 <div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">TrialReminderWorker</span>
   <span class="c1"># ...</span>

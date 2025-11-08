@@ -702,7 +702,7 @@
 
 <h1>Log GC stats per request</h1>
 
-<p>Rails.logger.info &quot;GC count: #{GC.stat(:count)}, Live objects: #{GC.stat(:heap<em>live</em>slots)}&quot;<br>
+<p>Rails.logger.info &quot;GC count: #{GC.stat(:count)}, Live objects: #{GC.stat(:heap_live_slots)}&quot;<br>
 ```</p>
 
 <hr>
@@ -762,8 +762,8 @@ Total retained: 12.5 MB (125,000 objects)</p>
 
 <h1>test/performance/memory_test.rb</h1>
 
-<p>require &#39;test<em>helper&#39;<br>
-require &#39;memory</em>profiler&#39;</p>
+<p>require &#39;test_helper&#39;<br>
+require &#39;memory_profiler&#39;</p>
 
 <p>class MemoryTest &lt; ActiveSupport::TestCase<br>
   test &quot;posts index memory usage&quot; do<br>
@@ -813,7 +813,7 @@ end<br>
 
 <h1>GOOD: batches in 1k chunks</h1>
 
-<p>User.find<em>each(batch</em>size: 1000) { |user| process(user) }<br>
+<p>User.find_each(batch_size: 1000) { |user| process(user) }<br>
 ```</p>
 
 <p><strong>2. N+1 allocations:</strong><br>
@@ -883,7 +883,7 @@ bin/rails server
 
 <h1>Run in production console</h1>
 
-<p>before = GC.stat(:heap<em>live</em>slots)<br>
+<p>before = GC.stat(:heap_live_slots)<br>
 GC.start # Force GC</p>
 
 <h1>Perform actions</h1>
@@ -891,7 +891,7 @@ GC.start # Force GC</p>
 <p>100.times { get &#39;/posts&#39; }</p>
 
 <p>GC.start<br>
-after = GC.stat(:heap<em>live</em>slots)</p>
+after = GC.stat(:heap_live_slots)</p>
 
 <p>puts &quot;Leaked objects: #{after - before}&quot;<br>
 ```</p>
@@ -1078,21 +1078,21 @@ bin/rails generate controller Reports index<br>
 class ReportsController &lt; ApplicationController<br>
   def index<br>
     # BEFORE: Memory-intensive implementation<br>
-    report = generate<em>report</em>unoptimized</p>
+    report = generate_report_unoptimized</p>
 <div class="highlight"><pre class="highlight plaintext"><code>render plain: report
 </code></pre></div>
 <p>end</p>
 
 <p>def optimized<br>
     # AFTER: Optimized implementation<br>
-    report = generate<em>report</em>optimized</p>
+    report = generate_report_optimized</p>
 <div class="highlight"><pre class="highlight plaintext"><code>render plain: report
 </code></pre></div>
 <p>end</p>
 
 <p>private</p>
 
-<p>def generate<em>report</em>unoptimized<br>
+<p>def generate_report_unoptimized<br>
     # Problem 1: Loads all records into memory<br>
     users = User.all.to_a</p>
 <div class="highlight"><pre class="highlight plaintext"><code># Problem 2: String concatenation in loop
@@ -1106,7 +1106,7 @@ report
 </code></pre></div>
 <p>end</p>
 
-<p>def generate<em>report</em>optimized<br>
+<p>def generate_report_optimized<br>
     # Solution 1: Batch processing<br>
     report_lines = []</p>
 <div class="highlight"><pre class="highlight plaintext"><code>User.find_each(batch_size: 100) do |user|
@@ -1194,9 +1194,9 @@ bin/rails profile:memory<br>
 
 <h1>Log GC stats on each request</h1>
 
-<p>Rails.application.config.after<em>initialize do<br>
-  ActiveSupport::Notifications.subscribe(&quot;process</em>action.action_controller&quot;) do |<em>args|<br>
-    event = ActiveSupport::Notifications::Event.new(</em>args)</p>
+<p>Rails.application.config.after_initialize do<br>
+  ActiveSupport::Notifications.subscribe(&quot;process_action.action_controller&quot;) do |*args|<br>
+    event = ActiveSupport::Notifications::Event.new(*args)</p>
 <div class="highlight"><pre class="highlight plaintext"><code>gc_stats = {
   count: GC.stat(:count),
   live_slots: GC.stat(:heap_live_slots),
@@ -1326,7 +1326,7 @@ bin/rails benchmark:memory<br>
 ```ruby<br>
 class AddPostsCountToUsers &lt; ActiveRecord::Migration[7.0]<br>
   def change<br>
-    add<em>column :users, :posts</em>count, :integer, default: 0, null: false</p>
+    add_column :users, :posts_count, :integer, default: 0, null: false</p>
 <div class="highlight"><pre class="highlight plaintext"><code># Backfill existing counts
 reversible do |dir|
   dir.up do
@@ -1347,18 +1347,18 @@ end<br>
 <h1>app/models/post.rb</h1>
 
 <p>class Post &lt; ApplicationRecord<br>
-  belongs<em>to :user, counter</em>cache: true<br>
+  belongs_to :user, counter_cache: true<br>
 end<br>
 ```</p>
 
 <p>Update optimized report:<br>
 ```ruby<br>
-def generate<em>report</em>optimized<br>
+def generate_report_optimized<br>
   report_lines = []</p>
 
-<p>User.find<em>each(batch</em>size: 100) do |user|<br>
+<p>User.find_each(batch_size: 100) do |user|<br>
     # Now uses cached count (no query)<br>
-    report<em>lines &lt;&lt; &quot;#{user.name}: #{user.posts</em>count} posts&quot;<br>
+    report_lines &lt;&lt; &quot;#{user.name}: #{user.posts_count} posts&quot;<br>
   end</p>
 
 <p>report_lines.join(&quot;\n&quot;)<br>
@@ -1382,7 +1382,7 @@ RUBY_GC_HEAP_GROWTH_FACTOR=1.2 bin/rails server<br>
 <p>leaked = []<br>
 10.times do<br>
 GC.start<br>
-leaked &lt;&lt; GC.stat(:heap<em>live</em>slots)<br>
+leaked &lt;&lt; GC.stat(:heap_live_slots)<br>
 end<br>
 puts &quot;Leak trend: #{leaked}&quot; # Should be stable, not growing<br>
 ```</p></li>

@@ -160,6 +160,7 @@ class StaticSiteBuilder
     )
     markdown = Redcarpet::Markdown.new(renderer,
       fenced_code_blocks: true,
+      no_intra_emphasis: true,
       autolink: true,
       tables: true,
       strikethrough: true

@@ -735,12 +735,12 @@ config.active_record.default_timezone = :local  # or :utc<br>
 
 <p><code>config/initializers/sidekiq.rb</code>:<br>
 ```ruby<br>
-Sidekiq.configure<em>server do |config|<br>
-  config.redis = { url: ENV[&#39;REDIS</em>URL&#39;], network_timeout: 5 }<br>
+Sidekiq.configure_server do |config|<br>
+  config.redis = { url: ENV[&#39;REDIS_URL&#39;], network_timeout: 5 }<br>
 end</p>
 
-<p>Sidekiq.configure<em>client do |config|<br>
-  config.redis = { url: ENV[&#39;REDIS</em>URL&#39;], network_timeout: 5 }<br>
+<p>Sidekiq.configure_client do |config|<br>
+  config.redis = { url: ENV[&#39;REDIS_URL&#39;], network_timeout: 5 }<br>
 end<br>
 ```</p>
 
@@ -792,13 +792,13 @@ stripe:<br>
 
 <p><strong>Access in code:</strong><br>
 ```ruby<br>
-Rails.application.credentials.aws[:access<em>key</em>id]</p>
+Rails.application.credentials.aws[:access_key_id]</p>
 
 <h1>=&gt; &quot;AKIAIOSFODNN7EXAMPLE&quot;</h1>
 
 <p>Rails.application.credentials.stripe[:secret_key]</p>
 
-<h1>=&gt; &quot;sk<em>test</em>abc123&quot;</h1>
+<h1>=&gt; &quot;sk_test_abc123&quot;</h1>
 <div class="highlight"><pre class="highlight plaintext"><code>
 **Master key:**
 Stored in `config/master.key` (gitignored). On production, set via ENV var:
@@ -943,7 +943,7 @@ end<br>
 <ol>
 <li><p>Run in console:<br>
 ```ruby<br>
-MAX<em>UPLOAD</em>SIZE</p>
+MAX_UPLOAD_SIZE</p>
 
 <h1>=&gt; 10485760 (10 megabytes)</h1>
 <div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
@@ -957,7 +957,7 @@ Rails.cache.class.name</p>
 <div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
 <li><p>Access credential:<br>
 ```ruby<br>
-Rails.application.credentials.sendgrid<em>api</em>key</p>
+Rails.application.credentials.sendgrid_api_key</p>
 
 <h1>=&gt; &quot;SG.abc123...&quot;</h1>
 <div class="highlight"><pre class="highlight plaintext"><code></code></pre></div></li>
@@ -982,11 +982,11 @@ end<br>
 
 <p>Create <code>config/initializers/constants.rb</code>:<br>
 ```ruby<br>
-MAX<em>UPLOAD</em>SIZE = 10.megabytes<br>
-SUPPORT<em>EMAIL = &quot;<a href="mailto:support@example.com" target="_blank">support@example.com</a>&quot;<br>
-ALLOWED</em>FILE_TYPES = %w[jpg png pdf]</p>
+MAX_UPLOAD_SIZE = 10.megabytes<br>
+SUPPORT_EMAIL = &quot;<a href="mailto:support@example.com" target="_blank">support@example.com</a>&quot;<br>
+ALLOWED_FILE_TYPES = %w[jpg png pdf]</p>
 
-<p>Rails.logger.info &quot;Loaded constants: MAX<em>UPLOAD</em>SIZE=#{MAX<em>UPLOAD</em>SIZE}&quot;<br>
+<p>Rails.logger.info &quot;Loaded constants: MAX_UPLOAD_SIZE=#{MAX_UPLOAD_SIZE}&quot;<br>
 ```</p>
 
 <h3>Step 3: Configure Caching by Environment</h3>
@@ -1030,8 +1030,8 @@ aws:<br>
 
 <h1>config/initializers/sendgrid.rb</h1>
 
-<p>if Rails.application.credentials.sendgrid<em>api</em>key<br>
-  SendGrid.api<em>key = Rails.application.credentials.sendgrid</em>api_key<br>
+<p>if Rails.application.credentials.sendgrid_api_key<br>
+  SendGrid.api_key = Rails.application.credentials.sendgrid_api_key<br>
 end<br>
 ```</p>
 
@@ -1061,12 +1061,12 @@ end<br>
 <p>Create <code>app/services/uploader.rb</code>:<br>
 ```ruby<br>
 class Uploader<br>
-  def self.max<em>size<br>
-    MAX</em>UPLOAD_SIZE<br>
+  def self.max_size<br>
+    MAX_UPLOAD_SIZE<br>
   end</p>
 
-<p>def self.allowed<em>types<br>
-    ALLOWED</em>FILE_TYPES<br>
+<p>def self.allowed_types<br>
+    ALLOWED_FILE_TYPES<br>
   end<br>
 end<br>
 ```</p>
@@ -1102,8 +1102,8 @@ REDIS = Redis.new(url: ENV[&#39;REDIS_URL&#39;] || &#39;redis://localhost:6379/0
 
 <h1>Depends on Redis being initialized</h1>
 
-<p>Sidekiq.configure<em>server do |config|<br>
-  config.redis = { url: ENV[&#39;REDIS</em>URL&#39;] }<br>
+<p>Sidekiq.configure_server do |config|<br>
+  config.redis = { url: ENV[&#39;REDIS_URL&#39;] }<br>
 end<br>
 ```</p>
 

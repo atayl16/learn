@@ -818,14 +818,14 @@ StatsD.measure('requests.duration', duration_ms)
 
 <h1>Don&#39;t alert on single errors</h1>
 
-<p>if single<em>request.status == 500<br>
-  page</em>oncall  # TOO NOISY<br>
+<p>if single_request.status == 500<br>
+  page_oncall  # TOO NOISY<br>
 end</p>
 
 <h1>Don&#39;t alert on arbitrary thresholds</h1>
 
-<p>if error<em>rate &gt; 1%  # Why 1%? Is it tied to user impact?<br>
-  page</em>oncall<br>
+<p>if error_rate &gt; 1%  # Why 1%? Is it tied to user impact?<br>
+  page_oncall<br>
 end<br>
 ```</p>
 

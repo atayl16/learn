@@ -677,9 +677,9 @@ end<br>
 
 <p><strong>Custom validations:</strong><br>
 ```ruby<br>
-validate :email<em>domain</em>allowed</p>
+validate :email_domain_allowed</p>
 
-<p>def email<em>domain</em>allowed<br>
+<p>def email_domain_allowed<br>
   return if email.blank?<br>
   domain = email.split(&quot;@&quot;).last<br>
   errors.add(:email, &quot;domain not allowed&quot;) unless %w[example.com mycompany.com].include?(domain)<br>
@@ -963,11 +963,11 @@ bin/rails db:migrate
 ```ruby<br>
 class Product &lt; ApplicationRecord<br>
   validates :name, presence: true<br>
-  validates :price, numericality: { greater<em>than: 0 }<br>
-  validates :sku, uniqueness: true, allow</em>blank: true</p>
+  validates :price, numericality: { greater_than: 0 }<br>
+  validates :sku, uniqueness: true, allow_blank: true</p>
 
-<p>before<em>save :normalize</em>sku<br>
-  after<em>commit :log</em>creation, on: :create</p>
+<p>before_save :normalize_sku<br>
+  after_commit :log_creation, on: :create</p>
 
 <p>private</p>
 
@@ -989,16 +989,16 @@ module Publishable<br>
   extend ActiveSupport::Concern</p>
 
 <p>included do<br>
-    validates :published<em>at, presence: true, if: :published?<br>
-    validate :published</em>at<em>in</em>past, if: :published?</p>
+    validates :published_at, presence: true, if: :published?<br>
+    validate :published_at_in_past, if: :published?</p>
 <div class="highlight"><pre class="highlight plaintext"><code>scope :published, -&gt; { where(published: true) }
 scope :unpublished, -&gt; { where(published: false) }
 </code></pre></div>
 <p>end</p>
 
-<p>def published<em>at</em>in<em>past<br>
-    return if published</em>at.blank?<br>
-    errors.add(:published<em>at, &quot;must be in the past&quot;) if published</em>at &gt; Time.current<br>
+<p>def published_at_in_past<br>
+    return if published_at.blank?<br>
+    errors.add(:published_at, &quot;must be in the past&quot;) if published_at &gt; Time.current<br>
   end</p>
 
 <p>def publish!<br>
@@ -1073,10 +1073,10 @@ validates :contact_email, email: true<br>
 <ol>
 <li>Add a callback that prevents deletion:
 ```ruby
-before<em>destroy :prevent</em>if_published, prepend: true</li>
+before_destroy :prevent_if_published, prepend: true</li>
 </ol>
 
-<p>def prevent<em>if</em>published<br>
+<p>def prevent_if_published<br>
   if published?<br>
     errors.add(:base, &quot;Cannot delete published product&quot;)<br>
     throw(:abort)<br>

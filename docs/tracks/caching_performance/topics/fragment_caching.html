@@ -708,7 +708,7 @@ views/posts/123-20250108120000/a3f2b1c4d5e6f7<br>
 
 <h1>config/environments/development.rb</h1>
 
-<p>config.cache<em>store = :memory</em>store, { size: 64.megabytes }<br>
+<p>config.cache_store = :memory_store, { size: 64.megabytes }<br>
 ```</p>
 
 <p><strong>Redis (production):</strong><br>
@@ -720,7 +720,7 @@ views/posts/123-20250108120000/a3f2b1c4d5e6f7<br>
 
 <h1>config/environments/production.rb</h1>
 
-<p>config.cache<em>store = :redis</em>cache<em>store, { url: ENV[&#39;REDIS</em>URL&#39;], expires_in: 1.day }<br>
+<p>config.cache_store = :redis_cache_store, { url: ENV[&#39;REDIS_URL&#39;], expires_in: 1.day }<br>
 ```</p>
 
 <p><strong>Memcached:</strong><br>
@@ -981,8 +981,8 @@ end<br>
 Rails.application.configure do<br>
   # ... existing config</p>
 
-<p>config.cache<em>store = :redis</em>cache<em>store, {<br>
-    url: ENV.fetch(&quot;REDIS</em>URL&quot;, &quot;redis://localhost:6379/1&quot;),<br>
+<p>config.cache_store = :redis_cache_store, {<br>
+    url: ENV.fetch(&quot;REDIS_URL&quot;, &quot;redis://localhost:6379/1&quot;),<br>
     expires_in: 1.hour<br>
   }<br>
 end<br>
@@ -1024,7 +1024,7 @@ bin/rails console
   <% end %>
 </div>
 
-<p>&lt;%= link<em>to &quot;New post&quot;, new</em>post_path %&gt;<br>
+<p>&lt;%= link_to &quot;New post&quot;, new_post_path %&gt;<br>
 ```</p>
 
 <p>Edit <code>app/views/posts/_post.html.erb</code>:<br>
@@ -1044,15 +1044,15 @@ bin/rails console
 <p>Create <code>app/models/post_statistics.rb</code>:<br>
 ```ruby<br>
 class PostStatistics<br>
-  def self.total<em>comments</em>today<br>
-    Rails.cache.fetch(&quot;stats/comments<em>today/#{Date.today}&quot;, expires</em>in: 15.minutes) do<br>
-      Comment.where(created<em>at: Date.today.all</em>day).count<br>
+  def self.total_comments_today<br>
+    Rails.cache.fetch(&quot;stats/comments_today/#{Date.today}&quot;, expires_in: 15.minutes) do<br>
+      Comment.where(created_at: Date.today.all_day).count<br>
     end<br>
   end</p>
 
-<p>def self.average<em>comments</em>per<em>post<br>
-    Rails.cache.fetch(&quot;stats/avg</em>comments&quot;, expires<em>in: 1.hour) do<br>
-      (Comment.count.to</em>f / Post.count).round(2)<br>
+<p>def self.average_comments_per_post<br>
+    Rails.cache.fetch(&quot;stats/avg_comments&quot;, expires_in: 1.hour) do<br>
+      (Comment.count.to_f / Post.count).round(2)<br>
     end<br>
   end<br>
 end<br>
@@ -1070,8 +1070,8 @@ end<br>
 
 <p>Create <code>config/initializers/cache_instrumentation.rb</code>:<br>
 ```ruby<br>
-ActiveSupport::Notifications.subscribe(&quot;cache<em>read.active</em>support&quot;) do |<em>args|<br>
-  event = ActiveSupport::Notifications::Event.new(</em>args)<br>
+ActiveSupport::Notifications.subscribe(&quot;cache_read.active_support&quot;) do |*args|<br>
+  event = ActiveSupport::Notifications::Event.new(*args)<br>
   hit = event.payload[:hit]<br>
   key = event.payload[:key]</p>
 
@@ -1180,8 +1180,8 @@ bin/rails cache:benchmark<br>
 
 <h1>Track in Redis</h1>
 
-<p>hits = Rails.cache.redis.get(&quot;cache<em>hits&quot;).to</em>i<br>
-misses = Rails.cache.redis.get(&quot;cache<em>misses&quot;).to</em>i<br>
+<p>hits = Rails.cache.redis.get(&quot;cache_hits&quot;).to_i<br>
+misses = Rails.cache.redis.get(&quot;cache_misses&quot;).to_i<br>
 rate = (hits.to_f / (hits + misses) * 100).round(2)<br>
 ```</p></li>
 <li><p>Compare memory vs Redis cache stores by benchmarking 1000 reads.</p></li>

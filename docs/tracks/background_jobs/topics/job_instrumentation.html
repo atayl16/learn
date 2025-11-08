@@ -957,7 +957,7 @@
 <h2>Acceptance Criteria</h2>
 
 <ul>
-<li>[ ] <code>ApiCallWorker</code> logs with structured tags including user<em>id and job</em>id</li>
+<li>[ ] <code>ApiCallWorker</code> logs with structured tags including user_id and job_id</li>
 <li>[ ] Sidekiq middleware tracks metrics (success count, failure count, duration)</li>
 <li>[ ] Custom <code>sidekiq_retry_in</code> implements different backoff for timeout vs rate limit errors</li>
 <li>[ ] <code>sidekiq_retries_exhausted</code> callback logs and increments alert counter</li>
@@ -1007,25 +1007,25 @@ Job duration: ApiCallWorker - 1234ms
 <p>Create <code>lib/metrics.rb</code>:<br>
 ```ruby<br>
 module Metrics<br>
-  def self.increment(metric<em>name, tags: [])<br>
-    tag</em>str = tags.join(&#39; &#39;)<br>
-    Rails.logger.info &quot;Metric: #{metric<em>name} #{tag</em>str}&quot;</p>
+  def self.increment(metric_name, tags: [])<br>
+    tag_str = tags.join(&#39; &#39;)<br>
+    Rails.logger.info &quot;Metric: #{metric_name} #{tag_str}&quot;</p>
 <div class="highlight"><pre class="highlight plaintext"><code># In production, send to actual metrics service:
 # StatsD.increment(metric_name, tags: tags)
 </code></pre></div>
 <p>end</p>
 
-<p>def self.histogram(metric<em>name, value, tags: [])<br>
-    tag</em>str = tags.join(&#39; &#39;)<br>
-    Rails.logger.info &quot;Metric: #{metric<em>name}=#{value} #{tag</em>str}&quot;</p>
+<p>def self.histogram(metric_name, value, tags: [])<br>
+    tag_str = tags.join(&#39; &#39;)<br>
+    Rails.logger.info &quot;Metric: #{metric_name}=#{value} #{tag_str}&quot;</p>
 <div class="highlight"><pre class="highlight plaintext"><code># In production:
 # StatsD.histogram(metric_name, value, tags: tags)
 </code></pre></div>
 <p>end</p>
 
-<p>def self.gauge(metric<em>name, value, tags: [])<br>
-    tag</em>str = tags.join(&#39; &#39;)<br>
-    Rails.logger.info &quot;Metric: #{metric<em>name}=#{value} #{tag</em>str}&quot;</p>
+<p>def self.gauge(metric_name, value, tags: [])<br>
+    tag_str = tags.join(&#39; &#39;)<br>
+    Rails.logger.info &quot;Metric: #{metric_name}=#{value} #{tag_str}&quot;</p>
 <div class="highlight"><pre class="highlight plaintext"><code># In production:
 # StatsD.gauge(metric_name, value, tags: tags)
 </code></pre></div>
@@ -1039,9 +1039,9 @@ end<br>
 ```ruby<br>
 class JobInstrumentationMiddleware<br>
   def call(worker, job, queue)<br>
-    job<em>class = job[&#39;class&#39;]<br>
-    job</em>id = job[&#39;jid&#39;]<br>
-    enqueued<em>at = job[&#39;enqueued</em>at&#39;] || job[&#39;created_at&#39;]</p>
+    job_class = job[&#39;class&#39;]<br>
+    job_id = job[&#39;jid&#39;]<br>
+    enqueued_at = job[&#39;enqueued_at&#39;] || job[&#39;created_at&#39;]</p>
 <div class="highlight"><pre class="highlight plaintext"><code># Measure queue latency
 queue_latency = Time.now.to_f - enqueued_at.to_f
 Metrics.histogram('sidekiq.queue.latency', queue_latency, tags: ["queue:#{queue}"])
@@ -1060,8 +1060,8 @@ Metrics.increment('background_job.success', tags: ["job:#{job_class}"])
 Metrics.histogram('background_job.duration', duration, tags: ["job:#{job_class}"])
 </code></pre></div>
 <p>rescue StandardError =&gt; e<br>
-    duration = (Time.current - start<em>time) * 1000<br>
-    error</em>class = e.class.name</p>
+    duration = (Time.current - start_time) * 1000<br>
+    error_class = e.class.name</p>
 <div class="highlight"><pre class="highlight plaintext"><code>Rails.logger.error "Job failed: #{job_class} [#{job_id}] after #{duration.round(0)}ms - #{error_class}: #{e.message}"
 
 Metrics.increment('background_job.failure', tags: ["job:#{job_class}", "error:#{error_class}"])
@@ -1075,16 +1075,16 @@ end<br>
 
 <p>Configure in <code>config/initializers/sidekiq.rb</code>:<br>
 ```ruby<br>
-Sidekiq.configure<em>server do |config|<br>
-  config.redis = { url: ENV.fetch(&#39;REDIS</em>URL&#39;, &#39;redis://localhost:6379/1&#39;) }</p>
+Sidekiq.configure_server do |config|<br>
+  config.redis = { url: ENV.fetch(&#39;REDIS_URL&#39;, &#39;redis://localhost:6379/1&#39;) }</p>
 
 <p>config.server_middleware do |chain|<br>
     chain.add JobInstrumentationMiddleware<br>
   end<br>
 end</p>
 
-<p>Sidekiq.configure<em>client do |config|<br>
-  config.redis = { url: ENV.fetch(&#39;REDIS</em>URL&#39;, &#39;redis://localhost:6379/1&#39;) }<br>
+<p>Sidekiq.configure_client do |config|<br>
+  config.redis = { url: ENV.fetch(&#39;REDIS_URL&#39;, &#39;redis://localhost:6379/1&#39;) }<br>
 end<br>
 ```</p>
 
@@ -1094,10 +1094,10 @@ end<br>
 ```ruby<br>
 class ApiCallWorker<br>
   include Sidekiq::Worker<br>
-  sidekiq<em>options queue: :api</em>calls, retry: 8</p>
+  sidekiq_options queue: :api_calls, retry: 8</p>
 
-<p>def perform(user<em>id, endpoint)<br>
-    Rails.logger.tagged(&#39;ApiCallWorker&#39;, &quot;user:#{user</em>id}&quot;, &quot;jid:#{jid}&quot;) do<br>
+<p>def perform(user_id, endpoint)<br>
+    Rails.logger.tagged(&#39;ApiCallWorker&#39;, &quot;user:#{user_id}&quot;, &quot;jid:#{jid}&quot;) do<br>
       Rails.logger.info &quot;Starting API call to #{endpoint}&quot;</p>
 <div class="highlight"><pre class="highlight plaintext"><code>  response = make_api_call(endpoint)
 
@@ -1106,7 +1106,7 @@ end
 </code></pre></div>
 <p>end</p>
 
-<p>sidekiq<em>retry</em>in do |count, exception|<br>
+<p>sidekiq_retry_in do |count, exception|<br>
     Rails.logger.warn &quot;Retry attempt #{count} due to #{exception.class.name}&quot;</p>
 <div class="highlight"><pre class="highlight plaintext"><code>case exception
 when Net::ReadTimeout, Net::OpenTimeout, Timeout::Error
@@ -1134,7 +1134,7 @@ end
 </code></pre></div>
 <p>end</p>
 
-<p>sidekiq<em>retries</em>exhausted do |job, exception|<br>
+<p>sidekiq_retries_exhausted do |job, exception|<br>
     user_id = job[&#39;args&#39;].first<br>
     endpoint = job[&#39;args&#39;].last</p>
 <div class="highlight"><pre class="highlight plaintext"><code>Rails.logger.error "ALERT: ApiCallWorker exhausted retries for user #{user_id}, endpoint #{endpoint}"
@@ -1153,7 +1153,7 @@ Metrics.increment('background_job.exhausted', tags: ["job:ApiCallWorker", "error
 
 <p>private</p>
 
-<p>def make<em>api</em>call(endpoint)<br>
+<p>def make_api_call(endpoint)<br>
     # Simulate different error scenarios<br>
     if ENV[&#39;SIMULATE_TIMEOUT&#39;] == &#39;true&#39;<br>
       sleep 2<br>
@@ -1245,7 +1245,7 @@ Rate limit error, retrying in 300s  # 5 minutes<br>
 
 <p>sidekiq_options retry: 2</p>
 
-<p>ENV[&#39;SIMULATE<em>SERVER</em>ERROR&#39;] = &#39;true&#39;<br>
+<p>ENV[&#39;SIMULATE_SERVER_ERROR&#39;] = &#39;true&#39;<br>
 ApiCallWorker.perform_async(user.id, &#39;<a href="https://broken-api.example.com&#x27;" target="_blank">https://broken-api.example.com&#39;</a>)</p>
 
 <h1>Wait for retries to exhaust, check logs</h1>
