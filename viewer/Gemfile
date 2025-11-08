@@ -1,0 +1,10 @@
+source "https://rubygems.org"
+
+ruby ">= 3.0"
+
+gem "sinatra"
+gem "sinatra-contrib"
+gem "puma"
+gem "redcarpet"  # Markdown rendering
+gem "rouge"      # Syntax highlighting
+gem "yaml"

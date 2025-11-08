@@ -1,0 +1,47 @@
+<div style="margin-bottom: 30px;">
+  <div style="font-size: 48px; margin-bottom: 10px;"><%= @track['icon'] %></div>
+  <h1><%= @track['name'] %></h1>
+  <p style="color: #666; font-size: 18px; margin: 10px 0;"><%= @track['description'] %></p>
+  <div style="margin-top: 15px;">
+    <% depth = @track['depth_target'] %>
+    <% if depth.include?('Strong') %>
+      <span class="badge badge-strong">Target: Strong</span>
+    <% elsif depth.include?('Working') %>
+      <span class="badge badge-working">Target: Working</span>
+    <% else %>
+      <span class="badge badge-exposure">Target: Exposure</span>
+    <% end %>
+  </div>
+</div>
+
+<h2 style="margin: 30px 0 20px 0;">Topics (<%= @topics.length %>)</h2>
+
+<div class="track-grid">
+  <% @topics.each do |topic| %>
+    <div class="topic-card">
+      <a href="/tracks/<%= @track['key'] %>/topics/<%= topic['key'] %>">
+        <h3><%= topic['name'] %></h3>
+        <p style="color: #666; font-size: 14px; margin: 10px 0;">
+          <%= topic['objectives']&.first || 'Learn the fundamentals' %>
+        </p>
+        <div style="margin-top: 15px; font-size: 13px;">
+          <div style="margin: 5px 0;">
+            📖 <%= topic['est_minutes_read'] || 10 %> min read
+            &nbsp; | &nbsp;
+            💻 <%= topic['est_minutes_exercise'] || 20 %> min exercise
+          </div>
+          <div style="margin-top: 10px;">
+            <% depth = topic['depth_target'] %>
+            <% if depth == 'Strong' %>
+              <span class="badge badge-strong">Strong</span>
+            <% elsif depth == 'Working' %>
+              <span class="badge badge-working">Working</span>
+            <% else %>
+              <span class="badge badge-exposure">Exposure</span>
+            <% end %>
+          </div>
+        </div>
+      </a>
+    </div>
+  <% end %>
+</div>

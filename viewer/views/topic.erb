@@ -1,0 +1,141 @@
+<nav style="margin-bottom: 20px;">
+  <a href="/tracks/<%= params[:track_key] %>">← <%= @track['name'] %></a>
+</nav>
+
+<div style="margin-bottom: 30px;">
+  <h1><%= @topic_config['name'] %></h1>
+  <div style="margin: 15px 0;">
+    <% depth = @topic_config['depth_target'] %>
+    <% if depth == 'Strong' %>
+      <span class="badge badge-strong">Strong</span>
+    <% elsif depth == 'Working' %>
+      <span class="badge badge-working">Working</span>
+    <% else %>
+      <span class="badge badge-exposure">Exposure</span>
+    <% end %>
+    &nbsp;
+    <span style="color: #666;">
+      📖 <%= @topic_config['est_minutes_read'] %> min read &nbsp; | &nbsp; 💻 <%= @topic_config['est_minutes_exercise'] %> min exercise
+    </span>
+  </div>
+
+  <% if @topic_config['objectives'] %>
+    <div class="content-section" style="background: #f0f7ff;">
+      <h3 style="color: #2196F3; margin-bottom: 10px;">Learning Objectives</h3>
+      <ul style="margin-left: 20px;">
+        <% @topic_config['objectives'].each do |obj| %>
+          <li><%= obj %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-tab="overview-tab">📖 Overview</button>
+  <button class="tab" data-tab="exercise-tab">💻 Exercise</button>
+  <button class="tab" data-tab="checkpoint-tab">✅ Checkpoint</button>
+  <button class="tab" data-tab="references-tab">🔗 References</button>
+</div>
+
+<!-- Overview Tab -->
+<div id="overview-tab" class="tab-content active">
+  <div class="content-section">
+    <% if @content[:overview] %>
+      <%= markdown(@content[:overview]) %>
+    <% else %>
+      <p style="color: #999;">Overview content not available.</p>
+    <% end %>
+  </div>
+</div>
+
+<!-- Exercise Tab -->
+<div id="exercise-tab" class="tab-content">
+  <div class="content-section">
+    <% if @content[:exercise] %>
+      <%= markdown(@content[:exercise]) %>
+    <% else %>
+      <p style="color: #999;">Exercise content not available.</p>
+    <% end %>
+  </div>
+</div>
+
+<!-- Checkpoint Tab -->
+<div id="checkpoint-tab" class="tab-content">
+  <div class="content-section">
+    <% if @content[:checkpoint] %>
+      <% checkpoint = @content[:checkpoint]['checkpoint'] %>
+      <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
+        <p><strong>Passing Score:</strong> <%= checkpoint['passing_score'] %> points</p>
+        <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
+      </div>
+
+      <% checkpoint['questions'].each_with_index do |q, idx| %>
+        <div class="question"
+             data-question-id="<%= idx %>"
+             data-kind="<%= q['kind'] %>"
+             data-points="<%= q['points'] %>"
+             <% if q['kind'] == 'mcq' %>data-correct="<%= q['correct'] %>"<% end %>>
+          <h4>Question <%= idx + 1 %> (<%= q['points'] %> points)</h4>
+          <p style="margin: 10px 0;"><%= q['prompt'] %></p>
+
+          <% if q['kind'] == 'mcq' %>
+            <div class="choices">
+              <% q['choices'].each_with_index do |choice, cidx| %>
+                <div class="choice" onclick="selectChoice(<%= idx %>, <%= cidx %>)">
+                  <%= choice %>
+                </div>
+              <% end %>
+            </div>
+            <% if q['why'] %>
+              <div class="explanation">
+                <strong>Explanation:</strong> <%= q['why'] %>
+              </div>
+            <% end %>
+          <% elsif q['kind'] == 'short' %>
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;"><%= q['sample_answer'] %></p>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <div style="margin-top: 30px; display: flex; gap: 10px;">
+        <button onclick="checkAnswers()" style="padding: 12px 24px; background: #CC0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600;">
+          Check Answers
+        </button>
+        <button onclick="resetQuiz()" style="padding: 12px 24px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+          Reset
+        </button>
+      </div>
+
+      <div class="score-display" data-passing="<%= checkpoint['passing_score'] %>"></div>
+    <% else %>
+      <p style="color: #999;">Checkpoint quiz not available.</p>
+    <% end %>
+  </div>
+</div>
+
+<!-- References Tab -->
+<div id="references-tab" class="tab-content">
+  <div class="content-section">
+    <% if @content[:references] %>
+      <p style="margin-bottom: 20px; color: #666;">
+        Curated sources to deepen your understanding. All references point to official documentation,
+        canonical books, or reputable technical content.
+      </p>
+      <ul class="reference-list">
+        <% @content[:references]['references'].each do |ref| %>
+          <li>
+            <a href="<%= ref['url'] %>" target="_blank"><%= ref['title'] %></a>
+            <div class="why"><%= ref['why'] %></div>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p style="color: #999;">References not available.</p>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,43 @@
+<h1>All Tracks</h1>
+<p style="margin: 20px 0; color: #666;">
+  Choose a track to begin your journey from mid-level to senior Rails developer.
+  Each track contains multiple topics with overviews, exercises, checkpoints, and curated references.
+</p>
+
+<div class="track-grid">
+  <% @tracks.each do |track| %>
+    <div class="track-card">
+      <a href="/tracks/<%= track['key'] %>">
+        <div style="font-size: 32px; margin-bottom: 10px;"><%= track['icon'] %></div>
+        <h3><%= track['name'] %></h3>
+        <p style="color: #666; font-size: 14px; margin: 10px 0;"><%= track['description'] %></p>
+        <div style="margin-top: 15px;">
+          <% depth = track['depth_target'] %>
+          <% if depth.include?('Strong') %>
+            <span class="badge badge-strong">Strong</span>
+          <% elsif depth.include?('Working') %>
+            <span class="badge badge-working">Working</span>
+          <% else %>
+            <span class="badge badge-exposure">Exposure</span>
+          <% end %>
+        </div>
+      </a>
+    </div>
+  <% end %>
+</div>
+
+<div class="content-section" style="margin-top: 40px;">
+  <h2>📊 Coverage Summary</h2>
+  <ul style="line-height: 2;">
+    <li><strong>8 Tracks</strong> covering Rails internals, SQL, jobs, caching, observability, APIs, frontend, and architecture</li>
+    <li><strong>41 Topics</strong> with detailed content (overview + exercise + checkpoint + references)</li>
+    <li><strong>45-75 hours</strong> of estimated learning time</li>
+    <li><strong>Three study routes:</strong> 12-week standard, 6-week fast track, or weekends-only</li>
+  </ul>
+  <p style="margin-top: 20px;">
+    <strong>Depth levels:</strong>
+    <span class="badge badge-exposure">Exposure</span> Can define and recognize &nbsp;
+    <span class="badge badge-working">Working</span> Can implement with notes &nbsp;
+    <span class="badge badge-strong">Strong</span> Can design and debug in production
+  </p>
+</div>

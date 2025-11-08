@@ -13,9 +13,30 @@ This repository contains **YAML metadata** and **Markdown content** organized in
 
 ## Quick Start
 
-### Browse Content Locally
+### Option 1: Web Viewer (Recommended)
 
-**Option 1: Markdown Preview**
+A lightweight Sinatra-based web application for browsing content with a nice UI:
+
+```bash
+cd viewer
+bundle install
+bundle exec ruby app.rb
+
+# Visit http://localhost:4567
+```
+
+**Features:**
+- Browse all tracks and topics with a clean interface
+- Read content in tabbed views (Overview, Exercise, Checkpoint, References)
+- Take checkpoint quizzes with instant client-side scoring
+- Markdown rendering with syntax highlighting
+- No database or authentication required
+
+See **[viewer/README.md](viewer/README.md)** for full documentation.
+
+### Option 2: Browse Content Locally
+
+**Markdown Preview**
 ```bash
 # Open any topic overview in your editor
 open content/rails_internals/request_lifecycle/overview.md
@@ -25,7 +46,7 @@ npm install -g marked
 marked content/rails_internals/request_lifecycle/overview.md
 ```
 
-**Option 2: File Explorer**
+**File Explorer**
 ```bash
 # List all tracks
 ls content/
