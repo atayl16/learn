@@ -79,29 +79,39 @@
       padding: 0 24px;
     }
 
-    /* Header - Professional Design */
+    /* Header - Simplified & Clean */
     header {
       background: linear-gradient(135deg, var(--accent-primary) 0%, #c2255c 100%);
       color: white;
-      padding: 16px 0;
+      padding: 14px 0;
       position: sticky;
       top: 0;
       z-index: 100;
       box-shadow: var(--shadow-md);
-      backdrop-filter: blur(10px);
     }
 
     header .container {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 20px;
+      gap: 16px;
     }
 
     header .brand {
+      flex: 1;
+    }
+
+    header .brand a {
       display: flex;
       align-items: center;
       gap: 12px;
+      text-decoration: none;
+      color: white;
+      transition: var(--transition);
+    }
+
+    header .brand a:hover {
+      opacity: 0.85;
     }
 
     header .brand-icon {
@@ -110,7 +120,7 @@
     }
 
     header h1 {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 700;
       letter-spacing: -0.02em;
       margin: 0;
@@ -123,143 +133,15 @@
       font-weight: 500;
     }
 
-    /* Search - Enhanced Design */
-    .search-container {
-      position: relative;
-      flex: 1;
-      max-width: 500px;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 12px 16px 12px 44px;
-      border: 2px solid rgba(255,255,255,0.2);
-      border-radius: var(--radius-md);
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(10px);
-      color: white;
-      font-size: 15px;
-      outline: none;
-      transition: var(--transition);
-    }
-
-    .search-input::placeholder {
-      color: rgba(255,255,255,0.7);
-    }
-
-    .search-input:focus {
-      background: rgba(255,255,255,0.25);
-      border-color: rgba(255,255,255,0.4);
-      box-shadow: 0 0 0 4px rgba(255,255,255,0.1);
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: rgba(255,255,255,0.8);
-      font-size: 18px;
-      pointer-events: none;
-    }
-
-    .search-results {
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 0;
-      right: 0;
-      background: var(--bg-elevated);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-lg);
-      border: 1px solid var(--border);
-      max-height: 70vh;
-      overflow-y: auto;
-      display: none;
-      z-index: 1000;
-    }
-
-    .search-results.show { display: block; }
-
-    .search-group {
-      padding: 16px;
-      border-bottom: 1px solid var(--border-light);
-    }
-
-    .search-group:last-child { border-bottom: none; }
-
-    .search-group-title {
-      font-size: 11px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .search-result-item {
-      padding: 12px 14px;
-      margin: 2px 0;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: var(--transition);
-      color: var(--text-primary);
-      text-decoration: none;
-      display: block;
-    }
-
-    .search-result-item:hover {
-      background: var(--bg-tertiary);
-      transform: translateX(4px);
-    }
-
-    .search-result-title {
-      font-weight: 600;
-      margin-bottom: 4px;
-      font-size: 15px;
-    }
-
-    .search-result-meta {
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    .search-no-results {
-      padding: 40px;
-      text-align: center;
-      color: var(--text-muted);
-    }
-
-    .search-clear {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgba(255,255,255,0.2);
-      border: none;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-      padding: 6px 10px;
-      border-radius: var(--radius-sm);
-      display: none;
-      transition: var(--transition);
-    }
-
-    .search-clear.show { display: block; }
-    .search-clear:hover { background: rgba(255,255,255,0.3); }
-
-    /* Dark Mode Toggle - Enhanced */
+    /* Dark Mode Toggle - Compact */
     .dark-mode-toggle {
       background: rgba(255,255,255,0.15);
       border: 2px solid rgba(255,255,255,0.2);
       color: white;
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: var(--radius-md);
       cursor: pointer;
-      font-size: 18px;
+      font-size: 20px;
       transition: var(--transition);
       flex-shrink: 0;
       backdrop-filter: blur(10px);
@@ -706,49 +588,33 @@
       transform: translateX(4px);
     }
 
-    /* Responsive Design - Mobile First */
+    /* Responsive Design - Mobile Optimized */
     @media (max-width: 768px) {
       .container { padding: 0 16px; }
 
       header {
         padding: 10px 0;
-        margin-bottom: 12px;
+      }
+
+      header .container {
+        gap: 12px;
+      }
+
+      header .brand-icon {
+        font-size: 24px;
       }
 
       header h1 {
-        font-size: 18px;
-        font-weight: 700;
+        font-size: 16px;
       }
 
       header p {
         font-size: 11px;
       }
 
-      header .container {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-        padding: 12px 16px;
-      }
-
-      header .brand {
-        justify-content: space-between;
-      }
-
-      .search-container {
-        margin: 0;
-        max-width: 100%;
-        order: 2;
-      }
-
-      .search-input {
-        padding: 10px 14px 10px 40px;
-        font-size: 14px;
-      }
-
       .dark-mode-toggle {
-        padding: 8px 12px;
-        font-size: 16px;
+        padding: 6px 10px;
+        font-size: 18px;
       }
 
       nav {
@@ -810,7 +676,7 @@
 
     /* Print Styles */
     @media print {
-      header, nav, .dark-mode-toggle, .search-container {
+      header, nav, .dark-mode-toggle {
         display: none;
       }
 
@@ -830,23 +696,13 @@
   <header>
     <div class="container">
       <div class="brand">
-        <span class="brand-icon">💎</span>
-        <div>
-          <h1>Rails Seniority Coach</h1>
-          <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
-        </div>
-      </div>
-      <div class="search-container">
-        <span class="search-icon">🔍</span>
-        <input
-          type="text"
-          class="search-input"
-          id="search-input"
-          placeholder="Search topics..."
-          autocomplete="off"
-        />
-        <button class="search-clear" id="search-clear" aria-label="Clear search">×</button>
-        <div class="search-results" id="search-results"></div>
+        <a href="<%= @base_path %>index.html">
+          <span class="brand-icon">💎</span>
+          <div>
+            <h1>Rails Seniority Coach</h1>
+            <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
+          </div>
+        </a>
       </div>
       <button class="dark-mode-toggle" id="dark-mode-toggle" aria-label="Toggle dark mode">
         <span class="light-icon">☀️</span>
@@ -875,82 +731,6 @@
       localStorage.setItem('theme', isDark ? 'dark' : 'light');
       document.querySelector('.light-icon').style.display = isDark ? 'none' : 'inline';
       document.querySelector('.dark-icon').style.display = isDark ? 'inline' : 'none';
-    });
-
-    // Search functionality with debounce
-    const searchInput = document.getElementById('search-input');
-    const searchResults = document.getElementById('search-results');
-    const searchClear = document.getElementById('search-clear');
-
-    let searchTimeout;
-    let searchIndex = <%= @search_index.to_json %>;
-
-    searchInput.addEventListener('input', (e) => {
-      clearTimeout(searchTimeout);
-      const query = e.target.value.trim();
-
-      if (query.length > 0) {
-        searchClear.classList.add('show');
-        searchTimeout = setTimeout(() => performSearch(query), 200);
-      } else {
-        searchClear.classList.remove('show');
-        searchResults.classList.remove('show');
-      }
-    });
-
-    searchClear.addEventListener('click', () => {
-      searchInput.value = '';
-      searchClear.classList.remove('show');
-      searchResults.classList.remove('show');
-      searchInput.focus();
-    });
-
-    function performSearch(query) {
-      const results = searchIndex.filter(item =>
-        item.title.toLowerCase().includes(query.toLowerCase()) ||
-        item.track.toLowerCase().includes(query.toLowerCase())
-      );
-
-      displaySearchResults(results);
-    }
-
-    function displaySearchResults(results) {
-      if (results.length === 0) {
-        searchResults.innerHTML = '<div class="search-no-results">No topics found</div>';
-        searchResults.classList.add('show');
-        return;
-      }
-
-      const grouped = results.reduce((acc, item) => {
-        if (!acc[item.track]) acc[item.track] = [];
-        acc[item.track].push(item);
-        return acc;
-      }, {});
-
-      let html = '';
-      for (const [track, items] of Object.entries(grouped)) {
-        html += `
-          <div class="search-group">
-            <div class="search-group-title">${track}</div>
-            ${items.map(item => `
-              <a href="${item.url}" class="search-result-item">
-                <div class="search-result-title">${item.title}</div>
-                <div class="search-result-meta">${track}</div>
-              </a>
-            `).join('')}
-          </div>
-        `;
-      }
-
-      searchResults.innerHTML = html;
-      searchResults.classList.add('show');
-    }
-
-    // Close search on click outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.search-container')) {
-        searchResults.classList.remove('show');
-      }
     });
 
     // Progress tracking with localStorage

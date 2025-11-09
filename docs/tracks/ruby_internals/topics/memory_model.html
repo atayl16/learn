@@ -79,29 +79,39 @@
       padding: 0 24px;
     }
 
-    /* Header - Professional Design */
+    /* Header - Simplified & Clean */
     header {
       background: linear-gradient(135deg, var(--accent-primary) 0%, #c2255c 100%);
       color: white;
-      padding: 16px 0;
+      padding: 14px 0;
       position: sticky;
       top: 0;
       z-index: 100;
       box-shadow: var(--shadow-md);
-      backdrop-filter: blur(10px);
     }
 
     header .container {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 20px;
+      gap: 16px;
     }
 
     header .brand {
+      flex: 1;
+    }
+
+    header .brand a {
       display: flex;
       align-items: center;
       gap: 12px;
+      text-decoration: none;
+      color: white;
+      transition: var(--transition);
+    }
+
+    header .brand a:hover {
+      opacity: 0.85;
     }
 
     header .brand-icon {
@@ -110,7 +120,7 @@
     }
 
     header h1 {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 700;
       letter-spacing: -0.02em;
       margin: 0;
@@ -123,143 +133,15 @@
       font-weight: 500;
     }
 
-    /* Search - Enhanced Design */
-    .search-container {
-      position: relative;
-      flex: 1;
-      max-width: 500px;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 12px 16px 12px 44px;
-      border: 2px solid rgba(255,255,255,0.2);
-      border-radius: var(--radius-md);
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(10px);
-      color: white;
-      font-size: 15px;
-      outline: none;
-      transition: var(--transition);
-    }
-
-    .search-input::placeholder {
-      color: rgba(255,255,255,0.7);
-    }
-
-    .search-input:focus {
-      background: rgba(255,255,255,0.25);
-      border-color: rgba(255,255,255,0.4);
-      box-shadow: 0 0 0 4px rgba(255,255,255,0.1);
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: rgba(255,255,255,0.8);
-      font-size: 18px;
-      pointer-events: none;
-    }
-
-    .search-results {
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 0;
-      right: 0;
-      background: var(--bg-elevated);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-lg);
-      border: 1px solid var(--border);
-      max-height: 70vh;
-      overflow-y: auto;
-      display: none;
-      z-index: 1000;
-    }
-
-    .search-results.show { display: block; }
-
-    .search-group {
-      padding: 16px;
-      border-bottom: 1px solid var(--border-light);
-    }
-
-    .search-group:last-child { border-bottom: none; }
-
-    .search-group-title {
-      font-size: 11px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .search-result-item {
-      padding: 12px 14px;
-      margin: 2px 0;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: var(--transition);
-      color: var(--text-primary);
-      text-decoration: none;
-      display: block;
-    }
-
-    .search-result-item:hover {
-      background: var(--bg-tertiary);
-      transform: translateX(4px);
-    }
-
-    .search-result-title {
-      font-weight: 600;
-      margin-bottom: 4px;
-      font-size: 15px;
-    }
-
-    .search-result-meta {
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    .search-no-results {
-      padding: 40px;
-      text-align: center;
-      color: var(--text-muted);
-    }
-
-    .search-clear {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgba(255,255,255,0.2);
-      border: none;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-      padding: 6px 10px;
-      border-radius: var(--radius-sm);
-      display: none;
-      transition: var(--transition);
-    }
-
-    .search-clear.show { display: block; }
-    .search-clear:hover { background: rgba(255,255,255,0.3); }
-
-    /* Dark Mode Toggle - Enhanced */
+    /* Dark Mode Toggle - Compact */
     .dark-mode-toggle {
       background: rgba(255,255,255,0.15);
       border: 2px solid rgba(255,255,255,0.2);
       color: white;
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: var(--radius-md);
       cursor: pointer;
-      font-size: 18px;
+      font-size: 20px;
       transition: var(--transition);
       flex-shrink: 0;
       backdrop-filter: blur(10px);
@@ -706,49 +588,33 @@
       transform: translateX(4px);
     }
 
-    /* Responsive Design - Mobile First */
+    /* Responsive Design - Mobile Optimized */
     @media (max-width: 768px) {
       .container { padding: 0 16px; }
 
       header {
         padding: 10px 0;
-        margin-bottom: 12px;
+      }
+
+      header .container {
+        gap: 12px;
+      }
+
+      header .brand-icon {
+        font-size: 24px;
       }
 
       header h1 {
-        font-size: 18px;
-        font-weight: 700;
+        font-size: 16px;
       }
 
       header p {
         font-size: 11px;
       }
 
-      header .container {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-        padding: 12px 16px;
-      }
-
-      header .brand {
-        justify-content: space-between;
-      }
-
-      .search-container {
-        margin: 0;
-        max-width: 100%;
-        order: 2;
-      }
-
-      .search-input {
-        padding: 10px 14px 10px 40px;
-        font-size: 14px;
-      }
-
       .dark-mode-toggle {
-        padding: 8px 12px;
-        font-size: 16px;
+        padding: 6px 10px;
+        font-size: 18px;
       }
 
       nav {
@@ -810,7 +676,7 @@
 
     /* Print Styles */
     @media print {
-      header, nav, .dark-mode-toggle, .search-container {
+      header, nav, .dark-mode-toggle {
         display: none;
       }
 
@@ -830,23 +696,13 @@
   <header>
     <div class="container">
       <div class="brand">
-        <span class="brand-icon">💎</span>
-        <div>
-          <h1>Rails Seniority Coach</h1>
-          <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
-        </div>
-      </div>
-      <div class="search-container">
-        <span class="search-icon">🔍</span>
-        <input
-          type="text"
-          class="search-input"
-          id="search-input"
-          placeholder="Search topics..."
-          autocomplete="off"
-        />
-        <button class="search-clear" id="search-clear" aria-label="Clear search">×</button>
-        <div class="search-results" id="search-results"></div>
+        <a href="../../../index.html">
+          <span class="brand-icon">💎</span>
+          <div>
+            <h1>Rails Seniority Coach</h1>
+            <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
+          </div>
+        </a>
       </div>
       <button class="dark-mode-toggle" id="dark-mode-toggle" aria-label="Toggle dark mode">
         <span class="light-icon">☀️</span>
@@ -1978,82 +1834,6 @@ bin/rails db:migrate
       localStorage.setItem('theme', isDark ? 'dark' : 'light');
       document.querySelector('.light-icon').style.display = isDark ? 'none' : 'inline';
       document.querySelector('.dark-icon').style.display = isDark ? 'inline' : 'none';
-    });
-
-    // Search functionality with debounce
-    const searchInput = document.getElementById('search-input');
-    const searchResults = document.getElementById('search-results');
-    const searchClear = document.getElementById('search-clear');
-
-    let searchTimeout;
-    let searchIndex = [{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"ar_relations","topic_name":"Active Record Relations & Query Interface","depth_target":"Strong","objectives":"Compose complex queries using relations and scopes Explain lazy loading and when queries execute Chain methods without triggering N+1 queries","url":"tracks/rails_internals/topics/ar_relations.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"config_initializers","topic_name":"Configuration & Initializers","depth_target":"Strong","objectives":"Configure Rails apps using environment-specific settings Write initializers that load in correct order Manage secrets and credentials securely","url":"tracks/rails_internals/topics/config_initializers.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"request_lifecycle","topic_name":"Request Lifecycle & Middleware","depth_target":"Strong","objectives":"Trace a Rails request from Rack through middleware to controller Identify where params are parsed and filters applied Profile a request and explain the hottest frames","url":"tracks/rails_internals/topics/request_lifecycle.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"routing_middleware","topic_name":"Routing & Middleware Patterns","depth_target":"Strong","objectives":"Design RESTful routes with constraints and namespaces Write custom middleware for cross-cutting concerns Debug routing issues using rails routes and route helpers","url":"tracks/rails_internals/topics/routing_middleware.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"validations_callbacks","topic_name":"Validations, Callbacks & Concerns","depth_target":"Strong","objectives":"Write custom validations and understand when they run Identify callback dangers and when to avoid them Extract shared logic using concerns","url":"tracks/rails_internals/topics/validations_callbacks.html"},{"track_key":"rails_internals","track_name":"Ruby & Rails Core","track_icon":"💎","topic_key":"autoloading_boot","topic_name":"Zeitwerk/Autoloading & Boot Sequence","depth_target":"Strong","objectives":"Explain how Zeitwerk maps file paths to constants Debug \"uninitialized constant\" and circular dependency errors Optimize boot time by controlling eager loading","url":"tracks/rails_internals/topics/autoloading_boot.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"ctes_windows","topic_name":"CTEs and Window Functions","depth_target":"Strong","objectives":"Write Common Table Expressions (WITH) to simplify complex queries Use window functions (ROW_NUMBER, RANK, LAG, LEAD) for analytics Decide when to use CTEs vs subqueries for readability and performance","url":"tracks/sql_postgres/topics/ctes_windows.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"indexing","topic_name":"Database Indexing (B-tree, Partial, Composite)","depth_target":"Strong","objectives":"Choose appropriate index types (B-tree, partial, composite, GIN/GiST) for query patterns Identify when indexes improve or harm performance Use EXPLAIN to verify index usage and measure query costs","url":"tracks/sql_postgres/topics/indexing.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"modeling_constraints","topic_name":"Modeling & Constraints (FKs, Uniques, Check)","depth_target":"Strong","objectives":"Design schemas with foreign keys, unique constraints, and check constraints Write migrations that enforce data integrity at the database level Debug constraint violations and fix schema issues","url":"tracks/sql_postgres/topics/modeling_constraints.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"explain_analyze","topic_name":"Reading Query Plans (EXPLAIN ANALYZE)","depth_target":"Strong","objectives":"Read EXPLAIN ANALYZE output to identify sequential scans, index scans, and nested loops Identify query bottlenecks (costly sorts, large row estimates, missing indexes) Use pg_stat_statements to find slowest queries in production","url":"tracks/sql_postgres/topics/explain_analyze.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"transactions_locks","topic_name":"Transactions, Isolation, and Locks","depth_target":"Strong","objectives":"Explain ACID properties and how Postgres enforces them Choose appropriate isolation levels for concurrent operations Debug deadlocks and lock contention using pg_locks and pg_stat_activity","url":"tracks/sql_postgres/topics/transactions_locks.html"},{"track_key":"sql_postgres","track_name":"SQL & PostgreSQL","track_icon":"🐘","topic_key":"zero_downtime_migrations","topic_name":"Zero-Downtime Migrations","depth_target":"Strong","objectives":"Write migrations that don't lock tables or cause downtime Add columns with defaults, indexes, and constraints safely Backfill data in batches to avoid long-running transactions","url":"tracks/sql_postgres/topics/zero_downtime_migrations.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"sidekiq_basics","topic_name":"ActiveJob vs Sidekiq Fundamentals","depth_target":"Strong","objectives":"Compare ActiveJob abstraction with direct Sidekiq usage Configure Redis connection and worker concurrency Route jobs to specific queues and set priorities","url":"tracks/background_jobs/topics/sidekiq_basics.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"idempotency_retries","topic_name":"Idempotency Patterns & Retries","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate job effects Configure retry strategies with exponential backoff Handle dead jobs in the dead letter queue","url":"tracks/background_jobs/topics/idempotency_retries.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"job_instrumentation","topic_name":"Job Instrumentation & Backoff","depth_target":"Strong","objectives":"Log job execution with structured context Track success/failure metrics for monitoring Implement custom exponential backoff strategies Use Sidekiq lifecycle hooks for instrumentation","url":"tracks/background_jobs/topics/job_instrumentation.html"},{"track_key":"background_jobs","track_name":"Background Jobs & Redis","track_icon":"⚙️","topic_key":"scheduling","topic_name":"Job Scheduling & Deduplication","depth_target":"Strong","objectives":"Schedule recurring jobs with cron syntax using sidekiq-cron Prevent duplicate jobs with sidekiq-unique-jobs Use at/in syntax for delayed one-time jobs Pass job context safely without ActiveRecord objects","url":"tracks/background_jobs/topics/scheduling.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"cache_keys_invalidations","topic_name":"Cache Keys & Invalidation Strategies","depth_target":"Strong","objectives":"Design cache keys that auto-expire on record changes Implement Russian-doll caching pattern Prevent cache stampede with locks Choose between manual and automatic invalidation","url":"tracks/caching_performance/topics/cache_keys_invalidations.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"eager_preload","topic_name":"Eager Loading vs Preloading Strategies","depth_target":"Strong","objectives":"Distinguish between includes, preload, eager_load, and joins Choose the correct loading strategy based on query needs Optimize nested associations without over-fetching","url":"tracks/caching_performance/topics/eager_preload.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"fragment_caching","topic_name":"Fragment & Low-Level Caching","depth_target":"Strong","objectives":"Implement view fragment caching with cache keys Use low-level caching for expensive computations Configure cache stores (memory, Redis, Memcached) Measure cache hit rates and performance gains","url":"tracks/caching_performance/topics/fragment_caching.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"memory_gc_basics","topic_name":"Memory & Garbage Collection Awareness","depth_target":"Strong","objectives":"Track Ruby object allocation and memory usage Read and interpret GC statistics Identify memory bloat and leaks Use memory_profiler gem to profile endpoints","url":"tracks/caching_performance/topics/memory_gc_basics.html"},{"track_key":"caching_performance","track_name":"Caching & Performance","track_icon":"⚡","topic_key":"n_plus_one","topic_name":"N+1 Query Detection & Resolution","depth_target":"Strong","objectives":"Identify N+1 query patterns in logs and using Bullet gem Choose between includes, preload, eager_load, and joins Measure query count before and after optimization","url":"tracks/caching_performance/topics/n_plus_one.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"apm_traces","topic_name":"APM Basics and Flamegraphs","depth_target":"Working","objectives":"Read APM flamegraphs to identify slow segments Use APM to detect N+1 queries and slow database calls Set up rack-mini-profiler for local performance analysis","url":"tracks/observability/topics/apm_traces.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"error_tracking_model","topic_name":"Error Tracking Mental Model","depth_target":"Working","objectives":"Integrate an error tracking service (Sentry, Rollbar, or Honeybadger) Add context to errors (user info, request params, custom tags) Understand error grouping and fingerprinting","url":"tracks/observability/topics/error_tracking_model.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"metrics_slos","topic_name":"Metrics and SLO Thinking","depth_target":"Working","objectives":"Understand RED metrics (Rate, Errors, Duration) for web services Distinguish between SLI, SLO, and SLA Set realistic SLO targets (99% vs 99.9% trade-offs)","url":"tracks/observability/topics/metrics_slos.html"},{"track_key":"observability","track_name":"Observability","track_icon":"🔍","topic_key":"structured_logging","topic_name":"Structured Logging with Lograge","depth_target":"Strong","objectives":"Configure lograge for JSON logging in production Add custom fields like request_id and user_id to log entries Filter sensitive data from logs (passwords, tokens)","url":"tracks/observability/topics/structured_logging.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"error_shapes","topic_name":"API Error Shapes & Standards","depth_target":"Strong","objectives":"Design consistent error response structures across API endpoints Choose appropriate HTTP status codes for different error types Distinguish user-facing from developer-facing error messages","url":"tracks/api_security/topics/error_shapes.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"versioning","topic_name":"API Versioning Strategies","depth_target":"Strong","objectives":"Compare header-based vs path-based API versioning Implement deprecation warnings with Sunset headers Maintain backward compatibility across API versions","url":"tracks/api_security/topics/versioning.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"authn_authz","topic_name":"Authentication & Authorization with Pundit","depth_target":"Strong","objectives":"Implement token-based authentication for API endpoints Define authorization policies using Pundit Test authorization logic in controllers and request specs","url":"tracks/api_security/topics/authn_authz.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"csrf_cors","topic_name":"CSRF, CORS & Input Validation","depth_target":"Strong","objectives":"Configure CORS headers for cross-origin API requests Implement CSRF protection for session-based APIs Validate and sanitize inputs to prevent injection attacks","url":"tracks/api_security/topics/csrf_cors.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"idempotency_rate_limits","topic_name":"Idempotency Keys & Rate Limiting","depth_target":"Strong","objectives":"Implement idempotency keys to prevent duplicate operations Configure rate limiting using rack-attack and Redis Return appropriate headers (Retry-After, X-RateLimit)","url":"tracks/api_security/topics/idempotency_rate_limits.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"pagination_filtering","topic_name":"Pagination, Filtering & Sorting","depth_target":"Strong","objectives":"Implement cursor and offset pagination with performance trade-offs Add filtering and sorting via query parameters Return pagination metadata for client navigation","url":"tracks/api_security/topics/pagination_filtering.html"},{"track_key":"api_security","track_name":"API Design & Security","track_icon":"🔐","topic_key":"rest_design","topic_name":"REST Design Patterns","depth_target":"Strong","objectives":"Design RESTful routes using resources and verbs correctly Choose appropriate HTTP status codes for API responses Structure JSON responses with consistent conventions","url":"tracks/api_security/topics/rest_design.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"forms_progressive","topic_name":"Forms & progressive enhancement","depth_target":"strong","objectives":"","url":"tracks/frontend_integration/topics/forms_progressive.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"hotwire_frames_streams","topic_name":"Hotwire: Frames & Streams","depth_target":"strong","objectives":"","url":"tracks/frontend_integration/topics/hotwire_frames_streams.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"react_working_fundamentals","topic_name":"React: Working fundamentals","depth_target":"working","objectives":"","url":"tracks/frontend_integration/topics/react_working_fundamentals.html"},{"track_key":"frontend_integration","track_name":"Frontend Integration","track_icon":"🎨","topic_key":"stimulus_patterns","topic_name":"Stimulus patterns & best practices","depth_target":"strong","objectives":"","url":"tracks/frontend_integration/topics/stimulus_patterns.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"adrs","topic_name":"ADRs & Lightweight Documentation","depth_target":"Strong","objectives":"Write Architecture Decision Records for major changes Store ADRs in version control alongside code Use MADR template for consistency","url":"tracks/architecture_design/topics/adrs.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"feature_flags_rollouts","topic_name":"Feature Flags & Safe Rollouts","depth_target":"Strong","objectives":"Implement feature flags with Flipper or Unleash Design rollout strategies by percentage or user segment Monitor flagged features and clean up old flags","url":"tracks/architecture_design/topics/feature_flags_rollouts.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"layering_services","topic_name":"Layering & Service Objects","depth_target":"Strong","objectives":"Extract complex logic from models into service objects Choose between service, form, and policy objects Apply presenters and decorators for view logic","url":"tracks/architecture_design/topics/layering_services.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"testing_strategy","topic_name":"Testing Strategy (Unit/Request/System)","depth_target":"Strong","objectives":"Balance unit, request, and system tests using the test pyramid Use factories and fixtures appropriately Stub HTTP calls with VCR and WebMock","url":"tracks/architecture_design/topics/testing_strategy.html"},{"track_key":"architecture_design","track_name":"Architecture & Design","track_icon":"🏛️","topic_key":"microservices_when_not","topic_name":"When NOT to Microservice","depth_target":"Working","objectives":"Recognize when monoliths outperform microservices Understand modular monolith as an alternative Identify signs that microservices add complexity without benefit","url":"tracks/architecture_design/topics/microservices_when_not.html"},{"track_key":"deployment_infrastructure","track_name":"Deployment & Infrastructure","track_icon":"🚀","topic_key":"asset_pipeline_cdn","topic_name":"Asset Pipeline & CDN","depth_target":"Working","objectives":"Configure Propshaft/Sprockets for production asset compilation Integrate CDN for static asset delivery Optimize asset loading and cache headers","url":"tracks/deployment_infrastructure/topics/asset_pipeline_cdn.html"},{"track_key":"deployment_infrastructure","track_name":"Deployment & Infrastructure","track_icon":"🚀","topic_key":"ci_cd_pipelines","topic_name":"CI/CD Pipelines","depth_target":"Strong","objectives":"Build GitHub Actions workflows for test, lint, and deploy Implement parallel test execution and caching Handle secrets and deployment credentials safely","url":"tracks/deployment_infrastructure/topics/ci_cd_pipelines.html"},{"track_key":"deployment_infrastructure","track_name":"Deployment & Infrastructure","track_icon":"🚀","topic_key":"config_secrets","topic_name":"Config & Secrets Management","depth_target":"Strong","objectives":"Manage environment-specific config with ENV variables Use Rails credentials for secret management Implement secret rotation strategies","url":"tracks/deployment_infrastructure/topics/config_secrets.html"},{"track_key":"deployment_infrastructure","track_name":"Deployment & Infrastructure","track_icon":"🚀","topic_key":"deployment_strategies","topic_name":"Deployment Strategies","depth_target":"Strong","objectives":"Compare blue-green, canary, and rolling deployment strategies Implement zero-downtime deployments Roll back failed deployments safely","url":"tracks/deployment_infrastructure/topics/deployment_strategies.html"},{"track_key":"deployment_infrastructure","track_name":"Deployment & Infrastructure","track_icon":"🚀","topic_key":"docker_containerization","topic_name":"Docker & Containerization Basics","depth_target":"Strong","objectives":"Write production-ready Dockerfiles with multi-stage builds Optimize image size and build caching Debug containerized Rails applications","url":"tracks/deployment_infrastructure/topics/docker_containerization.html"},{"track_key":"deployment_infrastructure","track_name":"Deployment & Infrastructure","track_icon":"🚀","topic_key":"health_checks_graceful","topic_name":"Health Checks & Graceful Shutdowns","depth_target":"Strong","objectives":"Implement readiness and liveness health check endpoints Handle SIGTERM for graceful shutdowns Design zero-downtime deployment workflows","url":"tracks/deployment_infrastructure/topics/health_checks_graceful.html"},{"track_key":"ruby_internals","track_name":"Advanced Ruby Internals","track_icon":"🔬","topic_key":"concurrency_primitives","topic_name":"Concurrency Primitives (Ractor, Fiber, Thread)","depth_target":"Working","objectives":"Compare Thread, Fiber, and Ractor use cases Implement thread-safe code with Mutex Understand GVL limitations and workarounds","url":"tracks/ruby_internals/topics/concurrency_primitives.html"},{"track_key":"ruby_internals","track_name":"Advanced Ruby Internals","track_icon":"🔬","topic_key":"dsl_design","topic_name":"DSL Design Patterns","depth_target":"Working","objectives":"Design clean, readable domain-specific languages Use instance_eval and class_eval appropriately Balance DSL magic vs explicit code","url":"tracks/ruby_internals/topics/dsl_design.html"},{"track_key":"ruby_internals","track_name":"Advanced Ruby Internals","track_icon":"🔬","topic_key":"metaprogramming_patterns","topic_name":"Metaprogramming Patterns","depth_target":"Working","objectives":"Use method_missing and define_method effectively Build clean DSLs with class macros Understand when NOT to use metaprogramming","url":"tracks/ruby_internals/topics/metaprogramming_patterns.html"},{"track_key":"ruby_internals","track_name":"Advanced Ruby Internals","track_icon":"🔬","topic_key":"memory_model","topic_name":"Ruby Memory Model & Object Allocation","depth_target":"Working","objectives":"Trace object allocation and identify memory leaks Understand Ruby's garbage collection phases Use memory profiling tools effectively","url":"tracks/ruby_internals/topics/memory_model.html"},{"track_key":"code_quality","track_name":"Code Quality & Refactoring","track_icon":"✨","topic_key":"code_review","topic_name":"Code Review Techniques","depth_target":"Strong","objectives":"Give constructive, actionable code review feedback Identify critical issues vs. style preferences Build a code review culture on your team","url":"tracks/code_quality/topics/code_review.html"},{"track_key":"code_quality","track_name":"Code Quality & Refactoring","track_icon":"✨","topic_key":"refactoring_patterns","topic_name":"Refactoring Patterns in Rails","depth_target":"Strong","objectives":"Apply Extract Service, Replace Conditional, and other patterns Refactor fat models and controllers safely Use tests to verify behavior preservation","url":"tracks/code_quality/topics/refactoring_patterns.html"},{"track_key":"code_quality","track_name":"Code Quality & Refactoring","track_icon":"✨","topic_key":"technical_debt","topic_name":"Technical Debt Assessment & Management","depth_target":"Strong","objectives":"Assess technical debt impact vs. effort to fix Communicate debt trade-offs to non-technical stakeholders Create actionable remediation plans","url":"tracks/code_quality/topics/technical_debt.html"},{"track_key":"code_quality","track_name":"Code Quality & Refactoring","track_icon":"✨","topic_key":"legacy_code","topic_name":"Working with Legacy Code","depth_target":"Strong","objectives":"Add tests to untested code using characterization tests Break dependencies to make code testable Apply the Strangler Fig pattern for rewrites","url":"tracks/code_quality/topics/legacy_code.html"},{"track_key":"data_analytics","track_name":"Data & Analytics","track_icon":"📊","topic_key":"etl_patterns","topic_name":"ETL Patterns in Rails","depth_target":"Working","objectives":"Design extract, transform, load pipelines in Rails Handle data validation and error recovery Implement incremental vs. full refresh strategies","url":"tracks/data_analytics/topics/etl_patterns.html"},{"track_key":"data_analytics","track_name":"Data & Analytics","track_icon":"📊","topic_key":"event_tracking","topic_name":"Event Tracking & Analytics","depth_target":"Working","objectives":"Design event schemas for product analytics Implement client-side and server-side tracking Build dashboards and funnels from event data","url":"tracks/data_analytics/topics/event_tracking.html"},{"track_key":"data_analytics","track_name":"Data & Analytics","track_icon":"📊","topic_key":"report_generation","topic_name":"Report Generation Strategies","depth_target":"Working","objectives":"Generate CSV and Excel reports efficiently Implement streaming for large datasets Cache expensive report queries appropriately","url":"tracks/data_analytics/topics/report_generation.html"},{"track_key":"data_analytics","track_name":"Data & Analytics","track_icon":"📊","topic_key":"data_warehouses","topic_name":"Working with Data Warehouses","depth_target":"Working","objectives":"Connect Rails to Snowflake/BigQuery for analytics Design data sync strategies (full vs. incremental) Query data warehouses efficiently from Rails","url":"tracks/data_analytics/topics/data_warehouses.html"}];
-
-    searchInput.addEventListener('input', (e) => {
-      clearTimeout(searchTimeout);
-      const query = e.target.value.trim();
-
-      if (query.length > 0) {
-        searchClear.classList.add('show');
-        searchTimeout = setTimeout(() => performSearch(query), 200);
-      } else {
-        searchClear.classList.remove('show');
-        searchResults.classList.remove('show');
-      }
-    });
-
-    searchClear.addEventListener('click', () => {
-      searchInput.value = '';
-      searchClear.classList.remove('show');
-      searchResults.classList.remove('show');
-      searchInput.focus();
-    });
-
-    function performSearch(query) {
-      const results = searchIndex.filter(item =>
-        item.title.toLowerCase().includes(query.toLowerCase()) ||
-        item.track.toLowerCase().includes(query.toLowerCase())
-      );
-
-      displaySearchResults(results);
-    }
-
-    function displaySearchResults(results) {
-      if (results.length === 0) {
-        searchResults.innerHTML = '<div class="search-no-results">No topics found</div>';
-        searchResults.classList.add('show');
-        return;
-      }
-
-      const grouped = results.reduce((acc, item) => {
-        if (!acc[item.track]) acc[item.track] = [];
-        acc[item.track].push(item);
-        return acc;
-      }, {});
-
-      let html = '';
-      for (const [track, items] of Object.entries(grouped)) {
-        html += `
-          <div class="search-group">
-            <div class="search-group-title">${track}</div>
-            ${items.map(item => `
-              <a href="${item.url}" class="search-result-item">
-                <div class="search-result-title">${item.title}</div>
-                <div class="search-result-meta">${track}</div>
-              </a>
-            `).join('')}
-          </div>
-        `;
-      }
-
-      searchResults.innerHTML = html;
-      searchResults.classList.add('show');
-    }
-
-    // Close search on click outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.search-container')) {
-        searchResults.classList.remove('show');
-      }
     });
 
     // Progress tracking with localStorage
