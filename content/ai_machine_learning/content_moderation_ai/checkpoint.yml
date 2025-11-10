@@ -1,0 +1,99 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What is the main advantage of using LLMs for content moderation over traditional keyword-based filters?"
+      choices:
+        - "LLMs are always 100% accurate"
+        - "LLMs are free and have no API costs"
+        - "LLMs understand context and intent, catching violations that evade keyword filters"
+        - "LLMs require extensive training data for each new category"
+      correct: "LLMs understand context and intent, catching violations that evade keyword filters"
+      why: "LLMs can detect subtle violations like euphemisms or misspellings that keyword filters miss, and they understand context to reduce false positives."
+
+    - kind: mcq
+      points: 1
+      prompt: "What should you do when an LLM returns a moderation confidence score of 0.65 for potentially unsafe content?"
+      choices:
+        - "Auto-approve it since it's below 0.7"
+        - "Auto-reject it to be safe"
+        - "Queue it for human review"
+        - "Re-run the moderation check"
+      correct: "Queue it for human review"
+      why: "Medium confidence scores (0.5-0.9) should trigger human review. Only high confidence decisions should be automated."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why should you cache moderation results by content hash?"
+      choices:
+        - "To make the API responses faster"
+        - "To avoid redundant API calls for identical content, saving costs"
+        - "To store moderation history"
+        - "To improve LLM accuracy"
+      correct: "To avoid redundant API calls for identical content, saving costs"
+      why: "Identical content will produce the same moderation result. Caching by content hash prevents expensive duplicate API calls."
+
+    - kind: short
+      points: 2
+      prompt: "Why should content moderation be performed asynchronously in a background job rather than blocking user submissions?"
+      sample_answer: "Async moderation prevents 200-500ms API latency from blocking user submissions. Users get immediate feedback, and moderation happens in the background without degrading UX."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is zero-shot classification?"
+      choices:
+        - "Classification that requires no training data; uses natural language prompts to define categories"
+        - "Classification with 0% accuracy"
+        - "Classification that takes zero time to run"
+        - "Classification that costs nothing"
+      correct: "Classification that requires no training data; uses natural language prompts to define categories"
+      why: "Zero-shot means the model can classify content into categories it wasn't specifically trained on, using only prompt descriptions."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the purpose of tracking false positive and false negative rates in content moderation?"
+      choices:
+        - "To calculate API costs"
+        - "To tune confidence thresholds and improve prompt accuracy over time"
+        - "To speed up moderation processing"
+        - "To eliminate the need for human review"
+      correct: "To tune confidence thresholds and improve prompt accuracy over time"
+      why: "Monitoring false positives (incorrect rejections) and false negatives (missed violations) helps optimize moderation prompts and confidence thresholds."
+
+    - kind: short
+      points: 2
+      prompt: "Write code to create a moderation status that auto-approves safe content with confidence > 0.8, auto-rejects unsafe content with confidence > 0.9, and queues everything else for review."
+      sample_answer: |
+        def determine_status(result)
+          return 'approved' if result['safe'] && result['confidence'] > 0.8
+          return 'rejected' if !result['safe'] && result['confidence'] > 0.9
+          'pending_review'
+        end
+
+    - kind: mcq
+      points: 1
+      prompt: "What temperature setting should you use for consistent content moderation classifications?"
+      choices:
+        - "0 (deterministic, consistent output)"
+        - "0.7 (balanced creativity)"
+        - "1.5 (maximum creativity)"
+        - "Temperature doesn't matter for classification"
+      correct: "0 (deterministic, consistent output)"
+      why: "Temperature 0 produces consistent, deterministic outputs which is essential for reliable moderation. Higher temperatures add randomness."
+
+    - kind: mcq
+      points: 2
+      prompt: "Which approach is most cost-effective for moderating thousands of identical spam messages?"
+      choices:
+        - "Call the LLM API for each message"
+        - "Use batch API calls for all messages"
+        - "Cache the first result and reuse for identical content"
+        - "Use a fine-tuned model instead"
+      correct: "Cache the first result and reuse for identical content"
+      why: "Caching by content hash means identical spam is only moderated once, then cached results are reused, eliminating redundant API calls."
+
+    - kind: short
+      points: 2
+      prompt: "Name two scenarios where you should NOT rely solely on LLM moderation and require human-in-the-loop review."
+      sample_answer: "1. Legal or regulated content where mistakes have serious consequences (HIPAA, COPPA, etc.). 2. Content with low AI confidence scores (0.5-0.8) where the model is uncertain."

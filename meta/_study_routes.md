@@ -372,6 +372,13 @@ Use this checklist to track completion:
 - [ ] report_generation
 - [ ] data_warehouses
 
+### AI & Machine Learning (5 topics)
+- [ ] llm_api_integration
+- [ ] ai_powered_features
+- [ ] content_moderation_ai
+- [ ] ai_dev_tools
+- [ ] rag_systems
+
 ---
 
 ## Study Tips
@@ -431,7 +438,7 @@ A: Yes, but take the checkpoint quiz first. If you score 80%+, skip it. If not, 
 **Q: What if I fall behind?**
 A: Adjust your route. Switch from 12-week to weekends-only, or focus on Priority 1 topics only.
 
-**Q: Should I do all 59 topics?**
+**Q: Should I do all 64 topics?**
 A: For senior IC roles, aim for all Priority 1 + Priority 2 topics (40+ total). Priority 3/4 are optional but recommended for well-rounded expertise.
 
 **Q: Can I use this for interview prep?**

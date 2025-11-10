@@ -1,0 +1,2307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rails Seniority Coach</title>
+  <style>
+    :root {
+      /* Modern color palette */
+      --bg-primary: #f8f9fa;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f1f3f5;
+      --bg-elevated: #ffffff;
+
+      --text-primary: #212529;
+      --text-secondary: #6c757d;
+      --text-muted: #adb5bd;
+
+      --accent-primary: #d63384;
+      --accent-secondary: #0d6efd;
+      --accent-success: #198754;
+      --accent-warning: #ffc107;
+
+      --border: #dee2e6;
+      --border-light: #e9ecef;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.dark-mode {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #1f2937;
+      --bg-elevated: #21262d;
+
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+
+      --accent-primary: #ff6b9d;
+      --accent-secondary: #58a6ff;
+      --accent-success: #3fb950;
+      --accent-warning: #ffcf33;
+
+      --border: #30363d;
+      --border-light: #21262d;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      line-height: 1.7;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      transition: background 0.3s ease, color 0.3s ease;
+      font-size: 16px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header - Simplified & Clean */
+    header {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #c2255c 100%);
+      color: white;
+      padding: 14px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-md);
+    }
+
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    header .brand {
+      flex: 1;
+    }
+
+    header .brand a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: white;
+      transition: var(--transition);
+    }
+
+    header .brand a:hover {
+      opacity: 0.85;
+    }
+
+    header .brand-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    header p {
+      opacity: 0.9;
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* Dark Mode Toggle - Compact */
+    .dark-mode-toggle {
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: 20px;
+      transition: var(--transition);
+      flex-shrink: 0;
+      backdrop-filter: blur(10px);
+    }
+
+    .dark-mode-toggle:hover {
+      background: rgba(255,255,255,0.25);
+      border-color: rgba(255,255,255,0.3);
+      transform: scale(1.05);
+    }
+
+    /* Navigation - Improved */
+    nav {
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+      font-weight: 500;
+      font-size: 15px;
+    }
+
+    nav a:hover {
+      background: var(--bg-tertiary);
+      color: var(--accent-primary);
+      transform: translateY(-1px);
+    }
+
+    /* Cards - Professional Design */
+    .track-grid, .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+      margin: 28px 0;
+    }
+
+    .track-card, .topic-card {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .track-card::before, .topic-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .track-card:hover, .topic-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--accent-primary);
+    }
+
+    .track-card:hover::before, .topic-card:hover::before {
+      opacity: 1;
+    }
+
+    .track-card h3, .topic-card h3 {
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .track-card p, .topic-card p {
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .track-card a, .topic-card a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* Track Icon Badge */
+    .track-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+
+    /* Completion Badge - Enhanced */
+    .completion-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 28px;
+      opacity: 0;
+      transition: var(--transition);
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    .completion-badge.completed {
+      opacity: 1;
+      animation: completionPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes completionPop {
+      0% { transform: scale(0); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* Progress Bar - Modern Design */
+    .progress-bar {
+      height: 6px;
+      background: var(--border-light);
+      border-radius: 100px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px rgba(214, 51, 132, 0.3);
+    }
+
+    /* Badges - Polished Design */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 4px 4px 4px 0;
+      transition: var(--transition);
+    }
+
+    .badge-primary {
+      background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+      color: #4a148c;
+    }
+
+    .badge-success {
+      background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+      color: #1b5e20;
+    }
+
+    .badge-info {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      color: #01579b;
+    }
+
+    .badge:hover {
+      transform: scale(1.05);
+    }
+
+    /* Tabs - Modern Design */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid var(--border-light);
+      margin: 24px 0 20px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .tab {
+      padding: 12px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 15px;
+      transition: var(--transition);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      white-space: nowrap;
+    }
+
+    .tab:hover {
+      color: var(--accent-primary);
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    }
+
+    .tab.active {
+      color: var(--accent-primary);
+      border-bottom-color: var(--accent-primary);
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Content Sections - Enhanced */
+    .content-section {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin: 20px 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .content-section h2 {
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      font-size: 24px;
+      font-weight: 700;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border-light);
+    }
+
+    .content-section h3 {
+      color: var(--text-primary);
+      margin: 24px 0 12px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .content-section p {
+      margin-bottom: 16px;
+      line-height: 1.75;
+      color: var(--text-primary);
+    }
+
+    .content-section ul, .content-section ol {
+      margin: 16px 0 16px 24px;
+      color: var(--text-primary);
+    }
+
+    .content-section li {
+      margin: 8px 0;
+      line-height: 1.7;
+    }
+
+    /* Objectives Section - Gradient Accent */
+    .objectives-section {
+      background: linear-gradient(135deg, rgba(214, 51, 132, 0.05) 0%, rgba(13, 110, 253, 0.05) 100%);
+      border-left: 4px solid var(--accent-primary);
+    }
+
+    body.dark-mode .objectives-section {
+      background: linear-gradient(135deg, rgba(255, 107, 157, 0.08) 0%, rgba(88, 166, 255, 0.08) 100%);
+      border-left-color: var(--accent-primary);
+    }
+
+    /* Code Blocks - Professional Styling */
+    code {
+      background: var(--bg-tertiary);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 14px;
+      color: var(--accent-secondary);
+      border: 1px solid var(--border-light);
+    }
+
+    pre {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      margin: 20px 0;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      border: none;
+      color: #d4d4d4;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* Buttons - Modern Design */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #c2255c 100%);
+      color: white;
+      box-shadow: 0 4px 14px rgba(214, 51, 132, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(214, 51, 132, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-elevated);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+
+    /* Quiz - Enhanced Design */
+    .quiz-question {
+      background: var(--bg-elevated);
+      border: 2px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 20px 0;
+      transition: var(--transition);
+    }
+
+    .quiz-question:hover {
+      border-color: var(--accent-primary);
+      box-shadow: var(--shadow-md);
+    }
+
+    .quiz-question h4 {
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .quiz-option {
+      display: block;
+      padding: 14px 18px;
+      margin: 8px 0;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      background: var(--bg-tertiary);
+      border: 2px solid transparent;
+    }
+
+    .quiz-option:hover {
+      background: var(--bg-elevated);
+      border-color: var(--accent-primary);
+      transform: translateX(4px);
+    }
+
+    .quiz-option.correct {
+      background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(25, 135, 84, 0.05) 100%);
+      border-color: var(--accent-success);
+    }
+
+    .quiz-option.incorrect {
+      background: rgba(220, 53, 69, 0.1);
+      border-color: #dc3545;
+    }
+
+    /* Score Display - Celebration */
+    .score-display {
+      background: linear-gradient(135deg, var(--accent-success) 0%, #059669 100%);
+      color: white;
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      display: none;
+      animation: slideUp 0.4s ease;
+    }
+
+    .score-display.show { display: block; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Topic Navigation - Enhanced */
+    .topic-navigation {
+      display: flex;
+      justify-content: space-between;
+      margin: 32px 0;
+      gap: 16px;
+    }
+
+    .nav-button {
+      flex: 1;
+      max-width: 300px;
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+      border: 2px solid var(--border-light);
+      color: var(--text-primary);
+      text-decoration: none;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+    }
+
+    .nav-button:hover {
+      border-color: var(--accent-primary);
+      background: var(--accent-primary);
+      color: white;
+      transform: translateX(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .nav-button.next:hover {
+      transform: translateX(4px);
+    }
+
+    /* Responsive Design - Mobile Optimized */
+    @media (max-width: 768px) {
+      .container { padding: 0 16px; }
+
+      header {
+        padding: 10px 0;
+      }
+
+      header .container {
+        gap: 12px;
+      }
+
+      header .brand-icon {
+        font-size: 24px;
+      }
+
+      header h1 {
+        font-size: 16px;
+      }
+
+      header p {
+        font-size: 11px;
+      }
+
+      .dark-mode-toggle {
+        padding: 6px 10px;
+        font-size: 18px;
+      }
+
+      nav {
+        margin: 12px 0;
+        gap: 8px;
+      }
+
+      nav a {
+        font-size: 14px;
+        padding: 8px 12px;
+      }
+
+      .track-grid, .topic-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .tabs {
+        gap: 4px;
+      }
+
+      .tab {
+        padding: 10px 14px;
+        font-size: 14px;
+      }
+
+      .content-section {
+        padding: 20px;
+        margin: 16px 0;
+      }
+
+      .content-section h2 {
+        font-size: 20px;
+      }
+
+      .content-section h3 {
+        font-size: 18px;
+      }
+
+      .topic-navigation {
+        flex-direction: column;
+      }
+
+      .nav-button {
+        max-width: 100%;
+      }
+    }
+
+    /* Smooth Scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Focus Styles for Accessibility */
+    *:focus-visible {
+      outline: 3px solid var(--accent-primary);
+      outline-offset: 2px;
+    }
+
+    /* Print Styles */
+    @media print {
+      header, nav, .dark-mode-toggle {
+        display: none;
+      }
+
+      body {
+        background: white;
+        color: black;
+      }
+
+      .content-section {
+        box-shadow: none;
+        border: 1px solid #ddd;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="brand">
+        <a href="../../../index.html">
+          <span class="brand-icon">💎</span>
+          <div>
+            <h1>Rails Seniority Coach</h1>
+            <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
+          </div>
+        </a>
+      </div>
+      <button class="dark-mode-toggle" id="dark-mode-toggle" aria-label="Toggle dark mode">
+        <span class="light-icon">☀️</span>
+        <span class="dark-icon" style="display: none;">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <nav style="margin-bottom: 20px;">
+  <a href="../index.html">← AI & Machine Learning</a>
+</nav>
+
+<!-- Previous/Next Navigation -->
+<div class="topic-navigation">
+  
+    <a href="ai_powered_features.html" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">AI-Powered Search & Recommendations</div>
+      </div>
+    </a>
+  
+
+  
+    <a href="llm_api_integration.html" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">LLM API Integration Basics</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+<div style="margin-bottom: 30px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+    <div style="flex: 1;">
+      <h1>Content Moderation & Classification</h1>
+      <div style="margin: 15px 0;">
+        
+        
+          <span class="badge badge-working">Working</span>
+        
+        &nbsp;
+        <span style="color: var(--text-secondary);">
+          📖 10 min read &nbsp; | &nbsp; 💻 25 min exercise
+        </span>
+      </div>
+    </div>
+    <button
+      id="mark-complete-btn"
+      class="complete-button"
+      data-track-key="ai_machine_learning"
+      data-topic-key="content_moderation_ai"
+      onclick="markTopicComplete('ai_machine_learning', 'content_moderation_ai')">
+      Mark Complete
+    </button>
+  </div>
+
+  
+    <div class="content-section objectives-section">
+      <h3>Learning Objectives</h3>
+      <ul style="margin-left: 20px;">
+        
+          <li>Implement automated content moderation with LLMs</li>
+        
+          <li>Build text classification systems for categorization</li>
+        
+          <li>Design safe AI systems with filtering and fallbacks</li>
+        
+          <li>Monitor and improve classification accuracy over time</li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-tab="overview-tab">📖 Overview</button>
+  <button class="tab" data-tab="exercise-tab">💻 Exercise</button>
+  <button class="tab" data-tab="checkpoint-tab">✅ Checkpoint</button>
+  <button class="tab" data-tab="references-tab">🔗 References</button>
+</div>
+
+<!-- Overview Tab -->
+<div id="overview-tab" class="tab-content active">
+  <div class="content-section">
+    
+      <h1>Content Moderation &amp; Classification with LLMs</h1>
+
+<h2>What It Is</h2>
+
+<p>Content moderation with LLMs uses large language models to automatically classify, filter, and flag user-generated content for policy violations, toxicity, spam, or inappropriate material. Unlike traditional keyword-based filters or rule-based systems, LLMs understand context, nuance, and intent. They can perform zero-shot classification (categorizing content without training examples), sentiment analysis, multi-label tagging, and safety filtering using natural language prompts instead of manually crafted rules.</p>
+
+<h2>Why It Matters</h2>
+
+<p>Manual moderation doesn&#39;t scale. A platform with 100,000 daily posts needs automated first-pass filtering to prioritize human review. Traditional ML models require thousands of labeled examples and retraining for new categories. LLMs perform zero-shot classification with simple prompt changes, reducing development time from weeks to hours. They catch subtle violations that keyword filters miss (e.g., &quot;unalive&quot; instead of violent terms) and reduce false positives by understanding context. Poor moderation leads to legal liability, toxic communities, and user churn.</p>
+
+<h2>When to Use</h2>
+
+<ul>
+<li><strong>User-generated content platforms:</strong> Filter comments, reviews, posts, messages for policy violations</li>
+<li><strong>Zero-shot classification needs:</strong> Categorize content without training data for new categories</li>
+<li><strong>Context-aware filtering:</strong> Detect toxic content that evades keyword filters through misspellings or euphemisms</li>
+<li><strong>Multi-label tagging:</strong> Assign multiple categories to content (e.g., &quot;spam + promotional + low-quality&quot;)</li>
+<li><strong>Sentiment analysis at scale:</strong> Classify customer feedback, support tickets, product reviews</li>
+<li><strong>Safety layers:</strong> Add pre-submission checks or post-moderation queues with confidence scores</li>
+</ul>
+
+<h2>Three Common Pitfalls</h2>
+
+<ol>
+<li><strong>Treating LLM scores as binary decisions:</strong> LLMs return confidence scores, not absolute truth. A 0.7 &quot;toxic&quot; score needs human review, not auto-deletion. Build moderation queues with score thresholds (0-0.4 approve, 0.4-0.7 review, 0.7+ block) instead of hard cutoffs.</li>
+<li><strong>Not caching or batching moderation calls:</strong> Every moderation call costs money and latency. Cache results for identical content, batch requests where possible, and use async background jobs for non-blocking moderation to avoid slowing down user submissions.</li>
+<li><strong>Over-relying on LLMs without feedback loops:</strong> LLMs have biases and make mistakes. Track false positives (approved content flagged) and false negatives (violations missed) by sampling moderated content for human review. Use this data to tune prompts, adjust thresholds, or switch to fine-tuned models.</li>
+</ol>
+
+<hr>
+
+<h2>Zero-Shot Classification Basics</h2>
+
+<p>LLMs can classify content into categories without training examples:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Classify support ticket priority</span>
+<span class="k">def</span> <span class="nf">classify_ticket_priority</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+  <span class="n">prompt</span> <span class="o">=</span> <span class="o">&lt;&lt;~</span><span class="no">PROMPT</span><span class="sh">
+    Classify the following support ticket as one of: urgent, high, medium, low.
+
+    Urgent: service down, security breach, data loss
+    High: major feature broken, billing issue, many users affected
+    Medium: minor bug, feature request, single user issue
+    Low: general question, documentation request, feedback
+
+    Ticket: </span><span class="si">#{</span><span class="n">message</span><span class="si">}</span><span class="sh">
+
+    Classification:
+</span><span class="no">  PROMPT</span>
+
+  <span class="n">response</span> <span class="o">=</span> <span class="n">openai_client</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span>
+    <span class="ss">model: </span><span class="s2">"gpt-4o-mini"</span><span class="p">,</span>
+    <span class="ss">messages: </span><span class="p">[{</span> <span class="ss">role: </span><span class="s2">"user"</span><span class="p">,</span> <span class="ss">content: </span><span class="n">prompt</span> <span class="p">}],</span>
+    <span class="ss">max_tokens: </span><span class="mi">10</span><span class="p">,</span>
+    <span class="ss">temperature: </span><span class="mi">0</span>
+  <span class="p">)</span>
+
+  <span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"choices"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">).</span><span class="nf">strip</span><span class="p">.</span><span class="nf">downcase</span>
+<span class="k">end</span>
+
+<span class="c1"># Usage</span>
+<span class="n">classify_ticket_priority</span><span class="p">(</span><span class="s2">"Our production database is down!"</span><span class="p">)</span>
+<span class="c1"># =&gt; "urgent"</span>
+
+<span class="n">classify_ticket_priority</span><span class="p">(</span><span class="s2">"Can you add dark mode?"</span><span class="p">)</span>
+<span class="c1"># =&gt; "low"</span>
+
+</code></pre></div>
+<p><strong>Key details:</strong><br>
+- Temperature 0 for consistent classifications<br>
+- Clear category definitions in the prompt reduce ambiguity<br>
+- Low max_tokens saves costs for simple outputs<br>
+- No training data required; change categories by editing prompt</p>
+
+<hr>
+
+<h2>Structured Content Moderation</h2>
+
+<p>Use structured outputs with function calling or JSON mode:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ContentModerator</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@client</span> <span class="o">=</span> <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">access_token: </span><span class="no">ENV</span><span class="p">[</span><span class="s2">"OPENAI_API_KEY"</span><span class="p">])</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">moderate</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="vi">@client</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span>
+        <span class="ss">model: </span><span class="s2">"gpt-4o-mini"</span><span class="p">,</span>
+        <span class="ss">messages: </span><span class="p">[</span>
+          <span class="p">{</span>
+            <span class="ss">role: </span><span class="s2">"system"</span><span class="p">,</span>
+            <span class="ss">content: </span><span class="s2">"You are a content moderation system. Analyze content for policy violations."</span>
+          <span class="p">},</span>
+          <span class="p">{</span>
+            <span class="ss">role: </span><span class="s2">"user"</span><span class="p">,</span>
+            <span class="ss">content: </span><span class="n">moderation_prompt</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+          <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="ss">response_format: </span><span class="p">{</span> <span class="ss">type: </span><span class="s2">"json_object"</span> <span class="p">},</span>
+        <span class="ss">temperature: </span><span class="mi">0</span>
+      <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="no">JSON</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"choices"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">))</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">moderation_prompt</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="o">&lt;&lt;~</span><span class="no">PROMPT</span><span class="sh">
+      Analyze this content and return JSON with these fields:
+      - safe (boolean): true if content meets all policies
+      - violations (array): list of policy violations (empty if safe)
+      - confidence (float): 0.0-1.0 confidence in assessment
+      - reason (string): explanation of decision
+
+      Policies:
+      1. No hate speech, threats, or harassment
+      2. No spam or commercial promotion
+      3. No graphic violence or adult content
+      4. No misinformation about health/safety
+
+      Content to analyze:
+      </span><span class="si">#{</span><span class="n">content</span><span class="si">}</span><span class="sh">
+
+      Return valid JSON only.
+</span><span class="no">    PROMPT</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Usage</span>
+<span class="n">moderator</span> <span class="o">=</span> <span class="no">ContentModerator</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">moderator</span><span class="p">.</span><span class="nf">moderate</span><span class="p">(</span><span class="s2">"Check out my store at sketchy-link.com for cheap watches!"</span><span class="p">)</span>
+
+<span class="c1"># =&gt; {</span>
+<span class="c1">#   "safe" =&gt; false,</span>
+<span class="c1">#   "violations" =&gt; ["spam", "commercial promotion"],</span>
+<span class="c1">#   "confidence" =&gt; 0.95,</span>
+<span class="c1">#   "reason" =&gt; "Content contains unsolicited commercial link"</span>
+<span class="c1"># }</span>
+
+</code></pre></div>
+<p>Store results with the content for auditing:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Comment</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">before_create</span> <span class="ss">:moderate_content</span>
+
+  <span class="k">def</span> <span class="nf">moderate_content</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="no">ContentModerator</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">moderate</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+
+    <span class="nb">self</span><span class="p">.</span><span class="nf">moderation_score</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">"confidence"</span><span class="p">]</span>
+    <span class="nb">self</span><span class="p">.</span><span class="nf">moderation_status</span> <span class="o">=</span> <span class="n">determine_status</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="nb">self</span><span class="p">.</span><span class="nf">moderation_violations</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">"violations"</span><span class="p">]</span>
+    <span class="nb">self</span><span class="p">.</span><span class="nf">moderation_reason</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">"reason"</span><span class="p">]</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">determine_status</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"approved"</span> <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s2">"safe"</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">result</span><span class="p">[</span><span class="s2">"confidence"</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.8</span>
+    <span class="k">return</span> <span class="s2">"rejected"</span> <span class="k">if</span> <span class="o">!</span><span class="n">result</span><span class="p">[</span><span class="s2">"safe"</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">result</span><span class="p">[</span><span class="s2">"confidence"</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.8</span>
+    <span class="s2">"pending_review"</span> <span class="c1"># Low confidence needs human review</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Multi-Label Classification</h2>
+
+<p>Assign multiple categories to content:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">categorize_article</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+  <span class="n">prompt</span> <span class="o">=</span> <span class="o">&lt;&lt;~</span><span class="no">PROMPT</span><span class="sh">
+    Categorize this article with ALL applicable labels from this list:
+    - technical, business, opinion, tutorial, news, research
+    - beginner, intermediate, advanced
+    - rails, ruby, javascript, database, devops
+
+    Return JSON array of labels: ["label1", "label2", ...]
+
+    Article: </span><span class="si">#{</span><span class="n">text</span><span class="p">.</span><span class="nf">truncate</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span><span class="si">}</span><span class="sh">
+</span><span class="no">  PROMPT</span>
+
+  <span class="n">response</span> <span class="o">=</span> <span class="n">openai_client</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span>
+    <span class="ss">model: </span><span class="s2">"gpt-4o-mini"</span><span class="p">,</span>
+    <span class="ss">messages: </span><span class="p">[{</span> <span class="ss">role: </span><span class="s2">"user"</span><span class="p">,</span> <span class="ss">content: </span><span class="n">prompt</span> <span class="p">}],</span>
+    <span class="ss">response_format: </span><span class="p">{</span> <span class="ss">type: </span><span class="s2">"json_object"</span> <span class="p">},</span>
+    <span class="ss">temperature: </span><span class="mi">0</span>
+  <span class="p">)</span>
+
+  <span class="no">JSON</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"choices"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">))[</span><span class="s2">"labels"</span><span class="p">]</span>
+<span class="k">end</span>
+
+<span class="c1"># Usage</span>
+<span class="n">article</span> <span class="o">=</span> <span class="s2">"This tutorial covers advanced Rails performance optimization techniques..."</span>
+<span class="n">categorize_article</span><span class="p">(</span><span class="n">article</span><span class="p">)</span>
+<span class="c1"># =&gt; ["technical", "tutorial", "advanced", "rails"]</span>
+
+</code></pre></div>
+<p>Store as JSON or separate tags table:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="c1"># Option 1: JSON column</span>
+  <span class="c1"># add_column :articles, :ai_tags, :jsonb, default: []</span>
+
+  <span class="c1"># Option 2: Tagging system</span>
+  <span class="n">has_many</span> <span class="ss">:article_tags</span>
+  <span class="n">has_many</span> <span class="ss">:tags</span><span class="p">,</span> <span class="ss">through: :article_tags</span>
+
+  <span class="n">after_create_commit</span> <span class="ss">:auto_tag</span>
+
+  <span class="k">def</span> <span class="nf">auto_tag</span>
+    <span class="no">AutoTagJob</span><span class="p">.</span><span class="nf">perform_later</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">AutoTagJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">article_id</span><span class="p">)</span>
+    <span class="n">article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">article_id</span><span class="p">)</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">categorize_article</span><span class="p">(</span><span class="n">article</span><span class="p">.</span><span class="nf">body</span><span class="p">)</span>
+
+    <span class="n">labels</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">label_name</span><span class="o">|</span>
+      <span class="n">tag</span> <span class="o">=</span> <span class="no">Tag</span><span class="p">.</span><span class="nf">find_or_create_by</span><span class="p">(</span><span class="ss">name: </span><span class="n">label_name</span><span class="p">)</span>
+      <span class="n">article</span><span class="p">.</span><span class="nf">tags</span> <span class="o">&lt;&lt;</span> <span class="n">tag</span> <span class="k">unless</span> <span class="n">article</span><span class="p">.</span><span class="nf">tags</span><span class="p">.</span><span class="nf">include?</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Sentiment Analysis</h2>
+
+<p>Classify emotional tone and intensity:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">SentimentAnalyzer</span>
+  <span class="k">def</span> <span class="nf">analyze</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">openai_client</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span>
+        <span class="ss">model: </span><span class="s2">"gpt-4o-mini"</span><span class="p">,</span>
+        <span class="ss">messages: </span><span class="p">[</span>
+          <span class="p">{</span>
+            <span class="ss">role: </span><span class="s2">"system"</span><span class="p">,</span>
+            <span class="ss">content: </span><span class="s2">"Analyze sentiment. Return JSON: {sentiment: 'positive'|'negative'|'neutral', intensity: 0.0-1.0, emotion: string}"</span>
+          <span class="p">},</span>
+          <span class="p">{</span>
+            <span class="ss">role: </span><span class="s2">"user"</span><span class="p">,</span>
+            <span class="ss">content: </span><span class="n">text</span>
+          <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="ss">response_format: </span><span class="p">{</span> <span class="ss">type: </span><span class="s2">"json_object"</span> <span class="p">},</span>
+        <span class="ss">temperature: </span><span class="mi">0</span>
+      <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="no">JSON</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"choices"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">))</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Usage in customer support</span>
+<span class="k">class</span> <span class="nc">SupportTicket</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">after_create</span> <span class="ss">:analyze_sentiment</span>
+
+  <span class="k">def</span> <span class="nf">analyze_sentiment</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="no">SentimentAnalyzer</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">analyze</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+    <span class="n">update</span><span class="p">(</span>
+      <span class="ss">sentiment: </span><span class="n">result</span><span class="p">[</span><span class="s2">"sentiment"</span><span class="p">],</span>
+      <span class="ss">sentiment_intensity: </span><span class="n">result</span><span class="p">[</span><span class="s2">"intensity"</span><span class="p">],</span>
+      <span class="ss">detected_emotion: </span><span class="n">result</span><span class="p">[</span><span class="s2">"emotion"</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Prioritize angry customers</span>
+    <span class="n">update</span><span class="p">(</span><span class="ss">priority: </span><span class="s2">"high"</span><span class="p">)</span> <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s2">"emotion"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"angry"</span> <span class="o">&amp;&amp;</span> <span class="n">result</span><span class="p">[</span><span class="s2">"intensity"</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.7</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Caching and Performance Optimization</h2>
+
+<p>Don&#39;t re-moderate identical content:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CachedContentModerator</span>
+  <span class="k">def</span> <span class="nf">moderate</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="c1"># Use content hash as cache key</span>
+    <span class="n">cache_key</span> <span class="o">=</span> <span class="s2">"moderation/</span><span class="si">#{</span><span class="no">Digest</span><span class="o">::</span><span class="no">SHA256</span><span class="p">.</span><span class="nf">hexdigest</span><span class="p">(</span><span class="n">content</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="n">cache_key</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">7</span><span class="p">.</span><span class="nf">days</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">perform_moderation</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">perform_moderation</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="c1"># Actual API call only if not cached</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">openai_client</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+    <span class="no">JSON</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"choices"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">))</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Batch processing for efficiency:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">BatchModerator</span>
+  <span class="k">def</span> <span class="nf">moderate_batch</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span>
+    <span class="c1"># Process multiple items in one API call</span>
+    <span class="n">prompt</span> <span class="o">=</span> <span class="o">&lt;&lt;~</span><span class="no">PROMPT</span><span class="sh">
+      Analyze each item and return JSON array with moderation results.
+      Format: [{"index": 0, "safe": bool, "violations": [], "confidence": float}, ...]
+
+      Items to moderate:
+      </span><span class="si">#{</span><span class="n">contents</span><span class="p">.</span><span class="nf">map</span><span class="p">.</span><span class="nf">with_index</span> <span class="p">{</span> <span class="o">|</span><span class="n">c</span><span class="p">,</span> <span class="n">i</span><span class="o">|</span> <span class="s2">"</span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">. </span><span class="si">#{</span><span class="n">c</span><span class="si">}</span><span class="s2">"</span> <span class="si">}</span><span class="sh">.join("</span><span class="se">\n</span><span class="sh">")}
+</span><span class="no">    PROMPT</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">openai_client</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span>
+      <span class="ss">model: </span><span class="s2">"gpt-4o-mini"</span><span class="p">,</span>
+      <span class="ss">messages: </span><span class="p">[{</span> <span class="ss">role: </span><span class="s2">"user"</span><span class="p">,</span> <span class="ss">content: </span><span class="n">prompt</span> <span class="p">}],</span>
+      <span class="ss">response_format: </span><span class="p">{</span> <span class="ss">type: </span><span class="s2">"json_object"</span> <span class="p">},</span>
+      <span class="ss">temperature: </span><span class="mi">0</span>
+    <span class="p">)</span>
+
+    <span class="no">JSON</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"choices"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">))[</span><span class="s2">"results"</span><span class="p">]</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Usage</span>
+<span class="no">BatchModerator</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">moderate_batch</span><span class="p">([</span>
+  <span class="s2">"Great product!"</span><span class="p">,</span>
+  <span class="s2">"Spam link here..."</span><span class="p">,</span>
+  <span class="s2">"Hate speech example"</span>
+<span class="p">])</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Async Moderation Workflows</h2>
+
+<p>Don&#39;t block user submissions:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Comment</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="c1"># Allow submission, moderate in background</span>
+  <span class="n">after_create_commit</span> <span class="ss">:queue_moderation</span>
+
+  <span class="k">def</span> <span class="nf">queue_moderation</span>
+    <span class="no">ModerateCommentJob</span><span class="p">.</span><span class="nf">perform_later</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="n">scope</span> <span class="ss">:pending_moderation</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="ss">moderation_status: </span><span class="s2">"pending"</span><span class="p">)</span> <span class="p">}</span>
+  <span class="n">scope</span> <span class="ss">:approved</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="ss">moderation_status: </span><span class="s2">"approved"</span><span class="p">)</span> <span class="p">}</span>
+  <span class="n">scope</span> <span class="ss">:requires_review</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="ss">moderation_status: </span><span class="s2">"pending_review"</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">ModerateCommentJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="n">queue_as</span> <span class="ss">:moderation</span>
+
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">comment_id</span><span class="p">)</span>
+    <span class="n">comment</span> <span class="o">=</span> <span class="no">Comment</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">comment_id</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="no">ContentModerator</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">moderate</span><span class="p">(</span><span class="n">comment</span><span class="p">.</span><span class="nf">body</span><span class="p">)</span>
+
+    <span class="n">comment</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span>
+      <span class="ss">moderation_status: </span><span class="n">determine_status</span><span class="p">(</span><span class="n">result</span><span class="p">),</span>
+      <span class="ss">moderation_data: </span><span class="n">result</span><span class="p">,</span>
+      <span class="ss">moderated_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Notify user if rejected</span>
+    <span class="no">UserMailer</span><span class="p">.</span><span class="nf">content_rejected</span><span class="p">(</span><span class="n">comment</span><span class="p">.</span><span class="nf">user</span><span class="p">).</span><span class="nf">deliver_later</span> <span class="k">if</span> <span class="n">comment</span><span class="p">.</span><span class="nf">rejected?</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">determine_status</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"approved"</span> <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s2">"safe"</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">result</span><span class="p">[</span><span class="s2">"confidence"</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.8</span>
+    <span class="k">return</span> <span class="s2">"rejected"</span> <span class="k">if</span> <span class="o">!</span><span class="n">result</span><span class="p">[</span><span class="s2">"safe"</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">result</span><span class="p">[</span><span class="s2">"confidence"</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.9</span>
+    <span class="s2">"pending_review"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Display content conditionally:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Controller</span>
+<span class="k">def</span> <span class="nf">index</span>
+  <span class="vi">@comments</span> <span class="o">=</span> <span class="k">if</span> <span class="n">current_user</span><span class="p">.</span><span class="nf">moderator?</span>
+    <span class="no">Comment</span><span class="p">.</span><span class="nf">all</span> <span class="c1"># Show all including pending</span>
+  <span class="k">else</span>
+    <span class="no">Comment</span><span class="p">.</span><span class="nf">approved</span> <span class="c1"># Only show approved to users</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># View</span>
+<span class="o">&lt;</span><span class="sx">% @comments.each </span><span class="k">do</span> <span class="o">|</span><span class="n">comment</span><span class="o">|</span> <span class="sx">%&gt;
+  &lt;div class="comment &lt;%= 'pending-review' if comment.pending_review? %&gt;</span><span class="s2">"&gt;
+    &lt;%= comment.body %&gt;
+    &lt;% if current_user.moderator? &amp;&amp; comment.pending_review? %&gt;
+      &lt;%= link_to "</span><span class="no">Approve</span><span class="s2">", approve_comment_path(comment), method: :post %&gt;
+      &lt;%= link_to "</span><span class="no">Reject</span><span class="s2">", reject_comment_path(comment), method: :post %&gt;
+    &lt;% end %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;
+
+</span></code></pre></div>
+<hr>
+
+<h2>Building a Moderation Queue</h2>
+
+<p>Dashboard for human reviewers:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># routes.rb</span>
+<span class="n">namespace</span> <span class="ss">:moderator</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:comments</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">]</span> <span class="k">do</span>
+    <span class="n">member</span> <span class="k">do</span>
+      <span class="n">post</span> <span class="ss">:approve</span>
+      <span class="n">post</span> <span class="ss">:reject</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/controllers/moderator/comments_controller.rb</span>
+<span class="k">class</span> <span class="nc">Moderator::CommentsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="n">before_action</span> <span class="ss">:require_moderator</span>
+
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="vi">@comments</span> <span class="o">=</span> <span class="no">Comment</span><span class="p">.</span><span class="nf">requires_review</span>
+                       <span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="ss">moderation_score: :desc</span><span class="p">)</span> <span class="c1"># High-risk first</span>
+                       <span class="p">.</span><span class="nf">page</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:page</span><span class="p">])</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">approve</span>
+    <span class="n">comment</span> <span class="o">=</span> <span class="no">Comment</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+    <span class="n">comment</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span>
+      <span class="ss">moderation_status: </span><span class="s2">"approved"</span><span class="p">,</span>
+      <span class="ss">reviewed_by: </span><span class="n">current_user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+      <span class="ss">reviewed_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+    <span class="p">)</span>
+    <span class="n">redirect_to</span> <span class="n">moderator_comments_path</span><span class="p">,</span> <span class="ss">notice: </span><span class="s2">"Approved"</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">reject</span>
+    <span class="n">comment</span> <span class="o">=</span> <span class="no">Comment</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+    <span class="n">comment</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span>
+      <span class="ss">moderation_status: </span><span class="s2">"rejected"</span><span class="p">,</span>
+      <span class="ss">reviewed_by: </span><span class="n">current_user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+      <span class="ss">reviewed_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+    <span class="p">)</span>
+    <span class="no">UserMailer</span><span class="p">.</span><span class="nf">content_rejected</span><span class="p">(</span><span class="n">comment</span><span class="p">.</span><span class="nf">user</span><span class="p">).</span><span class="nf">deliver_later</span>
+    <span class="n">redirect_to</span> <span class="n">moderator_comments_path</span><span class="p">,</span> <span class="ss">notice: </span><span class="s2">"Rejected"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Tracking Moderation Accuracy</h2>
+
+<p>Monitor false positives and negatives:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ModerationAudit</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:comment</span>
+  <span class="n">belongs_to</span> <span class="ss">:reviewer</span><span class="p">,</span> <span class="ss">class_name: </span><span class="s2">"User"</span>
+
+  <span class="n">enum</span> <span class="ss">human_decision: </span><span class="p">{</span> <span class="ss">approved: </span><span class="mi">0</span><span class="p">,</span> <span class="ss">rejected: </span><span class="mi">1</span> <span class="p">}</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">calculate_metrics</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">count</span>
+
+    <span class="c1"># False positive: AI said unsafe, human approved</span>
+    <span class="n">false_positives</span> <span class="o">=</span> <span class="n">where</span><span class="p">(</span>
+      <span class="ss">ai_decision: </span><span class="s2">"rejected"</span><span class="p">,</span>
+      <span class="ss">human_decision: </span><span class="s2">"approved"</span>
+    <span class="p">).</span><span class="nf">count</span>
+
+    <span class="c1"># False negative: AI said safe, human rejected</span>
+    <span class="n">false_negatives</span> <span class="o">=</span> <span class="n">where</span><span class="p">(</span>
+      <span class="ss">ai_decision: </span><span class="s2">"approved"</span><span class="p">,</span>
+      <span class="ss">human_decision: </span><span class="s2">"rejected"</span>
+    <span class="p">).</span><span class="nf">count</span>
+
+    <span class="p">{</span>
+      <span class="ss">false_positive_rate: </span><span class="p">(</span><span class="n">false_positives</span><span class="p">.</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+      <span class="ss">false_negative_rate: </span><span class="p">(</span><span class="n">false_negatives</span><span class="p">.</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+      <span class="ss">accuracy: </span><span class="p">((</span><span class="n">total</span> <span class="o">-</span> <span class="n">false_positives</span> <span class="o">-</span> <span class="n">false_negatives</span><span class="p">).</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Record when human overrides AI</span>
+<span class="k">def</span> <span class="nf">approve</span>
+  <span class="n">comment</span> <span class="o">=</span> <span class="no">Comment</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+
+  <span class="no">ModerationAudit</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span>
+    <span class="ss">comment: </span><span class="n">comment</span><span class="p">,</span>
+    <span class="ss">reviewer: </span><span class="n">current_user</span><span class="p">,</span>
+    <span class="ss">ai_decision: </span><span class="n">comment</span><span class="p">.</span><span class="nf">moderation_status</span><span class="p">,</span>
+    <span class="ss">human_decision: </span><span class="s2">"approved"</span><span class="p">,</span>
+    <span class="ss">ai_confidence: </span><span class="n">comment</span><span class="p">.</span><span class="nf">moderation_score</span>
+  <span class="p">)</span>
+
+  <span class="n">comment</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="ss">moderation_status: </span><span class="s2">"approved"</span><span class="p">)</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Trade-offs Box</h2>
+
+<ul>
+<li><strong>Advantage:</strong> Zero-shot classification eliminates weeks of training data collection and model development. LLMs understand context better than keyword filters, reducing false positives by 40-60%. Adding new moderation categories takes minutes instead of retraining models.</li>
+<li><strong>Cost:</strong> API calls cost $0.10-$1.00 per 1,000 moderations. Latency of 200-500ms per request can slow user submissions without async processing. LLMs still make mistakes; expect 5-15% error rates requiring human review.</li>
+<li><strong>When to skip:</strong> For simple binary filters (profanity lists), use traditional pattern matching. For high-volume (millions/day) with stable categories, fine-tuned models are cheaper. For legal/regulated content, require human-in-the-loop regardless of AI confidence.</li>
+</ul>
+
+<hr>
+
+<h2>Debugging Checklist</h2>
+
+<p>When implementing content moderation:</p>
+
+<ol>
+<li>Log all moderation decisions with timestamps, content hash, model version, and prompt for debugging</li>
+<li>Set up confidence score thresholds: auto-approve (&gt;0.8 safe), auto-reject (&gt;0.9 unsafe), human review (between)</li>
+<li>Cache results by content hash to avoid re-moderating identical submissions</li>
+<li>Monitor API costs: track requests/day, average tokens per request, monthly spend</li>
+<li>Sample and review 5-10% of auto-approved and auto-rejected content for false positives/negatives</li>
+<li>A/B test prompts and thresholds to optimize accuracy vs. review queue size</li>
+<li>Implement rate limiting to prevent moderation API abuse from malicious bulk submissions</li>
+<li>Track moderation latency and set async processing for any calls over 200ms</li>
+<li>Store raw LLM responses for audit trails and prompt improvement</li>
+<li>Build feedback loop: let moderators report bad AI decisions to tune prompts</li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>LLMs enable zero-shot classification without training data; change categories by editing prompts</li>
+<li>Use structured JSON outputs for consistent moderation results with confidence scores</li>
+<li>Cache results by content hash to avoid redundant API calls; batch requests when possible</li>
+<li>Implement async moderation to avoid blocking user submissions; show pending status</li>
+<li>Build moderation queues with thresholds: auto-approve high confidence, human review medium confidence</li>
+<li>Track false positives and false negatives to tune prompts and confidence thresholds</li>
+<li>Balance cost, latency, and accuracy by choosing appropriate models and caching strategies</li>
+</ul>
+
+    
+  </div>
+</div>
+
+<!-- Exercise Tab -->
+<div id="exercise-tab" class="tab-content">
+  <div class="content-section">
+    
+      <h1>Exercise: Build a Content Moderation System with LLMs</h1>
+
+<h2>Objective</h2>
+
+<p>Build a working content moderation system for a blog comment platform using OpenAI&#39;s API. Implement auto-moderation with confidence thresholds, async processing, caching, and a human review queue.</p>
+
+<h2>Task</h2>
+
+<p>Create a Rails application that:</p>
+
+<ol>
+<li>Accepts user comments with async moderation</li>
+<li>Classifies comments using LLM with structured JSON output</li>
+<li>Auto-approves safe content, auto-rejects violations, queues uncertain cases</li>
+<li>Caches moderation results to avoid duplicate API calls</li>
+<li>Provides a moderation dashboard for human review</li>
+<li>Tracks accuracy metrics (false positives/negatives)</li>
+</ol>
+
+<h2>Acceptance Criteria</h2>
+
+<ul>
+<li>[ ] Comments are created with &quot;pending&quot; status and moderated in background job</li>
+<li>[ ] LLM returns structured JSON with safe, violations, confidence, and reason fields</li>
+<li>[ ] Auto-approve if safe=true and confidence &gt; 0.8</li>
+<li>[ ] Auto-reject if safe=false and confidence &gt; 0.9</li>
+<li>[ ] Queue for human review if confidence between 0.5-0.9</li>
+<li>[ ] Identical content uses cached moderation results (no redundant API calls)</li>
+<li>[ ] Moderation dashboard shows pending reviews sorted by risk score</li>
+<li>[ ] Track and display false positive/negative rates from human overrides</li>
+<li>[ ] All moderation decisions are logged with timestamps and AI reasoning</li>
+</ul>
+
+<h2>Verification Steps</h2>
+
+<p>Test the moderation flow:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create test comments</span>
+rails console
+
+<span class="c"># Safe comment (should auto-approve)</span>
+Comment.create<span class="o">(</span>body: <span class="s2">"Great article! Thanks for sharing this tutorial."</span>, author: <span class="s2">"Alice"</span><span class="o">)</span>
+<span class="c"># Check: moderation_status should be "approved", confidence &gt; 0.8</span>
+
+<span class="c"># Spam comment (should auto-reject)</span>
+Comment.create<span class="o">(</span>body: <span class="s2">"Buy cheap watches now! Visit my-store-link.com for deals!!!"</span>, author: <span class="s2">"Spammer"</span><span class="o">)</span>
+<span class="c"># Check: moderation_status should be "rejected", confidence &gt; 0.9</span>
+
+<span class="c"># Borderline comment (should queue for review)</span>
+Comment.create<span class="o">(</span>body: <span class="s2">"This is stupid. What a waste of time."</span>, author: <span class="s2">"Bob"</span><span class="o">)</span>
+<span class="c"># Check: moderation_status should be "pending_review", confidence 0.5-0.9</span>
+
+<span class="c"># Duplicate comment (should use cache)</span>
+Comment.create<span class="o">(</span>body: <span class="s2">"Great article! Thanks for sharing this tutorial."</span>, author: <span class="s2">"Charlie"</span><span class="o">)</span>
+<span class="c"># Check: logs show cache hit, no API call made</span>
+
+</code></pre></div>
+<p>Verify moderation dashboard:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Visit http://localhost:3000/moderator/comments</span>
+<span class="c"># Should see pending reviews sorted by confidence score</span>
+<span class="c"># Approve/reject buttons should update status and record audit</span>
+
+</code></pre></div>
+<p>Check metrics:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">ModerationMetrics</span><span class="p">.</span><span class="nf">calculate</span>
+<span class="c1"># Should return false_positive_rate, false_negative_rate, accuracy</span>
+
+</code></pre></div>
+<h2>Setup Code</h2>
+
+<h3>Step 1: Create Rails App and Models</h3>
+<div class="highlight"><pre class="highlight shell"><code>rails new content_moderator <span class="nt">--skip-javascript</span>
+<span class="nb">cd </span>content_moderator
+
+<span class="c"># Add dependencies</span>
+bundle add ruby-openai
+bundle add sidekiq
+
+<span class="c"># Create models</span>
+bin/rails generate model Comment body:text author:string moderation_status:integer moderation_score:float moderation_violations:jsonb moderation_reason:text moderated_at:datetime
+bin/rails generate model ModerationAudit comment:references ai_decision:string human_decision:integer ai_confidence:float reviewer_id:integer reviewed_at:datetime
+
+bin/rails db:migrate
+
+</code></pre></div>
+<h3>Step 2: Configure OpenAI</h3>
+
+<p>Create <code>.env</code> file:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>OPENAI_API_KEY=your_api_key_here
+
+</code></pre></div>
+<p>Add to <code>config/application.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">config</span><span class="p">.</span><span class="nf">before_initialize</span> <span class="k">do</span>
+  <span class="nb">require</span> <span class="s1">'openai'</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 3: Implement Comment Model</h3>
+
+<p><code>app/models/comment.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Comment</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">enum</span> <span class="ss">moderation_status: </span><span class="p">{</span>
+    <span class="ss">pending: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">approved: </span><span class="mi">1</span><span class="p">,</span>
+    <span class="ss">rejected: </span><span class="mi">2</span><span class="p">,</span>
+    <span class="ss">pending_review: </span><span class="mi">3</span>
+  <span class="p">}</span>
+
+  <span class="n">has_many</span> <span class="ss">:moderation_audits</span>
+
+  <span class="n">after_create_commit</span> <span class="ss">:queue_moderation</span>
+
+  <span class="n">scope</span> <span class="ss">:for_public_display</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">approved</span> <span class="p">}</span>
+  <span class="n">scope</span> <span class="ss">:needs_review</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">pending_review</span><span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="ss">moderation_score: :desc</span><span class="p">)</span> <span class="p">}</span>
+
+  <span class="k">def</span> <span class="nf">queue_moderation</span>
+    <span class="no">ModerateCommentJob</span><span class="p">.</span><span class="nf">perform_later</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">cache_key_for_moderation</span>
+    <span class="s2">"moderation/</span><span class="si">#{</span><span class="no">Digest</span><span class="o">::</span><span class="no">SHA256</span><span class="p">.</span><span class="nf">hexdigest</span><span class="p">(</span><span class="n">body</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 4: Create Moderation Service</h3>
+
+<p><code>app/services/content_moderator.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ContentModerator</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@client</span> <span class="o">=</span> <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">access_token: </span><span class="no">ENV</span><span class="p">[</span><span class="s2">"OPENAI_API_KEY"</span><span class="p">])</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">moderate</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="c1"># Check cache first</span>
+    <span class="n">cache_key</span> <span class="o">=</span> <span class="s2">"moderation/</span><span class="si">#{</span><span class="no">Digest</span><span class="o">::</span><span class="no">SHA256</span><span class="p">.</span><span class="nf">hexdigest</span><span class="p">(</span><span class="n">content</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="n">cache_key</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">7</span><span class="p">.</span><span class="nf">days</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">perform_moderation</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">perform_moderation</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="vi">@client</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span>
+        <span class="ss">model: </span><span class="s2">"gpt-4o-mini"</span><span class="p">,</span>
+        <span class="ss">messages: </span><span class="p">[</span>
+          <span class="p">{</span>
+            <span class="ss">role: </span><span class="s2">"system"</span><span class="p">,</span>
+            <span class="ss">content: </span><span class="n">moderation_system_prompt</span>
+          <span class="p">},</span>
+          <span class="p">{</span>
+            <span class="ss">role: </span><span class="s2">"user"</span><span class="p">,</span>
+            <span class="ss">content: </span><span class="s2">"Analyze this comment: </span><span class="si">#{</span><span class="n">content</span><span class="si">}</span><span class="s2">"</span>
+          <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="ss">response_format: </span><span class="p">{</span> <span class="ss">type: </span><span class="s2">"json_object"</span> <span class="p">},</span>
+        <span class="ss">temperature: </span><span class="mi">0</span><span class="p">,</span>
+        <span class="ss">max_tokens: </span><span class="mi">300</span>
+      <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="no">JSON</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"choices"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">))</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span><span class="p">(</span><span class="s2">"Moderation API called for content: </span><span class="si">#{</span><span class="n">content</span><span class="p">.</span><span class="nf">truncate</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">result</span>
+  <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span><span class="p">(</span><span class="s2">"Moderation failed: </span><span class="si">#{</span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="c1"># Return safe default on error</span>
+    <span class="p">{</span>
+      <span class="s2">"safe"</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span>
+      <span class="s2">"violations"</span> <span class="o">=&gt;</span> <span class="p">[],</span>
+      <span class="s2">"confidence"</span> <span class="o">=&gt;</span> <span class="mf">0.5</span><span class="p">,</span>
+      <span class="s2">"reason"</span> <span class="o">=&gt;</span> <span class="s2">"Error during moderation, defaulting to safe"</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">moderation_system_prompt</span>
+    <span class="o">&lt;&lt;~</span><span class="no">PROMPT</span><span class="sh">
+      You are a content moderation system for a blog comment platform.
+
+      Analyze the comment and return JSON with these exact fields:
+      {
+        "safe": boolean (true if content meets all policies),
+        "violations": array of strings (list policy violations, empty array if safe),
+        "confidence": float between 0.0 and 1.0,
+        "reason": string (brief explanation)
+      }
+
+      Policies:
+      1. No hate speech, threats, harassment, or bullying
+      2. No spam, commercial promotion, or unsolicited links
+      3. No graphic violence, adult content, or illegal activity
+      4. No misinformation about health, safety, or current events
+      5. Constructive criticism is allowed, but personal attacks are not
+
+      Examples:
+      - "Great article!" -&gt; safe=true, confidence=0.95
+      - "This is dumb" -&gt; safe=true, confidence=0.7 (rude but not violating)
+      - "You're an idiot and should die" -&gt; safe=false, violations=["threats", "harassment"], confidence=0.98
+      - "Buy my product at sketchy-link.com" -&gt; safe=false, violations=["spam"], confidence=0.95
+
+      Return valid JSON only. No explanations outside JSON.
+</span><span class="no">    PROMPT</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 5: Create Background Job</h3>
+
+<p><code>app/jobs/moderate_comment_job.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ModerateCommentJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="n">queue_as</span> <span class="ss">:moderation</span>
+
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">comment_id</span><span class="p">)</span>
+    <span class="n">comment</span> <span class="o">=</span> <span class="no">Comment</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">comment_id</span><span class="p">)</span>
+    <span class="n">moderator</span> <span class="o">=</span> <span class="no">ContentModerator</span><span class="p">.</span><span class="nf">new</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">moderator</span><span class="p">.</span><span class="nf">moderate</span><span class="p">(</span><span class="n">comment</span><span class="p">.</span><span class="nf">body</span><span class="p">)</span>
+
+    <span class="n">comment</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span>
+      <span class="ss">moderation_status: </span><span class="n">determine_status</span><span class="p">(</span><span class="n">result</span><span class="p">),</span>
+      <span class="ss">moderation_score: </span><span class="n">result</span><span class="p">[</span><span class="s2">"confidence"</span><span class="p">],</span>
+      <span class="ss">moderation_violations: </span><span class="n">result</span><span class="p">[</span><span class="s2">"violations"</span><span class="p">],</span>
+      <span class="ss">moderation_reason: </span><span class="n">result</span><span class="p">[</span><span class="s2">"reason"</span><span class="p">],</span>
+      <span class="ss">moderated_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+    <span class="p">)</span>
+
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span><span class="p">(</span><span class="s2">"Comment </span><span class="si">#{</span><span class="n">comment_id</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">comment</span><span class="p">.</span><span class="nf">moderation_status</span><span class="si">}</span><span class="s2">, confidence=</span><span class="si">#{</span><span class="n">result</span><span class="p">[</span><span class="s1">'confidence'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">determine_status</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s2">"safe"</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">result</span><span class="p">[</span><span class="s2">"confidence"</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.8</span>
+      <span class="s2">"approved"</span>
+    <span class="k">elsif</span> <span class="o">!</span><span class="n">result</span><span class="p">[</span><span class="s2">"safe"</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">result</span><span class="p">[</span><span class="s2">"confidence"</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.9</span>
+      <span class="s2">"rejected"</span>
+    <span class="k">else</span>
+      <span class="s2">"pending_review"</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 6: Create Moderation Dashboard</h3>
+
+<p><code>app/controllers/moderator/comments_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">Moderator</span>
+  <span class="k">class</span> <span class="nc">CommentsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+    <span class="n">before_action</span> <span class="ss">:require_moderator</span> <span class="c1"># Implement your auth</span>
+
+    <span class="k">def</span> <span class="nf">index</span>
+      <span class="vi">@comments</span> <span class="o">=</span> <span class="no">Comment</span><span class="p">.</span><span class="nf">needs_review</span><span class="p">.</span><span class="nf">page</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:page</span><span class="p">]).</span><span class="nf">per</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+      <span class="vi">@metrics</span> <span class="o">=</span> <span class="no">ModerationMetrics</span><span class="p">.</span><span class="nf">calculate</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">approve</span>
+      <span class="n">comment</span> <span class="o">=</span> <span class="no">Comment</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+
+      <span class="c1"># Record audit before changing status</span>
+      <span class="no">ModerationAudit</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span>
+        <span class="ss">comment: </span><span class="n">comment</span><span class="p">,</span>
+        <span class="ss">ai_decision: </span><span class="n">comment</span><span class="p">.</span><span class="nf">moderation_status</span><span class="p">,</span>
+        <span class="ss">human_decision: </span><span class="s2">"approved"</span><span class="p">,</span>
+        <span class="ss">ai_confidence: </span><span class="n">comment</span><span class="p">.</span><span class="nf">moderation_score</span><span class="p">,</span>
+        <span class="ss">reviewer_id: </span><span class="n">current_user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+        <span class="ss">reviewed_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+      <span class="p">)</span>
+
+      <span class="n">comment</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="ss">moderation_status: </span><span class="s2">"approved"</span><span class="p">)</span>
+      <span class="n">redirect_to</span> <span class="n">moderator_comments_path</span><span class="p">,</span> <span class="ss">notice: </span><span class="s2">"Comment approved"</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">reject</span>
+      <span class="n">comment</span> <span class="o">=</span> <span class="no">Comment</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+
+      <span class="no">ModerationAudit</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span>
+        <span class="ss">comment: </span><span class="n">comment</span><span class="p">,</span>
+        <span class="ss">ai_decision: </span><span class="n">comment</span><span class="p">.</span><span class="nf">moderation_status</span><span class="p">,</span>
+        <span class="ss">human_decision: </span><span class="s2">"rejected"</span><span class="p">,</span>
+        <span class="ss">ai_confidence: </span><span class="n">comment</span><span class="p">.</span><span class="nf">moderation_score</span><span class="p">,</span>
+        <span class="ss">reviewer_id: </span><span class="n">current_user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+        <span class="ss">reviewed_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+      <span class="p">)</span>
+
+      <span class="n">comment</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="ss">moderation_status: </span><span class="s2">"rejected"</span><span class="p">)</span>
+      <span class="n">redirect_to</span> <span class="n">moderator_comments_path</span><span class="p">,</span> <span class="ss">notice: </span><span class="s2">"Comment rejected"</span>
+    <span class="k">end</span>
+
+    <span class="kp">private</span>
+
+    <span class="k">def</span> <span class="nf">require_moderator</span>
+      <span class="c1"># Implement your authorization logic</span>
+      <span class="c1"># redirect_to root_path unless current_user&amp;.moderator?</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 7: Add Routes</h3>
+
+<p><code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:comments</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">,</span> <span class="ss">:create</span><span class="p">]</span>
+
+  <span class="n">namespace</span> <span class="ss">:moderator</span> <span class="k">do</span>
+    <span class="n">resources</span> <span class="ss">:comments</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">]</span> <span class="k">do</span>
+      <span class="n">member</span> <span class="k">do</span>
+        <span class="n">post</span> <span class="ss">:approve</span>
+        <span class="n">post</span> <span class="ss">:reject</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 8: Create Metrics Service</h3>
+
+<p><code>app/services/moderation_metrics.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ModerationMetrics</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">calculate</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="no">ModerationAudit</span><span class="p">.</span><span class="nf">count</span>
+    <span class="k">return</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">total</span><span class="p">.</span><span class="nf">zero?</span>
+
+    <span class="c1"># False positive: AI rejected, human approved</span>
+    <span class="n">false_positives</span> <span class="o">=</span> <span class="no">ModerationAudit</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span>
+      <span class="ss">ai_decision: </span><span class="s2">"rejected"</span><span class="p">,</span>
+      <span class="ss">human_decision: </span><span class="s2">"approved"</span>
+    <span class="p">).</span><span class="nf">count</span>
+
+    <span class="c1"># False negative: AI approved, human rejected</span>
+    <span class="n">false_negatives</span> <span class="o">=</span> <span class="no">ModerationAudit</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span>
+      <span class="ss">ai_decision: </span><span class="s2">"approved"</span><span class="p">,</span>
+      <span class="ss">human_decision: </span><span class="s2">"rejected"</span>
+    <span class="p">).</span><span class="nf">count</span>
+
+    <span class="c1"># Agreement</span>
+    <span class="n">agreements</span> <span class="o">=</span> <span class="no">ModerationAudit</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span>
+      <span class="s2">"ai_decision = CASE WHEN human_decision = 0 THEN 'approved' ELSE 'rejected' END"</span>
+    <span class="p">).</span><span class="nf">count</span>
+
+    <span class="p">{</span>
+      <span class="ss">total_reviews: </span><span class="n">total</span><span class="p">,</span>
+      <span class="ss">false_positive_rate: </span><span class="p">(</span><span class="n">false_positives</span><span class="p">.</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+      <span class="ss">false_negative_rate: </span><span class="p">(</span><span class="n">false_negatives</span><span class="p">.</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+      <span class="ss">accuracy: </span><span class="p">(</span><span class="n">agreements</span><span class="p">.</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+      <span class="ss">avg_ai_confidence: </span><span class="no">ModerationAudit</span><span class="p">.</span><span class="nf">average</span><span class="p">(</span><span class="ss">:ai_confidence</span><span class="p">).</span><span class="nf">to_f</span><span class="p">.</span><span class="nf">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 9: Create Dashboard View</h3>
+
+<p><code>app/views/moderator/comments/index.html.erb</code>:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="nt">&lt;h1&gt;</span>Moderation Queue<span class="nt">&lt;/h1&gt;</span>
+
+<span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"metrics"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;h2&gt;</span>Accuracy Metrics<span class="nt">&lt;/h2&gt;</span>
+  <span class="nt">&lt;ul&gt;</span>
+    <span class="nt">&lt;li&gt;</span>Total Reviews: <span class="cp">&lt;%=</span> <span class="vi">@metrics</span><span class="p">[</span><span class="ss">:total_reviews</span><span class="p">]</span> <span class="cp">%&gt;</span><span class="nt">&lt;/li&gt;</span>
+    <span class="nt">&lt;li&gt;</span>False Positive Rate: <span class="cp">&lt;%=</span> <span class="vi">@metrics</span><span class="p">[</span><span class="ss">:false_positive_rate</span><span class="p">]</span> <span class="cp">%&gt;</span>%<span class="nt">&lt;/li&gt;</span>
+    <span class="nt">&lt;li&gt;</span>False Negative Rate: <span class="cp">&lt;%=</span> <span class="vi">@metrics</span><span class="p">[</span><span class="ss">:false_negative_rate</span><span class="p">]</span> <span class="cp">%&gt;</span>%<span class="nt">&lt;/li&gt;</span>
+    <span class="nt">&lt;li&gt;</span>Accuracy: <span class="cp">&lt;%=</span> <span class="vi">@metrics</span><span class="p">[</span><span class="ss">:accuracy</span><span class="p">]</span> <span class="cp">%&gt;</span>%<span class="nt">&lt;/li&gt;</span>
+    <span class="nt">&lt;li&gt;</span>Avg AI Confidence: <span class="cp">&lt;%=</span> <span class="vi">@metrics</span><span class="p">[</span><span class="ss">:avg_ai_confidence</span><span class="p">]</span> <span class="cp">%&gt;</span><span class="nt">&lt;/li&gt;</span>
+  <span class="nt">&lt;/ul&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+
+<span class="nt">&lt;table&gt;</span>
+  <span class="nt">&lt;thead&gt;</span>
+    <span class="nt">&lt;tr&gt;</span>
+      <span class="nt">&lt;th&gt;</span>Author<span class="nt">&lt;/th&gt;</span>
+      <span class="nt">&lt;th&gt;</span>Comment<span class="nt">&lt;/th&gt;</span>
+      <span class="nt">&lt;th&gt;</span>AI Decision<span class="nt">&lt;/th&gt;</span>
+      <span class="nt">&lt;th&gt;</span>Confidence<span class="nt">&lt;/th&gt;</span>
+      <span class="nt">&lt;th&gt;</span>Violations<span class="nt">&lt;/th&gt;</span>
+      <span class="nt">&lt;th&gt;</span>Reason<span class="nt">&lt;/th&gt;</span>
+      <span class="nt">&lt;th&gt;</span>Actions<span class="nt">&lt;/th&gt;</span>
+    <span class="nt">&lt;/tr&gt;</span>
+  <span class="nt">&lt;/thead&gt;</span>
+  <span class="nt">&lt;tbody&gt;</span>
+    <span class="cp">&lt;%</span> <span class="vi">@comments</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">comment</span><span class="o">|</span> <span class="cp">%&gt;</span>
+      <span class="nt">&lt;tr&gt;</span>
+        <span class="nt">&lt;td&gt;</span><span class="cp">&lt;%=</span> <span class="n">comment</span><span class="p">.</span><span class="nf">author</span> <span class="cp">%&gt;</span><span class="nt">&lt;/td&gt;</span>
+        <span class="nt">&lt;td&gt;</span><span class="cp">&lt;%=</span> <span class="n">comment</span><span class="p">.</span><span class="nf">body</span><span class="p">.</span><span class="nf">truncate</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span> <span class="cp">%&gt;</span><span class="nt">&lt;/td&gt;</span>
+        <span class="nt">&lt;td&gt;</span><span class="cp">&lt;%=</span> <span class="n">comment</span><span class="p">.</span><span class="nf">moderation_status</span> <span class="cp">%&gt;</span><span class="nt">&lt;/td&gt;</span>
+        <span class="nt">&lt;td&gt;</span><span class="cp">&lt;%=</span> <span class="p">(</span><span class="n">comment</span><span class="p">.</span><span class="nf">moderation_score</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">round</span> <span class="cp">%&gt;</span>%<span class="nt">&lt;/td&gt;</span>
+        <span class="nt">&lt;td&gt;</span><span class="cp">&lt;%=</span> <span class="n">comment</span><span class="p">.</span><span class="nf">moderation_violations</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s2">", "</span><span class="p">)</span> <span class="cp">%&gt;</span><span class="nt">&lt;/td&gt;</span>
+        <span class="nt">&lt;td&gt;</span><span class="cp">&lt;%=</span> <span class="n">comment</span><span class="p">.</span><span class="nf">moderation_reason</span> <span class="cp">%&gt;</span><span class="nt">&lt;/td&gt;</span>
+        <span class="nt">&lt;td&gt;</span>
+          <span class="cp">&lt;%=</span> <span class="n">button_to</span> <span class="s2">"Approve"</span><span class="p">,</span> <span class="n">approve_moderator_comment_path</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span> <span class="cp">%&gt;</span>
+          <span class="cp">&lt;%=</span> <span class="n">button_to</span> <span class="s2">"Reject"</span><span class="p">,</span> <span class="n">reject_moderator_comment_path</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span> <span class="cp">%&gt;</span>
+        <span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;/tr&gt;</span>
+    <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;/tbody&gt;</span>
+<span class="nt">&lt;/table&gt;</span>
+
+<span class="cp">&lt;%=</span> <span class="n">paginate</span> <span class="vi">@comments</span> <span class="cp">%&gt;</span>
+
+</code></pre></div>
+<h3>Step 10: Run and Test</h3>
+
+<p>Start Sidekiq for background jobs:</p>
+<div class="highlight"><pre class="highlight shell"><code>bundle <span class="nb">exec </span>sidekiq
+
+</code></pre></div>
+<p>Start Rails server:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails server
+
+</code></pre></div>
+<p>Test in console:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails console
+
+<span class="c"># Create test comments</span>
+Comment.create<span class="o">(</span>body: <span class="s2">"Great article! Very helpful."</span>, author: <span class="s2">"Alice"</span><span class="o">)</span>
+Comment.create<span class="o">(</span>body: <span class="s2">"Visit buy-now-cheap.com for amazing deals!!!"</span>, author: <span class="s2">"Spammer"</span><span class="o">)</span>
+Comment.create<span class="o">(</span>body: <span class="s2">"This is kind of dumb."</span>, author: <span class="s2">"Bob"</span><span class="o">)</span>
+
+<span class="c"># Check statuses</span>
+Comment.all.each <span class="k">do</span> |c|
+  puts <span class="s2">"#{c.author}: #{c.moderation_status} (#{c.moderation_score})"</span>
+end
+
+<span class="c"># Create duplicate (should use cache)</span>
+Comment.create<span class="o">(</span>body: <span class="s2">"Great article! Very helpful."</span>, author: <span class="s2">"Charlie"</span><span class="o">)</span>
+<span class="c"># Check logs for cache hit</span>
+
+<span class="c"># View metrics</span>
+ModerationMetrics.calculate
+
+</code></pre></div>
+<p>Visit dashboard:<br>
+<code><br>
+http://localhost:3000/moderator/comments<br>
+</code></p>
+
+<h2>Stretch (Optional)</h2>
+
+<ol>
+<li><strong>Add batch moderation:</strong> Process multiple comments in a single API call to reduce latency and costs.</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">BatchContentModerator</span>
+  <span class="k">def</span> <span class="nf">moderate_batch</span><span class="p">(</span><span class="n">comments</span><span class="p">)</span>
+    <span class="n">prompt</span> <span class="o">=</span> <span class="n">build_batch_prompt</span><span class="p">(</span><span class="n">comments</span><span class="p">)</span>
+    <span class="c1"># Send single API call, parse JSON array response</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<ol>
+<li><p><strong>Implement appeal system:</strong> Allow users to contest rejected comments, triggering human review.</p></li>
+<li><p><strong>Add severity scoring:</strong> Instead of binary safe/unsafe, use severity levels (low, medium, high, critical).</p></li>
+<li><p><strong>Custom policies:</strong> Allow admins to configure custom moderation rules via UI.</p></li>
+<li><p><strong>Rate limiting:</strong> Prevent abuse by limiting comments per user per hour.</p></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Comment</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">before_create</span> <span class="ss">:check_rate_limit</span>
+
+  <span class="k">def</span> <span class="nf">check_rate_limit</span>
+    <span class="n">recent_count</span> <span class="o">=</span> <span class="no">Comment</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">author: </span><span class="n">author</span><span class="p">)</span>
+                          <span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"created_at &gt; ?"</span><span class="p">,</span> <span class="mi">1</span><span class="p">.</span><span class="nf">hour</span><span class="p">.</span><span class="nf">ago</span><span class="p">)</span>
+                          <span class="p">.</span><span class="nf">count</span>
+    <span class="n">errors</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="ss">:base</span><span class="p">,</span> <span class="s2">"Too many comments"</span><span class="p">)</span> <span class="k">if</span> <span class="n">recent_count</span> <span class="o">&gt;</span> <span class="mi">10</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<ol>
+<li><strong>A/B test prompts:</strong> Try different moderation prompts and compare accuracy.</li>
+</ol>
+
+<h2>Time Estimate</h2>
+
+<p>25 minutes</p>
+
+<h2>Common Issues</h2>
+
+<p><strong>API errors:</strong> Ensure <code>OPENAI_API_KEY</code> is set correctly in <code>.env</code> and loaded.</p>
+
+<p><strong>Sidekiq not processing:</strong> Make sure Sidekiq is running in a separate terminal.</p>
+
+<p><strong>Cache not working:</strong> Check Rails cache is configured (default: file store in development).</p>
+
+<p><strong>JSON parsing errors:</strong> LLM occasionally returns invalid JSON. Add error handling and retry logic.</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">perform_moderation</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+  <span class="n">retries</span> <span class="o">||=</span> <span class="mi">0</span>
+  <span class="c1"># ... API call ...</span>
+  <span class="no">JSON</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"choices"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">))</span>
+<span class="k">rescue</span> <span class="no">JSON</span><span class="o">::</span><span class="no">ParserError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">retries</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">warn</span><span class="p">(</span><span class="s2">"JSON parse failed, retrying..."</span><span class="p">)</span>
+    <span class="k">retry</span>
+  <span class="k">else</span>
+    <span class="c1"># Return safe default after retries</span>
+    <span class="k">return</span> <span class="n">default_safe_response</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+    
+  </div>
+</div>
+
+<!-- Checkpoint Tab -->
+<div id="checkpoint-tab" class="tab-content">
+  <div class="content-section">
+    
+      
+      <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
+        <p><strong>Passing Score:</strong> 7 points</p>
+        <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
+      </div>
+
+      
+        <div class="question"
+             data-question-id="0"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="LLMs understand context and intent, catching violations that evade keyword filters">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the main advantage of using LLMs for content moderation over traditional keyword-based filters?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  LLMs are always 100% accurate
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  LLMs are free and have no API costs
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  LLMs understand context and intent, catching violations that evade keyword filters
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  LLMs require extensive training data for each new category
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> LLMs can detect subtle violations like euphemisms or misspellings that keyword filters miss, and they understand context to reduce false positives.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="1"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Queue it for human review">
+          <h4>Question 2 (1 points)</h4>
+          <p style="margin: 10px 0;">What should you do when an LLM returns a moderation confidence score of 0.65 for potentially unsafe content?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  Auto-approve it since it's below 0.7
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  Auto-reject it to be safe
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  Queue it for human review
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Re-run the moderation check
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Medium confidence scores (0.5-0.9) should trigger human review. Only high confidence decisions should be automated.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="2"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="To avoid redundant API calls for identical content, saving costs">
+          <h4>Question 3 (2 points)</h4>
+          <p style="margin: 10px 0;">Why should you cache moderation results by content hash?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  To make the API responses faster
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  To avoid redundant API calls for identical content, saving costs
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  To store moderation history
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  To improve LLM accuracy
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Identical content will produce the same moderation result. Caching by content hash prevents expensive duplicate API calls.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="3"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 4 (2 points)</h4>
+          <p style="margin: 10px 0;">Why should content moderation be performed asynchronously in a background job rather than blocking user submissions?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Async moderation prevents 200-500ms API latency from blocking user submissions. Users get immediate feedback, and moderation happens in the background without degrading UX.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="4"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Classification that requires no training data; uses natural language prompts to define categories">
+          <h4>Question 5 (1 points)</h4>
+          <p style="margin: 10px 0;">What is zero-shot classification?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  Classification that requires no training data; uses natural language prompts to define categories
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  Classification with 0% accuracy
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  Classification that takes zero time to run
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  Classification that costs nothing
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Zero-shot means the model can classify content into categories it wasn't specifically trained on, using only prompt descriptions.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="5"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="To tune confidence thresholds and improve prompt accuracy over time">
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the purpose of tracking false positive and false negative rates in content moderation?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  To calculate API costs
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  To tune confidence thresholds and improve prompt accuracy over time
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  To speed up moderation processing
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  To eliminate the need for human review
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Monitoring false positives (incorrect rejections) and false negatives (missed violations) helps optimize moderation prompts and confidence thresholds.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 7 (2 points)</h4>
+          <p style="margin: 10px 0;">Write code to create a moderation status that auto-approves safe content with confidence > 0.8, auto-rejects unsafe content with confidence > 0.9, and queues everything else for review.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">def determine_status(result)
+  return 'approved' if result['safe'] && result['confidence'] > 0.8
+  return 'rejected' if !result['safe'] && result['confidence'] > 0.9
+  'pending_review'
+end
+</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="0 (deterministic, consistent output)">
+          <h4>Question 8 (1 points)</h4>
+          <p style="margin: 10px 0;">What temperature setting should you use for consistent content moderation classifications?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  0 (deterministic, consistent output)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  0.7 (balanced creativity)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  1.5 (maximum creativity)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Temperature doesn't matter for classification
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Temperature 0 produces consistent, deterministic outputs which is essential for reliable moderation. Higher temperatures add randomness.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Cache the first result and reuse for identical content">
+          <h4>Question 9 (2 points)</h4>
+          <p style="margin: 10px 0;">Which approach is most cost-effective for moderating thousands of identical spam messages?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(8, 0)">
+                  Call the LLM API for each message
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 1)">
+                  Use batch API calls for all messages
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 2)">
+                  Cache the first result and reuse for identical content
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 3)">
+                  Use a fine-tuned model instead
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Caching by content hash means identical spam is only moderated once, then cached results are reused, eliminating redundant API calls.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 10 (2 points)</h4>
+          <p style="margin: 10px 0;">Name two scenarios where you should NOT rely solely on LLM moderation and require human-in-the-loop review.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">1. Legal or regulated content where mistakes have serious consequences (HIPAA, COPPA, etc.). 2. Content with low AI confidence scores (0.5-0.8) where the model is uncertain.</p>
+            </div>
+          
+        </div>
+      
+
+      <div style="margin-top: 30px; display: flex; gap: 10px;">
+        <button onclick="checkAnswers()" style="padding: 12px 24px; background: #CC0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600;">
+          Check Answers
+        </button>
+        <button onclick="resetQuiz()" style="padding: 12px 24px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+          Reset
+        </button>
+      </div>
+
+      <div class="score-display" data-passing="7"></div>
+    
+  </div>
+</div>
+
+<!-- References Tab -->
+<div id="references-tab" class="tab-content">
+  <div class="content-section">
+    
+      <p style="margin-bottom: 20px; color: var(--text-secondary);">
+        Curated sources to deepen your understanding. All references point to official documentation,
+        canonical books, or reputable technical content.
+      </p>
+      <ul class="reference-list">
+        
+          <li>
+            <a href="https://platform.openai.com/docs/guides/moderation" target="_blank">OpenAI Moderation API Documentation</a>
+            <div class="why">Official OpenAI guide for content moderation, including free Moderation endpoint for detecting harmful content.</div>
+          </li>
+        
+          <li>
+            <a href="https://platform.openai.com/docs/guides/structured-outputs" target="_blank">OpenAI Structured Outputs (JSON Mode)</a>
+            <div class="why">How to get consistent JSON responses from LLMs for reliable moderation results with defined schemas.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/alexrudall/ruby-openai" target="_blank">ruby-openai Gem Documentation</a>
+            <div class="why">Ruby client for OpenAI API with examples for chat completions and structured outputs.</div>
+          </li>
+        
+          <li>
+            <a href="https://transparency.fb.com/policies/community-standards/" target="_blank">Meta's Content Moderation Best Practices</a>
+            <div class="why">Real-world content policies from Meta covering hate speech, violence, spam, and misinformation categories.</div>
+          </li>
+        
+          <li>
+            <a href="https://www.trustsafety.guide/" target="_blank">Trust & Safety: A Guide to Content Moderation</a>
+            <div class="why">Comprehensive guide to building moderation systems including human-in-the-loop workflows and accuracy metrics.</div>
+          </li>
+        
+          <li>
+            <a href="https://docs.anthropic.com/claude/docs/content-moderation" target="_blank">Anthropic's Claude Moderation Capabilities</a>
+            <div class="why">Alternative LLM provider with strong moderation capabilities and constitutional AI safety features.</div>
+          </li>
+        
+          <li>
+            <a href="https://perspectiveapi.com/" target="_blank">Google Perspective API</a>
+            <div class="why">Free toxicity detection API for comparing with LLM-based moderation or as a complementary safety layer.</div>
+          </li>
+        
+      </ul>
+    
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="topic-navigation">
+  
+    <a href="ai_powered_features.html" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">AI-Powered Search & Recommendations</div>
+      </div>
+    </a>
+  
+
+  
+    <a href="llm_api_integration.html" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">LLM API Integration Basics</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+
+  <script>
+    // Dark mode toggle with persistence
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      document.body.classList.add('dark-mode');
+      document.querySelector('.light-icon').style.display = 'none';
+      document.querySelector('.dark-icon').style.display = 'inline';
+    }
+
+    darkModeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      document.querySelector('.light-icon').style.display = isDark ? 'none' : 'inline';
+      document.querySelector('.dark-icon').style.display = isDark ? 'inline' : 'none';
+    });
+
+    // Progress tracking with localStorage
+    function markComplete(topicKey) {
+      const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+      if (!completed.includes(topicKey)) {
+        completed.push(topicKey);
+        localStorage.setItem('completed', JSON.stringify(completed));
+        updateProgress();
+      }
+    }
+
+    function isComplete(topicKey) {
+      const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+      return completed.includes(topicKey);
+    }
+
+    function updateProgress() {
+      const totalTopics = 59;
+      const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+      const percentage = (completed.length / totalTopics) * 100;
+
+      document.querySelectorAll('.progress-bar-fill').forEach(fill => {
+        fill.style.width = percentage + '%';
+      });
+
+      document.querySelectorAll('[data-topic-key]').forEach(card => {
+        const key = card.dataset.topicKey;
+        const badge = card.querySelector('.completion-badge');
+        if (badge && isComplete(key)) {
+          badge.classList.add('completed');
+        }
+      });
+    }
+
+    // Initialize progress on page load
+    updateProgress();
+  </script>
+</body>
+</html>

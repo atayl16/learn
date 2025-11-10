@@ -1,0 +1,28 @@
+references:
+  - title: "GitHub Copilot Documentation"
+    url: "https://docs.github.com/en/copilot"
+    why: "Official GitHub documentation for Copilot covering installation, usage, shortcuts, and best practices for AI-assisted coding across multiple IDEs."
+
+  - title: "Cursor Editor Documentation"
+    url: "https://docs.cursor.com/"
+    why: "Official guide to Cursor, the AI-native code editor built on VS Code. Covers AI chat features, codebase indexing, multi-file editing, and advanced prompt engineering techniques."
+
+  - title: "Anthropic Claude Code CLI"
+    url: "https://github.com/anthropics/anthropic-sdk-typescript/tree/main/packages/cli"
+    why: "Documentation for Claude Code, Anthropic's autonomous AI agent CLI. Learn how to execute complex multi-step development tasks like adding features, refactoring, and running tests."
+
+  - title: "The Pragmatic Programmer's Guide to AI-Assisted Development"
+    url: "https://pragprog.com/titles/d-aiassist/ai-assisted-programming/"
+    why: "Comprehensive book on integrating AI tools into development workflows, covering prompt engineering, code review automation, testing strategies, and avoiding common pitfalls."
+
+  - title: "AI Code Review Best Practices — GitHub Blog"
+    url: "https://github.blog/2023-11-08-ai-code-review-best-practices/"
+    why: "GitHub's guide to using AI for code review: setting up automated PR reviews, balancing AI suggestions with human judgment, and measuring effectiveness of AI review tools."
+
+  - title: "Prompt Engineering for Developers — OpenAI"
+    url: "https://platform.openai.com/docs/guides/prompt-engineering"
+    why: "OpenAI's guide to writing effective prompts for code generation. Covers strategies for specificity, context provision, and iterative refinement applicable to GitHub Copilot and other AI coding tools."
+
+  - title: "Rails Security Guide — Authentication & Authorization"
+    url: "https://guides.rubyonrails.org/security.html"
+    why: "Essential reading for reviewing AI-generated authentication and authorization code. Covers SQL injection, XSS, CSRF, and other vulnerabilities that AI tools may introduce."

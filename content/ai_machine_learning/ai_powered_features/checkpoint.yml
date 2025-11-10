@@ -1,0 +1,94 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "Why do embeddings enable semantic search that keyword search cannot provide?"
+      choices:
+        - "Embeddings are faster to query than full-text indexes"
+        - "Embeddings capture meaning so similar concepts cluster together in vector space"
+        - "Embeddings use less disk space than keyword indexes"
+        - "Embeddings automatically update when content changes"
+      correct: "Embeddings capture meaning so similar concepts cluster together in vector space"
+      why: "Embeddings represent text as vectors where semantically similar content has similar coordinates, enabling 'Rails performance' to match 'optimize Ruby apps' despite different words. Keyword search only matches exact terms."
+
+    - kind: mcq
+      points: 2
+      prompt: "Which distance metric should you use with OpenAI embeddings in pgvector?"
+      choices:
+        - "Cosine distance (<=>)"
+        - "L2 distance (<->)"
+        - "Inner product (<#>)"
+        - "Manhattan distance"
+      correct: "Cosine distance (<=>)"
+      why: "OpenAI embeddings are optimized for cosine distance, which measures the angle between vectors. L2 considers magnitude, and inner product is for normalized vectors. OpenAI's documentation specifies cosine."
+
+    - kind: mcq
+      points: 1
+      prompt: "When should you generate embeddings for an article?"
+      choices:
+        - "On every search query"
+        - "Once when created/updated, then reuse for all queries"
+        - "Daily via a cron job"
+        - "Only when a user searches for it"
+      correct: "Once when created/updated, then reuse for all queries"
+      why: "Embeddings are expensive (API cost, latency). Generate once on content change, store in vector column, and reuse. Only query embeddings are generated at search time."
+
+    - kind: short
+      points: 2
+      prompt: "What is hybrid search and why is it better than pure semantic search?"
+      sample_answer: "Hybrid search combines semantic similarity (embeddings) with keyword matching (full-text search), typically with weighted scores (e.g., 70% semantic, 30% keyword). It's better because semantic search can miss exact matches like product SKUs or acronyms, while keyword search misses synonyms. Combining both gives comprehensive results."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why do you need an IVFFlat or HNSW index on embedding columns?"
+      choices:
+        - "To reduce disk space usage"
+        - "To avoid exhaustive full-table scans on large datasets"
+        - "To automatically update embeddings"
+        - "To enable cosine distance calculations"
+      correct: "To avoid exhaustive full-table scans on large datasets"
+      why: "Without indexes, pgvector compares query embedding against every row (O(n)). On 100K+ rows, this takes seconds. IVFFlat/HNSW indexes cluster similar vectors, reducing search to O(log n) or better."
+
+    - kind: short
+      points: 2
+      prompt: "Write Rails code to find the 5 most similar articles to a given article using cosine distance."
+      sample_answer: "Article.nearest_neighbors(:embedding, article.embedding, distance: 'cosine').where.not(id: article.id).limit(5)"
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the dimension of OpenAI's text-embedding-ada-002 model?"
+      choices:
+        - "512"
+        - "768"
+        - "1536"
+        - "3072"
+      correct: "1536"
+      why: "OpenAI's ada-002 model outputs 1536-dimensional vectors. This must match your vector column limit when defining the schema."
+
+    - kind: mcq
+      points: 2
+      prompt: "How should you implement content-based recommendations for 'similar articles'?"
+      choices:
+        - "Find articles with the most shared keywords"
+        - "Find articles by the same author"
+        - "Find nearest neighbors to the article's embedding vector"
+        - "Find articles published on the same date"
+      correct: "Find nearest neighbors to the article's embedding vector"
+      why: "Content-based recommendations use embedding similarity. Articles with similar embeddings have similar meaning/topics, even if worded differently. This is more effective than keyword overlap."
+
+    - kind: short
+      points: 2
+      prompt: "Why should you cache query embeddings instead of generating them on every search request?"
+      sample_answer: "Generating embeddings costs money (0.0001 per 1K tokens for OpenAI) and adds 50-200ms latency per API call. Caching identical queries (using SHA256 hash of query text as key) avoids repeated API calls, reducing costs and improving response time."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the trade-off of using IVFFlat indexes compared to exact search?"
+      choices:
+        - "IVFFlat uses more memory"
+        - "IVFFlat is slower than exact search"
+        - "IVFFlat may miss some nearest neighbors (lower recall)"
+        - "IVFFlat only works with L2 distance"
+      correct: "IVFFlat may miss some nearest neighbors (lower recall)"
+      why: "IVFFlat is an approximate nearest neighbor algorithm. It clusters vectors and only searches relevant clusters, which is fast but may miss true nearest neighbors outside searched clusters. Increase 'lists' parameter to improve recall."

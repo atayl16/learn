@@ -1,0 +1,15 @@
+topic:
+  key: rag_systems
+  name: RAG Systems in Rails
+  track_key: ai_machine_learning
+  depth_target: Working
+  prerequisites: ["llm_api_integration", "ai_powered_features"]
+  objectives:
+    - Design document processing pipelines for RAG
+    - Implement chunk strategies for optimal retrieval
+    - Build context retrieval systems with vector search
+    - Combine retrieved context with LLM generation effectively
+  key_terms: ["RAG", "retrieval-augmented generation", "document chunking", "context retrieval", "knowledge base", "embeddings pipeline"]
+  est_minutes_read: 12
+  est_minutes_exercise: 30
+  tags: ["ai", "rag", "knowledge-base", "embeddings", "document-processing"]

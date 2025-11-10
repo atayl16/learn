@@ -1,0 +1,15 @@
+topic:
+  key: content_moderation_ai
+  name: Content Moderation & Classification
+  track_key: ai_machine_learning
+  depth_target: Working
+  prerequisites: ["llm_api_integration"]
+  objectives:
+    - Implement automated content moderation with LLMs
+    - Build text classification systems for categorization
+    - Design safe AI systems with filtering and fallbacks
+    - Monitor and improve classification accuracy over time
+  key_terms: ["content moderation", "text classification", "sentiment analysis", "safety filters", "zero-shot classification"]
+  est_minutes_read: 10
+  est_minutes_exercise: 25
+  tags: ["ai", "moderation", "classification", "safety", "content-filtering"]

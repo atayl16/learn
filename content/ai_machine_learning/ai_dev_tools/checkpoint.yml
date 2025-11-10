@@ -1,0 +1,105 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 1
+      prompt: "What is the primary advantage of using AI tools like GitHub Copilot for Rails development?"
+      choices:
+        - "AI tools completely eliminate the need for manual coding and testing"
+        - "AI tools accelerate boilerplate generation and catch common bugs, requiring less manual review"
+        - "AI tools generate production-ready code for business logic without review"
+        - "AI tools handle scaffolding and repetitive patterns while requiring thorough review of generated code"
+      correct: "AI tools handle scaffolding and repetitive patterns while requiring thorough review of generated code"
+      why: "AI tools excel at generating boilerplate (models, controllers, tests) but require human review for correctness, security, and edge cases. They accelerate development by 30-50% but don't eliminate the need for expert review."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which of these tasks should you NOT trust AI tools to handle without extensive review?"
+      choices:
+        - "Generating test cases for model validations"
+        - "Creating database migrations with indexes"
+        - "Implementing authentication and authorization logic"
+        - "Writing CRUD controller actions"
+      correct: "Implementing authentication and authorization logic"
+      why: "Security-critical code like authentication, authorization, and payment processing requires deep expertise and careful review. AI tools may generate code with vulnerabilities like missing authorization checks, SQL injection, or improper password handling."
+
+    - kind: mcq
+      points: 1
+      prompt: "You're using Copilot and it suggests `User.where(active: true).map(&:email)` to get emails. What's the problem?"
+      choices:
+        - "Nothing, this is correct and efficient"
+        - "Should use `find_by` instead of `where`"
+        - "Loads all User objects into memory; should use `pluck(:email)` instead"
+        - "Should use a join query instead"
+      correct: "Loads all User objects into memory; should use `pluck(:email)` instead"
+      why: "`map(&:email)` loads all matching User records into ActiveRecord objects, consuming memory. `pluck(:email)` executes a SELECT query for only the email column, returning an array without instantiating objects. For 10,000 users, this saves significant memory."
+
+    - kind: short
+      points: 2
+      prompt: "An AI tool generates this code: `User.where(\"email LIKE '%#{params[:search]}%'\")`. Identify the security vulnerability and provide the correct implementation."
+      sample_answer: "SQL injection vulnerability. User input `params[:search]` is directly interpolated into SQL, allowing attackers to inject malicious SQL (e.g., `'; DROP TABLE users; --`). Fix: Use parameterized queries: `User.where('email LIKE ?', \"%#{params[:search]}%\")` or `User.where('email LIKE :search', search: \"%#{params[:search]}%\")`. Rails sanitizes parameters in the placeholder syntax."
+
+    - kind: mcq
+      points: 2
+      prompt: "AI generates a ProcessOrder service that calls Stripe, updates inventory, and sends emails. Which improvement is MOST critical for production?"
+      choices:
+        - "Add detailed logging for debugging"
+        - "Extract private methods for better code organization"
+        - "Wrap operations in a database transaction to ensure atomicity"
+        - "Use background jobs for email delivery"
+      correct: "Wrap operations in a database transaction to ensure atomicity"
+      why: "Without a transaction, partial failures leave inconsistent state (e.g., payment succeeded but inventory not updated). Wrap critical operations in `ApplicationRecord.transaction` to ensure all-or-nothing execution. Background jobs are also important but transaction guarantees data integrity."
+
+    - kind: mcq
+      points: 1
+      prompt: "When is it appropriate to skip code review of AI-generated code?"
+      choices:
+        - "When the code passes all tests"
+        - "When it's boilerplate like migrations or simple models"
+        - "When using trusted tools like GitHub Copilot or Cursor"
+        - "Never—always review AI-generated code thoroughly"
+      correct: "Never—always review AI-generated code thoroughly"
+      why: "Even simple boilerplate can contain bugs (missing validations, missing indexes, incorrect types). AI tools generate code based on patterns, not understanding. Treat AI code like junior developer contributions: review for correctness, security, performance, and edge cases."
+
+    - kind: short
+      points: 2
+      prompt: "Write an effective prompt for AI to generate a Rails service object that processes payments with error handling, transaction safety, and idempotency."
+      sample_answer: "Create a Rails service object `ProcessPayment` that: (1) accepts an Order and payment_token, (2) charges the order total via Stripe API with idempotency key, (3) wraps payment and order update in a database transaction, (4) handles Stripe::CardError and Stripe::APIConnectionError gracefully, (5) returns a hash with :success boolean and :error message, (6) follows Rails service pattern (PORO with #call method). Include RSpec tests with VCR for Stripe API calls."
+
+    - kind: mcq
+      points: 1
+      prompt: "AI-generated code in a PR shows `@articles = Article.all` in a controller index action that displays article authors. What issue should code review flag?"
+      choices:
+        - "Missing pagination for large datasets"
+        - "N+1 query when rendering article.user.name in views"
+        - "Should use find instead of all"
+        - "Missing error handling"
+      correct: "N+1 query when rendering article.user.name in views"
+      why: "Loading `Article.all` without `includes(:user)` triggers N+1 queries when the view accesses `article.user.name` for each article. For 100 articles, this executes 101 queries (1 for articles, 100 for users). Fix: `Article.includes(:user)`."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which AI tool is best suited for autonomous multi-step tasks like 'add authentication to this Rails app'?"
+      choices:
+        - "GitHub Copilot (inline autocomplete)"
+        - "Cursor (AI-native editor with chat)"
+        - "Claude Code (AI agent CLI)"
+        - "All tools are equally suited for this task"
+      correct: "Claude Code (AI agent CLI)"
+      why: "Claude Code is designed for autonomous execution of complex, multi-step tasks. It reads files, runs commands, executes tests, and commits changes based on high-level instructions. Copilot excels at inline suggestions, Cursor at multi-file refactoring, but Claude Code handles end-to-end workflows."
+
+    - kind: short
+      points: 2
+      prompt: "Name three types of code where AI tools commonly make mistakes and explain why human review is critical for each."
+      sample_answer: "1) Security code (authentication/authorization): AI may generate code missing authorization checks, allowing unauthorized access. 2) Performance-sensitive queries: AI generates N+1 queries or loads all records into memory without pagination. 3) Edge case handling: AI generates happy-path code but misses nil checks, empty arrays, or race conditions. Human review catches these issues through security analysis, profiling, and edge case testing."
+
+    - kind: mcq
+      points: 1
+      prompt: "What's the recommended approach when an AI prompt doesn't generate the code you want after 3-4 iterations?"
+      choices:
+        - "Keep refining the prompt until AI produces correct code"
+        - "Switch to a different AI tool"
+        - "Write the code manually and use AI for smaller sub-tasks"
+        - "Accept the closest AI suggestion and modify it"
+      correct: "Write the code manually and use AI for smaller sub-tasks"
+      why: "If you're rewriting prompts 5+ times, manual coding is faster and more precise. AI excels at well-understood patterns but struggles with novel logic. Use AI for boilerplate (tests, migrations, routes) and write complex business logic manually."

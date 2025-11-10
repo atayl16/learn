@@ -1,6 +1,6 @@
 # Rails Seniority Coach — Content Library
 
-A comprehensive, content-first learning curriculum that takes mid-level Rails+React developers to senior-level expertise across 12 tracks and 59 topics.
+A comprehensive, content-first learning curriculum that takes mid-level Rails+React developers to senior-level expertise across 13 tracks and 64 topics.
 
 ## Overview
 
@@ -87,18 +87,18 @@ See **[meta/_study_routes.md](meta/_study_routes.md)** for three prebuilt learni
 │   └── _study_routes.md      # Three prebuilt learning paths
 ├── config/
 │   └── skills/
-│       ├── tracks.yml        # Track metadata (12 tracks)
-│       └── {track}/          # Per-track YAML configs (59 topics)
+│       ├── tracks.yml        # Track metadata (13 tracks)
+│       └── {track}/          # Per-track YAML configs (64 topics)
 │           └── {topic}.yml
 └── content/
-    └── {track}/{topic}/      # 59 topics × 4 files = 236 content files
+    └── {track}/{topic}/      # 64 topics × 4 files = 256 content files
         ├── overview.md       # Teaching content (600-900 words)
         ├── exercise.md       # Hands-on task (15-25 min)
         ├── checkpoint.yml    # Quiz (6-10 questions)
         └── references.yml    # Curated sources (6-7 links)
 ```
 
-## Coverage: 12 Tracks, 59 Topics
+## Coverage: 13 Tracks, 64 Topics
 
 ### 1. Rails Internals (6 topics, Strong depth)
 - `request_lifecycle` - Request lifecycle & middleware
@@ -183,13 +183,20 @@ See **[meta/_study_routes.md](meta/_study_routes.md)** for three prebuilt learni
 - `report_generation` - Report generation strategies (Working)
 - `data_warehouses` - Working with data warehouses (Working)
 
+### 13. AI & Machine Learning (5 topics, Working depth)
+- `llm_api_integration` - LLM API integration basics (Working)
+- `ai_powered_features` - AI-powered search & recommendations (Working)
+- `content_moderation_ai` - Content moderation & classification (Working)
+- `ai_dev_tools` - AI development workflows (Working)
+- `rag_systems` - RAG systems in Rails (Working)
+
 ## Depth Targets
 
 See **[meta/_rubric.md](meta/_rubric.md)** for detailed explanations.
 
 - **Exposure** - Can define the term; knows when it might apply
 - **Working** - Can implement with notes; can debug common issues
-- **Strong** - Can design, debug in prod, and teach others ⭐ (Target for 48/59 topics)
+- **Strong** - Can design, debug in prod, and teach others ⭐ (Target for 48/64 topics)
 - **Expert** - Can choose trade-offs, optimize, extend patterns safely
 
 ## Suggested Weekly Plan (12-Week Standard)
@@ -298,8 +305,8 @@ You've finished when you can:
 
 ## Time Estimates
 
-- **Total topics**: 59
-- **Total estimated hours**: 65-105 hours (reading + exercises + quizzes)
+- **Total topics**: 64
+- **Total estimated hours**: 70-110 hours (reading + exercises + quizzes)
 - **16-week plan**: 4-5 hours/week
 - **8-week fast track**: 8-10 hours/week
 - **Weekends-only**: 4-5 hours/weekend over 14 weeks
@@ -318,11 +325,11 @@ See **[meta/_style_guide.md](meta/_style_guide.md)** for full content standards.
 
 ## File Counts
 
-- **12 tracks** (defined in `config/skills/tracks.yml`)
-- **59 topics** (YAML config files in `config/skills/{track}/`)
-- **236 content files** (59 topics × 4 files each)
+- **13 tracks** (defined in `config/skills/tracks.yml`)
+- **64 topics** (YAML config files in `config/skills/{track}/`)
+- **256 content files** (64 topics × 4 files each)
 - **5 meta files** (coverage, style guide, rubric, study routes, tracks)
-- **Total: 306 files**
+- **Total: 326 files**
 
 ## Licensing & Usage
 
@@ -340,7 +347,7 @@ This content is provided as-is for learning purposes. All references point to pu
 
 ---
 
-**Ready to start?** Open **[meta/coverage_index.yml](meta/coverage_index.yml)** to see all 59 topics, then jump into your first overview:
+**Ready to start?** Open **[meta/coverage_index.yml](meta/coverage_index.yml)** to see all 64 topics, then jump into your first overview:
 
 ```bash
 cat content/rails_internals/request_lifecycle/overview.md

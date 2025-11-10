@@ -82,3 +82,10 @@ tracks:
     depth_target: Working
     color: "#0277BD"
     icon: "📊"
+
+  - key: ai_machine_learning
+    name: "AI & Machine Learning"
+    description: "Integrate LLMs, build AI-powered features, and use AI tools to accelerate development."
+    depth_target: Working
+    color: "#00BCD4"
+    icon: "🤖"

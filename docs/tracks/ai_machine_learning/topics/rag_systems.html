@@ -1,0 +1,2232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rails Seniority Coach</title>
+  <style>
+    :root {
+      /* Modern color palette */
+      --bg-primary: #f8f9fa;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f1f3f5;
+      --bg-elevated: #ffffff;
+
+      --text-primary: #212529;
+      --text-secondary: #6c757d;
+      --text-muted: #adb5bd;
+
+      --accent-primary: #d63384;
+      --accent-secondary: #0d6efd;
+      --accent-success: #198754;
+      --accent-warning: #ffc107;
+
+      --border: #dee2e6;
+      --border-light: #e9ecef;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.dark-mode {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #1f2937;
+      --bg-elevated: #21262d;
+
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+
+      --accent-primary: #ff6b9d;
+      --accent-secondary: #58a6ff;
+      --accent-success: #3fb950;
+      --accent-warning: #ffcf33;
+
+      --border: #30363d;
+      --border-light: #21262d;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      line-height: 1.7;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      transition: background 0.3s ease, color 0.3s ease;
+      font-size: 16px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header - Simplified & Clean */
+    header {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #c2255c 100%);
+      color: white;
+      padding: 14px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-md);
+    }
+
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    header .brand {
+      flex: 1;
+    }
+
+    header .brand a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: white;
+      transition: var(--transition);
+    }
+
+    header .brand a:hover {
+      opacity: 0.85;
+    }
+
+    header .brand-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    header p {
+      opacity: 0.9;
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* Dark Mode Toggle - Compact */
+    .dark-mode-toggle {
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: 20px;
+      transition: var(--transition);
+      flex-shrink: 0;
+      backdrop-filter: blur(10px);
+    }
+
+    .dark-mode-toggle:hover {
+      background: rgba(255,255,255,0.25);
+      border-color: rgba(255,255,255,0.3);
+      transform: scale(1.05);
+    }
+
+    /* Navigation - Improved */
+    nav {
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+      font-weight: 500;
+      font-size: 15px;
+    }
+
+    nav a:hover {
+      background: var(--bg-tertiary);
+      color: var(--accent-primary);
+      transform: translateY(-1px);
+    }
+
+    /* Cards - Professional Design */
+    .track-grid, .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+      margin: 28px 0;
+    }
+
+    .track-card, .topic-card {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .track-card::before, .topic-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .track-card:hover, .topic-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--accent-primary);
+    }
+
+    .track-card:hover::before, .topic-card:hover::before {
+      opacity: 1;
+    }
+
+    .track-card h3, .topic-card h3 {
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .track-card p, .topic-card p {
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .track-card a, .topic-card a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* Track Icon Badge */
+    .track-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+
+    /* Completion Badge - Enhanced */
+    .completion-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 28px;
+      opacity: 0;
+      transition: var(--transition);
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    .completion-badge.completed {
+      opacity: 1;
+      animation: completionPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes completionPop {
+      0% { transform: scale(0); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* Progress Bar - Modern Design */
+    .progress-bar {
+      height: 6px;
+      background: var(--border-light);
+      border-radius: 100px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px rgba(214, 51, 132, 0.3);
+    }
+
+    /* Badges - Polished Design */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 4px 4px 4px 0;
+      transition: var(--transition);
+    }
+
+    .badge-primary {
+      background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+      color: #4a148c;
+    }
+
+    .badge-success {
+      background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+      color: #1b5e20;
+    }
+
+    .badge-info {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      color: #01579b;
+    }
+
+    .badge:hover {
+      transform: scale(1.05);
+    }
+
+    /* Tabs - Modern Design */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid var(--border-light);
+      margin: 24px 0 20px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .tab {
+      padding: 12px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 15px;
+      transition: var(--transition);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      white-space: nowrap;
+    }
+
+    .tab:hover {
+      color: var(--accent-primary);
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    }
+
+    .tab.active {
+      color: var(--accent-primary);
+      border-bottom-color: var(--accent-primary);
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Content Sections - Enhanced */
+    .content-section {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin: 20px 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .content-section h2 {
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      font-size: 24px;
+      font-weight: 700;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border-light);
+    }
+
+    .content-section h3 {
+      color: var(--text-primary);
+      margin: 24px 0 12px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .content-section p {
+      margin-bottom: 16px;
+      line-height: 1.75;
+      color: var(--text-primary);
+    }
+
+    .content-section ul, .content-section ol {
+      margin: 16px 0 16px 24px;
+      color: var(--text-primary);
+    }
+
+    .content-section li {
+      margin: 8px 0;
+      line-height: 1.7;
+    }
+
+    /* Objectives Section - Gradient Accent */
+    .objectives-section {
+      background: linear-gradient(135deg, rgba(214, 51, 132, 0.05) 0%, rgba(13, 110, 253, 0.05) 100%);
+      border-left: 4px solid var(--accent-primary);
+    }
+
+    body.dark-mode .objectives-section {
+      background: linear-gradient(135deg, rgba(255, 107, 157, 0.08) 0%, rgba(88, 166, 255, 0.08) 100%);
+      border-left-color: var(--accent-primary);
+    }
+
+    /* Code Blocks - Professional Styling */
+    code {
+      background: var(--bg-tertiary);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 14px;
+      color: var(--accent-secondary);
+      border: 1px solid var(--border-light);
+    }
+
+    pre {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      margin: 20px 0;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      border: none;
+      color: #d4d4d4;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* Buttons - Modern Design */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #c2255c 100%);
+      color: white;
+      box-shadow: 0 4px 14px rgba(214, 51, 132, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(214, 51, 132, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-elevated);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+
+    /* Quiz - Enhanced Design */
+    .quiz-question {
+      background: var(--bg-elevated);
+      border: 2px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 20px 0;
+      transition: var(--transition);
+    }
+
+    .quiz-question:hover {
+      border-color: var(--accent-primary);
+      box-shadow: var(--shadow-md);
+    }
+
+    .quiz-question h4 {
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .quiz-option {
+      display: block;
+      padding: 14px 18px;
+      margin: 8px 0;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      background: var(--bg-tertiary);
+      border: 2px solid transparent;
+    }
+
+    .quiz-option:hover {
+      background: var(--bg-elevated);
+      border-color: var(--accent-primary);
+      transform: translateX(4px);
+    }
+
+    .quiz-option.correct {
+      background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(25, 135, 84, 0.05) 100%);
+      border-color: var(--accent-success);
+    }
+
+    .quiz-option.incorrect {
+      background: rgba(220, 53, 69, 0.1);
+      border-color: #dc3545;
+    }
+
+    /* Score Display - Celebration */
+    .score-display {
+      background: linear-gradient(135deg, var(--accent-success) 0%, #059669 100%);
+      color: white;
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      display: none;
+      animation: slideUp 0.4s ease;
+    }
+
+    .score-display.show { display: block; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Topic Navigation - Enhanced */
+    .topic-navigation {
+      display: flex;
+      justify-content: space-between;
+      margin: 32px 0;
+      gap: 16px;
+    }
+
+    .nav-button {
+      flex: 1;
+      max-width: 300px;
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+      border: 2px solid var(--border-light);
+      color: var(--text-primary);
+      text-decoration: none;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+    }
+
+    .nav-button:hover {
+      border-color: var(--accent-primary);
+      background: var(--accent-primary);
+      color: white;
+      transform: translateX(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .nav-button.next:hover {
+      transform: translateX(4px);
+    }
+
+    /* Responsive Design - Mobile Optimized */
+    @media (max-width: 768px) {
+      .container { padding: 0 16px; }
+
+      header {
+        padding: 10px 0;
+      }
+
+      header .container {
+        gap: 12px;
+      }
+
+      header .brand-icon {
+        font-size: 24px;
+      }
+
+      header h1 {
+        font-size: 16px;
+      }
+
+      header p {
+        font-size: 11px;
+      }
+
+      .dark-mode-toggle {
+        padding: 6px 10px;
+        font-size: 18px;
+      }
+
+      nav {
+        margin: 12px 0;
+        gap: 8px;
+      }
+
+      nav a {
+        font-size: 14px;
+        padding: 8px 12px;
+      }
+
+      .track-grid, .topic-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .tabs {
+        gap: 4px;
+      }
+
+      .tab {
+        padding: 10px 14px;
+        font-size: 14px;
+      }
+
+      .content-section {
+        padding: 20px;
+        margin: 16px 0;
+      }
+
+      .content-section h2 {
+        font-size: 20px;
+      }
+
+      .content-section h3 {
+        font-size: 18px;
+      }
+
+      .topic-navigation {
+        flex-direction: column;
+      }
+
+      .nav-button {
+        max-width: 100%;
+      }
+    }
+
+    /* Smooth Scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Focus Styles for Accessibility */
+    *:focus-visible {
+      outline: 3px solid var(--accent-primary);
+      outline-offset: 2px;
+    }
+
+    /* Print Styles */
+    @media print {
+      header, nav, .dark-mode-toggle {
+        display: none;
+      }
+
+      body {
+        background: white;
+        color: black;
+      }
+
+      .content-section {
+        box-shadow: none;
+        border: 1px solid #ddd;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="brand">
+        <a href="../../../index.html">
+          <span class="brand-icon">💎</span>
+          <div>
+            <h1>Rails Seniority Coach</h1>
+            <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
+          </div>
+        </a>
+      </div>
+      <button class="dark-mode-toggle" id="dark-mode-toggle" aria-label="Toggle dark mode">
+        <span class="light-icon">☀️</span>
+        <span class="dark-icon" style="display: none;">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <nav style="margin-bottom: 20px;">
+  <a href="../index.html">← AI & Machine Learning</a>
+</nav>
+
+<!-- Previous/Next Navigation -->
+<div class="topic-navigation">
+  
+    <a href="llm_api_integration.html" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">LLM API Integration Basics</div>
+      </div>
+    </a>
+  
+
+  
+    <div class="nav-button next" style="opacity: 0.3; cursor: not-allowed;">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">End of track</div>
+      </div>
+      <span class="arrow">→</span>
+    </div>
+  
+</div>
+
+<div style="margin-bottom: 30px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+    <div style="flex: 1;">
+      <h1>RAG Systems in Rails</h1>
+      <div style="margin: 15px 0;">
+        
+        
+          <span class="badge badge-working">Working</span>
+        
+        &nbsp;
+        <span style="color: var(--text-secondary);">
+          📖 12 min read &nbsp; | &nbsp; 💻 30 min exercise
+        </span>
+      </div>
+    </div>
+    <button
+      id="mark-complete-btn"
+      class="complete-button"
+      data-track-key="ai_machine_learning"
+      data-topic-key="rag_systems"
+      onclick="markTopicComplete('ai_machine_learning', 'rag_systems')">
+      Mark Complete
+    </button>
+  </div>
+
+  
+    <div class="content-section objectives-section">
+      <h3>Learning Objectives</h3>
+      <ul style="margin-left: 20px;">
+        
+          <li>Design document processing pipelines for RAG</li>
+        
+          <li>Implement chunk strategies for optimal retrieval</li>
+        
+          <li>Build context retrieval systems with vector search</li>
+        
+          <li>Combine retrieved context with LLM generation effectively</li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-tab="overview-tab">📖 Overview</button>
+  <button class="tab" data-tab="exercise-tab">💻 Exercise</button>
+  <button class="tab" data-tab="checkpoint-tab">✅ Checkpoint</button>
+  <button class="tab" data-tab="references-tab">🔗 References</button>
+</div>
+
+<!-- Overview Tab -->
+<div id="overview-tab" class="tab-content active">
+  <div class="content-section">
+    
+      <h1>RAG Systems in Rails</h1>
+
+<h2>What It Is</h2>
+
+<p>Retrieval-Augmented Generation (RAG) combines semantic search with large language models to answer questions using your own data. Instead of relying solely on an LLM&#39;s training data, RAG fetches relevant documents from a knowledge base, then feeds them as context to the LLM for generating accurate, grounded responses. The pipeline includes document ingestion, text chunking, vector embedding generation, similarity search, and context-aware generation.</p>
+
+<h2>Why It Matters</h2>
+
+<p>RAG systems let you build AI features that answer questions about your specific domain—product documentation, customer support tickets, internal wikis—without fine-tuning expensive models. Vector search replaces keyword matching with semantic similarity, finding relevant content even when exact terms don&#39;t match. Production RAG systems power chatbots, documentation assistants, and AI-driven search features that scale to millions of documents while maintaining sub-second response times.</p>
+
+<h2>When to Use</h2>
+
+<ul>
+<li>Build a documentation chatbot that answers questions using your knowledge base</li>
+<li>Create AI-powered search that understands intent, not just keywords</li>
+<li>Implement customer support assistants that retrieve relevant help articles</li>
+<li>Generate summaries grounded in specific documents or data sets</li>
+<li>Augment LLM responses with real-time or proprietary data not in training sets</li>
+</ul>
+
+<h2>Three Common Pitfalls</h2>
+
+<ol>
+<li><strong>Chunking documents too large or too small:</strong> 2000-token chunks lose coherence; 50-token chunks lose context. Optimal size is 200-500 tokens with 10-20% overlap. Test retrieval accuracy with your actual data before scaling.</li>
+<li><strong>Ignoring metadata filtering:</strong> Searching all documents when users only need recent ones wastes compute and returns irrelevant results. Combine vector similarity with metadata filters (date, category, access control) in your queries.</li>
+<li><strong>Skipping re-ranking:</strong> Top-5 vector matches aren&#39;t always the best context. Use a cross-encoder or keyword hybrid to re-rank results before sending to the LLM, improving answer quality by 20-40%.</li>
+</ol>
+
+<hr>
+
+<h2>RAG Architecture Overview</h2>
+
+<p>A production RAG system has two pipelines:</p>
+
+<p><strong>Indexing Pipeline (offline):</strong><br>
+1. Ingest documents (PDFs, Markdown, HTML)<br>
+2. Split into chunks (paragraphs, sections)<br>
+3. Generate embeddings (vector representations)<br>
+4. Store in vector database with metadata</p>
+
+<p><strong>Query Pipeline (online):</strong><br>
+1. User submits question<br>
+2. Generate query embedding<br>
+3. Search vector database for similar chunks<br>
+4. Retrieve top-k most relevant contexts<br>
+5. Construct prompt with context + question<br>
+6. Send to LLM, return generated answer</p>
+
+<p>Rails handles both pipelines: background jobs for indexing, controllers/services for queries.</p>
+
+<hr>
+
+<h2>Document Ingestion and Processing</h2>
+
+<p>Process various document types into plain text:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/services/document_processor.rb</span>
+<span class="k">class</span> <span class="nc">DocumentProcessor</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">process</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="k">case</span> <span class="no">File</span><span class="p">.</span><span class="nf">extname</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="k">when</span> <span class="s1">'.pdf'</span>
+      <span class="n">extract_pdf_text</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="k">when</span> <span class="s1">'.md'</span><span class="p">,</span> <span class="s1">'.markdown'</span>
+      <span class="no">File</span><span class="p">.</span><span class="nf">read</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="k">when</span> <span class="s1">'.html'</span>
+      <span class="n">extract_html_text</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="k">else</span>
+      <span class="k">raise</span> <span class="s2">"Unsupported file type: </span><span class="si">#{</span><span class="no">File</span><span class="p">.</span><span class="nf">extname</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">extract_pdf_text</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="c1"># Using pdf-reader gem</span>
+    <span class="nb">require</span> <span class="s1">'pdf-reader'</span>
+    <span class="n">reader</span> <span class="o">=</span> <span class="no">PDF</span><span class="o">::</span><span class="no">Reader</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="n">reader</span><span class="p">.</span><span class="nf">pages</span><span class="p">.</span><span class="nf">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:text</span><span class="p">).</span><span class="nf">join</span><span class="p">(</span><span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">extract_html_text</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="c1"># Using nokogiri gem</span>
+    <span class="nb">require</span> <span class="s1">'nokogiri'</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="no">Nokogiri</span><span class="o">::</span><span class="no">HTML</span><span class="p">(</span><span class="no">File</span><span class="p">.</span><span class="nf">read</span><span class="p">(</span><span class="n">file_path</span><span class="p">))</span>
+    <span class="n">doc</span><span class="p">.</span><span class="nf">xpath</span><span class="p">(</span><span class="s1">'//text()'</span><span class="p">).</span><span class="nf">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:text</span><span class="p">).</span><span class="nf">join</span><span class="p">(</span><span class="s1">' '</span><span class="p">).</span><span class="nf">gsub</span><span class="p">(</span><span class="sr">/\s+/</span><span class="p">,</span> <span class="s1">' '</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Store documents with metadata:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/models/document.rb</span>
+<span class="k">class</span> <span class="nc">Document</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="c1"># Columns: title, content, source_url, category, indexed_at</span>
+  <span class="n">has_many</span> <span class="ss">:chunks</span><span class="p">,</span> <span class="ss">dependent: :destroy</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">ingest</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="p">{})</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="no">DocumentProcessor</span><span class="p">.</span><span class="nf">process</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="n">create!</span><span class="p">(</span>
+      <span class="ss">title: </span><span class="n">metadata</span><span class="p">[</span><span class="ss">:title</span><span class="p">]</span> <span class="o">||</span> <span class="no">File</span><span class="p">.</span><span class="nf">basename</span><span class="p">(</span><span class="n">file_path</span><span class="p">),</span>
+      <span class="ss">content: </span><span class="n">content</span><span class="p">,</span>
+      <span class="ss">source_url: </span><span class="n">metadata</span><span class="p">[</span><span class="ss">:url</span><span class="p">],</span>
+      <span class="ss">category: </span><span class="n">metadata</span><span class="p">[</span><span class="ss">:category</span><span class="p">]</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Text Chunking Strategies</h2>
+
+<p>Split long documents into retrievable chunks:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/services/text_chunker.rb</span>
+<span class="k">class</span> <span class="nc">TextChunker</span>
+  <span class="no">DEFAULT_CHUNK_SIZE</span> <span class="o">=</span> <span class="mi">400</span>  <span class="c1"># tokens</span>
+  <span class="no">DEFAULT_OVERLAP</span> <span class="o">=</span> <span class="mi">50</span>      <span class="c1"># tokens</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="ss">chunk_size: </span><span class="no">DEFAULT_CHUNK_SIZE</span><span class="p">,</span> <span class="ss">overlap: </span><span class="no">DEFAULT_OVERLAP</span><span class="p">)</span>
+    <span class="vi">@chunk_size</span> <span class="o">=</span> <span class="n">chunk_size</span>
+    <span class="vi">@overlap</span> <span class="o">=</span> <span class="n">overlap</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">chunk</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="c1"># Simple sentence-based chunking</span>
+    <span class="n">sentences</span> <span class="o">=</span> <span class="n">text</span><span class="p">.</span><span class="nf">split</span><span class="p">(</span><span class="sr">/(?&lt;=[.!?])\s+/</span><span class="p">)</span>
+    <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_chunk</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_size</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">sentences</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">sentence</span><span class="o">|</span>
+      <span class="n">sentence_tokens</span> <span class="o">=</span> <span class="n">estimate_tokens</span><span class="p">(</span><span class="n">sentence</span><span class="p">)</span>
+
+      <span class="k">if</span> <span class="n">current_size</span> <span class="o">+</span> <span class="n">sentence_tokens</span> <span class="o">&gt;</span> <span class="vi">@chunk_size</span> <span class="o">&amp;&amp;</span> <span class="n">current_chunk</span><span class="p">.</span><span class="nf">any?</span>
+        <span class="n">chunks</span> <span class="o">&lt;&lt;</span> <span class="n">current_chunk</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">' '</span><span class="p">)</span>
+
+        <span class="c1"># Keep overlap: retain last few sentences</span>
+        <span class="n">overlap_sentences</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">overlap_size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">current_chunk</span><span class="p">.</span><span class="nf">reverse</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">s</span><span class="o">|</span>
+          <span class="n">s_tokens</span> <span class="o">=</span> <span class="n">estimate_tokens</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+          <span class="k">break</span> <span class="k">if</span> <span class="n">overlap_size</span> <span class="o">+</span> <span class="n">s_tokens</span> <span class="o">&gt;</span> <span class="vi">@overlap</span>
+          <span class="n">overlap_sentences</span><span class="p">.</span><span class="nf">unshift</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+          <span class="n">overlap_size</span> <span class="o">+=</span> <span class="n">s_tokens</span>
+        <span class="k">end</span>
+
+        <span class="n">current_chunk</span> <span class="o">=</span> <span class="n">overlap_sentences</span>
+        <span class="n">current_size</span> <span class="o">=</span> <span class="n">overlap_size</span>
+      <span class="k">end</span>
+
+      <span class="n">current_chunk</span> <span class="o">&lt;&lt;</span> <span class="n">sentence</span>
+      <span class="n">current_size</span> <span class="o">+=</span> <span class="n">sentence_tokens</span>
+    <span class="k">end</span>
+
+    <span class="n">chunks</span> <span class="o">&lt;&lt;</span> <span class="n">current_chunk</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">' '</span><span class="p">)</span> <span class="k">if</span> <span class="n">current_chunk</span><span class="p">.</span><span class="nf">any?</span>
+    <span class="n">chunks</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">estimate_tokens</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="c1"># Rough estimate: 1 token ≈ 4 characters for English</span>
+    <span class="p">(</span><span class="n">text</span><span class="p">.</span><span class="nf">length</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">).</span><span class="nf">ceil</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Create chunk records with embeddings:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/models/chunk.rb</span>
+<span class="k">class</span> <span class="nc">Chunk</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="c1"># Columns: document_id, content, embedding (vector), position</span>
+  <span class="n">belongs_to</span> <span class="ss">:document</span>
+
+  <span class="c1"># Using pgvector for vector storage</span>
+  <span class="c1"># Migration: add_column :chunks, :embedding, :vector, limit: 1536</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Generating Embeddings</h2>
+
+<p>Use OpenAI&#39;s embedding API (or alternatives like Cohere, Voyage):</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/services/embedding_service.rb</span>
+<span class="k">class</span> <span class="nc">EmbeddingService</span>
+  <span class="no">EMBEDDING_MODEL</span> <span class="o">=</span> <span class="s1">'text-embedding-3-small'</span>  <span class="c1"># 1536 dimensions</span>
+  <span class="no">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">100</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="ss">api_key: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'OPENAI_API_KEY'</span><span class="p">])</span>
+    <span class="vi">@client</span> <span class="o">=</span> <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">access_token: </span><span class="n">api_key</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">generate_embedding</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="vi">@client</span><span class="p">.</span><span class="nf">embeddings</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span>
+        <span class="ss">model: </span><span class="no">EMBEDDING_MODEL</span><span class="p">,</span>
+        <span class="ss">input: </span><span class="n">text</span>
+      <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s1">'data'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'embedding'</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">generate_batch</span><span class="p">(</span><span class="n">texts</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="vi">@client</span><span class="p">.</span><span class="nf">embeddings</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span>
+        <span class="ss">model: </span><span class="no">EMBEDDING_MODEL</span><span class="p">,</span>
+        <span class="ss">input: </span><span class="n">texts</span><span class="p">.</span><span class="nf">first</span><span class="p">(</span><span class="no">BATCH_SIZE</span><span class="p">)</span>
+      <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">response</span><span class="p">[</span><span class="s1">'data'</span><span class="p">].</span><span class="nf">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">d</span><span class="o">|</span> <span class="n">d</span><span class="p">[</span><span class="s1">'embedding'</span><span class="p">]</span> <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Background job for indexing documents:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/jobs/index_document_job.rb</span>
+<span class="k">class</span> <span class="nc">IndexDocumentJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="n">queue_as</span> <span class="ss">:default</span>
+
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">document_id</span><span class="p">)</span>
+    <span class="n">document</span> <span class="o">=</span> <span class="no">Document</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">document_id</span><span class="p">)</span>
+    <span class="n">chunker</span> <span class="o">=</span> <span class="no">TextChunker</span><span class="p">.</span><span class="nf">new</span>
+    <span class="n">embedding_service</span> <span class="o">=</span> <span class="no">EmbeddingService</span><span class="p">.</span><span class="nf">new</span>
+
+    <span class="n">chunks</span> <span class="o">=</span> <span class="n">chunker</span><span class="p">.</span><span class="nf">chunk</span><span class="p">(</span><span class="n">document</span><span class="p">.</span><span class="nf">content</span><span class="p">)</span>
+
+    <span class="n">chunks</span><span class="p">.</span><span class="nf">each_with_index</span> <span class="k">do</span> <span class="o">|</span><span class="n">chunk_text</span><span class="p">,</span> <span class="n">index</span><span class="o">|</span>
+      <span class="n">embedding</span> <span class="o">=</span> <span class="n">embedding_service</span><span class="p">.</span><span class="nf">generate_embedding</span><span class="p">(</span><span class="n">chunk_text</span><span class="p">)</span>
+
+      <span class="n">document</span><span class="p">.</span><span class="nf">chunks</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+        <span class="ss">content: </span><span class="n">chunk_text</span><span class="p">,</span>
+        <span class="ss">embedding: </span><span class="n">embedding</span><span class="p">,</span>
+        <span class="ss">position: </span><span class="n">index</span>
+      <span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">document</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">indexed_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Vector Search with pgvector</h2>
+
+<p>Install and configure pgvector in PostgreSQL:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># db/migrate/20240101000001_enable_pgvector.rb</span>
+<span class="k">class</span> <span class="nc">EnablePgvector</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.1</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">enable_extension</span> <span class="s1">'vector'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># db/migrate/20240101000002_add_vector_to_chunks.rb</span>
+<span class="k">class</span> <span class="nc">AddVectorToChunks</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.1</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">add_column</span> <span class="ss">:chunks</span><span class="p">,</span> <span class="ss">:embedding</span><span class="p">,</span> <span class="ss">:vector</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">1536</span>
+    <span class="n">add_index</span> <span class="ss">:chunks</span><span class="p">,</span> <span class="ss">:embedding</span><span class="p">,</span> <span class="ss">using: :ivfflat</span><span class="p">,</span> <span class="ss">opclass: :vector_cosine_ops</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Implement similarity search:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/models/chunk.rb</span>
+<span class="k">class</span> <span class="nc">Chunk</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:document</span>
+
+  <span class="c1"># Find similar chunks using cosine similarity</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">search</span><span class="p">(</span><span class="n">query_embedding</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">5</span><span class="p">,</span> <span class="ss">metadata_filters: </span><span class="p">{})</span>
+    <span class="n">relation</span> <span class="o">=</span> <span class="n">all</span>
+
+    <span class="c1"># Apply metadata filters</span>
+    <span class="k">if</span> <span class="n">metadata_filters</span><span class="p">[</span><span class="ss">:category</span><span class="p">].</span><span class="nf">present?</span>
+      <span class="n">relation</span> <span class="o">=</span> <span class="n">relation</span><span class="p">.</span><span class="nf">joins</span><span class="p">(</span><span class="ss">:document</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="ss">documents: </span><span class="p">{</span> <span class="ss">category: </span><span class="n">metadata_filters</span><span class="p">[</span><span class="ss">:category</span><span class="p">]</span> <span class="p">})</span>
+    <span class="k">end</span>
+
+    <span class="k">if</span> <span class="n">metadata_filters</span><span class="p">[</span><span class="ss">:after</span><span class="p">].</span><span class="nf">present?</span>
+      <span class="n">relation</span> <span class="o">=</span> <span class="n">relation</span><span class="p">.</span><span class="nf">joins</span><span class="p">(</span><span class="ss">:document</span><span class="p">).</span><span class="nf">where</span><span class="p">(</span><span class="s1">'documents.created_at &gt; ?'</span><span class="p">,</span> <span class="n">metadata_filters</span><span class="p">[</span><span class="ss">:after</span><span class="p">])</span>
+    <span class="k">end</span>
+
+    <span class="c1"># Vector similarity search using cosine distance</span>
+    <span class="n">relation</span>
+      <span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="s2">"chunks.*, (embedding &lt;=&gt; '</span><span class="si">#{</span><span class="n">query_embedding</span><span class="si">}</span><span class="s2">') AS distance"</span><span class="p">)</span>
+      <span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s1">'distance ASC'</span><span class="p">)</span>
+      <span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Alternative: using L2 distance (Euclidean)</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">search_l2</span><span class="p">(</span><span class="n">query_embedding</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">5</span><span class="p">)</span>
+    <span class="nb">select</span><span class="p">(</span><span class="s2">"chunks.*, (embedding &lt;-&gt; '</span><span class="si">#{</span><span class="n">query_embedding</span><span class="si">}</span><span class="s2">') AS distance"</span><span class="p">)</span>
+      <span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s1">'distance ASC'</span><span class="p">)</span>
+      <span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Query Pipeline</h2>
+
+<p>Retrieve relevant chunks for a user question:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/services/rag_retriever.rb</span>
+<span class="k">class</span> <span class="nc">RagRetriever</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="ss">embedding_service: </span><span class="no">EmbeddingService</span><span class="p">.</span><span class="nf">new</span><span class="p">)</span>
+    <span class="vi">@embedding_service</span> <span class="o">=</span> <span class="n">embedding_service</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">retrieve</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="ss">top_k: </span><span class="mi">5</span><span class="p">,</span> <span class="ss">filters: </span><span class="p">{})</span>
+    <span class="c1"># Generate query embedding</span>
+    <span class="n">query_embedding</span> <span class="o">=</span> <span class="vi">@embedding_service</span><span class="p">.</span><span class="nf">generate_embedding</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+
+    <span class="c1"># Search for similar chunks</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="no">Chunk</span><span class="p">.</span><span class="nf">search</span><span class="p">(</span><span class="n">query_embedding</span><span class="p">,</span> <span class="ss">limit: </span><span class="n">top_k</span><span class="p">,</span> <span class="ss">metadata_filters: </span><span class="n">filters</span><span class="p">)</span>
+
+    <span class="c1"># Return chunks with similarity scores</span>
+    <span class="n">results</span><span class="p">.</span><span class="nf">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">chunk</span><span class="o">|</span>
+      <span class="p">{</span>
+        <span class="ss">content: </span><span class="n">chunk</span><span class="p">.</span><span class="nf">content</span><span class="p">,</span>
+        <span class="ss">document_title: </span><span class="n">chunk</span><span class="p">.</span><span class="nf">document</span><span class="p">.</span><span class="nf">title</span><span class="p">,</span>
+        <span class="ss">similarity: </span><span class="mi">1</span> <span class="o">-</span> <span class="n">chunk</span><span class="p">.</span><span class="nf">distance</span><span class="p">,</span>  <span class="c1"># Convert distance to similarity</span>
+        <span class="ss">metadata: </span><span class="p">{</span>
+          <span class="ss">source_url: </span><span class="n">chunk</span><span class="p">.</span><span class="nf">document</span><span class="p">.</span><span class="nf">source_url</span><span class="p">,</span>
+          <span class="ss">category: </span><span class="n">chunk</span><span class="p">.</span><span class="nf">document</span><span class="p">.</span><span class="nf">category</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Combining Retrieval with Generation</h2>
+
+<p>Build prompts with retrieved context and send to LLM:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/services/rag_service.rb</span>
+<span class="k">class</span> <span class="nc">RagService</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span>
+    <span class="ss">retriever: </span><span class="no">RagRetriever</span><span class="p">.</span><span class="nf">new</span><span class="p">,</span>
+    <span class="ss">llm_client: </span><span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">access_token: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'OPENAI_API_KEY'</span><span class="p">])</span>
+  <span class="p">)</span>
+    <span class="vi">@retriever</span> <span class="o">=</span> <span class="n">retriever</span>
+    <span class="vi">@llm_client</span> <span class="o">=</span> <span class="n">llm_client</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">answer</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="ss">filters: </span><span class="p">{})</span>
+    <span class="c1"># Retrieve relevant chunks</span>
+    <span class="n">contexts</span> <span class="o">=</span> <span class="vi">@retriever</span><span class="p">.</span><span class="nf">retrieve</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="ss">top_k: </span><span class="mi">5</span><span class="p">,</span> <span class="ss">filters: </span><span class="n">filters</span><span class="p">)</span>
+
+    <span class="c1"># Build prompt with context</span>
+    <span class="n">prompt</span> <span class="o">=</span> <span class="n">build_prompt</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">contexts</span><span class="p">)</span>
+
+    <span class="c1"># Generate answer</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="vi">@llm_client</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span>
+        <span class="ss">model: </span><span class="s1">'gpt-4-turbo-preview'</span><span class="p">,</span>
+        <span class="ss">messages: </span><span class="p">[</span>
+          <span class="p">{</span> <span class="ss">role: </span><span class="s1">'system'</span><span class="p">,</span> <span class="ss">content: </span><span class="n">system_prompt</span> <span class="p">},</span>
+          <span class="p">{</span> <span class="ss">role: </span><span class="s1">'user'</span><span class="p">,</span> <span class="ss">content: </span><span class="n">prompt</span> <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="ss">temperature: </span><span class="mf">0.3</span>  <span class="c1"># Lower temperature for factual responses</span>
+      <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="p">{</span>
+      <span class="ss">answer: </span><span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s1">'choices'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'message'</span><span class="p">,</span> <span class="s1">'content'</span><span class="p">),</span>
+      <span class="ss">sources: </span><span class="n">contexts</span><span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span> <span class="n">c</span><span class="p">[</span><span class="ss">:metadata</span><span class="p">]</span> <span class="p">}.</span><span class="nf">uniq</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">system_prompt</span>
+    <span class="o">&lt;&lt;~</span><span class="no">PROMPT</span><span class="sh">
+      You are a helpful assistant that answers questions based on the provided context.
+      Use only the information from the context to answer questions.
+      If the context doesn't contain enough information, say so clearly.
+      Cite sources when possible by mentioning the document title.
+</span><span class="no">    PROMPT</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">build_prompt</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">contexts</span><span class="p">)</span>
+    <span class="n">context_text</span> <span class="o">=</span> <span class="n">contexts</span><span class="p">.</span><span class="nf">map</span><span class="p">.</span><span class="nf">with_index</span> <span class="k">do</span> <span class="o">|</span><span class="n">ctx</span><span class="p">,</span> <span class="n">i</span><span class="o">|</span>
+      <span class="s2">"Source </span><span class="si">#{</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="si">}</span><span class="s2"> (</span><span class="si">#{</span><span class="n">ctx</span><span class="p">[</span><span class="ss">:document_title</span><span class="p">]</span><span class="si">}</span><span class="s2">):</span><span class="se">\n</span><span class="si">#{</span><span class="n">ctx</span><span class="p">[</span><span class="ss">:content</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">end</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s2">"</span><span class="se">\n\n</span><span class="s2">---</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="o">&lt;&lt;~</span><span class="no">PROMPT</span><span class="sh">
+      Context:
+      </span><span class="si">#{</span><span class="n">context_text</span><span class="si">}</span><span class="sh">
+
+      Question: </span><span class="si">#{</span><span class="n">question</span><span class="si">}</span><span class="sh">
+
+      Please provide a clear, accurate answer based on the context above.
+</span><span class="no">    PROMPT</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Controller Integration</h2>
+
+<p>Expose RAG as an API endpoint:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/api/v1/rag_controller.rb</span>
+<span class="k">module</span> <span class="nn">Api</span>
+  <span class="k">module</span> <span class="nn">V1</span>
+    <span class="k">class</span> <span class="nc">RagController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+      <span class="k">def</span> <span class="nf">query</span>
+        <span class="n">question</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="ss">:question</span><span class="p">]</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="ss">category: </span><span class="n">params</span><span class="p">[</span><span class="ss">:category</span><span class="p">],</span>
+          <span class="ss">after: </span><span class="n">params</span><span class="p">[</span><span class="ss">:after_date</span><span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">rag_service</span> <span class="o">=</span> <span class="no">RagService</span><span class="p">.</span><span class="nf">new</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">rag_service</span><span class="p">.</span><span class="nf">answer</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="ss">filters: </span><span class="n">filters</span><span class="p">)</span>
+
+        <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span>
+          <span class="ss">answer: </span><span class="n">result</span><span class="p">[</span><span class="ss">:answer</span><span class="p">],</span>
+          <span class="ss">sources: </span><span class="n">result</span><span class="p">[</span><span class="ss">:sources</span><span class="p">]</span>
+        <span class="p">}</span>
+      <span class="k">rescue</span> <span class="no">StandardError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+        <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">error: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span> <span class="p">},</span> <span class="ss">status: :unprocessable_entity</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># config/routes.rb</span>
+<span class="n">namespace</span> <span class="ss">:api</span> <span class="k">do</span>
+  <span class="n">namespace</span> <span class="ss">:v1</span> <span class="k">do</span>
+    <span class="n">post</span> <span class="s1">'rag/query'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'rag#query'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Advanced: Hybrid Search</h2>
+
+<p>Combine vector similarity with keyword search:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/services/hybrid_retriever.rb</span>
+<span class="k">class</span> <span class="nc">HybridRetriever</span>
+  <span class="k">def</span> <span class="nf">retrieve</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="ss">top_k: </span><span class="mi">5</span><span class="p">)</span>
+    <span class="c1"># Vector search</span>
+    <span class="n">embedding</span> <span class="o">=</span> <span class="no">EmbeddingService</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">generate_embedding</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    <span class="n">vector_results</span> <span class="o">=</span> <span class="no">Chunk</span><span class="p">.</span><span class="nf">search</span><span class="p">(</span><span class="n">embedding</span><span class="p">,</span> <span class="ss">limit: </span><span class="n">top_k</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Keyword search (full-text)</span>
+    <span class="n">keyword_results</span> <span class="o">=</span> <span class="no">Chunk</span>
+      <span class="p">.</span><span class="nf">joins</span><span class="p">(</span><span class="ss">:document</span><span class="p">)</span>
+      <span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"chunks.content ILIKE ? OR documents.title ILIKE ?"</span><span class="p">,</span> <span class="s2">"%</span><span class="si">#{</span><span class="n">query</span><span class="si">}</span><span class="s2">%"</span><span class="p">,</span> <span class="s2">"%</span><span class="si">#{</span><span class="n">query</span><span class="si">}</span><span class="s2">%"</span><span class="p">)</span>
+      <span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="n">top_k</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Combine and re-rank using RRF (Reciprocal Rank Fusion)</span>
+    <span class="n">combined</span> <span class="o">=</span> <span class="n">reciprocal_rank_fusion</span><span class="p">(</span>
+      <span class="n">vector_results</span><span class="p">.</span><span class="nf">to_a</span><span class="p">,</span>
+      <span class="n">keyword_results</span><span class="p">.</span><span class="nf">to_a</span><span class="p">,</span>
+      <span class="ss">k: </span><span class="mi">60</span>
+    <span class="p">)</span>
+
+    <span class="n">combined</span><span class="p">.</span><span class="nf">first</span><span class="p">(</span><span class="n">top_k</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">reciprocal_rank_fusion</span><span class="p">(</span><span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">,</span> <span class="ss">k: </span><span class="mi">60</span><span class="p">)</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="no">Hash</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">list1</span><span class="p">.</span><span class="nf">each_with_index</span> <span class="k">do</span> <span class="o">|</span><span class="n">chunk</span><span class="p">,</span> <span class="n">rank</span><span class="o">|</span>
+      <span class="n">scores</span><span class="p">[</span><span class="n">chunk</span><span class="p">.</span><span class="nf">id</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="n">rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">list2</span><span class="p">.</span><span class="nf">each_with_index</span> <span class="k">do</span> <span class="o">|</span><span class="n">chunk</span><span class="p">,</span> <span class="n">rank</span><span class="o">|</span>
+      <span class="n">scores</span><span class="p">[</span><span class="n">chunk</span><span class="p">.</span><span class="nf">id</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="n">rank</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="c1"># Sort by combined score</span>
+    <span class="n">all_chunks</span> <span class="o">=</span> <span class="p">(</span><span class="n">list1</span> <span class="o">+</span> <span class="n">list2</span><span class="p">).</span><span class="nf">uniq</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:id</span><span class="p">)</span>
+    <span class="n">all_chunks</span><span class="p">.</span><span class="nf">sort_by</span> <span class="p">{</span> <span class="o">|</span><span class="n">chunk</span><span class="o">|</span> <span class="o">-</span><span class="n">scores</span><span class="p">[</span><span class="n">chunk</span><span class="p">.</span><span class="nf">id</span><span class="p">]</span> <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Monitoring and Optimization</h2>
+
+<p>Track retrieval quality and performance:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/models/rag_query_log.rb</span>
+<span class="k">class</span> <span class="nc">RagQueryLog</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="c1"># Columns: query, answer, contexts_count, response_time_ms, user_feedback</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">track</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">answer</span><span class="p">,</span> <span class="n">contexts</span><span class="p">,</span> <span class="n">duration</span><span class="p">)</span>
+    <span class="n">create!</span><span class="p">(</span>
+      <span class="ss">query: </span><span class="n">query</span><span class="p">,</span>
+      <span class="ss">answer: </span><span class="n">answer</span><span class="p">,</span>
+      <span class="ss">contexts_count: </span><span class="n">contexts</span><span class="p">.</span><span class="nf">size</span><span class="p">,</span>
+      <span class="ss">response_time_ms: </span><span class="p">(</span><span class="n">duration</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">).</span><span class="nf">round</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># In RagService</span>
+<span class="k">def</span> <span class="nf">answer</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="ss">filters: </span><span class="p">{})</span>
+  <span class="n">start_time</span> <span class="o">=</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span>
+
+  <span class="c1"># ... existing logic ...</span>
+
+  <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="ss">answer: </span><span class="n">answer_text</span><span class="p">,</span>
+    <span class="ss">sources: </span><span class="n">contexts</span><span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span> <span class="n">c</span><span class="p">[</span><span class="ss">:metadata</span><span class="p">]</span> <span class="p">}.</span><span class="nf">uniq</span>
+  <span class="p">}</span>
+
+  <span class="no">RagQueryLog</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">answer_text</span><span class="p">,</span> <span class="n">contexts</span><span class="p">,</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span>
+
+  <span class="n">result</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Trade-offs Box</h2>
+
+<ul>
+<li><strong>Advantage:</strong> RAG grounds LLM responses in your data without fine-tuning; updates are instant (re-index documents); vector search finds semantic matches that keyword search misses.</li>
+<li><strong>Cost:</strong> Requires vector database infrastructure (pgvector, Pinecone); embedding API costs scale with document count; query latency increases with retrieval overhead (embedding generation + search).</li>
+<li><strong>When to skip:</strong> For simple keyword search, use PostgreSQL full-text search; for questions not needing external context, skip retrieval and use LLM directly.</li>
+</ul>
+
+<hr>
+
+<h2>Debugging Checklist</h2>
+
+<p>When RAG answers are poor:</p>
+
+<ol>
+<li>Check chunk retrieval: Are returned chunks actually relevant?</li>
+<li>Verify embedding quality: Test query embedding similarity to known good chunks</li>
+<li>Review chunk size: Too large = loss of precision; too small = loss of context</li>
+<li>Inspect prompt construction: Is context being passed correctly to LLM?</li>
+<li>Test with different top-k values: More context isn&#39;t always better</li>
+<li>Monitor token limits: Ensure context + question fit within model&#39;s context window</li>
+<li>Check metadata filters: Overly restrictive filters may exclude good results</li>
+<li>Measure end-to-end latency: Optimize slowest component (embedding, search, LLM)</li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>RAG combines vector search and LLMs to answer questions using your knowledge base</li>
+<li>Pipeline: chunk documents, generate embeddings, store vectors, retrieve similar chunks, generate answer</li>
+<li>Use pgvector for vector storage in PostgreSQL with cosine similarity search</li>
+<li>Chunk size of 200-500 tokens with 10-20% overlap balances context and precision</li>
+<li>Combine retrieval with metadata filtering for better accuracy and access control</li>
+<li>Hybrid search (vector + keyword) outperforms pure vector search for many use cases</li>
+</ul>
+
+    
+  </div>
+</div>
+
+<!-- Exercise Tab -->
+<div id="exercise-tab" class="tab-content">
+  <div class="content-section">
+    
+      <h1>Exercise: RAG Systems in Rails</h1>
+
+<h2>Objective</h2>
+
+<p>Build a complete RAG system that ingests markdown documentation, generates embeddings, stores vectors in PostgreSQL with pgvector, and answers questions using retrieved context with an LLM.</p>
+
+<h2>Task</h2>
+
+<p>In a Rails app with PostgreSQL and OpenAI API access:</p>
+
+<ol>
+<li>Set up pgvector extension for vector storage</li>
+<li>Create models for documents and chunks with embeddings</li>
+<li>Implement document chunking and embedding generation</li>
+<li>Build a retrieval service using cosine similarity search</li>
+<li>Create a RAG service that combines retrieval with GPT-4</li>
+<li>Test with sample documentation and queries</li>
+</ol>
+
+<h2>Acceptance Criteria</h2>
+
+<ul>
+<li>[ ] PostgreSQL pgvector extension enabled</li>
+<li>[ ] <code>Document</code> and <code>Chunk</code> models with vector column</li>
+<li>[ ] Text chunker splits documents into 300-token chunks with 50-token overlap</li>
+<li>[ ] Embedding service generates OpenAI embeddings (1536 dimensions)</li>
+<li>[ ] Vector search returns top-5 similar chunks using cosine distance</li>
+<li>[ ] RAG service builds prompts with context and queries GPT-4</li>
+<li>[ ] API endpoint <code>/api/v1/rag/query</code> accepts questions and returns answers with sources</li>
+</ul>
+
+<h2>Verification Steps</h2>
+
+<ol>
+<li>Create and index a sample document:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># In Rails console</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="no">Document</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+  <span class="ss">title: </span><span class="s2">"Rails Caching Guide"</span><span class="p">,</span>
+  <span class="ss">content: </span><span class="no">File</span><span class="p">.</span><span class="nf">read</span><span class="p">(</span><span class="s2">"docs/caching.md"</span><span class="p">),</span>
+  <span class="ss">category: </span><span class="s2">"documentation"</span>
+<span class="p">)</span>
+
+<span class="no">IndexDocumentJob</span><span class="p">.</span><span class="nf">perform_now</span><span class="p">(</span><span class="n">doc</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+
+<span class="c1"># Verify chunks created</span>
+<span class="n">doc</span><span class="p">.</span><span class="nf">chunks</span><span class="p">.</span><span class="nf">count</span>  <span class="c1"># Should be &gt; 0</span>
+<span class="n">doc</span><span class="p">.</span><span class="nf">chunks</span><span class="p">.</span><span class="nf">first</span><span class="p">.</span><span class="nf">embedding</span><span class="p">.</span><span class="nf">present?</span>  <span class="c1"># Should be true</span>
+</code></pre></div>
+<ol>
+<li>Test vector search:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Generate query embedding</span>
+<span class="n">service</span> <span class="o">=</span> <span class="no">EmbeddingService</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">query_embedding</span> <span class="o">=</span> <span class="n">service</span><span class="p">.</span><span class="nf">generate_embedding</span><span class="p">(</span><span class="s2">"How does fragment caching work?"</span><span class="p">)</span>
+
+<span class="c1"># Search for similar chunks</span>
+<span class="n">results</span> <span class="o">=</span> <span class="no">Chunk</span><span class="p">.</span><span class="nf">search</span><span class="p">(</span><span class="n">query_embedding</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">5</span><span class="p">)</span>
+<span class="n">results</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">chunk</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">"Distance: </span><span class="si">#{</span><span class="n">chunk</span><span class="p">.</span><span class="nf">distance</span><span class="p">.</span><span class="nf">round</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+  <span class="nb">puts</span> <span class="n">chunk</span><span class="p">.</span><span class="nf">content</span><span class="p">[</span><span class="mi">0</span><span class="o">..</span><span class="mi">100</span><span class="p">]</span>
+  <span class="nb">puts</span> <span class="s2">"---"</span>
+<span class="k">end</span>
+</code></pre></div>
+<ol>
+<li>Test RAG query:</li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code>curl <span class="nt">-X</span> POST http://localhost:3000/api/v1/rag/query <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+  <span class="nt">-d</span> <span class="s1">'{
+    "question": "What are the benefits of fragment caching in Rails?"
+  }'</span>
+</code></pre></div>
+<p>Expected response:</p>
+<div class="highlight"><pre class="highlight json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"answer"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Fragment caching in Rails provides several benefits..."</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"sources"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"source_url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://guides.rubyonrails.org/caching"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"category"</span><span class="p">:</span><span class="w"> </span><span class="s2">"documentation"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<h2>Setup Code</h2>
+
+<h3>Step 1: Install Dependencies</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Gemfile</span>
+bundle add pgvector
+bundle add ruby-openai
+bundle add pdf-reader  <span class="c"># For PDF processing (optional)</span>
+
+bundle <span class="nb">install</span>
+</code></pre></div>
+<h3>Step 2: Enable pgvector Extension</h3>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate migration EnablePgvector
+</code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="c1"># db/migrate/XXXXXX_enable_pgvector.rb</span>
+<span class="k">class</span> <span class="nc">EnablePgvector</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.1</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">enable_extension</span> <span class="s1">'vector'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 3: Create Models</h3>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate model Document title:string content:text source_url:string category:string indexed_at:datetime
+bin/rails generate model Chunk document:references content:text position:integer
+</code></pre></div>
+<p>Add vector column:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate migration AddEmbeddingToChunks
+</code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="c1"># db/migrate/XXXXXX_add_embedding_to_chunks.rb</span>
+<span class="k">class</span> <span class="nc">AddEmbeddingToChunks</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.1</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">add_column</span> <span class="ss">:chunks</span><span class="p">,</span> <span class="ss">:embedding</span><span class="p">,</span> <span class="ss">:vector</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">1536</span>
+    <span class="n">add_index</span> <span class="ss">:chunks</span><span class="p">,</span> <span class="ss">:embedding</span><span class="p">,</span> <span class="ss">using: :ivfflat</span><span class="p">,</span> <span class="ss">opclass: :vector_cosine_ops</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Run migrations:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails db:migrate
+</code></pre></div>
+<h3>Step 4: Implement Models</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/models/document.rb</span>
+<span class="k">class</span> <span class="nc">Document</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_many</span> <span class="ss">:chunks</span><span class="p">,</span> <span class="ss">dependent: :destroy</span>
+
+  <span class="n">validates</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span>
+  <span class="n">validates</span> <span class="ss">:content</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span>
+<span class="k">end</span>
+
+<span class="c1"># app/models/chunk.rb</span>
+<span class="k">class</span> <span class="nc">Chunk</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:document</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">search</span><span class="p">(</span><span class="n">query_embedding</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">5</span><span class="p">,</span> <span class="ss">metadata_filters: </span><span class="p">{})</span>
+    <span class="n">relation</span> <span class="o">=</span> <span class="n">all</span>
+
+    <span class="k">if</span> <span class="n">metadata_filters</span><span class="p">[</span><span class="ss">:category</span><span class="p">].</span><span class="nf">present?</span>
+      <span class="n">relation</span> <span class="o">=</span> <span class="n">relation</span><span class="p">.</span><span class="nf">joins</span><span class="p">(</span><span class="ss">:document</span><span class="p">)</span>
+        <span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">documents: </span><span class="p">{</span> <span class="ss">category: </span><span class="n">metadata_filters</span><span class="p">[</span><span class="ss">:category</span><span class="p">]</span> <span class="p">})</span>
+    <span class="k">end</span>
+
+    <span class="n">relation</span>
+      <span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="s2">"chunks.*, (embedding &lt;=&gt; '[</span><span class="si">#{</span><span class="n">query_embedding</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">','</span><span class="p">)</span><span class="si">}</span><span class="s2">]') AS distance"</span><span class="p">)</span>
+      <span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s1">'distance ASC'</span><span class="p">)</span>
+      <span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 5: Create Services</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/services/text_chunker.rb</span>
+<span class="k">class</span> <span class="nc">TextChunker</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="ss">chunk_size: </span><span class="mi">300</span><span class="p">,</span> <span class="ss">overlap: </span><span class="mi">50</span><span class="p">)</span>
+    <span class="vi">@chunk_size</span> <span class="o">=</span> <span class="n">chunk_size</span>
+    <span class="vi">@overlap</span> <span class="o">=</span> <span class="n">overlap</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">chunk</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">sentences</span> <span class="o">=</span> <span class="n">text</span><span class="p">.</span><span class="nf">split</span><span class="p">(</span><span class="sr">/(?&lt;=[.!?])\s+/</span><span class="p">)</span>
+    <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_chunk</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_size</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">sentences</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">sentence</span><span class="o">|</span>
+      <span class="n">sentence_tokens</span> <span class="o">=</span> <span class="n">estimate_tokens</span><span class="p">(</span><span class="n">sentence</span><span class="p">)</span>
+
+      <span class="k">if</span> <span class="n">current_size</span> <span class="o">+</span> <span class="n">sentence_tokens</span> <span class="o">&gt;</span> <span class="vi">@chunk_size</span> <span class="o">&amp;&amp;</span> <span class="n">current_chunk</span><span class="p">.</span><span class="nf">any?</span>
+        <span class="n">chunks</span> <span class="o">&lt;&lt;</span> <span class="n">current_chunk</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">' '</span><span class="p">)</span>
+
+        <span class="c1"># Keep overlap</span>
+        <span class="n">overlap_sentences</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">overlap_size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">current_chunk</span><span class="p">.</span><span class="nf">reverse</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">s</span><span class="o">|</span>
+          <span class="n">s_tokens</span> <span class="o">=</span> <span class="n">estimate_tokens</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+          <span class="k">break</span> <span class="k">if</span> <span class="n">overlap_size</span> <span class="o">+</span> <span class="n">s_tokens</span> <span class="o">&gt;</span> <span class="vi">@overlap</span>
+          <span class="n">overlap_sentences</span><span class="p">.</span><span class="nf">unshift</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+          <span class="n">overlap_size</span> <span class="o">+=</span> <span class="n">s_tokens</span>
+        <span class="k">end</span>
+
+        <span class="n">current_chunk</span> <span class="o">=</span> <span class="n">overlap_sentences</span>
+        <span class="n">current_size</span> <span class="o">=</span> <span class="n">overlap_size</span>
+      <span class="k">end</span>
+
+      <span class="n">current_chunk</span> <span class="o">&lt;&lt;</span> <span class="n">sentence</span>
+      <span class="n">current_size</span> <span class="o">+=</span> <span class="n">sentence_tokens</span>
+    <span class="k">end</span>
+
+    <span class="n">chunks</span> <span class="o">&lt;&lt;</span> <span class="n">current_chunk</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">' '</span><span class="p">)</span> <span class="k">if</span> <span class="n">current_chunk</span><span class="p">.</span><span class="nf">any?</span>
+    <span class="n">chunks</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">estimate_tokens</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">text</span><span class="p">.</span><span class="nf">length</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">).</span><span class="nf">ceil</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/services/embedding_service.rb</span>
+<span class="k">class</span> <span class="nc">EmbeddingService</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@client</span> <span class="o">=</span> <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">access_token: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'OPENAI_API_KEY'</span><span class="p">])</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">generate_embedding</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="vi">@client</span><span class="p">.</span><span class="nf">embeddings</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span>
+        <span class="ss">model: </span><span class="s1">'text-embedding-3-small'</span><span class="p">,</span>
+        <span class="ss">input: </span><span class="n">text</span>
+      <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s1">'data'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'embedding'</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/services/rag_retriever.rb</span>
+<span class="k">class</span> <span class="nc">RagRetriever</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="ss">embedding_service: </span><span class="no">EmbeddingService</span><span class="p">.</span><span class="nf">new</span><span class="p">)</span>
+    <span class="vi">@embedding_service</span> <span class="o">=</span> <span class="n">embedding_service</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">retrieve</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="ss">top_k: </span><span class="mi">5</span><span class="p">,</span> <span class="ss">filters: </span><span class="p">{})</span>
+    <span class="n">query_embedding</span> <span class="o">=</span> <span class="vi">@embedding_service</span><span class="p">.</span><span class="nf">generate_embedding</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="no">Chunk</span><span class="p">.</span><span class="nf">search</span><span class="p">(</span><span class="n">query_embedding</span><span class="p">,</span> <span class="ss">limit: </span><span class="n">top_k</span><span class="p">,</span> <span class="ss">metadata_filters: </span><span class="n">filters</span><span class="p">)</span>
+
+    <span class="n">results</span><span class="p">.</span><span class="nf">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">chunk</span><span class="o">|</span>
+      <span class="p">{</span>
+        <span class="ss">content: </span><span class="n">chunk</span><span class="p">.</span><span class="nf">content</span><span class="p">,</span>
+        <span class="ss">document_title: </span><span class="n">chunk</span><span class="p">.</span><span class="nf">document</span><span class="p">.</span><span class="nf">title</span><span class="p">,</span>
+        <span class="ss">similarity: </span><span class="mi">1</span> <span class="o">-</span> <span class="n">chunk</span><span class="p">.</span><span class="nf">distance</span><span class="p">,</span>
+        <span class="ss">metadata: </span><span class="p">{</span>
+          <span class="ss">source_url: </span><span class="n">chunk</span><span class="p">.</span><span class="nf">document</span><span class="p">.</span><span class="nf">source_url</span><span class="p">,</span>
+          <span class="ss">category: </span><span class="n">chunk</span><span class="p">.</span><span class="nf">document</span><span class="p">.</span><span class="nf">category</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/services/rag_service.rb</span>
+<span class="k">class</span> <span class="nc">RagService</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@retriever</span> <span class="o">=</span> <span class="no">RagRetriever</span><span class="p">.</span><span class="nf">new</span>
+    <span class="vi">@llm_client</span> <span class="o">=</span> <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">access_token: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'OPENAI_API_KEY'</span><span class="p">])</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">answer</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="ss">filters: </span><span class="p">{})</span>
+    <span class="n">contexts</span> <span class="o">=</span> <span class="vi">@retriever</span><span class="p">.</span><span class="nf">retrieve</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="ss">top_k: </span><span class="mi">5</span><span class="p">,</span> <span class="ss">filters: </span><span class="n">filters</span><span class="p">)</span>
+    <span class="n">prompt</span> <span class="o">=</span> <span class="n">build_prompt</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">contexts</span><span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="vi">@llm_client</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span>
+        <span class="ss">model: </span><span class="s1">'gpt-4-turbo-preview'</span><span class="p">,</span>
+        <span class="ss">messages: </span><span class="p">[</span>
+          <span class="p">{</span> <span class="ss">role: </span><span class="s1">'system'</span><span class="p">,</span> <span class="ss">content: </span><span class="n">system_prompt</span> <span class="p">},</span>
+          <span class="p">{</span> <span class="ss">role: </span><span class="s1">'user'</span><span class="p">,</span> <span class="ss">content: </span><span class="n">prompt</span> <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="ss">temperature: </span><span class="mf">0.3</span>
+      <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="p">{</span>
+      <span class="ss">answer: </span><span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s1">'choices'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'message'</span><span class="p">,</span> <span class="s1">'content'</span><span class="p">),</span>
+      <span class="ss">sources: </span><span class="n">contexts</span><span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">c</span><span class="o">|</span> <span class="n">c</span><span class="p">[</span><span class="ss">:metadata</span><span class="p">]</span> <span class="p">}.</span><span class="nf">uniq</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">system_prompt</span>
+    <span class="s2">"You are a helpful assistant that answers questions based on provided context. "</span><span class="p">\</span>
+    <span class="s2">"Use only the information from the context. If insufficient information is available, say so."</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">build_prompt</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">contexts</span><span class="p">)</span>
+    <span class="n">context_text</span> <span class="o">=</span> <span class="n">contexts</span><span class="p">.</span><span class="nf">map</span><span class="p">.</span><span class="nf">with_index</span> <span class="k">do</span> <span class="o">|</span><span class="n">ctx</span><span class="p">,</span> <span class="n">i</span><span class="o">|</span>
+      <span class="s2">"Source </span><span class="si">#{</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="si">}</span><span class="s2"> (</span><span class="si">#{</span><span class="n">ctx</span><span class="p">[</span><span class="ss">:document_title</span><span class="p">]</span><span class="si">}</span><span class="s2">):</span><span class="se">\n</span><span class="si">#{</span><span class="n">ctx</span><span class="p">[</span><span class="ss">:content</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">end</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s2">"</span><span class="se">\n\n</span><span class="s2">---</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="s2">"Context:</span><span class="se">\n</span><span class="si">#{</span><span class="n">context_text</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">Question: </span><span class="si">#{</span><span class="n">question</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">\</span>
+    <span class="s2">"Please provide a clear answer based on the context above."</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 6: Create Background Job</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/jobs/index_document_job.rb</span>
+<span class="k">class</span> <span class="nc">IndexDocumentJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="n">queue_as</span> <span class="ss">:default</span>
+
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">document_id</span><span class="p">)</span>
+    <span class="n">document</span> <span class="o">=</span> <span class="no">Document</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">document_id</span><span class="p">)</span>
+    <span class="n">chunker</span> <span class="o">=</span> <span class="no">TextChunker</span><span class="p">.</span><span class="nf">new</span>
+    <span class="n">embedding_service</span> <span class="o">=</span> <span class="no">EmbeddingService</span><span class="p">.</span><span class="nf">new</span>
+
+    <span class="n">chunks</span> <span class="o">=</span> <span class="n">chunker</span><span class="p">.</span><span class="nf">chunk</span><span class="p">(</span><span class="n">document</span><span class="p">.</span><span class="nf">content</span><span class="p">)</span>
+
+    <span class="n">chunks</span><span class="p">.</span><span class="nf">each_with_index</span> <span class="k">do</span> <span class="o">|</span><span class="n">chunk_text</span><span class="p">,</span> <span class="n">index</span><span class="o">|</span>
+      <span class="n">embedding</span> <span class="o">=</span> <span class="n">embedding_service</span><span class="p">.</span><span class="nf">generate_embedding</span><span class="p">(</span><span class="n">chunk_text</span><span class="p">)</span>
+
+      <span class="n">document</span><span class="p">.</span><span class="nf">chunks</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+        <span class="ss">content: </span><span class="n">chunk_text</span><span class="p">,</span>
+        <span class="ss">embedding: </span><span class="n">embedding</span><span class="p">,</span>
+        <span class="ss">position: </span><span class="n">index</span>
+      <span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="n">document</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">indexed_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 7: Create Controller and Routes</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/api/v1/rag_controller.rb</span>
+<span class="k">module</span> <span class="nn">Api</span>
+  <span class="k">module</span> <span class="nn">V1</span>
+    <span class="k">class</span> <span class="nc">RagController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+      <span class="n">skip_before_action</span> <span class="ss">:verify_authenticity_token</span>
+
+      <span class="k">def</span> <span class="nf">query</span>
+        <span class="n">question</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="ss">:question</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">error: </span><span class="s1">'Question required'</span> <span class="p">},</span> <span class="ss">status: :bad_request</span> <span class="k">if</span> <span class="n">question</span><span class="p">.</span><span class="nf">blank?</span>
+
+        <span class="n">filters</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="ss">category: </span><span class="n">params</span><span class="p">[</span><span class="ss">:category</span><span class="p">]</span>
+        <span class="p">}.</span><span class="nf">compact</span>
+
+        <span class="n">rag_service</span> <span class="o">=</span> <span class="no">RagService</span><span class="p">.</span><span class="nf">new</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">rag_service</span><span class="p">.</span><span class="nf">answer</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="ss">filters: </span><span class="n">filters</span><span class="p">)</span>
+
+        <span class="n">render</span> <span class="ss">json: </span><span class="n">result</span>
+      <span class="k">rescue</span> <span class="no">StandardError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+        <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">error: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span> <span class="p">},</span> <span class="ss">status: :unprocessable_entity</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># config/routes.rb</span>
+<span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">namespace</span> <span class="ss">:api</span> <span class="k">do</span>
+    <span class="n">namespace</span> <span class="ss">:v1</span> <span class="k">do</span>
+      <span class="n">post</span> <span class="s1">'rag/query'</span><span class="p">,</span> <span class="ss">to: </span><span class="s1">'rag#query'</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 8: Set Environment Variables</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># .env (or set in your environment)</span>
+<span class="nb">export </span><span class="nv">OPENAI_API_KEY</span><span class="o">=</span>sk-your-api-key-here
+</code></pre></div>
+<h3>Step 9: Create Sample Data</h3>
+
+<p>Create <code>docs/caching.md</code>:</p>
+<div class="highlight"><pre class="highlight markdown"><code><span class="gh"># Rails Caching Guide</span>
+
+Fragment caching is a powerful Rails feature that caches portions of views.
+Unlike page caching, fragment caching allows you to cache specific parts while
+keeping other sections dynamic.
+
+<span class="gu">## Benefits</span>
+
+Fragment caching reduces database queries and view rendering time. It's especially
+useful for expensive computations or complex partials that don't change frequently.
+
+<span class="gu">## Example</span>
+
+<span class="p">```</span><span class="nl">erb
+</span><span class="cp">&lt;%</span> <span class="n">cache</span> <span class="vi">@product</span> <span class="k">do</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">render</span> <span class="vi">@product</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+</code></pre></div>
+<p>This caches the product partial. Rails automatically expires the cache when<br>
+the product updates using the cache key.<br>
+```</p>
+
+<p>Index the document:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Rails console</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="no">Document</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+  <span class="ss">title: </span><span class="s2">"Rails Caching Guide"</span><span class="p">,</span>
+  <span class="ss">content: </span><span class="no">File</span><span class="p">.</span><span class="nf">read</span><span class="p">(</span><span class="s2">"docs/caching.md"</span><span class="p">),</span>
+  <span class="ss">category: </span><span class="s2">"documentation"</span><span class="p">,</span>
+  <span class="ss">source_url: </span><span class="s2">"https://guides.rubyonrails.org/caching"</span>
+<span class="p">)</span>
+
+<span class="no">IndexDocumentJob</span><span class="p">.</span><span class="nf">perform_now</span><span class="p">(</span><span class="n">doc</span><span class="p">.</span><span class="nf">id</span><span class="p">)</span>
+</code></pre></div>
+<h2>Stretch (Optional)</h2>
+
+<ol>
+<li><strong>Add metadata filtering by date:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">query</span>
+  <span class="n">filters</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="ss">category: </span><span class="n">params</span><span class="p">[</span><span class="ss">:category</span><span class="p">],</span>
+    <span class="ss">after: </span><span class="n">params</span><span class="p">[</span><span class="ss">:after_date</span><span class="p">]</span> <span class="p">?</span> <span class="no">Date</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:after_date</span><span class="p">])</span> <span class="p">:</span> <span class="kp">nil</span>
+  <span class="p">}.</span><span class="nf">compact</span>
+
+  <span class="c1"># In Chunk.search, add:</span>
+  <span class="c1"># relation = relation.where('documents.created_at &gt; ?', metadata_filters[:after]) if metadata_filters[:after]</span>
+<span class="k">end</span>
+</code></pre></div>
+<ol>
+<li><strong>Implement hybrid search (vector + keyword):</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># In Chunk model</span>
+<span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">hybrid_search</span><span class="p">(</span><span class="n">query_embedding</span><span class="p">,</span> <span class="n">query_text</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">5</span><span class="p">)</span>
+  <span class="n">vector_results</span> <span class="o">=</span> <span class="n">search</span><span class="p">(</span><span class="n">query_embedding</span><span class="p">,</span> <span class="ss">limit: </span><span class="n">limit</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+  <span class="n">keyword_results</span> <span class="o">=</span> <span class="n">where</span><span class="p">(</span><span class="s2">"content ILIKE ?"</span><span class="p">,</span> <span class="s2">"%</span><span class="si">#{</span><span class="n">query_text</span><span class="si">}</span><span class="s2">%"</span><span class="p">).</span><span class="nf">limit</span><span class="p">(</span><span class="n">limit</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+
+  <span class="c1"># Combine using Reciprocal Rank Fusion</span>
+  <span class="c1"># ... implementation from overview.md</span>
+<span class="k">end</span>
+</code></pre></div>
+<ol>
+<li><strong>Add query logging and analytics:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate model RagQueryLog query:text answer:text contexts_count:integer response_time_ms:integer user_feedback:integer
+</code></pre></div>
+<p>Track each query for analysis and improvement.</p>
+
+<h2>Time Estimate</h2>
+
+<p>28 minutes</p>
+
+    
+  </div>
+</div>
+
+<!-- Checkpoint Tab -->
+<div id="checkpoint-tab" class="tab-content">
+  <div class="content-section">
+    
+      
+      <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
+        <p><strong>Passing Score:</strong> 7 points</p>
+        <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
+      </div>
+
+      
+        <div class="question"
+             data-question-id="0"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="To combine semantic search with LLMs to ground responses in specific data">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the primary purpose of RAG (Retrieval-Augmented Generation)?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  To fine-tune LLMs on custom datasets
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  To combine semantic search with LLMs to ground responses in specific data
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  To reduce LLM API costs by caching responses
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  To train embeddings models on domain-specific text
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> RAG retrieves relevant documents from a knowledge base and uses them as context for LLM generation, providing grounded, accurate answers based on specific data sources.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="1"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="200-500 tokens with 10-20% overlap">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the optimal chunk size range for most RAG systems?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  50-100 tokens with no overlap
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  200-500 tokens with 10-20% overlap
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  1000-2000 tokens with 50% overlap
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Single sentences (10-30 tokens) with 5-token overlap
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> This range balances context preservation with retrieval precision. Smaller chunks lose context; larger chunks lose specificity. Overlap ensures important information isn't split across chunk boundaries.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="2"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="pgvector">
+          <h4>Question 3 (1 points)</h4>
+          <p style="margin: 10px 0;">Which PostgreSQL extension enables vector storage and similarity search?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  pg_trgm
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  pgvector
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  pg_search
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  postgis
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> pgvector adds vector data types and similarity search operators (cosine, L2, inner product) to PostgreSQL, making it suitable for storing and querying embeddings.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="3"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 4 (2 points)</h4>
+          <p style="margin: 10px 0;">What SQL operator does pgvector use for cosine distance similarity search?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">The <=> operator for cosine distance (or <-> for L2 distance, <#> for inner product).</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="4"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="It ensures results are relevant to user context (date, category, permissions)">
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">Why should RAG systems combine vector similarity with metadata filtering?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  Metadata filtering makes vector search faster
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  It reduces embedding generation costs
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  It ensures results are relevant to user context (date, category, permissions)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  PostgreSQL requires metadata filters for vector operations
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Pure vector search may return semantically similar but contextually wrong results. Metadata filters (date ranges, categories, access control) narrow results to the user's specific needs.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="5"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="1536">
+          <h4>Question 6 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the dimension size of OpenAI's text-embedding-3-small model?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  768
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  1024
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  1536
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  3072
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> text-embedding-3-small produces 1536-dimensional vectors, which must match your vector column limit in PostgreSQL.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 7 (2 points)</h4>
+          <p style="margin: 10px 0;">In a RAG pipeline, what are the two main phases (offline and online)?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Indexing pipeline (offline): ingest documents, chunk, generate embeddings, store vectors. Query pipeline (online): generate query embedding, search vectors, retrieve context, generate answer with LLM.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Combining and re-ranking results from vector and keyword search">
+          <h4>Question 8 (2 points)</h4>
+          <p style="margin: 10px 0;">What is Reciprocal Rank Fusion (RRF) used for in hybrid search?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  Compressing embeddings to reduce storage costs
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  Combining and re-ranking results from vector and keyword search
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  Filtering duplicate chunks from search results
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Normalizing embedding vectors before storage
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> RRF merges ranked lists from different search methods by assigning scores based on rank position, producing a unified ranking that leverages strengths of both approaches.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="0.3 for mostly factual with minor variation">
+          <h4>Question 9 (1 points)</h4>
+          <p style="margin: 10px 0;">What temperature setting is recommended for RAG-based factual Q&A?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(8, 0)">
+                  0.0 for deterministic outputs
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 1)">
+                  0.3 for mostly factual with minor variation
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 2)">
+                  0.7 for balanced creativity
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 3)">
+                  1.0 for maximum creativity
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Lower temperatures (0.0-0.3) reduce randomness, keeping responses close to the provided context. RAG systems prioritize accuracy over creativity.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="short"
+             data-points="1"
+             >
+          <h4>Question 10 (1 points)</h4>
+          <p style="margin: 10px 0;">What Rails pattern should you use to index large document collections asynchronously?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Background jobs (ActiveJob/Sidekiq) to process document chunking and embedding generation outside the request-response cycle.</p>
+            </div>
+          
+        </div>
+      
+
+      <div style="margin-top: 30px; display: flex; gap: 10px;">
+        <button onclick="checkAnswers()" style="padding: 12px 24px; background: #CC0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600;">
+          Check Answers
+        </button>
+        <button onclick="resetQuiz()" style="padding: 12px 24px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+          Reset
+        </button>
+      </div>
+
+      <div class="score-display" data-passing="7"></div>
+    
+  </div>
+</div>
+
+<!-- References Tab -->
+<div id="references-tab" class="tab-content">
+  <div class="content-section">
+    
+      <p style="margin-bottom: 20px; color: var(--text-secondary);">
+        Curated sources to deepen your understanding. All references point to official documentation,
+        canonical books, or reputable technical content.
+      </p>
+      <ul class="reference-list">
+        
+          <li>
+            <a href="https://platform.openai.com/docs/guides/embeddings" target="_blank">OpenAI Embeddings API Documentation</a>
+            <div class="why">Official guide to generating embeddings with OpenAI's models, including text-embedding-3-small and best practices for RAG.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/pgvector/pgvector" target="_blank">pgvector GitHub Repository and Documentation</a>
+            <div class="why">Comprehensive reference for installing and using pgvector in PostgreSQL, including indexing strategies and similarity operators.</div>
+          </li>
+        
+          <li>
+            <a href="https://python.langchain.com/docs/use_cases/question_answering/" target="_blank">LangChain RAG Tutorial</a>
+            <div class="why">Detailed walkthrough of RAG architectures, chunking strategies, and retrieval patterns (Python-focused but conceptually applicable to Rails).</div>
+          </li>
+        
+          <li>
+            <a href="https://www.pinecone.io/learn/retrieval-augmented-generation/" target="_blank">Pinecone Learning Center — What is Retrieval-Augmented Generation?</a>
+            <div class="why">Clear explanation of RAG concepts, architecture diagrams, and comparison with fine-tuning approaches.</div>
+          </li>
+        
+          <li>
+            <a href="https://docs.anthropic.com/claude/docs/prompt-engineering#retrieval-augmented-generation" target="_blank">Anthropic Claude API — Prompt Engineering for RAG</a>
+            <div class="why">Best practices for structuring prompts with retrieved context, managing token limits, and improving answer quality.</div>
+          </li>
+        
+          <li>
+            <a href="https://guides.rubyonrails.org/active_job_basics.html" target="_blank">Rails Guides — Active Job Basics</a>
+            <div class="why">Essential guide for implementing background jobs to handle document indexing and embedding generation asynchronously.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/alexrudall/ruby-openai" target="_blank">ruby-openai Gem Documentation</a>
+            <div class="why">Ruby client library for OpenAI API with examples for embeddings, chat completions, and streaming responses in Rails.</div>
+          </li>
+        
+      </ul>
+    
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="topic-navigation">
+  
+    <a href="llm_api_integration.html" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">LLM API Integration Basics</div>
+      </div>
+    </a>
+  
+
+  
+    <div class="nav-button next" style="opacity: 0.3; cursor: not-allowed;">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">End of track</div>
+      </div>
+      <span class="arrow">→</span>
+    </div>
+  
+</div>
+
+
+  <script>
+    // Dark mode toggle with persistence
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      document.body.classList.add('dark-mode');
+      document.querySelector('.light-icon').style.display = 'none';
+      document.querySelector('.dark-icon').style.display = 'inline';
+    }
+
+    darkModeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      document.querySelector('.light-icon').style.display = isDark ? 'none' : 'inline';
+      document.querySelector('.dark-icon').style.display = isDark ? 'inline' : 'none';
+    });
+
+    // Progress tracking with localStorage
+    function markComplete(topicKey) {
+      const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+      if (!completed.includes(topicKey)) {
+        completed.push(topicKey);
+        localStorage.setItem('completed', JSON.stringify(completed));
+        updateProgress();
+      }
+    }
+
+    function isComplete(topicKey) {
+      const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+      return completed.includes(topicKey);
+    }
+
+    function updateProgress() {
+      const totalTopics = 59;
+      const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+      const percentage = (completed.length / totalTopics) * 100;
+
+      document.querySelectorAll('.progress-bar-fill').forEach(fill => {
+        fill.style.width = percentage + '%';
+      });
+
+      document.querySelectorAll('[data-topic-key]').forEach(card => {
+        const key = card.dataset.topicKey;
+        const badge = card.querySelector('.completion-badge');
+        if (badge && isComplete(key)) {
+          badge.classList.add('completed');
+        }
+      });
+    }
+
+    // Initialize progress on page load
+    updateProgress();
+  </script>
+</body>
+</html>

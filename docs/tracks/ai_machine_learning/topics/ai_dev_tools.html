@@ -1,0 +1,2492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rails Seniority Coach</title>
+  <style>
+    :root {
+      /* Modern color palette */
+      --bg-primary: #f8f9fa;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f1f3f5;
+      --bg-elevated: #ffffff;
+
+      --text-primary: #212529;
+      --text-secondary: #6c757d;
+      --text-muted: #adb5bd;
+
+      --accent-primary: #d63384;
+      --accent-secondary: #0d6efd;
+      --accent-success: #198754;
+      --accent-warning: #ffc107;
+
+      --border: #dee2e6;
+      --border-light: #e9ecef;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.dark-mode {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #1f2937;
+      --bg-elevated: #21262d;
+
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+
+      --accent-primary: #ff6b9d;
+      --accent-secondary: #58a6ff;
+      --accent-success: #3fb950;
+      --accent-warning: #ffcf33;
+
+      --border: #30363d;
+      --border-light: #21262d;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      line-height: 1.7;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      transition: background 0.3s ease, color 0.3s ease;
+      font-size: 16px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header - Simplified & Clean */
+    header {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #c2255c 100%);
+      color: white;
+      padding: 14px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-md);
+    }
+
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    header .brand {
+      flex: 1;
+    }
+
+    header .brand a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: white;
+      transition: var(--transition);
+    }
+
+    header .brand a:hover {
+      opacity: 0.85;
+    }
+
+    header .brand-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    header p {
+      opacity: 0.9;
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* Dark Mode Toggle - Compact */
+    .dark-mode-toggle {
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: 20px;
+      transition: var(--transition);
+      flex-shrink: 0;
+      backdrop-filter: blur(10px);
+    }
+
+    .dark-mode-toggle:hover {
+      background: rgba(255,255,255,0.25);
+      border-color: rgba(255,255,255,0.3);
+      transform: scale(1.05);
+    }
+
+    /* Navigation - Improved */
+    nav {
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+      font-weight: 500;
+      font-size: 15px;
+    }
+
+    nav a:hover {
+      background: var(--bg-tertiary);
+      color: var(--accent-primary);
+      transform: translateY(-1px);
+    }
+
+    /* Cards - Professional Design */
+    .track-grid, .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+      margin: 28px 0;
+    }
+
+    .track-card, .topic-card {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .track-card::before, .topic-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .track-card:hover, .topic-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--accent-primary);
+    }
+
+    .track-card:hover::before, .topic-card:hover::before {
+      opacity: 1;
+    }
+
+    .track-card h3, .topic-card h3 {
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .track-card p, .topic-card p {
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .track-card a, .topic-card a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* Track Icon Badge */
+    .track-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+
+    /* Completion Badge - Enhanced */
+    .completion-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 28px;
+      opacity: 0;
+      transition: var(--transition);
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    .completion-badge.completed {
+      opacity: 1;
+      animation: completionPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes completionPop {
+      0% { transform: scale(0); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* Progress Bar - Modern Design */
+    .progress-bar {
+      height: 6px;
+      background: var(--border-light);
+      border-radius: 100px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px rgba(214, 51, 132, 0.3);
+    }
+
+    /* Badges - Polished Design */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 4px 4px 4px 0;
+      transition: var(--transition);
+    }
+
+    .badge-primary {
+      background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+      color: #4a148c;
+    }
+
+    .badge-success {
+      background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+      color: #1b5e20;
+    }
+
+    .badge-info {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      color: #01579b;
+    }
+
+    .badge:hover {
+      transform: scale(1.05);
+    }
+
+    /* Tabs - Modern Design */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid var(--border-light);
+      margin: 24px 0 20px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .tab {
+      padding: 12px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 15px;
+      transition: var(--transition);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      white-space: nowrap;
+    }
+
+    .tab:hover {
+      color: var(--accent-primary);
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    }
+
+    .tab.active {
+      color: var(--accent-primary);
+      border-bottom-color: var(--accent-primary);
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Content Sections - Enhanced */
+    .content-section {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin: 20px 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .content-section h2 {
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      font-size: 24px;
+      font-weight: 700;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border-light);
+    }
+
+    .content-section h3 {
+      color: var(--text-primary);
+      margin: 24px 0 12px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .content-section p {
+      margin-bottom: 16px;
+      line-height: 1.75;
+      color: var(--text-primary);
+    }
+
+    .content-section ul, .content-section ol {
+      margin: 16px 0 16px 24px;
+      color: var(--text-primary);
+    }
+
+    .content-section li {
+      margin: 8px 0;
+      line-height: 1.7;
+    }
+
+    /* Objectives Section - Gradient Accent */
+    .objectives-section {
+      background: linear-gradient(135deg, rgba(214, 51, 132, 0.05) 0%, rgba(13, 110, 253, 0.05) 100%);
+      border-left: 4px solid var(--accent-primary);
+    }
+
+    body.dark-mode .objectives-section {
+      background: linear-gradient(135deg, rgba(255, 107, 157, 0.08) 0%, rgba(88, 166, 255, 0.08) 100%);
+      border-left-color: var(--accent-primary);
+    }
+
+    /* Code Blocks - Professional Styling */
+    code {
+      background: var(--bg-tertiary);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 14px;
+      color: var(--accent-secondary);
+      border: 1px solid var(--border-light);
+    }
+
+    pre {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      margin: 20px 0;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      border: none;
+      color: #d4d4d4;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* Buttons - Modern Design */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #c2255c 100%);
+      color: white;
+      box-shadow: 0 4px 14px rgba(214, 51, 132, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(214, 51, 132, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-elevated);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+
+    /* Quiz - Enhanced Design */
+    .quiz-question {
+      background: var(--bg-elevated);
+      border: 2px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 20px 0;
+      transition: var(--transition);
+    }
+
+    .quiz-question:hover {
+      border-color: var(--accent-primary);
+      box-shadow: var(--shadow-md);
+    }
+
+    .quiz-question h4 {
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .quiz-option {
+      display: block;
+      padding: 14px 18px;
+      margin: 8px 0;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      background: var(--bg-tertiary);
+      border: 2px solid transparent;
+    }
+
+    .quiz-option:hover {
+      background: var(--bg-elevated);
+      border-color: var(--accent-primary);
+      transform: translateX(4px);
+    }
+
+    .quiz-option.correct {
+      background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(25, 135, 84, 0.05) 100%);
+      border-color: var(--accent-success);
+    }
+
+    .quiz-option.incorrect {
+      background: rgba(220, 53, 69, 0.1);
+      border-color: #dc3545;
+    }
+
+    /* Score Display - Celebration */
+    .score-display {
+      background: linear-gradient(135deg, var(--accent-success) 0%, #059669 100%);
+      color: white;
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      display: none;
+      animation: slideUp 0.4s ease;
+    }
+
+    .score-display.show { display: block; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Topic Navigation - Enhanced */
+    .topic-navigation {
+      display: flex;
+      justify-content: space-between;
+      margin: 32px 0;
+      gap: 16px;
+    }
+
+    .nav-button {
+      flex: 1;
+      max-width: 300px;
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+      border: 2px solid var(--border-light);
+      color: var(--text-primary);
+      text-decoration: none;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+    }
+
+    .nav-button:hover {
+      border-color: var(--accent-primary);
+      background: var(--accent-primary);
+      color: white;
+      transform: translateX(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .nav-button.next:hover {
+      transform: translateX(4px);
+    }
+
+    /* Responsive Design - Mobile Optimized */
+    @media (max-width: 768px) {
+      .container { padding: 0 16px; }
+
+      header {
+        padding: 10px 0;
+      }
+
+      header .container {
+        gap: 12px;
+      }
+
+      header .brand-icon {
+        font-size: 24px;
+      }
+
+      header h1 {
+        font-size: 16px;
+      }
+
+      header p {
+        font-size: 11px;
+      }
+
+      .dark-mode-toggle {
+        padding: 6px 10px;
+        font-size: 18px;
+      }
+
+      nav {
+        margin: 12px 0;
+        gap: 8px;
+      }
+
+      nav a {
+        font-size: 14px;
+        padding: 8px 12px;
+      }
+
+      .track-grid, .topic-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .tabs {
+        gap: 4px;
+      }
+
+      .tab {
+        padding: 10px 14px;
+        font-size: 14px;
+      }
+
+      .content-section {
+        padding: 20px;
+        margin: 16px 0;
+      }
+
+      .content-section h2 {
+        font-size: 20px;
+      }
+
+      .content-section h3 {
+        font-size: 18px;
+      }
+
+      .topic-navigation {
+        flex-direction: column;
+      }
+
+      .nav-button {
+        max-width: 100%;
+      }
+    }
+
+    /* Smooth Scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Focus Styles for Accessibility */
+    *:focus-visible {
+      outline: 3px solid var(--accent-primary);
+      outline-offset: 2px;
+    }
+
+    /* Print Styles */
+    @media print {
+      header, nav, .dark-mode-toggle {
+        display: none;
+      }
+
+      body {
+        background: white;
+        color: black;
+      }
+
+      .content-section {
+        box-shadow: none;
+        border: 1px solid #ddd;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="brand">
+        <a href="../../../index.html">
+          <span class="brand-icon">💎</span>
+          <div>
+            <h1>Rails Seniority Coach</h1>
+            <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
+          </div>
+        </a>
+      </div>
+      <button class="dark-mode-toggle" id="dark-mode-toggle" aria-label="Toggle dark mode">
+        <span class="light-icon">☀️</span>
+        <span class="dark-icon" style="display: none;">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <nav style="margin-bottom: 20px;">
+  <a href="../index.html">← AI & Machine Learning</a>
+</nav>
+
+<!-- Previous/Next Navigation -->
+<div class="topic-navigation">
+  
+    <div class="nav-button prev" style="opacity: 0.3; cursor: not-allowed;">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Start of track</div>
+      </div>
+    </div>
+  
+
+  
+    <a href="ai_powered_features.html" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">AI-Powered Search & Recommendations</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+<div style="margin-bottom: 30px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+    <div style="flex: 1;">
+      <h1>AI Development Workflows</h1>
+      <div style="margin: 15px 0;">
+        
+        
+          <span class="badge badge-working">Working</span>
+        
+        &nbsp;
+        <span style="color: var(--text-secondary);">
+          📖 10 min read &nbsp; | &nbsp; 💻 20 min exercise
+        </span>
+      </div>
+    </div>
+    <button
+      id="mark-complete-btn"
+      class="complete-button"
+      data-track-key="ai_machine_learning"
+      data-topic-key="ai_dev_tools"
+      onclick="markTopicComplete('ai_machine_learning', 'ai_dev_tools')">
+      Mark Complete
+    </button>
+  </div>
+
+  
+    <div class="content-section objectives-section">
+      <h3>Learning Objectives</h3>
+      <ul style="margin-left: 20px;">
+        
+          <li>Master AI code assistants (GitHub Copilot, Cursor, Claude Code)</li>
+        
+          <li>Use AI agents for code review and testing automation</li>
+        
+          <li>Apply prompt-driven development techniques effectively</li>
+        
+          <li>Leverage AI for debugging, refactoring, and documentation</li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-tab="overview-tab">📖 Overview</button>
+  <button class="tab" data-tab="exercise-tab">💻 Exercise</button>
+  <button class="tab" data-tab="checkpoint-tab">✅ Checkpoint</button>
+  <button class="tab" data-tab="references-tab">🔗 References</button>
+</div>
+
+<!-- Overview Tab -->
+<div id="overview-tab" class="tab-content active">
+  <div class="content-section">
+    
+      <h1>AI Development Workflows</h1>
+
+<h2>What It Is</h2>
+
+<p>AI development tools use large language models to assist with coding through autocomplete, code generation, debugging, and refactoring. GitHub Copilot provides inline suggestions as you type, completing functions and generating boilerplate. Cursor is an AI-native code editor with chat interfaces for codebase-wide refactoring and multi-file changes. Claude Code (the Anthropic CLI) executes complex workflows like &quot;add authentication to this Rails app&quot; by reading files, running tests, and committing changes autonomously. These tools integrate into daily workflows through IDE extensions, command-line interfaces, and code review automation that flags bugs, suggests improvements, and enforces team standards.</p>
+
+<h2>Why It Matters</h2>
+
+<p>Writing Rails applications involves repetitive patterns: creating CRUD controllers, writing migrations, setting up test fixtures, configuring routes. AI tools handle this boilerplate in seconds, freeing developers to focus on business logic and architecture. A junior developer can generate production-quality code by describing requirements in plain English: &quot;create a User model with email validation and password hashing.&quot; AI-assisted code review catches subtle bugs like N+1 queries, missing authorization checks, and race conditions that humans miss after hours of reviewing PRs. The difference between teams using AI tools effectively versus not using them is measured in 30-50% productivity gains on feature development and 40% reduction in bug introduction rates. Poor AI usage creates dependency: developers accepting suggestions without understanding them accumulate technical debt faster than manual coding.</p>
+
+<h2>When to Use</h2>
+
+<ul>
+<li><strong>Boilerplate generation:</strong> Controllers, models, migrations, test files—let AI generate scaffolding from descriptions</li>
+<li><strong>Refactoring assistance:</strong> &quot;Extract this method into a service object&quot; or &quot;convert these callbacks to explicit method calls&quot;</li>
+<li><strong>Test writing:</strong> Generate test cases from implementation code, including edge cases and error conditions</li>
+<li><strong>Code review:</strong> Automate detection of security vulnerabilities, performance issues, and style violations</li>
+<li><strong>Debugging:</strong> Ask AI to analyze stack traces, explain error messages, and suggest fixes</li>
+<li><strong>Documentation:</strong> Generate API docs, README sections, and inline comments from code</li>
+<li><strong>Learning:</strong> Understand unfamiliar codebases by asking &quot;what does this controller do?&quot; or &quot;why is this query slow?&quot;</li>
+</ul>
+
+<h2>Three Common Pitfalls</h2>
+
+<ol>
+<li><p><strong>Accepting AI suggestions without review:</strong> Copilot suggests <code>User.where(active: true).map(&amp;:email)</code> loading 10,000 records into memory when <code>User.where(active: true).pluck(:email)</code> is correct. Blindly accepting suggestions bypasses your judgment. Always read generated code, run tests, and verify logic before committing. Use AI as a pair programmer who types fast but needs oversight, not as a replacement for thinking.</p></li>
+<li><p><strong>Over-reliance on prompt engineering:</strong> Spending 20 minutes crafting the perfect prompt to generate a complex service object is slower than writing it yourself. AI tools excel at well-understood patterns (CRUD, migrations, tests) and struggle with novel business logic. Use AI for scaffolding and repetitive tasks, not for core algorithmic work or complex state machines. If you&#39;re rewriting prompts five times, switch to manual coding.</p></li>
+<li><p><strong>Ignoring security implications:</strong> AI-generated code may include vulnerabilities: SQL injection, missing authentication checks, or exposing sensitive data in logs. Example: AI suggests <code>Order.find(params[:id])</code> in an admin controller without checking <code>current_user.admin?</code>. Security requires human judgment—never deploy AI-generated authentication, authorization, or payment code without thorough review and penetration testing.</p></li>
+</ol>
+
+<hr>
+
+<h2>GitHub Copilot: Inline Autocomplete</h2>
+
+<p>GitHub Copilot provides context-aware code completions as you type, trained on billions of lines of public code. It predicts next lines based on file context, function signatures, and comments.</p>
+
+<h3>Basic Usage in Rails</h3>
+
+<p><strong>Scenario:</strong> Writing a Rails controller action.</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Type a comment describing what you want:</span>
+<span class="c1"># Create a new article with title and body, assign to current user</span>
+
+<span class="c1"># Copilot suggests:</span>
+<span class="k">def</span> <span class="nf">create</span>
+  <span class="vi">@article</span> <span class="o">=</span> <span class="n">current_user</span><span class="p">.</span><span class="nf">articles</span><span class="p">.</span><span class="nf">build</span><span class="p">(</span><span class="n">article_params</span><span class="p">)</span>
+  <span class="k">if</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">save</span>
+    <span class="n">redirect_to</span> <span class="vi">@article</span><span class="p">,</span> <span class="ss">notice: </span><span class="s1">'Article created successfully.'</span>
+  <span class="k">else</span>
+    <span class="n">render</span> <span class="ss">:new</span><span class="p">,</span> <span class="ss">status: :unprocessable_entity</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="kp">private</span>
+
+<span class="k">def</span> <span class="nf">article_params</span>
+  <span class="n">params</span><span class="p">.</span><span class="nf">require</span><span class="p">(</span><span class="ss">:article</span><span class="p">).</span><span class="nf">permit</span><span class="p">(</span><span class="ss">:title</span><span class="p">,</span> <span class="ss">:body</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>When it helps:</strong><br>
+- Generating common patterns (CRUD actions, validations, callbacks)<br>
+- Completing repetitive code (test setups, factory definitions)<br>
+- Suggesting method names and parameters based on context</p>
+
+<p><strong>When to ignore:</strong><br>
+- Complex business logic requiring domain knowledge<br>
+- Security-critical code (authentication, authorization, payments)<br>
+- Performance-sensitive queries (use profiling instead)</p>
+
+<h3>Copilot for Test Generation</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/models/article.rb</span>
+<span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">validates</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">length: </span><span class="p">{</span> <span class="ss">minimum: </span><span class="mi">5</span> <span class="p">}</span>
+  <span class="n">validates</span> <span class="ss">:body</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span>
+  <span class="n">belongs_to</span> <span class="ss">:user</span>
+
+  <span class="n">scope</span> <span class="ss">:published</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">.</span><span class="nf">not</span><span class="p">(</span><span class="ss">published_at: </span><span class="kp">nil</span><span class="p">)</span> <span class="p">}</span>
+  <span class="n">scope</span> <span class="ss">:recent</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">order</span><span class="p">(</span><span class="ss">published_at: :desc</span><span class="p">).</span><span class="nf">limit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
+
+<span class="c1"># Type in spec/models/article_spec.rb:</span>
+<span class="c1"># RSpec tests for Article validations and scopes</span>
+
+<span class="c1"># Copilot generates:</span>
+<span class="nb">require</span> <span class="s1">'rails_helper'</span>
+
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">Article</span><span class="p">,</span> <span class="ss">type: :model</span> <span class="k">do</span>
+  <span class="n">describe</span> <span class="s1">'validations'</span> <span class="k">do</span>
+    <span class="n">it</span> <span class="p">{</span> <span class="n">should</span> <span class="n">validate_presence_of</span><span class="p">(</span><span class="ss">:title</span><span class="p">)</span> <span class="p">}</span>
+    <span class="n">it</span> <span class="p">{</span> <span class="n">should</span> <span class="n">validate_length_of</span><span class="p">(</span><span class="ss">:title</span><span class="p">).</span><span class="nf">is_at_least</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="p">}</span>
+    <span class="n">it</span> <span class="p">{</span> <span class="n">should</span> <span class="n">validate_presence_of</span><span class="p">(</span><span class="ss">:body</span><span class="p">)</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="n">describe</span> <span class="s1">'associations'</span> <span class="k">do</span>
+    <span class="n">it</span> <span class="p">{</span> <span class="n">should</span> <span class="n">belong_to</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="n">describe</span> <span class="s1">'scopes'</span> <span class="k">do</span>
+    <span class="n">describe</span> <span class="s1">'.published'</span> <span class="k">do</span>
+      <span class="n">it</span> <span class="s1">'returns only published articles'</span> <span class="k">do</span>
+        <span class="n">published</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="ss">:article</span><span class="p">,</span> <span class="ss">published_at: </span><span class="mi">1</span><span class="p">.</span><span class="nf">day</span><span class="p">.</span><span class="nf">ago</span><span class="p">)</span>
+        <span class="n">draft</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="ss">:article</span><span class="p">,</span> <span class="ss">published_at: </span><span class="kp">nil</span><span class="p">)</span>
+        <span class="n">expect</span><span class="p">(</span><span class="no">Article</span><span class="p">.</span><span class="nf">published</span><span class="p">).</span><span class="nf">to</span> <span class="kp">include</span><span class="p">(</span><span class="n">published</span><span class="p">)</span>
+        <span class="n">expect</span><span class="p">(</span><span class="no">Article</span><span class="p">.</span><span class="nf">published</span><span class="p">).</span><span class="nf">not_to</span> <span class="kp">include</span><span class="p">(</span><span class="n">draft</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="n">describe</span> <span class="s1">'.recent'</span> <span class="k">do</span>
+      <span class="n">it</span> <span class="s1">'returns articles ordered by published_at descending'</span> <span class="k">do</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="ss">:article</span><span class="p">,</span> <span class="ss">published_at: </span><span class="mi">1</span><span class="p">.</span><span class="nf">week</span><span class="p">.</span><span class="nf">ago</span><span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="ss">:article</span><span class="p">,</span> <span class="ss">published_at: </span><span class="mi">1</span><span class="p">.</span><span class="nf">day</span><span class="p">.</span><span class="nf">ago</span><span class="p">)</span>
+        <span class="n">expect</span><span class="p">(</span><span class="no">Article</span><span class="p">.</span><span class="nf">recent</span><span class="p">.</span><span class="nf">first</span><span class="p">).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Cursor: AI-Native Code Editor</h2>
+
+<p>Cursor is a fork of VS Code with built-in AI chat for codebase-wide operations. Unlike Copilot&#39;s inline suggestions, Cursor understands entire projects and can modify multiple files in one conversation.</p>
+
+<h3>Multi-File Refactoring with Cursor</h3>
+
+<p><strong>Task:</strong> &quot;Extract order processing logic from OrdersController into a service object.&quot;</p>
+
+<p><strong>Cursor chat conversation:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>You: Extract order processing from OrdersController#create into ProcessOrder service
+
+Cursor reads:
+- app/controllers/orders_controller.rb
+- app/models/order.rb
+- spec/controllers/orders_controller_spec.rb
+
+Cursor generates:
+1. app/services/process_order.rb
+2. Updates app/controllers/orders_controller.rb
+3. Creates spec/services/process_order_spec.rb
+</code></pre></div>
+<p><strong>Generated files:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/services/process_order.rb</span>
+<span class="k">class</span> <span class="nc">ProcessOrder</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+    <span class="vi">@order</span> <span class="o">=</span> <span class="n">order</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">call</span>
+    <span class="no">ApplicationRecord</span><span class="p">.</span><span class="nf">transaction</span> <span class="k">do</span>
+      <span class="vi">@order</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">status: </span><span class="s1">'processing'</span><span class="p">)</span>
+      <span class="n">charge_payment</span>
+      <span class="n">send_confirmation_email</span>
+      <span class="n">update_inventory</span>
+      <span class="vi">@order</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">status: </span><span class="s1">'completed'</span><span class="p">,</span> <span class="ss">processed_at: </span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">)</span>
+    <span class="k">end</span>
+    <span class="kp">true</span>
+  <span class="k">rescue</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="vi">@order</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="ss">status: </span><span class="s1">'failed'</span><span class="p">,</span> <span class="ss">error_message: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="p">)</span>
+    <span class="kp">false</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">charge_payment</span>
+    <span class="no">PaymentService</span><span class="p">.</span><span class="nf">charge</span><span class="p">(</span><span class="vi">@order</span><span class="p">.</span><span class="nf">payment_method</span><span class="p">,</span> <span class="vi">@order</span><span class="p">.</span><span class="nf">total_amount</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">send_confirmation_email</span>
+    <span class="no">OrderMailer</span><span class="p">.</span><span class="nf">confirmation</span><span class="p">(</span><span class="vi">@order</span><span class="p">.</span><span class="nf">id</span><span class="p">).</span><span class="nf">deliver_later</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">update_inventory</span>
+    <span class="vi">@order</span><span class="p">.</span><span class="nf">items</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">item</span><span class="o">|</span>
+      <span class="n">item</span><span class="p">.</span><span class="nf">product</span><span class="p">.</span><span class="nf">decrement!</span><span class="p">(</span><span class="ss">:stock</span><span class="p">,</span> <span class="n">item</span><span class="p">.</span><span class="nf">quantity</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/controllers/orders_controller.rb (updated)</span>
+<span class="k">def</span> <span class="nf">create</span>
+  <span class="vi">@order</span> <span class="o">=</span> <span class="n">current_user</span><span class="p">.</span><span class="nf">orders</span><span class="p">.</span><span class="nf">build</span><span class="p">(</span><span class="n">order_params</span><span class="p">)</span>
+  <span class="k">if</span> <span class="vi">@order</span><span class="p">.</span><span class="nf">save</span> <span class="o">&amp;&amp;</span> <span class="no">ProcessOrder</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="vi">@order</span><span class="p">).</span><span class="nf">call</span>
+    <span class="n">redirect_to</span> <span class="vi">@order</span><span class="p">,</span> <span class="ss">notice: </span><span class="s1">'Order processed successfully.'</span>
+  <span class="k">else</span>
+    <span class="n">flash</span><span class="p">.</span><span class="nf">now</span><span class="p">[</span><span class="ss">:alert</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'Order processing failed.'</span>
+    <span class="n">render</span> <span class="ss">:new</span><span class="p">,</span> <span class="ss">status: :unprocessable_entity</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Debugging with Cursor Chat</h3>
+
+<p><strong>Problem:</strong> Tests failing with <code>ActiveRecord::RecordNotFound</code> in production but not in dev.</p>
+
+<p><strong>Cursor conversation:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>You: Why does Order.find(params[:id]) raise RecordNotFound in production but works in dev?
+
+Cursor analyzes:
+- app/controllers/orders_controller.rb
+- logs/production.log
+- config/environments/production.rb
+
+Cursor responds:
+"The issue is likely a scope leak from authentication. In OrdersController, you're using:
+  Order.find(params[:id])
+
+This finds any order, including orders belonging to other users. Dev works because you test
+with the same user. Production breaks when user A tries to access user B's order.
+
+Fix: Use current_user scope:
+  @order = current_user.orders.find(params[:id])
+
+This scopes the query to current user's orders, raising RecordNotFound if unauthorized."
+</code></pre></div>
+<hr>
+
+<h2>Claude Code: Autonomous AI Agent</h2>
+
+<p>Claude Code is Anthropic&#39;s CLI tool for complex, multi-step development tasks. Unlike autocomplete tools, Claude Code can read files, execute commands, run tests, and commit changes based on high-level instructions.</p>
+
+<h3>Adding Authentication with Claude Code</h3>
+
+<p><strong>Command:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code>claude <span class="s2">"Add Devise authentication to this Rails app with User model and email/password login"</span>
+</code></pre></div>
+<p><strong>What Claude Code does:</strong></p>
+
+<ol>
+<li>Reads existing codebase structure</li>
+<li>Adds <code>gem &#39;devise&#39;</code> to Gemfile and runs <code>bundle install</code></li>
+<li>Runs <code>rails generate devise:install</code></li>
+<li>Creates User model with Devise: <code>rails generate devise User</code></li>
+<li>Updates routes, adds authentication filters to controllers</li>
+<li>Generates tests for authentication flows</li>
+<li>Runs test suite to verify changes</li>
+<li>Commits with message: &quot;Add Devise authentication with User model&quot;</li>
+</ol>
+
+<p><strong>Generated code includes:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/application_controller.rb</span>
+<span class="k">class</span> <span class="nc">ApplicationController</span> <span class="o">&lt;</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">Base</span>
+  <span class="n">before_action</span> <span class="ss">:authenticate_user!</span>
+<span class="k">end</span>
+
+<span class="c1"># app/controllers/articles_controller.rb</span>
+<span class="k">class</span> <span class="nc">ArticlesController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="n">skip_before_action</span> <span class="ss">:authenticate_user!</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">,</span> <span class="ss">:show</span><span class="p">]</span>
+
+  <span class="k">def</span> <span class="nf">create</span>
+    <span class="vi">@article</span> <span class="o">=</span> <span class="n">current_user</span><span class="p">.</span><span class="nf">articles</span><span class="p">.</span><span class="nf">build</span><span class="p">(</span><span class="n">article_params</span><span class="p">)</span>
+    <span class="c1"># ...</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># spec/requests/articles_spec.rb</span>
+<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="s1">'Articles'</span><span class="p">,</span> <span class="ss">type: :request</span> <span class="k">do</span>
+  <span class="n">describe</span> <span class="s1">'POST /articles'</span> <span class="k">do</span>
+    <span class="n">context</span> <span class="s1">'when user is authenticated'</span> <span class="k">do</span>
+      <span class="n">let</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span> <span class="p">{</span> <span class="n">create</span><span class="p">(</span><span class="ss">:user</span><span class="p">)</span> <span class="p">}</span>
+
+      <span class="n">before</span> <span class="p">{</span> <span class="n">sign_in</span> <span class="n">user</span> <span class="p">}</span>
+
+      <span class="n">it</span> <span class="s1">'creates article for current user'</span> <span class="k">do</span>
+        <span class="n">post</span> <span class="n">articles_path</span><span class="p">,</span> <span class="ss">params: </span><span class="p">{</span> <span class="ss">article: </span><span class="p">{</span> <span class="ss">title: </span><span class="s1">'Test'</span><span class="p">,</span> <span class="ss">body: </span><span class="s1">'Body'</span> <span class="p">}</span> <span class="p">}</span>
+        <span class="n">expect</span><span class="p">(</span><span class="no">Article</span><span class="p">.</span><span class="nf">last</span><span class="p">.</span><span class="nf">user</span><span class="p">).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="n">context</span> <span class="s1">'when user is not authenticated'</span> <span class="k">do</span>
+      <span class="n">it</span> <span class="s1">'redirects to login'</span> <span class="k">do</span>
+        <span class="n">post</span> <span class="n">articles_path</span><span class="p">,</span> <span class="ss">params: </span><span class="p">{</span> <span class="ss">article: </span><span class="p">{</span> <span class="ss">title: </span><span class="s1">'Test'</span><span class="p">,</span> <span class="ss">body: </span><span class="s1">'Body'</span> <span class="p">}</span> <span class="p">}</span>
+        <span class="n">expect</span><span class="p">(</span><span class="n">response</span><span class="p">).</span><span class="nf">to</span> <span class="n">redirect_to</span><span class="p">(</span><span class="n">new_user_session_path</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Workflow for AI-Driven Development</h3>
+
+<ol>
+<li><strong>High-level task description:</strong> &quot;Add pagination to articles index with 20 items per page&quot;</li>
+<li><strong>Claude Code execution:</strong>
+
+<ul>
+<li>Installs kaminari gem</li>
+<li>Updates ArticlesController#index with <code>.page(params[:page]).per(20)</code></li>
+<li>Updates view with pagination links</li>
+<li>Adds tests for pagination behavior</li>
+<li>Verifies tests pass</li>
+</ul></li>
+<li><strong>Developer review:</strong> Check generated code, verify edge cases, adjust styling</li>
+<li><strong>Commit and deploy</strong></li>
+</ol>
+
+<hr>
+
+<h2>Prompt-Driven Development</h2>
+
+<p>Prompt engineering for code generation follows patterns: be specific, provide context, specify constraints.</p>
+
+<h3>Effective Prompts for Rails</h3>
+
+<p><strong>Bad prompt:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>Create a user model
+</code></pre></div>
+<p><strong>Good prompt:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>Create a Rails User model with:
+- Email validation (unique, valid format)
+- Password authentication using has_secure_password
+- Admin boolean flag (default false)
+- Timestamps
+- Soft deletion using paranoia gem
+Include RSpec model tests for validations and scopes
+</code></pre></div>
+<p><strong>Result:</strong> Complete model with validations, tests, and migrations.</p>
+
+<h3>Prompt Structure for Refactoring</h3>
+<div class="highlight"><pre class="highlight plaintext"><code>Context: We have a 200-line OrdersController with business logic mixed into actions.
+
+Task: Extract payment processing into a service object that:
+- Accepts an Order and PaymentMethod
+- Wraps operations in a database transaction
+- Handles Stripe API errors gracefully
+- Returns a result object with success/failure status
+
+Constraints:
+- Use Rails service object pattern (PORO with #call method)
+- Include RSpec tests with VCR for Stripe API calls
+- Update OrdersController to use the service
+- Maintain backward compatibility with existing order flow
+</code></pre></div>
+<p><strong>AI generates:</strong><br>
+- <code>app/services/process_payment.rb</code><br>
+- <code>spec/services/process_payment_spec.rb</code><br>
+- Updated controller<br>
+- Error handling for Stripe::CardError, Stripe::APIConnectionError</p>
+
+<hr>
+
+<h2>AI-Assisted Code Review</h2>
+
+<p>Tools like GitHub Copilot Labs, CodeRabbit, and Anthropic&#39;s Claude integrate with pull requests to automate review feedback.</p>
+
+<h3>Automated Review Checks</h3>
+
+<p><strong>Example PR feedback from AI reviewer:</strong></p>
+<div class="highlight"><pre class="highlight markdown"><code><span class="gu">## Performance Issues</span>
+
+<span class="gs">**File:**</span> app/controllers/articles_controller.rb
+<span class="gs">**Line:**</span> 15
+<span class="gs">**Issue:**</span> N+1 query detected
+
+def index
+  @articles = Article.all
+end
+
+<span class="gs">**Impact:**</span> This loads articles without associated users, triggering N+1 when rendering
+<span class="sb">`article.user.name`</span> in the view. For 100 articles, this executes 101 queries.
+
+<span class="gs">**Fix:**</span>
+@articles = Article.includes(:user)
+<span class="p">
+---
+</span>
+<span class="gu">## Security Concerns</span>
+
+<span class="gs">**File:**</span> app/controllers/orders_controller.rb
+<span class="gs">**Line:**</span> 23
+<span class="gs">**Issue:**</span> Missing authorization check
+
+def show
+  @order = Order.find(params[:id])
+end
+
+<span class="gs">**Impact:**</span> Any authenticated user can view any order by guessing IDs.
+
+<span class="gs">**Fix:**</span>
+@order = current_user.orders.find(params[:id])
+
+Or use Pundit policy:
+authorize @order
+<span class="p">
+---
+</span>
+<span class="gu">## Code Quality</span>
+
+<span class="gs">**File:**</span> app/services/export_orders.rb
+<span class="gs">**Line:**</span> 42
+<span class="gs">**Issue:**</span> Long method (30 lines)
+
+<span class="gs">**Suggestion:**</span> Extract CSV generation into private methods:
+<span class="p">-</span> <span class="sb">`csv_headers`</span>
+<span class="p">-</span> <span class="sb">`csv_row(order)`</span>
+<span class="p">-</span> <span class="sb">`format_date(datetime)`</span>
+</code></pre></div>
+<h3>Setting Up AI Code Review</h3>
+
+<p><strong>GitHub Actions integration:</strong></p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="c1"># .github/workflows/ai-review.yml</span>
+<span class="na">name</span><span class="pi">:</span> <span class="s">AI Code Review</span>
+
+<span class="na">on</span><span class="pi">:</span>
+  <span class="na">pull_request</span><span class="pi">:</span>
+    <span class="na">branches</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">]</span>
+
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">ai-review</span><span class="pi">:</span>
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+    <span class="na">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v4</span>
+
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run AI code review</span>
+        <span class="na">uses</span><span class="pi">:</span> <span class="s">anthropics/claude-code-review-action@v1</span>
+        <span class="na">with</span><span class="pi">:</span>
+          <span class="na">anthropic_api_key</span><span class="pi">:</span> <span class="s">${{ secrets.ANTHROPIC_API_KEY }}</span>
+          <span class="na">review_level</span><span class="pi">:</span> <span class="s1">'</span><span class="s">strict'</span>
+          <span class="na">focus_areas</span><span class="pi">:</span> <span class="s1">'</span><span class="s">security,performance,rails_best_practices'</span>
+</code></pre></div>
+<hr>
+
+<h2>Debugging with AI</h2>
+
+<p>AI tools excel at diagnosing errors by analyzing stack traces, logs, and code context.</p>
+
+<h3>Example: Debugging a Rails Error</h3>
+
+<p><strong>Error:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>NoMethodError: undefined method `name' for nil:NilClass
+  app/views/articles/show.html.erb:12:in `_app_views_articles_show_html_erb___123456_70123456789'
+  app/controllers/articles_controller.rb:8:in `show'
+</code></pre></div>
+<p><strong>AI debugging conversation:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>You: Why am I getting NoMethodError on article.user.name in articles/show?
+
+AI analyzes:
+- app/views/articles/show.html.erb (line 12: &lt;%= @article.user.name %&gt;)
+- app/controllers/articles_controller.rb (line 8: @article = Article.find(params[:id]))
+- app/models/article.rb (belongs_to :user)
+
+AI response:
+"The error occurs because some articles have `user_id: nil` (orphaned records).
+The view calls `@article.user.name`, but `@article.user` is nil.
+
+Solutions:
+1. Add presence validation: `belongs_to :user, optional: false`
+2. Use safe navigation: `&lt;%= @article.user&amp;.name || 'Unknown Author' %&gt;`
+3. Clean up orphaned records: `Article.where(user_id: nil).destroy_all`
+4. Add database constraint: `add_foreign_key :articles, :users`
+
+Recommendation: Combine #1 and #4 to prevent future orphans, and #2 for existing data."
+</code></pre></div>
+<h3>Debugging Performance Issues</h3>
+
+<p><strong>Problem:</strong> Dashboard page loads in 8 seconds.</p>
+
+<p><strong>AI conversation:</strong></p>
+<div class="highlight"><pre class="highlight plaintext"><code>You: [paste Rails server logs showing request time 8000ms]
+
+AI analyzes logs and suggests:
+"The slow request shows 247 SQL queries for a single page load. This is a classic N+1 problem.
+
+Likely causes:
+1. Loading users for each article: @articles.each { |a| a.user.name }
+2. Loading comments for each article: @articles.each { |a| a.comments.count }
+
+Fix with eager loading:
+@articles = Article.includes(:user, :comments).limit(20)
+
+Expected result: 3 queries instead of 247, page load under 200ms."
+</code></pre></div>
+<hr>
+
+<h2>Best Practices for AI Development Tools</h2>
+
+<h3>Do&#39;s</h3>
+
+<ul>
+<li><strong>Review all generated code:</strong> Run tests, check for edge cases, verify security</li>
+<li><strong>Use AI for scaffolding:</strong> Let AI generate boilerplate, then customize business logic</li>
+<li><strong>Iterate with AI:</strong> Start with a prompt, refine based on output, regenerate</li>
+<li><strong>Learn from suggestions:</strong> When Copilot suggests unfamiliar code, research why it works</li>
+<li><strong>Combine tools:</strong> Use Copilot for inline completions, Cursor for refactoring, Claude Code for complex tasks</li>
+</ul>
+
+<h3>Don&#39;ts</h3>
+
+<ul>
+<li><strong>Don&#39;t commit without testing:</strong> AI-generated code may have subtle bugs or security issues</li>
+<li><strong>Don&#39;t skip code review:</strong> Treat AI contributions like junior developer code—review thoroughly</li>
+<li><strong>Don&#39;t trust AI for security:</strong> Authentication, authorization, and payment logic require human expertise</li>
+<li><strong>Don&#39;t over-prompt:</strong> If you&#39;re rewriting a prompt 5 times, switch to manual coding</li>
+<li><strong>Don&#39;t rely on AI for novel logic:</strong> AI excels at patterns, struggles with unique business rules</li>
+</ul>
+
+<hr>
+
+<h2>Trade-offs Box</h2>
+
+<ul>
+<li><strong>Advantage:</strong> AI tools accelerate boilerplate generation, reduce context switching, catch common bugs in code review, and help debug unfamiliar errors. Productivity gains of 30-50% on feature development are common.</li>
+<li><strong>Cost:</strong> Requires subscription fees ($10-20/month per developer), introduces dependency on external services, and risks accumulating technical debt if developers accept suggestions without understanding. Security vulnerabilities can slip through if AI-generated authentication or authorization code isn&#39;t reviewed.</li>
+<li><strong>When to skip:</strong> Use manual coding for complex business logic, novel algorithms, or security-critical features. AI tools struggle with domain-specific requirements and may generate incorrect code for edge cases.</li>
+</ul>
+
+<hr>
+
+<h2>Debugging Checklist</h2>
+
+<p>When AI tools produce incorrect or problematic code:</p>
+
+<ol>
+<li><strong>Verify test coverage:</strong> Run test suite—AI may generate code that passes tests but fails edge cases</li>
+<li><strong>Check security implications:</strong> Review for SQL injection, missing authorization, exposed secrets</li>
+<li><strong>Profile performance:</strong> Use <code>rack-mini-profiler</code> or <code>bullet</code> to detect N+1 queries in generated code</li>
+<li><strong>Read generated code line-by-line:</strong> Don&#39;t merge based on &quot;looks right&quot;—understand every line</li>
+<li><strong>Compare with team standards:</strong> Ensure AI code matches your style guide, architecture patterns</li>
+<li><strong>Test edge cases:</strong> AI generates happy-path code—manually add tests for nil values, empty arrays, timeouts</li>
+<li><strong>Review dependencies:</strong> Check if AI added gems—review security, maintenance status, license compatibility</li>
+</ol>
+
+<hr>
+
+<h2>Key Terms</h2>
+
+<ul>
+<li><strong>GitHub Copilot</strong> - AI pair programmer providing inline code suggestions based on context</li>
+<li><strong>Cursor</strong> - AI-native code editor for multi-file refactoring and codebase-wide chat</li>
+<li><strong>Claude Code</strong> - Anthropic&#39;s CLI for autonomous task execution (file reading, testing, committing)</li>
+<li><strong>Prompt engineering</strong> - Crafting effective instructions for AI to generate desired code</li>
+<li><strong>Autocomplete</strong> - Real-time code suggestions as you type (Copilot, TabNine, Codeium)</li>
+<li><strong>AI agent</strong> - Autonomous system that executes multi-step tasks without constant human guidance</li>
+<li><strong>Code review automation</strong> - AI systems that analyze PRs for bugs, performance issues, style violations</li>
+<li><strong>Context window</strong> - Amount of code AI can see at once (typically 8k-128k tokens)</li>
+</ul>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<p>AI development tools like GitHub Copilot, Cursor, and Claude Code accelerate Rails development through inline autocomplete, multi-file refactoring, and autonomous task execution. Use AI for boilerplate generation (controllers, models, tests), code review automation (detecting N+1 queries, security issues), and debugging (analyzing stack traces, suggesting fixes). Always review generated code for correctness, security, and performance—treat AI as a fast-typing junior developer, not a replacement for expertise. Effective prompt engineering requires specificity: describe context, constraints, and desired outcome. Avoid over-reliance on AI for novel business logic or security-critical features. Combine tools strategically: Copilot for inline suggestions, Cursor for refactoring, Claude Code for complex workflows. AI-driven development delivers 30-50% productivity gains when used with judgment and thorough review.</p>
+
+    
+  </div>
+</div>
+
+<!-- Exercise Tab -->
+<div id="exercise-tab" class="tab-content">
+  <div class="content-section">
+    
+      <h1>Exercise: AI Development Workflows</h1>
+
+<h2>Objective</h2>
+
+<p>Practice using AI development tools to generate, refactor, and review Rails code, learning to distinguish between helpful AI suggestions and problematic ones.</p>
+
+<h2>Task</h2>
+
+<p>Use AI tools (GitHub Copilot, Cursor, or Claude Code CLI) to complete three development scenarios:</p>
+
+<ol>
+<li>Generate a Rails feature with tests using AI autocomplete</li>
+<li>Refactor existing code using AI-assisted prompts</li>
+<li>Review AI-generated code for bugs, security issues, and performance problems</li>
+</ol>
+
+<h2>Acceptance Criteria</h2>
+
+<ul>
+<li>[ ] Generated a complete Article CRUD feature with validations and tests</li>
+<li>[ ] Refactored a controller into service objects using AI assistance</li>
+<li>[ ] Identified at least 3 security or performance issues in AI-generated code</li>
+<li>[ ] Written corrected versions of problematic AI suggestions</li>
+<li>[ ] Created test coverage for edge cases that AI missed</li>
+<li>[ ] Documented lessons learned about AI tool strengths and limitations</li>
+</ul>
+
+<h2>Setup</h2>
+
+<h3>Prerequisites</h3>
+
+<p>Install an AI coding tool:</p>
+
+<p><strong>Option 1: GitHub Copilot (Recommended for this exercise)</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Install VS Code GitHub Copilot extension</span>
+<span class="c"># Or install in your preferred IDE (RubyMine, Sublime, Vim)</span>
+
+<span class="c"># Verify installation by opening a Ruby file and typing:</span>
+<span class="c"># def hello</span>
+<span class="c"># (Copilot should suggest completion)</span>
+</code></pre></div>
+<p><strong>Option 2: Cursor Editor</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Download from https://cursor.sh</span>
+<span class="c"># Cursor is a VS Code fork with built-in AI chat</span>
+</code></pre></div>
+<p><strong>Option 3: Claude Code CLI</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Install Claude Code CLI (requires Anthropic API key)</span>
+npm <span class="nb">install</span> <span class="nt">-g</span> @anthropic-ai/claude-code
+claude <span class="nt">--version</span>
+</code></pre></div>
+<h3>Create Exercise Rails App</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Create new Rails app</span>
+rails new ai_workshop <span class="nt">--database</span><span class="o">=</span>postgresql <span class="nt">--skip-test</span>
+<span class="nb">cd </span>ai_workshop
+
+<span class="c"># Add testing gems</span>
+<span class="nb">cat</span> <span class="o">&gt;&gt;</span> Gemfile <span class="o">&lt;&lt;</span> <span class="sh">'</span><span class="no">EOF</span><span class="sh">'
+
+group :development, :test do
+  gem 'rspec-rails', '~&gt; 6.0'
+  gem 'factory_bot_rails'
+  gem 'faker'
+  gem 'pry-rails'
+end
+
+group :test do
+  gem 'shoulda-matchers', '~&gt; 5.0'
+  gem 'database_cleaner-active_record'
+end
+</span><span class="no">EOF
+
+</span>bundle <span class="nb">install</span>
+
+<span class="c"># Initialize RSpec</span>
+rails generate rspec:install
+
+<span class="c"># Configure Shoulda Matchers in spec/rails_helper.rb</span>
+<span class="nb">cat</span> <span class="o">&gt;&gt;</span> spec/rails_helper.rb <span class="o">&lt;&lt;</span> <span class="sh">'</span><span class="no">EOF</span><span class="sh">'
+
+Shoulda::Matchers.configure do |config|
+  config.integrate do |with|
+    with.test_framework :rspec
+    with.library :rails
+  end
+end
+</span><span class="no">EOF
+
+</span><span class="c"># Setup database</span>
+rails db:create
+rails db:migrate
+
+<span class="c"># Verify tests run</span>
+bundle <span class="nb">exec </span>rspec
+</code></pre></div>
+<hr>
+
+<h2>Part 1: AI-Assisted Feature Generation (8 minutes)</h2>
+
+<h3>Task: Generate Article Feature with AI</h3>
+
+<p>Use your AI tool to generate a complete Article feature by typing comments and letting AI complete the code.</p>
+
+<h3>Step 1: Create Article Model</h3>
+
+<p>Create <code>app/models/article.rb</code> and use AI by typing this comment:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Article model with title, body, published_at, author (string)</span>
+<span class="c1"># Validations: title presence and minimum 5 characters, body presence</span>
+<span class="c1"># Scope: published (where published_at is not null), recent (order by created_at desc)</span>
+</code></pre></div>
+<p><strong>Expected AI generation:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">validates</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">length: </span><span class="p">{</span> <span class="ss">minimum: </span><span class="mi">5</span> <span class="p">}</span>
+  <span class="n">validates</span> <span class="ss">:body</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span>
+  <span class="n">validates</span> <span class="ss">:author</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span>
+
+  <span class="n">scope</span> <span class="ss">:published</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">.</span><span class="nf">not</span><span class="p">(</span><span class="ss">published_at: </span><span class="kp">nil</span><span class="p">)</span> <span class="p">}</span>
+  <span class="n">scope</span> <span class="ss">:recent</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">order</span><span class="p">(</span><span class="ss">created_at: :desc</span><span class="p">)</span> <span class="p">}</span>
+
+  <span class="k">def</span> <span class="nf">published?</span>
+    <span class="n">published_at</span><span class="p">.</span><span class="nf">present?</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 2: Create Migration with AI</h3>
+
+<p>Run migration generator, then let AI complete the migration file:</p>
+<div class="highlight"><pre class="highlight shell"><code>rails generate migration CreateArticles
+</code></pre></div>
+<p>Open <code>db/migrate/XXXXXX_create_articles.rb</code> and type:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Migration to create articles table with title string, body text, published_at datetime, author string</span>
+</code></pre></div>
+<p><strong>Expected AI generation:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CreateArticles</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.0</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">create_table</span> <span class="ss">:articles</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">text</span> <span class="ss">:body</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">datetime</span> <span class="ss">:published_at</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:author</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">timestamps</span>
+    <span class="k">end</span>
+
+    <span class="n">add_index</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">:published_at</span>
+    <span class="n">add_index</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">:created_at</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Run migration:</p>
+<div class="highlight"><pre class="highlight shell"><code>rails db:migrate
+</code></pre></div>
+<h3>Step 3: Generate Controller with AI</h3>
+
+<p>Create <code>app/controllers/articles_controller.rb</code> and type:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># ArticlesController with index (shows published articles), show, new, create, edit, update, destroy</span>
+<span class="c1"># Use strong parameters, handle create/update failures with flash messages</span>
+</code></pre></div>
+<p><strong>Review AI generation and verify:</strong><br>
+- Strong parameters method<br>
+- Proper flash messages<br>
+- Error handling with <code>render</code> on validation failures<br>
+- HTTP status codes (<code>:unprocessable_entity</code> for errors)</p>
+
+<h3>Step 4: Generate Model Tests with AI</h3>
+
+<p>Create <code>spec/models/article_spec.rb</code> and type:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># RSpec tests for Article validations, scopes, and published? method</span>
+</code></pre></div>
+<p><strong>Verify AI generates tests for:</strong><br>
+- Title presence and length validations<br>
+- Body and author presence<br>
+- Published scope (includes published, excludes unpublished)<br>
+- Recent scope (orders correctly)<br>
+- <code>published?</code> method (returns true/false correctly)</p>
+
+<p>Run tests:</p>
+<div class="highlight"><pre class="highlight shell"><code>bundle <span class="nb">exec </span>rspec spec/models/article_spec.rb
+</code></pre></div>
+<p><strong>If tests fail, this is your first learning moment:</strong> AI generated invalid code. Fix and document the issue.</p>
+
+<hr>
+
+<h2>Part 2: AI-Assisted Refactoring (7 minutes)</h2>
+
+<h3>Task: Refactor Controller Logic into Service Object</h3>
+
+<p>You&#39;ve been given this problematic controller code. Use AI to refactor it into a service object.</p>
+
+<p>Create <code>app/controllers/orders_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">OrdersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">create</span>
+    <span class="vi">@order</span> <span class="o">=</span> <span class="no">Order</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">order_params</span><span class="p">)</span>
+    <span class="vi">@order</span><span class="p">.</span><span class="nf">user</span> <span class="o">=</span> <span class="n">current_user</span>
+
+    <span class="k">if</span> <span class="vi">@order</span><span class="p">.</span><span class="nf">save</span>
+      <span class="c1"># Process payment</span>
+      <span class="k">begin</span>
+        <span class="no">Stripe</span><span class="o">::</span><span class="no">Charge</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span>
+          <span class="ss">amount: </span><span class="p">(</span><span class="vi">@order</span><span class="p">.</span><span class="nf">total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">to_i</span><span class="p">,</span>
+          <span class="ss">currency: </span><span class="s1">'usd'</span><span class="p">,</span>
+          <span class="ss">source: </span><span class="n">params</span><span class="p">[</span><span class="ss">:stripe_token</span><span class="p">],</span>
+          <span class="ss">description: </span><span class="s2">"Order </span><span class="si">#{</span><span class="vi">@order</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+      <span class="k">rescue</span> <span class="no">Stripe</span><span class="o">::</span><span class="no">CardError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+        <span class="vi">@order</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="ss">status: </span><span class="s1">'payment_failed'</span><span class="p">)</span>
+        <span class="n">redirect_to</span> <span class="vi">@order</span><span class="p">,</span> <span class="ss">alert: </span><span class="s2">"Payment failed: </span><span class="si">#{</span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">return</span>
+      <span class="k">end</span>
+
+      <span class="c1"># Update inventory</span>
+      <span class="vi">@order</span><span class="p">.</span><span class="nf">items</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">item</span><span class="o">|</span>
+        <span class="n">product</span> <span class="o">=</span> <span class="n">item</span><span class="p">.</span><span class="nf">product</span>
+        <span class="n">product</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="ss">stock: </span><span class="n">product</span><span class="p">.</span><span class="nf">stock</span> <span class="o">-</span> <span class="n">item</span><span class="p">.</span><span class="nf">quantity</span><span class="p">)</span>
+      <span class="k">end</span>
+
+      <span class="c1"># Send email</span>
+      <span class="no">OrderMailer</span><span class="p">.</span><span class="nf">confirmation</span><span class="p">(</span><span class="vi">@order</span><span class="p">.</span><span class="nf">id</span><span class="p">).</span><span class="nf">deliver_now</span>
+
+      <span class="vi">@order</span><span class="p">.</span><span class="nf">update</span><span class="p">(</span><span class="ss">status: </span><span class="s1">'completed'</span><span class="p">)</span>
+      <span class="n">redirect_to</span> <span class="vi">@order</span><span class="p">,</span> <span class="ss">notice: </span><span class="s1">'Order placed successfully!'</span>
+    <span class="k">else</span>
+      <span class="n">render</span> <span class="ss">:new</span><span class="p">,</span> <span class="ss">status: :unprocessable_entity</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">order_params</span>
+    <span class="n">params</span><span class="p">.</span><span class="nf">require</span><span class="p">(</span><span class="ss">:order</span><span class="p">).</span><span class="nf">permit</span><span class="p">(</span><span class="ss">:total</span><span class="p">,</span> <span class="ss">items_attributes: </span><span class="p">[</span><span class="ss">:product_id</span><span class="p">,</span> <span class="ss">:quantity</span><span class="p">])</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Refactoring Steps</h3>
+
+<ol>
+<li><strong>Prompt AI with:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight plaintext"><code>Extract payment processing, inventory update, and email sending from OrdersController
+into a ProcessOrder service object. The service should:
+- Accept an order and stripe_token
+- Wrap operations in a database transaction
+- Handle Stripe errors gracefully
+- Return success/failure status with error messages
+- Follow Rails service object pattern (PORO with #call method)
+</code></pre></div>
+<ol>
+<li><p><strong>Review AI-generated service object for:</strong></p>
+
+<ul>
+<li>Database transaction wrapping</li>
+<li>Proper error handling</li>
+<li>Return value structure (success boolean + error message)</li>
+<li>Private method extraction</li>
+</ul></li>
+<li><p><strong>Update controller to use service:</strong></p></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">create</span>
+  <span class="vi">@order</span> <span class="o">=</span> <span class="n">current_user</span><span class="p">.</span><span class="nf">orders</span><span class="p">.</span><span class="nf">build</span><span class="p">(</span><span class="n">order_params</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="vi">@order</span><span class="p">.</span><span class="nf">save</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="no">ProcessOrder</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="vi">@order</span><span class="p">,</span> <span class="n">params</span><span class="p">[</span><span class="ss">:stripe_token</span><span class="p">]).</span><span class="nf">call</span>
+
+    <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="ss">:success</span><span class="p">]</span>
+      <span class="n">redirect_to</span> <span class="vi">@order</span><span class="p">,</span> <span class="ss">notice: </span><span class="s1">'Order placed successfully!'</span>
+    <span class="k">else</span>
+      <span class="n">redirect_to</span> <span class="vi">@order</span><span class="p">,</span> <span class="ss">alert: </span><span class="s2">"Order failed: </span><span class="si">#{</span><span class="n">result</span><span class="p">[</span><span class="ss">:error</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">end</span>
+  <span class="k">else</span>
+    <span class="n">render</span> <span class="ss">:new</span><span class="p">,</span> <span class="ss">status: :unprocessable_entity</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<ol>
+<li><strong>Generate service tests with AI prompt:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight plaintext"><code>RSpec tests for ProcessOrder service including:
+- Successful order processing
+- Stripe card error handling
+- Inventory update failures
+- Transaction rollback on errors
+Use mocks for Stripe and email delivery
+</code></pre></div>
+<p><strong>Check for these common AI mistakes:</strong><br>
+- Missing <code>ApplicationRecord.transaction do ... end</code><br>
+- Not rolling back inventory changes on payment failure<br>
+- Synchronous email delivery (<code>deliver_now</code> instead of <code>deliver_later</code>)<br>
+- No idempotency checks for Stripe charges</p>
+
+<hr>
+
+<h2>Part 3: Code Review Challenge (5 minutes)</h2>
+
+<h3>Task: Review AI-Generated Code for Issues</h3>
+
+<p>Below is code generated by an AI tool. Your job is to identify <strong>all security, performance, and correctness issues.</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># app/controllers/admin/users_controller.rb</span>
+<span class="k">class</span> <span class="nc">Admin::UsersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="vi">@users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">all</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+    <span class="vi">@orders</span> <span class="o">=</span> <span class="vi">@user</span><span class="p">.</span><span class="nf">orders</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">destroy</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+    <span class="n">user</span><span class="p">.</span><span class="nf">destroy</span>
+    <span class="n">redirect_to</span> <span class="n">admin_users_path</span><span class="p">,</span> <span class="ss">notice: </span><span class="s1">'User deleted'</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">export_csv</span>
+    <span class="n">users</span> <span class="o">=</span> <span class="no">User</span><span class="p">.</span><span class="nf">all</span>
+    <span class="n">csv_data</span> <span class="o">=</span> <span class="n">users</span><span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">u</span><span class="o">|</span> <span class="s2">"</span><span class="si">#{</span><span class="n">u</span><span class="p">.</span><span class="nf">email</span><span class="si">}</span><span class="s2">,</span><span class="si">#{</span><span class="n">u</span><span class="p">.</span><span class="nf">created_at</span><span class="si">}</span><span class="s2">"</span> <span class="p">}.</span><span class="nf">join</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">send_data</span> <span class="n">csv_data</span><span class="p">,</span> <span class="ss">filename: </span><span class="s1">'users.csv'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/models/user.rb</span>
+<span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_many</span> <span class="ss">:orders</span>
+  <span class="n">validates</span> <span class="ss">:email</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">search</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    <span class="n">where</span><span class="p">(</span><span class="s2">"email LIKE '%</span><span class="si">#{</span><span class="n">query</span><span class="si">}</span><span class="s2">%'"</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># app/services/import_users.rb</span>
+<span class="k">class</span> <span class="nc">ImportUsers</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">call</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+    <span class="no">CSV</span><span class="p">.</span><span class="nf">foreach</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="ss">headers: </span><span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">row</span><span class="o">|</span>
+      <span class="no">User</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span>
+        <span class="ss">email: </span><span class="n">row</span><span class="p">[</span><span class="s1">'email'</span><span class="p">],</span>
+        <span class="ss">password: </span><span class="n">row</span><span class="p">[</span><span class="s1">'password'</span><span class="p">],</span>
+        <span class="ss">admin: </span><span class="n">row</span><span class="p">[</span><span class="s1">'admin'</span><span class="p">]</span>
+      <span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Issues to Find</h3>
+
+<p>List all issues with category (security/performance/correctness) and fix:</p>
+
+<ol>
+<li><p><strong>Issue:</strong> _______________</p>
+
+<ul>
+<li><strong>Category:</strong> _______________</li>
+<li><strong>Fix:</strong> _______________</li>
+</ul></li>
+<li><p><strong>Issue:</strong> _______________</p>
+
+<ul>
+<li><strong>Category:</strong> _______________</li>
+<li><strong>Fix:</strong> _______________</li>
+</ul></li>
+<li><p><strong>Issue:</strong> _______________</p>
+
+<ul>
+<li><strong>Category:</strong> _______________</li>
+<li><strong>Fix:</strong> _______________</li>
+</ul></li>
+</ol>
+
+<p>(Continue for all issues found)</p>
+
+<hr>
+
+<h2>Verification Steps</h2>
+
+<h3>Part 1 Verification</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Run Article specs</span>
+bundle <span class="nb">exec </span>rspec spec/models/article_spec.rb
+
+<span class="c"># Check model in console</span>
+rails console
+<span class="o">&gt;</span> article <span class="o">=</span> Article.create<span class="o">(</span>title: <span class="s2">"Test Article"</span>, body: <span class="s2">"Content"</span>, author: <span class="s2">"AI"</span><span class="o">)</span>
+<span class="o">&gt;</span> article.valid?
+<span class="o">&gt;</span> article.published?
+<span class="o">&gt;</span> Article.published.count
+</code></pre></div>
+<h3>Part 2 Verification</h3>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Run service specs</span>
+bundle <span class="nb">exec </span>rspec spec/services/process_order_spec.rb
+
+<span class="c"># Verify service exists and has correct interface</span>
+rails console
+<span class="o">&gt;</span> result <span class="o">=</span> ProcessOrder.new<span class="o">(</span>order, <span class="s1">'tok_visa'</span><span class="o">)</span>.call
+<span class="o">&gt;</span> result.keys  <span class="c"># Should include :success and :error</span>
+</code></pre></div>
+<h3>Part 3 Verification</h3>
+
+<p>Compare your findings to the solutions below.</p>
+
+<hr>
+
+<h2>Solution Notes</h2>
+
+<h3>Part 1: Common AI Generation Issues</h3>
+
+<p><strong>Issue 1: Migrations missing null constraints</strong></p>
+
+<p>AI often generates:<br>
+<code>ruby<br>
+t.string :title<br>
+</code></p>
+
+<p>Should be:<br>
+<code>ruby<br>
+t.string :title, null: false<br>
+</code></p>
+
+<p><strong>Issue 2: Missing indexes on frequently queried columns</strong></p>
+
+<p>AI forgets:<br>
+<code>ruby<br>
+add_index :articles, :published_at<br>
+</code></p>
+
+<p><strong>Issue 3: Test coverage gaps</strong></p>
+
+<p>AI generates happy-path tests but misses edge cases:<br>
+- Empty title (length validation edge case)<br>
+- Nil vs empty string handling<br>
+- Published scope with mixed published_at values</p>
+
+<h3>Part 2: Service Object Patterns</h3>
+
+<p><strong>Good AI-generated service structure:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ProcessOrder</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">stripe_token</span><span class="p">)</span>
+    <span class="vi">@order</span> <span class="o">=</span> <span class="n">order</span>
+    <span class="vi">@stripe_token</span> <span class="o">=</span> <span class="n">stripe_token</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">call</span>
+    <span class="no">ApplicationRecord</span><span class="p">.</span><span class="nf">transaction</span> <span class="k">do</span>
+      <span class="n">charge_payment</span>
+      <span class="n">update_inventory</span>
+      <span class="n">send_confirmation</span>
+      <span class="vi">@order</span><span class="p">.</span><span class="nf">update!</span><span class="p">(</span><span class="ss">status: </span><span class="s1">'completed'</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="p">{</span> <span class="ss">success: </span><span class="kp">true</span><span class="p">,</span> <span class="ss">error: </span><span class="kp">nil</span> <span class="p">}</span>
+  <span class="k">rescue</span> <span class="no">Stripe</span><span class="o">::</span><span class="no">CardError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="p">{</span> <span class="ss">success: </span><span class="kp">false</span><span class="p">,</span> <span class="ss">error: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span> <span class="p">}</span>
+  <span class="k">rescue</span> <span class="no">StandardError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="p">{</span> <span class="ss">success: </span><span class="kp">false</span><span class="p">,</span> <span class="ss">error: </span><span class="s2">"Order processing failed: </span><span class="si">#{</span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="si">}</span><span class="s2">"</span> <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">charge_payment</span>
+    <span class="no">Stripe</span><span class="o">::</span><span class="no">Charge</span><span class="p">.</span><span class="nf">create</span><span class="p">(</span>
+      <span class="ss">amount: </span><span class="p">(</span><span class="vi">@order</span><span class="p">.</span><span class="nf">total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">).</span><span class="nf">to_i</span><span class="p">,</span>
+      <span class="ss">currency: </span><span class="s1">'usd'</span><span class="p">,</span>
+      <span class="ss">source: </span><span class="vi">@stripe_token</span><span class="p">,</span>
+      <span class="ss">description: </span><span class="s2">"Order </span><span class="si">#{</span><span class="vi">@order</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+      <span class="ss">idempotency_key: </span><span class="s2">"order_</span><span class="si">#{</span><span class="vi">@order</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">update_inventory</span>
+    <span class="vi">@order</span><span class="p">.</span><span class="nf">items</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">item</span><span class="o">|</span>
+      <span class="n">item</span><span class="p">.</span><span class="nf">product</span><span class="p">.</span><span class="nf">decrement!</span><span class="p">(</span><span class="ss">:stock</span><span class="p">,</span> <span class="n">item</span><span class="p">.</span><span class="nf">quantity</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">send_confirmation</span>
+    <span class="no">OrderMailer</span><span class="p">.</span><span class="nf">confirmation</span><span class="p">(</span><span class="vi">@order</span><span class="p">.</span><span class="nf">id</span><span class="p">).</span><span class="nf">deliver_later</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>AI commonly misses:</strong><br>
+- Idempotency key for Stripe (allows safe retries)<br>
+- <code>deliver_later</code> instead of <code>deliver_now</code> (avoids blocking)<br>
+- Proper exception hierarchy (catch specific errors first)</p>
+
+<h3>Part 3: Code Review Solutions</h3>
+
+<p><strong>Issue 1: Missing authentication check</strong><br>
+- <strong>Category:</strong> Security<br>
+- <strong>Issue:</strong> No <code>before_action :require_admin!</code> or authorization<br>
+- <strong>Fix:</strong> Add <code>before_action :authenticate_admin!</code></p>
+
+<p><strong>Issue 2: SQL injection in search</strong><br>
+- <strong>Category:</strong> Security<br>
+- <strong>Issue:</strong> <code>where(&quot;email LIKE &#39;%#{query}%&#39;&quot;)</code> allows SQL injection<br>
+- <strong>Fix:</strong> <code>where(&quot;email LIKE ?&quot;, &quot;%#{query}%&quot;)</code> or <code>where(&quot;email LIKE :query&quot;, query: &quot;%#{query}%&quot;)</code></p>
+
+<p><strong>Issue 3: N+1 query in show action</strong><br>
+- <strong>Category:</strong> Performance<br>
+- <strong>Issue:</strong> <code>@orders = @user.orders</code> triggers N+1 when rendering order details<br>
+- <strong>Fix:</strong> <code>@orders = @user.orders.includes(:items, :products)</code></p>
+
+<p><strong>Issue 4: Missing authorization in destroy</strong><br>
+- <strong>Category:</strong> Security<br>
+- <strong>Issue:</strong> Admin can delete any user, including themselves or other admins<br>
+- <strong>Fix:</strong> Add checks: <code>return if user.admin? || user == current_user</code></p>
+
+<p><strong>Issue 5: CSV export loads all users</strong><br>
+- <strong>Category:</strong> Performance<br>
+- <strong>Issue:</strong> <code>User.all.map</code> loads all records into memory<br>
+- <strong>Fix:</strong> Use <code>find_each</code> and streaming: <code>CSV.generate { |csv| User.find_each { |u| csv &lt;&lt; [u.email, u.created_at] } }</code></p>
+
+<p><strong>Issue 6: Plaintext password in import</strong><br>
+- <strong>Category:</strong> Security<br>
+- <strong>Issue:</strong> Creates user with plaintext password: <code>password: row[&#39;password&#39;]</code><br>
+- <strong>Fix:</strong> Use <code>password_digest</code> or <code>has_secure_password</code> with proper password hashing</p>
+
+<p><strong>Issue 7: Mass assignment vulnerability</strong><br>
+- <strong>Category:</strong> Security<br>
+- <strong>Issue:</strong> Directly assigns <code>admin: row[&#39;admin&#39;]</code> allowing privilege escalation<br>
+- <strong>Fix:</strong> Remove admin from CSV import, or require separate authorization</p>
+
+<p><strong>Issue 8: No error handling in CSV import</strong><br>
+- <strong>Category:</strong> Correctness<br>
+- <strong>Issue:</strong> Failed user creation is silently ignored<br>
+- <strong>Fix:</strong> Add error handling and logging:<br>
+<code>ruby<br>
+User.create!(email: row[&#39;email&#39;], ...)<br>
+rescue ActiveRecord::RecordInvalid =&gt; e<br>
+  Rails.logger.error &quot;Failed to import user: #{e.message}&quot;<br>
+</code></p>
+
+<hr>
+
+<h2>Stretch (Optional)</h2>
+
+<h3>1. Add AI-Powered Code Review Automation</h3>
+
+<p>Install and configure <code>danger</code> gem to automate code review:</p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Add to Gemfile</span>
+gem <span class="s1">'danger'</span>, group: :development
+
+bundle <span class="nb">install</span>
+
+<span class="c"># Create Dangerfile</span>
+<span class="nb">cat</span> <span class="o">&gt;</span> Dangerfile <span class="o">&lt;&lt;</span> <span class="sh">'</span><span class="no">EOF</span><span class="sh">'
+# Warn for large PRs
+warn("Large PR: Consider breaking into smaller changes") if git.lines_of_code &gt; 400
+
+# Check for missing tests
+has_app_changes = !git.modified_files.grep(/app/).empty?
+has_spec_changes = !git.modified_files.grep(/spec/).empty?
+warn("Missing tests: Consider adding specs for your changes") if has_app_changes &amp;&amp; !has_spec_changes
+
+# Detect N+1 patterns
+git.modified_files.each do |file|
+  next unless file.end_with?('.rb')
+
+  contents = File.read(file)
+  if contents.match?(/</span><span class="se">\.</span><span class="sh">each</span><span class="se">\s</span><span class="sh">+do.*</span><span class="se">\.</span><span class="sh">(find|where|first)/)
+    warn("Possible N+1 query in #{file}")
+  end
+end
+</span><span class="no">EOF
+</span></code></pre></div>
+<h3>2. Create AI Prompt Library</h3>
+
+<p>Document effective prompts for your team:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># config/ai_prompts.md</span>
+
+<span class="c1"># AI Prompt Library for Rails Development</span>
+
+<span class="c1">## Generating Models</span>
+
+</code></pre></div>
+<p>Create a Rails [MODEL_NAME] model with:<br>
+- Attributes: [LIST ATTRIBUTES WITH TYPES]<br>
+- Validations: [SPECIFY VALIDATIONS]<br>
+- Associations: [BELONGS_TO, HAS_MANY, ETC]<br>
+- Scopes: [DESCRIBE SCOPES]<br>
+Include migration with proper indexes and null constraints.<br>
+```</p>
+
+<h2>Generating Tests</h2>
+<div class="highlight"><pre class="highlight plaintext"><code>RSpec tests for [MODEL/SERVICE/CONTROLLER] covering:
+- All validations with edge cases
+- Association tests
+- Custom methods with success and failure paths
+- Error handling for [SPECIFIC ERROR TYPES]
+Use shoulda-matchers where applicable.
+</code></pre></div>
+<h2>Refactoring</h2>
+<div class="highlight"><pre class="highlight plaintext"><code>Extract [FUNCTIONALITY] from [SOURCE] into [PATTERN] that:
+- [CONSTRAINT 1]
+- [CONSTRAINT 2]
+- [ERROR HANDLING REQUIREMENTS]
+Maintain backward compatibility and include tests.
+</code></pre></div><div class="highlight"><pre class="highlight plaintext"><code>
+### 3. Measure AI Tool Impact
+
+Track before/after metrics:
+
+```ruby
+# Track time spent on tasks
+# Before AI: Measure time to generate model + tests
+# After AI: Measure time to review and correct AI-generated code
+
+# Track bug rates
+# Compare bug density in AI-generated vs manual code
+# Review security issues in PRs using AI tools
+
+# Document findings in team retrospective
+</code></pre></div>
+<h3>4. Create Custom Copilot Training</h3>
+
+<p>Configure custom completions for your team:</p>
+<div class="highlight"><pre class="highlight json"><code><span class="err">//</span><span class="w"> </span><span class="err">.github/copilot-instructions.json</span><span class="w">
+</span><span class="p">{</span><span class="w">
+  </span><span class="nl">"conventions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"service_objects"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Use PORO with #call method returning hash with :success and :error keys"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"controllers"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Keep actions thin, delegate to services, use strong parameters"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"tests"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Use RSpec with shoulda-matchers, FactoryBot for fixtures"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"forbidden_patterns"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"No inline SQL in models or controllers"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"No synchronous email delivery in web requests"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"No mass assignment without strong parameters"</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<hr>
+
+<h2>Time Estimate</h2>
+
+<p>20 minutes<br>
+- Part 1: 8 minutes (generating feature)<br>
+- Part 2: 7 minutes (refactoring)<br>
+- Part 3: 5 minutes (code review)</p>
+
+<hr>
+
+<h2>Key Takeaways</h2>
+
+<p>After completing this exercise, you should understand:</p>
+
+<ol>
+<li><strong>AI excels at patterns:</strong> Generating CRUD controllers, models, tests—things it has seen thousands of times</li>
+<li><strong>AI struggles with security:</strong> Authentication, authorization, and payment logic require human review</li>
+<li><strong>AI misses edge cases:</strong> Generated tests cover happy paths but miss nil values, empty arrays, race conditions</li>
+<li><strong>AI needs guidance:</strong> Specific prompts with constraints yield better results than vague requests</li>
+<li><strong>Review is essential:</strong> Treat AI code like junior developer contributions—thorough review required</li>
+<li><strong>Iteration improves output:</strong> Refine prompts based on initial AI responses to get closer to desired code</li>
+<li><strong>Context matters:</strong> AI with access to your entire codebase (Cursor, Claude Code) generates more consistent code than autocomplete-only tools</li>
+</ol>
+
+<p>Use AI as a productivity multiplier, not a replacement for understanding. The best developers use AI to handle boilerplate quickly, then focus their expertise on architecture, security, and complex business logic.</p>
+
+    
+  </div>
+</div>
+
+<!-- Checkpoint Tab -->
+<div id="checkpoint-tab" class="tab-content">
+  <div class="content-section">
+    
+      
+      <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
+        <p><strong>Passing Score:</strong> 7 points</p>
+        <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
+      </div>
+
+      
+        <div class="question"
+             data-question-id="0"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="AI tools handle scaffolding and repetitive patterns while requiring thorough review of generated code">
+          <h4>Question 1 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the primary advantage of using AI tools like GitHub Copilot for Rails development?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  AI tools completely eliminate the need for manual coding and testing
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  AI tools accelerate boilerplate generation and catch common bugs, requiring less manual review
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  AI tools generate production-ready code for business logic without review
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  AI tools handle scaffolding and repetitive patterns while requiring thorough review of generated code
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> AI tools excel at generating boilerplate (models, controllers, tests) but require human review for correctness, security, and edge cases. They accelerate development by 30-50% but don't eliminate the need for expert review.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="1"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Implementing authentication and authorization logic">
+          <h4>Question 2 (1 points)</h4>
+          <p style="margin: 10px 0;">Which of these tasks should you NOT trust AI tools to handle without extensive review?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  Generating test cases for model validations
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  Creating database migrations with indexes
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  Implementing authentication and authorization logic
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Writing CRUD controller actions
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Security-critical code like authentication, authorization, and payment processing requires deep expertise and careful review. AI tools may generate code with vulnerabilities like missing authorization checks, SQL injection, or improper password handling.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="2"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Loads all User objects into memory; should use `pluck(:email)` instead">
+          <h4>Question 3 (1 points)</h4>
+          <p style="margin: 10px 0;">You're using Copilot and it suggests `User.where(active: true).map(&:email)` to get emails. What's the problem?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  Nothing, this is correct and efficient
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  Should use `find_by` instead of `where`
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  Loads all User objects into memory; should use `pluck(:email)` instead
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  Should use a join query instead
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> `map(&:email)` loads all matching User records into ActiveRecord objects, consuming memory. `pluck(:email)` executes a SELECT query for only the email column, returning an array without instantiating objects. For 10,000 users, this saves significant memory.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="3"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 4 (2 points)</h4>
+          <p style="margin: 10px 0;">An AI tool generates this code: `User.where("email LIKE '%#{params[:search]}%'")`. Identify the security vulnerability and provide the correct implementation.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">SQL injection vulnerability. User input `params[:search]` is directly interpolated into SQL, allowing attackers to inject malicious SQL (e.g., `'; DROP TABLE users; --`). Fix: Use parameterized queries: `User.where('email LIKE ?', "%#{params[:search]}%")` or `User.where('email LIKE :search', search: "%#{params[:search]}%")`. Rails sanitizes parameters in the placeholder syntax.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="4"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Wrap operations in a database transaction to ensure atomicity">
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">AI generates a ProcessOrder service that calls Stripe, updates inventory, and sends emails. Which improvement is MOST critical for production?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  Add detailed logging for debugging
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  Extract private methods for better code organization
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  Wrap operations in a database transaction to ensure atomicity
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  Use background jobs for email delivery
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Without a transaction, partial failures leave inconsistent state (e.g., payment succeeded but inventory not updated). Wrap critical operations in `ApplicationRecord.transaction` to ensure all-or-nothing execution. Background jobs are also important but transaction guarantees data integrity.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="5"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Never—always review AI-generated code thoroughly">
+          <h4>Question 6 (1 points)</h4>
+          <p style="margin: 10px 0;">When is it appropriate to skip code review of AI-generated code?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  When the code passes all tests
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  When it's boilerplate like migrations or simple models
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  When using trusted tools like GitHub Copilot or Cursor
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  Never—always review AI-generated code thoroughly
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Even simple boilerplate can contain bugs (missing validations, missing indexes, incorrect types). AI tools generate code based on patterns, not understanding. Treat AI code like junior developer contributions: review for correctness, security, performance, and edge cases.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 7 (2 points)</h4>
+          <p style="margin: 10px 0;">Write an effective prompt for AI to generate a Rails service object that processes payments with error handling, transaction safety, and idempotency.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Create a Rails service object `ProcessPayment` that: (1) accepts an Order and payment_token, (2) charges the order total via Stripe API with idempotency key, (3) wraps payment and order update in a database transaction, (4) handles Stripe::CardError and Stripe::APIConnectionError gracefully, (5) returns a hash with :success boolean and :error message, (6) follows Rails service pattern (PORO with #call method). Include RSpec tests with VCR for Stripe API calls.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="N+1 query when rendering article.user.name in views">
+          <h4>Question 8 (1 points)</h4>
+          <p style="margin: 10px 0;">AI-generated code in a PR shows `@articles = Article.all` in a controller index action that displays article authors. What issue should code review flag?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  Missing pagination for large datasets
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  N+1 query when rendering article.user.name in views
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  Should use find instead of all
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Missing error handling
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Loading `Article.all` without `includes(:user)` triggers N+1 queries when the view accesses `article.user.name` for each article. For 100 articles, this executes 101 queries (1 for articles, 100 for users). Fix: `Article.includes(:user)`.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Claude Code (AI agent CLI)">
+          <h4>Question 9 (1 points)</h4>
+          <p style="margin: 10px 0;">Which AI tool is best suited for autonomous multi-step tasks like 'add authentication to this Rails app'?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(8, 0)">
+                  GitHub Copilot (inline autocomplete)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 1)">
+                  Cursor (AI-native editor with chat)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 2)">
+                  Claude Code (AI agent CLI)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 3)">
+                  All tools are equally suited for this task
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Claude Code is designed for autonomous execution of complex, multi-step tasks. It reads files, runs commands, executes tests, and commits changes based on high-level instructions. Copilot excels at inline suggestions, Cursor at multi-file refactoring, but Claude Code handles end-to-end workflows.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 10 (2 points)</h4>
+          <p style="margin: 10px 0;">Name three types of code where AI tools commonly make mistakes and explain why human review is critical for each.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">1) Security code (authentication/authorization): AI may generate code missing authorization checks, allowing unauthorized access. 2) Performance-sensitive queries: AI generates N+1 queries or loads all records into memory without pagination. 3) Edge case handling: AI generates happy-path code but misses nil checks, empty arrays, or race conditions. Human review catches these issues through security analysis, profiling, and edge case testing.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="10"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Write the code manually and use AI for smaller sub-tasks">
+          <h4>Question 11 (1 points)</h4>
+          <p style="margin: 10px 0;">What's the recommended approach when an AI prompt doesn't generate the code you want after 3-4 iterations?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(10, 0)">
+                  Keep refining the prompt until AI produces correct code
+                </div>
+              
+                <div class="choice" onclick="selectChoice(10, 1)">
+                  Switch to a different AI tool
+                </div>
+              
+                <div class="choice" onclick="selectChoice(10, 2)">
+                  Write the code manually and use AI for smaller sub-tasks
+                </div>
+              
+                <div class="choice" onclick="selectChoice(10, 3)">
+                  Accept the closest AI suggestion and modify it
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> If you're rewriting prompts 5+ times, manual coding is faster and more precise. AI excels at well-understood patterns but struggles with novel logic. Use AI for boilerplate (tests, migrations, routes) and write complex business logic manually.
+              </div>
+            
+          
+        </div>
+      
+
+      <div style="margin-top: 30px; display: flex; gap: 10px;">
+        <button onclick="checkAnswers()" style="padding: 12px 24px; background: #CC0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600;">
+          Check Answers
+        </button>
+        <button onclick="resetQuiz()" style="padding: 12px 24px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+          Reset
+        </button>
+      </div>
+
+      <div class="score-display" data-passing="7"></div>
+    
+  </div>
+</div>
+
+<!-- References Tab -->
+<div id="references-tab" class="tab-content">
+  <div class="content-section">
+    
+      <p style="margin-bottom: 20px; color: var(--text-secondary);">
+        Curated sources to deepen your understanding. All references point to official documentation,
+        canonical books, or reputable technical content.
+      </p>
+      <ul class="reference-list">
+        
+          <li>
+            <a href="https://docs.github.com/en/copilot" target="_blank">GitHub Copilot Documentation</a>
+            <div class="why">Official GitHub documentation for Copilot covering installation, usage, shortcuts, and best practices for AI-assisted coding across multiple IDEs.</div>
+          </li>
+        
+          <li>
+            <a href="https://docs.cursor.com/" target="_blank">Cursor Editor Documentation</a>
+            <div class="why">Official guide to Cursor, the AI-native code editor built on VS Code. Covers AI chat features, codebase indexing, multi-file editing, and advanced prompt engineering techniques.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/anthropics/anthropic-sdk-typescript/tree/main/packages/cli" target="_blank">Anthropic Claude Code CLI</a>
+            <div class="why">Documentation for Claude Code, Anthropic's autonomous AI agent CLI. Learn how to execute complex multi-step development tasks like adding features, refactoring, and running tests.</div>
+          </li>
+        
+          <li>
+            <a href="https://pragprog.com/titles/d-aiassist/ai-assisted-programming/" target="_blank">The Pragmatic Programmer's Guide to AI-Assisted Development</a>
+            <div class="why">Comprehensive book on integrating AI tools into development workflows, covering prompt engineering, code review automation, testing strategies, and avoiding common pitfalls.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.blog/2023-11-08-ai-code-review-best-practices/" target="_blank">AI Code Review Best Practices — GitHub Blog</a>
+            <div class="why">GitHub's guide to using AI for code review: setting up automated PR reviews, balancing AI suggestions with human judgment, and measuring effectiveness of AI review tools.</div>
+          </li>
+        
+          <li>
+            <a href="https://platform.openai.com/docs/guides/prompt-engineering" target="_blank">Prompt Engineering for Developers — OpenAI</a>
+            <div class="why">OpenAI's guide to writing effective prompts for code generation. Covers strategies for specificity, context provision, and iterative refinement applicable to GitHub Copilot and other AI coding tools.</div>
+          </li>
+        
+          <li>
+            <a href="https://guides.rubyonrails.org/security.html" target="_blank">Rails Security Guide — Authentication & Authorization</a>
+            <div class="why">Essential reading for reviewing AI-generated authentication and authorization code. Covers SQL injection, XSS, CSRF, and other vulnerabilities that AI tools may introduce.</div>
+          </li>
+        
+      </ul>
+    
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="topic-navigation">
+  
+    <div class="nav-button prev" style="opacity: 0.3; cursor: not-allowed;">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Start of track</div>
+      </div>
+    </div>
+  
+
+  
+    <a href="ai_powered_features.html" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">AI-Powered Search & Recommendations</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+
+  <script>
+    // Dark mode toggle with persistence
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      document.body.classList.add('dark-mode');
+      document.querySelector('.light-icon').style.display = 'none';
+      document.querySelector('.dark-icon').style.display = 'inline';
+    }
+
+    darkModeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      document.querySelector('.light-icon').style.display = isDark ? 'none' : 'inline';
+      document.querySelector('.dark-icon').style.display = isDark ? 'inline' : 'none';
+    });
+
+    // Progress tracking with localStorage
+    function markComplete(topicKey) {
+      const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+      if (!completed.includes(topicKey)) {
+        completed.push(topicKey);
+        localStorage.setItem('completed', JSON.stringify(completed));
+        updateProgress();
+      }
+    }
+
+    function isComplete(topicKey) {
+      const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+      return completed.includes(topicKey);
+    }
+
+    function updateProgress() {
+      const totalTopics = 59;
+      const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+      const percentage = (completed.length / totalTopics) * 100;
+
+      document.querySelectorAll('.progress-bar-fill').forEach(fill => {
+        fill.style.width = percentage + '%';
+      });
+
+      document.querySelectorAll('[data-topic-key]').forEach(card => {
+        const key = card.dataset.topicKey;
+        const badge = card.querySelector('.completion-badge');
+        if (badge && isComplete(key)) {
+          badge.classList.add('completed');
+        }
+      });
+    }
+
+    // Initialize progress on page load
+    updateProgress();
+  </script>
+</body>
+</html>

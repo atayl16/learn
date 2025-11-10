@@ -1,0 +1,15 @@
+topic:
+  key: llm_api_integration
+  name: LLM API Integration Basics
+  track_key: ai_machine_learning
+  depth_target: Working
+  prerequisites: ["rails_basics", "api_basics"]
+  objectives:
+    - Integrate OpenAI and Anthropic APIs into Rails apps
+    - Master prompt engineering fundamentals for production use
+    - Implement token management and cost optimization strategies
+    - Handle API errors, rate limits, and timeouts gracefully
+  key_terms: ["LLM", "prompt engineering", "tokens", "temperature", "streaming", "chat completions"]
+  est_minutes_read: 12
+  est_minutes_exercise: 25
+  tags: ["ai", "llm", "openai", "anthropic", "api-integration"]

@@ -1,0 +1,28 @@
+references:
+  - title: "OpenAI Moderation API Documentation"
+    url: "https://platform.openai.com/docs/guides/moderation"
+    why: "Official OpenAI guide for content moderation, including free Moderation endpoint for detecting harmful content."
+
+  - title: "OpenAI Structured Outputs (JSON Mode)"
+    url: "https://platform.openai.com/docs/guides/structured-outputs"
+    why: "How to get consistent JSON responses from LLMs for reliable moderation results with defined schemas."
+
+  - title: "ruby-openai Gem Documentation"
+    url: "https://github.com/alexrudall/ruby-openai"
+    why: "Ruby client for OpenAI API with examples for chat completions and structured outputs."
+
+  - title: "Meta's Content Moderation Best Practices"
+    url: "https://transparency.fb.com/policies/community-standards/"
+    why: "Real-world content policies from Meta covering hate speech, violence, spam, and misinformation categories."
+
+  - title: "Trust & Safety: A Guide to Content Moderation"
+    url: "https://www.trustsafety.guide/"
+    why: "Comprehensive guide to building moderation systems including human-in-the-loop workflows and accuracy metrics."
+
+  - title: "Anthropic's Claude Moderation Capabilities"
+    url: "https://docs.anthropic.com/claude/docs/content-moderation"
+    why: "Alternative LLM provider with strong moderation capabilities and constitutional AI safety features."
+
+  - title: "Google Perspective API"
+    url: "https://perspectiveapi.com/"
+    why: "Free toxicity detection API for comparing with LLM-based moderation or as a complementary safety layer."

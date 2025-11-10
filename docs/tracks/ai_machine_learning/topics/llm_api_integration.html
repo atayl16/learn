@@ -1,0 +1,2105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rails Seniority Coach</title>
+  <style>
+    :root {
+      /* Modern color palette */
+      --bg-primary: #f8f9fa;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f1f3f5;
+      --bg-elevated: #ffffff;
+
+      --text-primary: #212529;
+      --text-secondary: #6c757d;
+      --text-muted: #adb5bd;
+
+      --accent-primary: #d63384;
+      --accent-secondary: #0d6efd;
+      --accent-success: #198754;
+      --accent-warning: #ffc107;
+
+      --border: #dee2e6;
+      --border-light: #e9ecef;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.dark-mode {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #1f2937;
+      --bg-elevated: #21262d;
+
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+
+      --accent-primary: #ff6b9d;
+      --accent-secondary: #58a6ff;
+      --accent-success: #3fb950;
+      --accent-warning: #ffcf33;
+
+      --border: #30363d;
+      --border-light: #21262d;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      line-height: 1.7;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      transition: background 0.3s ease, color 0.3s ease;
+      font-size: 16px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header - Simplified & Clean */
+    header {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #c2255c 100%);
+      color: white;
+      padding: 14px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-md);
+    }
+
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    header .brand {
+      flex: 1;
+    }
+
+    header .brand a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: white;
+      transition: var(--transition);
+    }
+
+    header .brand a:hover {
+      opacity: 0.85;
+    }
+
+    header .brand-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    header p {
+      opacity: 0.9;
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* Dark Mode Toggle - Compact */
+    .dark-mode-toggle {
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: 20px;
+      transition: var(--transition);
+      flex-shrink: 0;
+      backdrop-filter: blur(10px);
+    }
+
+    .dark-mode-toggle:hover {
+      background: rgba(255,255,255,0.25);
+      border-color: rgba(255,255,255,0.3);
+      transform: scale(1.05);
+    }
+
+    /* Navigation - Improved */
+    nav {
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+      font-weight: 500;
+      font-size: 15px;
+    }
+
+    nav a:hover {
+      background: var(--bg-tertiary);
+      color: var(--accent-primary);
+      transform: translateY(-1px);
+    }
+
+    /* Cards - Professional Design */
+    .track-grid, .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+      margin: 28px 0;
+    }
+
+    .track-card, .topic-card {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .track-card::before, .topic-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .track-card:hover, .topic-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--accent-primary);
+    }
+
+    .track-card:hover::before, .topic-card:hover::before {
+      opacity: 1;
+    }
+
+    .track-card h3, .topic-card h3 {
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .track-card p, .topic-card p {
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .track-card a, .topic-card a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* Track Icon Badge */
+    .track-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+
+    /* Completion Badge - Enhanced */
+    .completion-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 28px;
+      opacity: 0;
+      transition: var(--transition);
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    .completion-badge.completed {
+      opacity: 1;
+      animation: completionPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes completionPop {
+      0% { transform: scale(0); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* Progress Bar - Modern Design */
+    .progress-bar {
+      height: 6px;
+      background: var(--border-light);
+      border-radius: 100px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px rgba(214, 51, 132, 0.3);
+    }
+
+    /* Badges - Polished Design */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 4px 4px 4px 0;
+      transition: var(--transition);
+    }
+
+    .badge-primary {
+      background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+      color: #4a148c;
+    }
+
+    .badge-success {
+      background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+      color: #1b5e20;
+    }
+
+    .badge-info {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      color: #01579b;
+    }
+
+    .badge:hover {
+      transform: scale(1.05);
+    }
+
+    /* Tabs - Modern Design */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid var(--border-light);
+      margin: 24px 0 20px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .tab {
+      padding: 12px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 15px;
+      transition: var(--transition);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      white-space: nowrap;
+    }
+
+    .tab:hover {
+      color: var(--accent-primary);
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    }
+
+    .tab.active {
+      color: var(--accent-primary);
+      border-bottom-color: var(--accent-primary);
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Content Sections - Enhanced */
+    .content-section {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin: 20px 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .content-section h2 {
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      font-size: 24px;
+      font-weight: 700;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border-light);
+    }
+
+    .content-section h3 {
+      color: var(--text-primary);
+      margin: 24px 0 12px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .content-section p {
+      margin-bottom: 16px;
+      line-height: 1.75;
+      color: var(--text-primary);
+    }
+
+    .content-section ul, .content-section ol {
+      margin: 16px 0 16px 24px;
+      color: var(--text-primary);
+    }
+
+    .content-section li {
+      margin: 8px 0;
+      line-height: 1.7;
+    }
+
+    /* Objectives Section - Gradient Accent */
+    .objectives-section {
+      background: linear-gradient(135deg, rgba(214, 51, 132, 0.05) 0%, rgba(13, 110, 253, 0.05) 100%);
+      border-left: 4px solid var(--accent-primary);
+    }
+
+    body.dark-mode .objectives-section {
+      background: linear-gradient(135deg, rgba(255, 107, 157, 0.08) 0%, rgba(88, 166, 255, 0.08) 100%);
+      border-left-color: var(--accent-primary);
+    }
+
+    /* Code Blocks - Professional Styling */
+    code {
+      background: var(--bg-tertiary);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 14px;
+      color: var(--accent-secondary);
+      border: 1px solid var(--border-light);
+    }
+
+    pre {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      margin: 20px 0;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      border: none;
+      color: #d4d4d4;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* Buttons - Modern Design */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #c2255c 100%);
+      color: white;
+      box-shadow: 0 4px 14px rgba(214, 51, 132, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(214, 51, 132, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-elevated);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+
+    /* Quiz - Enhanced Design */
+    .quiz-question {
+      background: var(--bg-elevated);
+      border: 2px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 20px 0;
+      transition: var(--transition);
+    }
+
+    .quiz-question:hover {
+      border-color: var(--accent-primary);
+      box-shadow: var(--shadow-md);
+    }
+
+    .quiz-question h4 {
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .quiz-option {
+      display: block;
+      padding: 14px 18px;
+      margin: 8px 0;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      background: var(--bg-tertiary);
+      border: 2px solid transparent;
+    }
+
+    .quiz-option:hover {
+      background: var(--bg-elevated);
+      border-color: var(--accent-primary);
+      transform: translateX(4px);
+    }
+
+    .quiz-option.correct {
+      background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(25, 135, 84, 0.05) 100%);
+      border-color: var(--accent-success);
+    }
+
+    .quiz-option.incorrect {
+      background: rgba(220, 53, 69, 0.1);
+      border-color: #dc3545;
+    }
+
+    /* Score Display - Celebration */
+    .score-display {
+      background: linear-gradient(135deg, var(--accent-success) 0%, #059669 100%);
+      color: white;
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      display: none;
+      animation: slideUp 0.4s ease;
+    }
+
+    .score-display.show { display: block; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Topic Navigation - Enhanced */
+    .topic-navigation {
+      display: flex;
+      justify-content: space-between;
+      margin: 32px 0;
+      gap: 16px;
+    }
+
+    .nav-button {
+      flex: 1;
+      max-width: 300px;
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+      border: 2px solid var(--border-light);
+      color: var(--text-primary);
+      text-decoration: none;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+    }
+
+    .nav-button:hover {
+      border-color: var(--accent-primary);
+      background: var(--accent-primary);
+      color: white;
+      transform: translateX(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .nav-button.next:hover {
+      transform: translateX(4px);
+    }
+
+    /* Responsive Design - Mobile Optimized */
+    @media (max-width: 768px) {
+      .container { padding: 0 16px; }
+
+      header {
+        padding: 10px 0;
+      }
+
+      header .container {
+        gap: 12px;
+      }
+
+      header .brand-icon {
+        font-size: 24px;
+      }
+
+      header h1 {
+        font-size: 16px;
+      }
+
+      header p {
+        font-size: 11px;
+      }
+
+      .dark-mode-toggle {
+        padding: 6px 10px;
+        font-size: 18px;
+      }
+
+      nav {
+        margin: 12px 0;
+        gap: 8px;
+      }
+
+      nav a {
+        font-size: 14px;
+        padding: 8px 12px;
+      }
+
+      .track-grid, .topic-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .tabs {
+        gap: 4px;
+      }
+
+      .tab {
+        padding: 10px 14px;
+        font-size: 14px;
+      }
+
+      .content-section {
+        padding: 20px;
+        margin: 16px 0;
+      }
+
+      .content-section h2 {
+        font-size: 20px;
+      }
+
+      .content-section h3 {
+        font-size: 18px;
+      }
+
+      .topic-navigation {
+        flex-direction: column;
+      }
+
+      .nav-button {
+        max-width: 100%;
+      }
+    }
+
+    /* Smooth Scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Focus Styles for Accessibility */
+    *:focus-visible {
+      outline: 3px solid var(--accent-primary);
+      outline-offset: 2px;
+    }
+
+    /* Print Styles */
+    @media print {
+      header, nav, .dark-mode-toggle {
+        display: none;
+      }
+
+      body {
+        background: white;
+        color: black;
+      }
+
+      .content-section {
+        box-shadow: none;
+        border: 1px solid #ddd;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="brand">
+        <a href="../../../index.html">
+          <span class="brand-icon">💎</span>
+          <div>
+            <h1>Rails Seniority Coach</h1>
+            <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
+          </div>
+        </a>
+      </div>
+      <button class="dark-mode-toggle" id="dark-mode-toggle" aria-label="Toggle dark mode">
+        <span class="light-icon">☀️</span>
+        <span class="dark-icon" style="display: none;">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <nav style="margin-bottom: 20px;">
+  <a href="../index.html">← AI & Machine Learning</a>
+</nav>
+
+<!-- Previous/Next Navigation -->
+<div class="topic-navigation">
+  
+    <a href="content_moderation_ai.html" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Content Moderation & Classification</div>
+      </div>
+    </a>
+  
+
+  
+    <a href="rag_systems.html" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">RAG Systems in Rails</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+<div style="margin-bottom: 30px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+    <div style="flex: 1;">
+      <h1>LLM API Integration Basics</h1>
+      <div style="margin: 15px 0;">
+        
+        
+          <span class="badge badge-working">Working</span>
+        
+        &nbsp;
+        <span style="color: var(--text-secondary);">
+          📖 12 min read &nbsp; | &nbsp; 💻 25 min exercise
+        </span>
+      </div>
+    </div>
+    <button
+      id="mark-complete-btn"
+      class="complete-button"
+      data-track-key="ai_machine_learning"
+      data-topic-key="llm_api_integration"
+      onclick="markTopicComplete('ai_machine_learning', 'llm_api_integration')">
+      Mark Complete
+    </button>
+  </div>
+
+  
+    <div class="content-section objectives-section">
+      <h3>Learning Objectives</h3>
+      <ul style="margin-left: 20px;">
+        
+          <li>Integrate OpenAI and Anthropic APIs into Rails apps</li>
+        
+          <li>Master prompt engineering fundamentals for production use</li>
+        
+          <li>Implement token management and cost optimization strategies</li>
+        
+          <li>Handle API errors, rate limits, and timeouts gracefully</li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-tab="overview-tab">📖 Overview</button>
+  <button class="tab" data-tab="exercise-tab">💻 Exercise</button>
+  <button class="tab" data-tab="checkpoint-tab">✅ Checkpoint</button>
+  <button class="tab" data-tab="references-tab">🔗 References</button>
+</div>
+
+<!-- Overview Tab -->
+<div id="overview-tab" class="tab-content active">
+  <div class="content-section">
+    
+      <h1>LLM API Integration Basics</h1>
+
+<h2>What It Is</h2>
+
+<p>LLM API integration involves connecting your Rails application to Large Language Model services like OpenAI (GPT-4) or Anthropic (Claude) to add AI-powered features. This includes managing API calls, handling streaming responses, optimizing token usage, implementing retry logic, and tracking costs — all while maintaining production reliability.</p>
+
+<h2>Why It Matters</h2>
+
+<p>AI features are becoming table stakes for modern applications. Teams that understand LLM integration can ship features like content generation, intelligent search, code review automation, and chatbots in days instead of months. Production LLM integration requires managing costs (a single uncached GPT-4 call can cost $0.10), handling rate limits (429 errors), and optimizing latency (streaming responses vs. waiting 30 seconds for completion). Senior engineers understand these trade-offs and build resilient systems.</p>
+
+<h2>When to Use</h2>
+
+<ul>
+<li>Adding AI features: content generation, summarization, question answering, code analysis</li>
+<li>Building chatbots or conversational interfaces with context tracking</li>
+<li>Processing user input that requires understanding (sentiment analysis, intent classification)</li>
+<li>Automating tasks that need reasoning (bug triage, code review, documentation)</li>
+<li>Acceptable to skip: when deterministic algorithms work, when latency must be &lt;100ms, when cost per request exceeds value</li>
+</ul>
+
+<h2>Three Common Pitfalls</h2>
+
+<ol>
+<li><strong>Ignoring token limits:</strong> GPT-4 has a 128K token context window, but each token costs money and increases latency. Sending entire documents without truncation can cost $5 per request and timeout. Always count tokens before making API calls and implement truncation strategies.</li>
+<li><strong>Missing retry logic:</strong> LLM APIs return 429 (rate limit) and 500 (overload) errors frequently, especially during peak hours. Without exponential backoff, your features fail in production. Implement retries with jitter and circuit breakers.</li>
+<li><strong>Exposing API keys in client-side code:</strong> Never send API keys to browsers or mobile apps. Always proxy requests through your Rails backend with authentication and rate limiting to prevent abuse and cost overruns.</li>
+</ol>
+
+<hr>
+
+<h2>Setting Up API Clients</h2>
+
+<p>Both OpenAI and Anthropic provide official Ruby gems for integration.</p>
+
+<h3>OpenAI Setup</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'ruby-openai'</span>
+
+<span class="c1"># config/initializers/openai.rb</span>
+<span class="no">OpenAI</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">access_token</span> <span class="o">=</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">credentials</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="ss">:openai</span><span class="p">,</span> <span class="ss">:api_key</span><span class="p">)</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">request_timeout</span> <span class="o">=</span> <span class="mi">60</span> <span class="c1"># seconds</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Store your API key securely:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails credentials:edit
+<span class="c"># Add: openai: { api_key: "sk-..." }</span>
+</code></pre></div>
+<h3>Anthropic Setup</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'anthropic'</span>
+
+<span class="c1"># config/initializers/anthropic.rb</span>
+<span class="no">Anthropic</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">access_token</span> <span class="o">=</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">credentials</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="ss">:anthropic</span><span class="p">,</span> <span class="ss">:api_key</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Both gems handle HTTPS connections, JSON serialization, and basic error handling.</p>
+
+<hr>
+
+<h2>Making Your First API Call</h2>
+
+<h3>OpenAI Example</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ContentGenerator</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@client</span> <span class="o">=</span> <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">generate_summary</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="vi">@client</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span>
+        <span class="ss">model: </span><span class="s2">"gpt-4o"</span><span class="p">,</span>
+        <span class="ss">messages: </span><span class="p">[</span>
+          <span class="p">{</span> <span class="ss">role: </span><span class="s2">"system"</span><span class="p">,</span> <span class="ss">content: </span><span class="s2">"You are a helpful assistant that summarizes text."</span> <span class="p">},</span>
+          <span class="p">{</span> <span class="ss">role: </span><span class="s2">"user"</span><span class="p">,</span> <span class="ss">content: </span><span class="s2">"Summarize this: </span><span class="si">#{</span><span class="n">text</span><span class="si">}</span><span class="s2">"</span> <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="ss">max_tokens: </span><span class="mi">150</span><span class="p">,</span>
+        <span class="ss">temperature: </span><span class="mf">0.7</span>
+      <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"choices"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Anthropic Example</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ContentGenerator</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@client</span> <span class="o">=</span> <span class="no">Anthropic</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">generate_summary</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="vi">@client</span><span class="p">.</span><span class="nf">messages</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span>
+        <span class="ss">model: </span><span class="s2">"claude-3-5-sonnet-20241022"</span><span class="p">,</span>
+        <span class="ss">max_tokens: </span><span class="mi">150</span><span class="p">,</span>
+        <span class="ss">messages: </span><span class="p">[</span>
+          <span class="p">{</span> <span class="ss">role: </span><span class="s2">"user"</span><span class="p">,</span> <span class="ss">content: </span><span class="s2">"Summarize this: </span><span class="si">#{</span><span class="n">text</span><span class="si">}</span><span class="s2">"</span> <span class="p">}</span>
+        <span class="p">]</span>
+      <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"content"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"text"</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Both APIs return structured JSON responses with the generated text nested inside.</p>
+
+<hr>
+
+<h2>Prompt Engineering Best Practices</h2>
+
+<p>Effective prompts follow a consistent structure:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">SmartAssistant</span>
+  <span class="no">SYSTEM_PROMPT</span> <span class="o">=</span> <span class="o">&lt;&lt;~</span><span class="no">PROMPT</span><span class="sh">
+    You are a Rails code reviewer. Analyze code for:
+    - Security vulnerabilities (SQL injection, XSS, CSRF)
+    - Performance issues (N+1 queries, missing indexes)
+    - Best practices violations
+
+    Format your response as JSON with this structure:
+    {
+      "issues": [{"severity": "high|medium|low", "description": "...", "line": 10}],
+      "summary": "Overall assessment"
+    }
+</span><span class="no">  PROMPT</span>
+
+  <span class="k">def</span> <span class="nf">review_code</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="vi">@client</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span>
+        <span class="ss">model: </span><span class="s2">"gpt-4o"</span><span class="p">,</span>
+        <span class="ss">messages: </span><span class="p">[</span>
+          <span class="p">{</span> <span class="ss">role: </span><span class="s2">"system"</span><span class="p">,</span> <span class="ss">content: </span><span class="no">SYSTEM_PROMPT</span> <span class="p">},</span>
+          <span class="p">{</span> <span class="ss">role: </span><span class="s2">"user"</span><span class="p">,</span> <span class="ss">content: </span><span class="n">code</span> <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="ss">temperature: </span><span class="mf">0.2</span><span class="p">,</span> <span class="c1"># Lower temperature for consistent formatting</span>
+        <span class="ss">response_format: </span><span class="p">{</span> <span class="ss">type: </span><span class="s2">"json_object"</span> <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="no">JSON</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"choices"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">))</span>
+  <span class="k">rescue</span> <span class="no">JSON</span><span class="o">::</span><span class="no">ParserError</span>
+    <span class="p">{</span> <span class="s2">"issues"</span> <span class="o">=&gt;</span> <span class="p">[],</span> <span class="s2">"summary"</span> <span class="o">=&gt;</span> <span class="s2">"Failed to parse response"</span> <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Key techniques:</strong><br>
+- <strong>System prompts</strong> define behavior and output format<br>
+- <strong>Low temperature</strong> (0-0.3) for consistent, factual responses<br>
+- <strong>High temperature</strong> (0.7-1.0) for creative, varied outputs<br>
+- <strong>JSON mode</strong> (<code>response_format: { type: &quot;json_object&quot; }</code>) ensures structured data<br>
+- <strong>Few-shot examples</strong> in system prompts improve accuracy</p>
+
+<hr>
+
+<h2>Token Management &amp; Cost Optimization</h2>
+
+<p>Tokens are the currency of LLM APIs. GPT-4 costs ~$0.01 per 1K input tokens and ~$0.03 per 1K output tokens.</p>
+
+<h3>Counting Tokens</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'tiktoken_ruby'</span>
+
+<span class="k">class</span> <span class="nc">TokenCounter</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="ss">model: </span><span class="s2">"gpt-4"</span><span class="p">)</span>
+    <span class="vi">@encoder</span> <span class="o">=</span> <span class="no">Tiktoken</span><span class="p">.</span><span class="nf">encoding_for_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="vi">@encoder</span><span class="p">.</span><span class="nf">encode</span><span class="p">(</span><span class="n">text</span><span class="p">).</span><span class="nf">length</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">truncate</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">max_tokens</span><span class="p">:)</span>
+    <span class="n">tokens</span> <span class="o">=</span> <span class="vi">@encoder</span><span class="p">.</span><span class="nf">encode</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">text</span> <span class="k">if</span> <span class="n">tokens</span><span class="p">.</span><span class="nf">length</span> <span class="o">&lt;=</span> <span class="n">max_tokens</span>
+
+    <span class="n">truncated_tokens</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="o">...</span><span class="n">max_tokens</span><span class="p">]</span>
+    <span class="vi">@encoder</span><span class="p">.</span><span class="nf">decode</span><span class="p">(</span><span class="n">truncated_tokens</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Usage</span>
+<span class="n">counter</span> <span class="o">=</span> <span class="no">TokenCounter</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">text</span> <span class="o">=</span> <span class="no">File</span><span class="p">.</span><span class="nf">read</span><span class="p">(</span><span class="s2">"large_document.txt"</span><span class="p">)</span>
+<span class="nb">puts</span> <span class="s2">"Tokens: </span><span class="si">#{</span><span class="n">counter</span><span class="p">.</span><span class="nf">count</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+
+<span class="c1"># Truncate to fit in context window</span>
+<span class="n">truncated</span> <span class="o">=</span> <span class="n">counter</span><span class="p">.</span><span class="nf">truncate</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="ss">max_tokens: </span><span class="mi">8000</span><span class="p">)</span>
+</code></pre></div>
+<h3>Cost Tracking</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">LlmCall</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="c1"># Schema: model, input_tokens, output_tokens, cost_usd, created_at</span>
+
+  <span class="no">PRICING</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"gpt-4o"</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">input: </span><span class="mf">0.0025</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">,</span> <span class="ss">output: </span><span class="mf">0.01</span> <span class="o">/</span> <span class="mi">1000</span> <span class="p">},</span>
+    <span class="s2">"gpt-4o-mini"</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">input: </span><span class="mf">0.00015</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">,</span> <span class="ss">output: </span><span class="mf">0.0006</span> <span class="o">/</span> <span class="mi">1000</span> <span class="p">},</span>
+    <span class="s2">"claude-3-5-sonnet-20241022"</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">input: </span><span class="mf">0.003</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">,</span> <span class="ss">output: </span><span class="mf">0.015</span> <span class="o">/</span> <span class="mi">1000</span> <span class="p">}</span>
+  <span class="p">}.</span><span class="nf">freeze</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">track</span><span class="p">(</span><span class="n">model</span><span class="p">:,</span> <span class="n">input_tokens</span><span class="p">:,</span> <span class="n">output_tokens</span><span class="p">:)</span>
+    <span class="n">pricing</span> <span class="o">=</span> <span class="no">PRICING</span><span class="p">[</span><span class="n">model</span><span class="p">]</span>
+    <span class="n">cost</span> <span class="o">=</span> <span class="p">(</span><span class="n">input_tokens</span> <span class="o">*</span> <span class="n">pricing</span><span class="p">[</span><span class="ss">:input</span><span class="p">])</span> <span class="o">+</span> <span class="p">(</span><span class="n">output_tokens</span> <span class="o">*</span> <span class="n">pricing</span><span class="p">[</span><span class="ss">:output</span><span class="p">])</span>
+
+    <span class="n">create!</span><span class="p">(</span>
+      <span class="ss">model: </span><span class="n">model</span><span class="p">,</span>
+      <span class="ss">input_tokens: </span><span class="n">input_tokens</span><span class="p">,</span>
+      <span class="ss">output_tokens: </span><span class="n">output_tokens</span><span class="p">,</span>
+      <span class="ss">cost_usd: </span><span class="n">cost</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">total_cost_today</span>
+    <span class="n">where</span><span class="p">(</span><span class="s2">"created_at &gt;= ?"</span><span class="p">,</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">beginning_of_day</span><span class="p">).</span><span class="nf">sum</span><span class="p">(</span><span class="ss">:cost_usd</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Track every API call</span>
+<span class="n">response</span> <span class="o">=</span> <span class="vi">@client</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span><span class="ss">parameters: </span><span class="p">{</span><span class="o">...</span><span class="p">})</span>
+<span class="no">LlmCall</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span>
+  <span class="ss">model: </span><span class="s2">"gpt-4o"</span><span class="p">,</span>
+  <span class="ss">input_tokens: </span><span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"usage"</span><span class="p">,</span> <span class="s2">"prompt_tokens"</span><span class="p">),</span>
+  <span class="ss">output_tokens: </span><span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"usage"</span><span class="p">,</span> <span class="s2">"completion_tokens"</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3>Caching Strategies</h3>
+
+<p>Cache expensive LLM calls to avoid repeat costs:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CachedLlmService</span>
+  <span class="k">def</span> <span class="nf">generate_summary</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">cache_key</span> <span class="o">=</span> <span class="s2">"llm_summary:</span><span class="si">#{</span><span class="no">Digest</span><span class="o">::</span><span class="no">SHA256</span><span class="p">.</span><span class="nf">hexdigest</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="n">cache_key</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">24</span><span class="p">.</span><span class="nf">hours</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">raw_generate_summary</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">raw_generate_summary</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="c1"># Actual API call</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Error Handling &amp; Retry Logic</h2>
+
+<p>LLM APIs are unreliable. Implement robust error handling:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ResilientLlmClient</span>
+  <span class="no">MAX_RETRIES</span> <span class="o">=</span> <span class="mi">3</span>
+  <span class="no">BASE_DELAY</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># second</span>
+
+  <span class="k">def</span> <span class="nf">call_with_retry</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+    <span class="n">attempt</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">begin</span>
+      <span class="n">attempt</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span><span class="ss">parameters: </span><span class="n">parameters</span><span class="p">)</span>
+    <span class="k">rescue</span> <span class="no">Faraday</span><span class="o">::</span><span class="no">TooManyRequestsError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+      <span class="c1"># 429 Rate limit</span>
+      <span class="k">if</span> <span class="n">attempt</span> <span class="o">&lt;=</span> <span class="no">MAX_RETRIES</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="no">BASE_DELAY</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="n">attempt</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="nb">rand</span><span class="p">(</span><span class="mf">0.0</span><span class="o">..</span><span class="mf">1.0</span><span class="p">)</span> <span class="c1"># Exponential backoff with jitter</span>
+        <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">warn</span><span class="p">(</span><span class="s2">"Rate limited, retrying in </span><span class="si">#{</span><span class="n">delay</span><span class="si">}</span><span class="s2">s (attempt </span><span class="si">#{</span><span class="n">attempt</span><span class="si">}</span><span class="s2">/</span><span class="si">#{</span><span class="no">MAX_RETRIES</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+        <span class="nb">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+        <span class="k">retry</span>
+      <span class="k">else</span>
+        <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span><span class="p">(</span><span class="s2">"Rate limit exceeded after </span><span class="si">#{</span><span class="no">MAX_RETRIES</span><span class="si">}</span><span class="s2"> retries"</span><span class="p">)</span>
+        <span class="k">raise</span>
+      <span class="k">end</span>
+    <span class="k">rescue</span> <span class="no">Faraday</span><span class="o">::</span><span class="no">ServerError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+      <span class="c1"># 500-level errors</span>
+      <span class="k">if</span> <span class="n">attempt</span> <span class="o">&lt;=</span> <span class="no">MAX_RETRIES</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="no">BASE_DELAY</span> <span class="o">*</span> <span class="n">attempt</span>
+        <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">warn</span><span class="p">(</span><span class="s2">"Server error, retrying in </span><span class="si">#{</span><span class="n">delay</span><span class="si">}</span><span class="s2">s"</span><span class="p">)</span>
+        <span class="nb">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+        <span class="k">retry</span>
+      <span class="k">else</span>
+        <span class="k">raise</span>
+      <span class="k">end</span>
+    <span class="k">rescue</span> <span class="no">Faraday</span><span class="o">::</span><span class="no">TimeoutError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span><span class="p">(</span><span class="s2">"LLM request timed out: </span><span class="si">#{</span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+      <span class="k">raise</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Error categories:</strong><br>
+- <strong>429 Rate Limit:</strong> Exponential backoff with jitter (1s, 2s, 4s + random)<br>
+- <strong>500 Server Error:</strong> Retry up to 3 times with linear backoff<br>
+- <strong>Timeout:</strong> Fail fast and log for monitoring<br>
+- <strong>Invalid Request:</strong> Don&#39;t retry (400, 401, 403, 404)</p>
+
+<hr>
+
+<h2>Rate Limiting &amp; Circuit Breakers</h2>
+
+<p>Protect your app from cascading failures:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Gemfile</span>
+<span class="n">gem</span> <span class="s1">'redis'</span>
+<span class="n">gem</span> <span class="s1">'connection_pool'</span>
+
+<span class="k">class</span> <span class="nc">LlmRateLimiter</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="ss">redis: </span><span class="no">Redis</span><span class="p">.</span><span class="nf">new</span><span class="p">)</span>
+    <span class="vi">@redis</span> <span class="o">=</span> <span class="n">redis</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">check_and_increment</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">100</span><span class="p">,</span> <span class="ss">period: </span><span class="mi">3600</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">"llm_rate_limit:</span><span class="si">#{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">:</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">to_i</span> <span class="o">/</span> <span class="n">period</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="vi">@redis</span><span class="p">.</span><span class="nf">incr</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="vi">@redis</span><span class="p">.</span><span class="nf">expire</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">period</span><span class="p">)</span> <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="n">limit</span>
+      <span class="k">raise</span> <span class="no">RateLimitError</span><span class="p">,</span> <span class="s2">"User </span><span class="si">#{</span><span class="n">user_id</span><span class="si">}</span><span class="s2"> exceeded </span><span class="si">#{</span><span class="n">limit</span><span class="si">}</span><span class="s2"> requests per hour"</span>
+    <span class="k">end</span>
+
+    <span class="n">count</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># In controller</span>
+<span class="k">class</span> <span class="nc">AiController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="n">before_action</span> <span class="ss">:check_rate_limit</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">check_rate_limit</span>
+    <span class="no">LlmRateLimiter</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">check_and_increment</span><span class="p">(</span><span class="n">current_user</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">50</span><span class="p">)</span>
+  <span class="k">rescue</span> <span class="no">RateLimitError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+    <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">error: </span><span class="n">e</span><span class="p">.</span><span class="nf">message</span> <span class="p">},</span> <span class="ss">status: </span><span class="mi">429</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<hr>
+
+<h2>Streaming Responses</h2>
+
+<p>For long-form content, stream responses to improve perceived latency:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">StreamingController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="kp">include</span> <span class="no">ActionController</span><span class="o">::</span><span class="no">Live</span>
+
+  <span class="k">def</span> <span class="nf">generate</span>
+    <span class="n">response</span><span class="p">.</span><span class="nf">headers</span><span class="p">[</span><span class="s1">'Content-Type'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'text/event-stream'</span>
+    <span class="n">response</span><span class="p">.</span><span class="nf">headers</span><span class="p">[</span><span class="s1">'Cache-Control'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'no-cache'</span>
+
+    <span class="n">client</span> <span class="o">=</span> <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span>
+
+    <span class="n">client</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span>
+        <span class="ss">model: </span><span class="s2">"gpt-4o"</span><span class="p">,</span>
+        <span class="ss">messages: </span><span class="p">[{</span> <span class="ss">role: </span><span class="s2">"user"</span><span class="p">,</span> <span class="ss">content: </span><span class="n">params</span><span class="p">[</span><span class="ss">:prompt</span><span class="p">]</span> <span class="p">}],</span>
+        <span class="ss">stream: </span><span class="nb">proc</span> <span class="k">do</span> <span class="o">|</span><span class="n">chunk</span><span class="p">,</span> <span class="n">_bytesize</span><span class="o">|</span>
+          <span class="n">content</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"choices"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"delta"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">)</span>
+          <span class="k">if</span> <span class="n">content</span>
+            <span class="n">response</span><span class="p">.</span><span class="nf">stream</span><span class="p">.</span><span class="nf">write</span><span class="p">(</span><span class="s2">"data: </span><span class="si">#{</span><span class="n">content</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">)</span>
+          <span class="k">end</span>
+        <span class="k">end</span>
+      <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="n">response</span><span class="p">.</span><span class="nf">stream</span><span class="p">.</span><span class="nf">write</span><span class="p">(</span><span class="s2">"data: [DONE]</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">)</span>
+  <span class="k">ensure</span>
+    <span class="n">response</span><span class="p">.</span><span class="nf">stream</span><span class="p">.</span><span class="nf">close</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p><strong>Note:</strong> Streaming requires Puma or Unicorn with sufficient workers to avoid blocking other requests.</p>
+
+<hr>
+
+<h2>Trade-offs Box</h2>
+
+<ul>
+<li><strong>Advantage:</strong> LLM APIs unlock sophisticated AI features without training models, handling infrastructure, or hiring ML engineers. Integration takes days, not months.</li>
+<li><strong>Cost:</strong> API calls are expensive ($0.01-$0.10 per request for GPT-4), unpredictable (token usage varies), and add latency (2-30 seconds). Requires careful budgeting and optimization.</li>
+<li><strong>When to skip:</strong> When deterministic logic works (regex, rules engines), when you need &lt;100ms response times, or when cost per user exceeds LTV.</li>
+</ul>
+
+<hr>
+
+<h2>Debugging Checklist</h2>
+
+<p>When troubleshooting LLM integrations:</p>
+
+<ol>
+<li>Log all API requests/responses during development (redact sensitive data in production)</li>
+<li>Track token usage per endpoint to identify cost hotspots</li>
+<li>Monitor error rates: 429s indicate rate limiting, 500s indicate provider issues</li>
+<li>Test prompt quality: use LLM playground (OpenAI/Anthropic web UIs) before coding</li>
+<li>Implement timeouts: set <code>request_timeout</code> to avoid hanging requests (30-60s max)</li>
+<li>Validate responses: LLMs can return invalid JSON or unexpected formats</li>
+<li>Cache aggressively: identical prompts should hit cache, not API</li>
+<li>Set up alerts: track daily cost, error rate, p95 latency</li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>LLM APIs (OpenAI, Anthropic) add AI features to Rails apps via HTTP calls</li>
+<li>Prompt engineering: use system prompts, temperature control, and JSON mode for consistent outputs</li>
+<li>Token management: count tokens with tiktoken_ruby, truncate inputs, track costs per request</li>
+<li>Error handling: retry 429s with exponential backoff, fail fast on timeouts</li>
+<li>Rate limiting: protect your budget with per-user limits and circuit breakers</li>
+<li>Stream responses for better UX on long-form content generation</li>
+<li>Cache expensive calls and monitor costs daily to avoid budget overruns</li>
+</ul>
+
+    
+  </div>
+</div>
+
+<!-- Exercise Tab -->
+<div id="exercise-tab" class="tab-content">
+  <div class="content-section">
+    
+      <h1>Exercise: LLM API Integration Basics</h1>
+
+<h2>Objective</h2>
+
+<p>Build a Rails API endpoint that integrates OpenAI&#39;s GPT-4 to generate article summaries with token tracking, error handling, and cost monitoring.</p>
+
+<h2>Task</h2>
+
+<p>In a Rails app that manages articles:</p>
+
+<ol>
+<li>Set up OpenAI API credentials securely using Rails encrypted credentials</li>
+<li>Create a service object that calls GPT-4 to generate article summaries</li>
+<li>Implement token counting and cost tracking in the database</li>
+<li>Add retry logic with exponential backoff for rate limit errors</li>
+<li>Build a controller endpoint that returns summaries with cost metadata</li>
+<li>Test the integration with a real API call and verify cost tracking</li>
+</ol>
+
+<h2>Acceptance Criteria</h2>
+
+<ul>
+<li>[ ] OpenAI API key stored in <code>rails credentials:edit</code> and loaded in initializer</li>
+<li>[ ] <code>ArticleSummarizerService</code> generates summaries using GPT-4 API</li>
+<li>[ ] Token usage (input/output) tracked in <code>llm_calls</code> table for every request</li>
+<li>[ ] Retry logic handles 429 errors with exponential backoff (3 attempts max)</li>
+<li>[ ] <code>/api/articles/:id/summarize</code> endpoint returns summary and cost data</li>
+<li>[ ] Integration test proves end-to-end flow works with mock or real API</li>
+<li>[ ] Logs show token count, cost, and retry attempts</li>
+</ul>
+
+<h2>Verification Steps</h2>
+
+<ol>
+<li>After setup, run the endpoint and check logs:</li>
+</ol>
+<div class="highlight"><pre class="highlight plaintext"><code>Started POST "/api/articles/1/summarize"
+ArticleSummarizerService: Sending request to GPT-4 (2,450 input tokens)
+ArticleSummarizerService: Received response (145 output tokens, cost: $0.0104)
+LlmCall created: #&lt;LlmCall id: 1, model: "gpt-4o", cost_usd: 0.0104&gt;
+Completed 200 OK in 3842ms
+</code></pre></div>
+<ol>
+<li>Verify database tracking:</li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">rails</span> <span class="n">console</span>
+<span class="o">&gt;</span> <span class="no">LlmCall</span><span class="p">.</span><span class="nf">last</span>
+<span class="o">=&gt;</span> <span class="c1">#&lt;LlmCall id: 1, model: "gpt-4o", input_tokens: 2450, output_tokens: 145, cost_usd: 0.0104&gt;</span>
+<span class="o">&gt;</span> <span class="no">LlmCall</span><span class="p">.</span><span class="nf">total_cost_today</span>
+<span class="o">=&gt;</span> <span class="mf">0.0104</span>
+</code></pre></div>
+<ol>
+<li>Test retry logic by triggering a 429 error (simulate or wait for real rate limit):</li>
+</ol>
+<div class="highlight"><pre class="highlight plaintext"><code>ArticleSummarizerService: Rate limited, retrying in 1.3s (attempt 1/3)
+ArticleSummarizerService: Rate limited, retrying in 2.7s (attempt 2/3)
+ArticleSummarizerService: Success on attempt 3
+</code></pre></div>
+<h2>Setup Code</h2>
+
+<h3>Step 1: Create Rails App &amp; Models</h3>
+<div class="highlight"><pre class="highlight shell"><code>rails new llm_demo <span class="nt">--api</span> <span class="nt">--database</span><span class="o">=</span>postgresql
+<span class="nb">cd </span>llm_demo
+bin/rails generate model Article title:string body:text
+bin/rails generate model LlmCall model:string input_tokens:integer output_tokens:integer cost_usd:decimal
+bin/rails db:create db:migrate
+</code></pre></div>
+<p>Add sample data in <code>db/seeds.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Article</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+  <span class="ss">title: </span><span class="s2">"The Future of Ruby on Rails"</span><span class="p">,</span>
+  <span class="ss">body: </span><span class="o">&lt;&lt;~</span><span class="no">TEXT</span><span class="sh">
+    Ruby on Rails continues to evolve in 2024 with major improvements in performance,
+    developer experience, and modern infrastructure support. The framework now ships with
+    import maps by default, eliminating the need for webpack in many applications.
+    ActionCable has been enhanced to support modern real-time features without additional
+    dependencies. Hotwire (Turbo and Stimulus) has become the recommended approach for
+    building interactive user interfaces, replacing the older UJS approach. Rails 7.1
+    introduced asynchronous query loading, which allows developers to run multiple database
+    queries in parallel, significantly reducing page load times. The ActiveRecord query
+    interface has been enhanced with new methods like `sole` and `in_order_of`. Docker
+    support has been improved with official Dockerfiles generated for new projects. The
+    community has embraced modern deployment patterns with tools like Kamal for zero-downtime
+    deployments. Performance benchmarks show Rails 7.1 is 15% faster than previous versions
+    for typical CRUD operations. The framework's stability and convention-over-configuration
+    philosophy continue to make it a top choice for startups and enterprises alike.
+</span><span class="no">  TEXT</span>
+<span class="p">)</span>
+
+<span class="nb">puts</span> <span class="s2">"Created </span><span class="si">#{</span><span class="no">Article</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> article(s)"</span>
+</code></pre></div>
+<p>Run seeds:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails db:seed
+</code></pre></div>
+<h3>Step 2: Install Dependencies</h3>
+<div class="highlight"><pre class="highlight shell"><code>bundle add ruby-openai
+bundle add tiktoken_ruby  <span class="c"># For token counting</span>
+</code></pre></div>
+<h3>Step 3: Configure OpenAI API</h3>
+
+<p>Store API key securely:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails credentials:edit
+</code></pre></div>
+<p>Add this content:</p>
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">openai</span><span class="pi">:</span>
+  <span class="na">api_key</span><span class="pi">:</span> <span class="s">sk-your-actual-api-key-here</span>
+</code></pre></div>
+<p>Create initializer <code>config/initializers/openai.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">OpenAI</span><span class="p">.</span><span class="nf">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">access_token</span> <span class="o">=</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">credentials</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="ss">:openai</span><span class="p">,</span> <span class="ss">:api_key</span><span class="p">)</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">request_timeout</span> <span class="o">=</span> <span class="mi">60</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">log_errors</span> <span class="o">=</span> <span class="kp">true</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 4: Create LlmCall Model with Cost Tracking</h3>
+
+<p>Edit <code>app/models/llm_call.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">LlmCall</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="no">PRICING</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"gpt-4o"</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">input: </span><span class="mf">0.0025</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">,</span> <span class="ss">output: </span><span class="mf">0.01</span> <span class="o">/</span> <span class="mi">1000</span> <span class="p">},</span>
+    <span class="s2">"gpt-4o-mini"</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">input: </span><span class="mf">0.00015</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">,</span> <span class="ss">output: </span><span class="mf">0.0006</span> <span class="o">/</span> <span class="mi">1000</span> <span class="p">}</span>
+  <span class="p">}.</span><span class="nf">freeze</span>
+
+  <span class="n">validates</span> <span class="ss">:model</span><span class="p">,</span> <span class="ss">:input_tokens</span><span class="p">,</span> <span class="ss">:output_tokens</span><span class="p">,</span> <span class="ss">:cost_usd</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">track</span><span class="p">(</span><span class="n">model</span><span class="p">:,</span> <span class="n">input_tokens</span><span class="p">:,</span> <span class="n">output_tokens</span><span class="p">:)</span>
+    <span class="n">pricing</span> <span class="o">=</span> <span class="no">PRICING</span><span class="p">[</span><span class="n">model</span><span class="p">]</span> <span class="o">||</span> <span class="p">{</span> <span class="ss">input: </span><span class="mi">0</span><span class="p">,</span> <span class="ss">output: </span><span class="mi">0</span> <span class="p">}</span>
+    <span class="n">cost</span> <span class="o">=</span> <span class="p">(</span><span class="n">input_tokens</span> <span class="o">*</span> <span class="n">pricing</span><span class="p">[</span><span class="ss">:input</span><span class="p">])</span> <span class="o">+</span> <span class="p">(</span><span class="n">output_tokens</span> <span class="o">*</span> <span class="n">pricing</span><span class="p">[</span><span class="ss">:output</span><span class="p">])</span>
+
+    <span class="n">create!</span><span class="p">(</span>
+      <span class="ss">model: </span><span class="n">model</span><span class="p">,</span>
+      <span class="ss">input_tokens: </span><span class="n">input_tokens</span><span class="p">,</span>
+      <span class="ss">output_tokens: </span><span class="n">output_tokens</span><span class="p">,</span>
+      <span class="ss">cost_usd: </span><span class="n">cost</span><span class="p">.</span><span class="nf">round</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+    <span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">total_cost_today</span>
+    <span class="n">where</span><span class="p">(</span><span class="s2">"created_at &gt;= ?"</span><span class="p">,</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">beginning_of_day</span><span class="p">).</span><span class="nf">sum</span><span class="p">(</span><span class="ss">:cost_usd</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">total_cost_this_month</span>
+    <span class="n">where</span><span class="p">(</span><span class="s2">"created_at &gt;= ?"</span><span class="p">,</span> <span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">beginning_of_month</span><span class="p">).</span><span class="nf">sum</span><span class="p">(</span><span class="ss">:cost_usd</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 5: Build ArticleSummarizerService</h3>
+
+<p>Create <code>app/services/article_summarizer_service.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ArticleSummarizerService</span>
+  <span class="no">MAX_RETRIES</span> <span class="o">=</span> <span class="mi">3</span>
+  <span class="no">BASE_DELAY</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">article</span><span class="p">)</span>
+    <span class="vi">@article</span> <span class="o">=</span> <span class="n">article</span>
+    <span class="vi">@client</span> <span class="o">=</span> <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span>
+    <span class="vi">@encoder</span> <span class="o">=</span> <span class="no">Tiktoken</span><span class="p">.</span><span class="nf">encoding_for_model</span><span class="p">(</span><span class="s2">"gpt-4"</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">call</span>
+    <span class="n">input_text</span> <span class="o">=</span> <span class="n">build_prompt</span>
+    <span class="n">input_tokens</span> <span class="o">=</span> <span class="n">count_tokens</span><span class="p">(</span><span class="n">input_text</span><span class="p">)</span>
+
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span><span class="p">(</span><span class="s2">"ArticleSummarizerService: Sending request (</span><span class="si">#{</span><span class="n">input_tokens</span><span class="si">}</span><span class="s2"> input tokens)"</span><span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">call_with_retry</span><span class="p">(</span><span class="n">input_text</span><span class="p">)</span>
+    <span class="n">output_text</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"choices"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">)</span>
+    <span class="n">output_tokens</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"usage"</span><span class="p">,</span> <span class="s2">"completion_tokens"</span><span class="p">)</span>
+
+    <span class="c1"># Track cost</span>
+    <span class="n">llm_call</span> <span class="o">=</span> <span class="no">LlmCall</span><span class="p">.</span><span class="nf">track</span><span class="p">(</span>
+      <span class="ss">model: </span><span class="s2">"gpt-4o"</span><span class="p">,</span>
+      <span class="ss">input_tokens: </span><span class="n">input_tokens</span><span class="p">,</span>
+      <span class="ss">output_tokens: </span><span class="n">output_tokens</span>
+    <span class="p">)</span>
+
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">info</span><span class="p">(</span><span class="s2">"ArticleSummarizerService: Response received (</span><span class="si">#{</span><span class="n">output_tokens</span><span class="si">}</span><span class="s2"> tokens, $</span><span class="si">#{</span><span class="n">llm_call</span><span class="p">.</span><span class="nf">cost_usd</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+
+    <span class="p">{</span>
+      <span class="ss">summary: </span><span class="n">output_text</span><span class="p">,</span>
+      <span class="ss">metadata: </span><span class="p">{</span>
+        <span class="ss">input_tokens: </span><span class="n">input_tokens</span><span class="p">,</span>
+        <span class="ss">output_tokens: </span><span class="n">output_tokens</span><span class="p">,</span>
+        <span class="ss">cost_usd: </span><span class="n">llm_call</span><span class="p">.</span><span class="nf">cost_usd</span><span class="p">,</span>
+        <span class="ss">model: </span><span class="s2">"gpt-4o"</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">build_prompt</span>
+    <span class="o">&lt;&lt;~</span><span class="no">PROMPT</span><span class="sh">
+      Summarize this article in 2-3 sentences. Focus on the main points and key takeaways.
+
+      Title: </span><span class="si">#{</span><span class="vi">@article</span><span class="p">.</span><span class="nf">title</span><span class="si">}</span><span class="sh">
+
+      Body:
+      </span><span class="si">#{</span><span class="vi">@article</span><span class="p">.</span><span class="nf">body</span><span class="si">}</span><span class="sh">
+</span><span class="no">    PROMPT</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">count_tokens</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="vi">@encoder</span><span class="p">.</span><span class="nf">encode</span><span class="p">(</span><span class="n">text</span><span class="p">).</span><span class="nf">length</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">call_with_retry</span><span class="p">(</span><span class="n">input_text</span><span class="p">)</span>
+    <span class="n">attempt</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">begin</span>
+      <span class="n">attempt</span> <span class="o">+=</span> <span class="mi">1</span>
+
+      <span class="vi">@client</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span>
+        <span class="ss">parameters: </span><span class="p">{</span>
+          <span class="ss">model: </span><span class="s2">"gpt-4o"</span><span class="p">,</span>
+          <span class="ss">messages: </span><span class="p">[</span>
+            <span class="p">{</span> <span class="ss">role: </span><span class="s2">"system"</span><span class="p">,</span> <span class="ss">content: </span><span class="s2">"You are a helpful assistant that creates concise summaries."</span> <span class="p">},</span>
+            <span class="p">{</span> <span class="ss">role: </span><span class="s2">"user"</span><span class="p">,</span> <span class="ss">content: </span><span class="n">input_text</span> <span class="p">}</span>
+          <span class="p">],</span>
+          <span class="ss">max_tokens: </span><span class="mi">200</span><span class="p">,</span>
+          <span class="ss">temperature: </span><span class="mf">0.5</span>
+        <span class="p">}</span>
+      <span class="p">)</span>
+    <span class="k">rescue</span> <span class="no">Faraday</span><span class="o">::</span><span class="no">TooManyRequestsError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+      <span class="k">if</span> <span class="n">attempt</span> <span class="o">&lt;=</span> <span class="no">MAX_RETRIES</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="no">BASE_DELAY</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="n">attempt</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="nb">rand</span><span class="p">(</span><span class="mf">0.0</span><span class="o">..</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">warn</span><span class="p">(</span><span class="s2">"ArticleSummarizerService: Rate limited, retrying in </span><span class="si">#{</span><span class="n">delay</span><span class="p">.</span><span class="nf">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2">s (attempt </span><span class="si">#{</span><span class="n">attempt</span><span class="si">}</span><span class="s2">/</span><span class="si">#{</span><span class="no">MAX_RETRIES</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+        <span class="nb">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+        <span class="k">retry</span>
+      <span class="k">else</span>
+        <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span><span class="p">(</span><span class="s2">"ArticleSummarizerService: Rate limit exceeded after </span><span class="si">#{</span><span class="no">MAX_RETRIES</span><span class="si">}</span><span class="s2"> retries"</span><span class="p">)</span>
+        <span class="k">raise</span>
+      <span class="k">end</span>
+    <span class="k">rescue</span> <span class="no">Faraday</span><span class="o">::</span><span class="no">ServerError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+      <span class="k">if</span> <span class="n">attempt</span> <span class="o">&lt;=</span> <span class="no">MAX_RETRIES</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="no">BASE_DELAY</span> <span class="o">*</span> <span class="n">attempt</span>
+        <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">warn</span><span class="p">(</span><span class="s2">"ArticleSummarizerService: Server error, retrying in </span><span class="si">#{</span><span class="n">delay</span><span class="si">}</span><span class="s2">s"</span><span class="p">)</span>
+        <span class="nb">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+        <span class="k">retry</span>
+      <span class="k">else</span>
+        <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span><span class="p">(</span><span class="s2">"ArticleSummarizerService: Server error after </span><span class="si">#{</span><span class="no">MAX_RETRIES</span><span class="si">}</span><span class="s2"> retries"</span><span class="p">)</span>
+        <span class="k">raise</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 6: Create API Controller</h3>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate controller Api::Articles
+</code></pre></div>
+<p>Edit <code>app/controllers/api/articles_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">module</span> <span class="nn">Api</span>
+  <span class="k">class</span> <span class="nc">ArticlesController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+    <span class="k">def</span> <span class="nf">summarize</span>
+      <span class="n">article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+      <span class="n">result</span> <span class="o">=</span> <span class="no">ArticleSummarizerService</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">article</span><span class="p">).</span><span class="nf">call</span>
+
+      <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span>
+        <span class="ss">article: </span><span class="p">{</span>
+          <span class="ss">id: </span><span class="n">article</span><span class="p">.</span><span class="nf">id</span><span class="p">,</span>
+          <span class="ss">title: </span><span class="n">article</span><span class="p">.</span><span class="nf">title</span>
+        <span class="p">},</span>
+        <span class="ss">summary: </span><span class="n">result</span><span class="p">[</span><span class="ss">:summary</span><span class="p">],</span>
+        <span class="ss">metadata: </span><span class="n">result</span><span class="p">[</span><span class="ss">:metadata</span><span class="p">]</span>
+      <span class="p">}</span>
+    <span class="k">rescue</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">RecordNotFound</span>
+      <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">error: </span><span class="s2">"Article not found"</span> <span class="p">},</span> <span class="ss">status: :not_found</span>
+    <span class="k">rescue</span> <span class="no">StandardError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span><span class="p">(</span><span class="s2">"Summarization failed: </span><span class="si">#{</span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+      <span class="n">render</span> <span class="ss">json: </span><span class="p">{</span> <span class="ss">error: </span><span class="s2">"Failed to generate summary"</span> <span class="p">},</span> <span class="ss">status: :internal_server_error</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Add route in <code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">namespace</span> <span class="ss">:api</span> <span class="k">do</span>
+    <span class="n">resources</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[]</span> <span class="k">do</span>
+      <span class="n">member</span> <span class="k">do</span>
+        <span class="n">post</span> <span class="ss">:summarize</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h3>Step 7: Test the Integration</h3>
+
+<p>Start the server:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails server
+</code></pre></div>
+<p>Make a request:</p>
+<div class="highlight"><pre class="highlight shell"><code>curl <span class="nt">-X</span> POST http://localhost:3000/api/articles/1/summarize
+</code></pre></div>
+<p>Expected response:</p>
+<div class="highlight"><pre class="highlight json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"article"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The Future of Ruby on Rails"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"summary"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Ruby on Rails in 2024 has significantly improved with Hotwire becoming the standard for interactive UIs, import maps replacing webpack, and Rails 7.1 introducing asynchronous query loading for faster performance. The framework now offers better Docker support, modern deployment tools like Kamal, and is 15% faster than previous versions. Rails continues to be a top choice for both startups and enterprises due to its stability and convention-over-configuration approach."</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"metadata"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"input_tokens"</span><span class="p">:</span><span class="w"> </span><span class="mi">245</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"output_tokens"</span><span class="p">:</span><span class="w"> </span><span class="mi">89</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"cost_usd"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.001503</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"model"</span><span class="p">:</span><span class="w"> </span><span class="s2">"gpt-4o"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<h3>Step 8: Verify Cost Tracking</h3>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails console
+</code></pre></div>
+<p>In console:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Check latest call</span>
+<span class="nb">puts</span> <span class="no">LlmCall</span><span class="p">.</span><span class="nf">last</span><span class="p">.</span><span class="nf">attributes</span>
+
+<span class="c1"># Check total costs</span>
+<span class="nb">puts</span> <span class="s2">"Today's cost: $</span><span class="si">#{</span><span class="no">LlmCall</span><span class="p">.</span><span class="nf">total_cost_today</span><span class="si">}</span><span class="s2">"</span>
+<span class="nb">puts</span> <span class="s2">"This month: $</span><span class="si">#{</span><span class="no">LlmCall</span><span class="p">.</span><span class="nf">total_cost_this_month</span><span class="si">}</span><span class="s2">"</span>
+
+<span class="c1"># Analyze token usage</span>
+<span class="nb">puts</span> <span class="s2">"Average input tokens: </span><span class="si">#{</span><span class="no">LlmCall</span><span class="p">.</span><span class="nf">average</span><span class="p">(</span><span class="ss">:input_tokens</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+<span class="nb">puts</span> <span class="s2">"Average output tokens: </span><span class="si">#{</span><span class="no">LlmCall</span><span class="p">.</span><span class="nf">average</span><span class="p">(</span><span class="ss">:output_tokens</span><span class="p">).</span><span class="nf">round</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+</code></pre></div>
+<h3>Step 9: Write Integration Test</h3>
+
+<p>Create <code>test/integration/article_summarization_test.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s1">'test_helper'</span>
+
+<span class="k">class</span> <span class="nc">ArticleSummarizationTest</span> <span class="o">&lt;</span> <span class="no">ActionDispatch</span><span class="o">::</span><span class="no">IntegrationTest</span>
+  <span class="nb">test</span> <span class="s2">"summarize article returns summary with metadata"</span> <span class="k">do</span>
+    <span class="n">article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+      <span class="ss">title: </span><span class="s2">"Test Article"</span><span class="p">,</span>
+      <span class="ss">body: </span><span class="s2">"This is a test article body with some content to summarize."</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Mock OpenAI response to avoid real API calls in tests</span>
+    <span class="n">mock_response</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s2">"choices"</span> <span class="o">=&gt;</span> <span class="p">[</span>
+        <span class="p">{</span> <span class="s2">"message"</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="s2">"content"</span> <span class="o">=&gt;</span> <span class="s2">"This is a test summary."</span> <span class="p">}</span> <span class="p">}</span>
+      <span class="p">],</span>
+      <span class="s2">"usage"</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="s2">"prompt_tokens"</span> <span class="o">=&gt;</span> <span class="mi">50</span><span class="p">,</span>
+        <span class="s2">"completion_tokens"</span> <span class="o">=&gt;</span> <span class="mi">10</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">any_instance</span><span class="p">.</span><span class="nf">stubs</span><span class="p">(</span><span class="ss">:chat</span><span class="p">).</span><span class="nf">returns</span><span class="p">(</span><span class="n">mock_response</span><span class="p">)</span>
+
+    <span class="n">post</span> <span class="n">api_article_summarize_path</span><span class="p">(</span><span class="n">article</span><span class="p">)</span>
+
+    <span class="n">assert_response</span> <span class="ss">:success</span>
+
+    <span class="n">json</span> <span class="o">=</span> <span class="no">JSON</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">body</span><span class="p">)</span>
+    <span class="n">assert_equal</span> <span class="s2">"This is a test summary."</span><span class="p">,</span> <span class="n">json</span><span class="p">[</span><span class="s2">"summary"</span><span class="p">]</span>
+    <span class="n">assert_equal</span> <span class="mi">50</span><span class="p">,</span> <span class="n">json</span><span class="p">[</span><span class="s2">"metadata"</span><span class="p">][</span><span class="s2">"input_tokens"</span><span class="p">]</span>
+    <span class="n">assert_equal</span> <span class="mi">10</span><span class="p">,</span> <span class="n">json</span><span class="p">[</span><span class="s2">"metadata"</span><span class="p">][</span><span class="s2">"output_tokens"</span><span class="p">]</span>
+    <span class="n">assert</span> <span class="n">json</span><span class="p">[</span><span class="s2">"metadata"</span><span class="p">][</span><span class="s2">"cost_usd"</span><span class="p">].</span><span class="nf">positive?</span>
+  <span class="k">end</span>
+
+  <span class="nb">test</span> <span class="s2">"returns error when article not found"</span> <span class="k">do</span>
+    <span class="n">post</span> <span class="n">api_article_summarize_path</span><span class="p">(</span><span class="ss">id: </span><span class="mi">9999</span><span class="p">)</span>
+
+    <span class="n">assert_response</span> <span class="ss">:not_found</span>
+    <span class="n">assert_equal</span> <span class="s2">"Article not found"</span><span class="p">,</span> <span class="no">JSON</span><span class="p">.</span><span class="nf">parse</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="nf">body</span><span class="p">)[</span><span class="s2">"error"</span><span class="p">]</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Run tests:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails <span class="nb">test test</span>/integration/article_summarization_test.rb
+</code></pre></div>
+<h2>Stretch (Optional)</h2>
+
+<ol>
+<li><strong>Add caching to avoid repeat API calls:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">call</span>
+  <span class="n">cache_key</span> <span class="o">=</span> <span class="s2">"article_summary:</span><span class="si">#{</span><span class="vi">@article</span><span class="p">.</span><span class="nf">id</span><span class="si">}</span><span class="s2">:</span><span class="si">#{</span><span class="vi">@article</span><span class="p">.</span><span class="nf">updated_at</span><span class="p">.</span><span class="nf">to_i</span><span class="si">}</span><span class="s2">"</span>
+
+  <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="n">cache_key</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">24</span><span class="p">.</span><span class="nf">hours</span><span class="p">)</span> <span class="k">do</span>
+    <span class="n">generate_summary</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<ol>
+<li><strong>Implement streaming for real-time summary generation:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># In controller</span>
+<span class="k">def</span> <span class="nf">summarize_stream</span>
+  <span class="n">response</span><span class="p">.</span><span class="nf">headers</span><span class="p">[</span><span class="s1">'Content-Type'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'text/event-stream'</span>
+
+  <span class="vi">@client</span><span class="p">.</span><span class="nf">chat</span><span class="p">(</span>
+    <span class="ss">parameters: </span><span class="p">{</span>
+      <span class="ss">model: </span><span class="s2">"gpt-4o"</span><span class="p">,</span>
+      <span class="ss">messages: </span><span class="p">[</span><span class="o">...</span><span class="p">],</span>
+      <span class="ss">stream: </span><span class="nb">proc</span> <span class="k">do</span> <span class="o">|</span><span class="n">chunk</span><span class="p">,</span> <span class="n">_bytesize</span><span class="o">|</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s2">"choices"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"delta"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">)</span>
+        <span class="n">response</span><span class="p">.</span><span class="nf">stream</span><span class="p">.</span><span class="nf">write</span><span class="p">(</span><span class="s2">"data: </span><span class="si">#{</span><span class="n">content</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">)</span> <span class="k">if</span> <span class="n">content</span>
+      <span class="k">end</span>
+    <span class="p">}</span>
+  <span class="p">)</span>
+<span class="k">ensure</span>
+  <span class="n">response</span><span class="p">.</span><span class="nf">stream</span><span class="p">.</span><span class="nf">close</span>
+<span class="k">end</span>
+</code></pre></div>
+<ol>
+<li><strong>Add per-user rate limiting:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">RateLimitMiddleware</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
+    <span class="vi">@app</span> <span class="o">=</span> <span class="n">app</span>
+    <span class="vi">@redis</span> <span class="o">=</span> <span class="no">Redis</span><span class="p">.</span><span class="nf">new</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+    <span class="n">user_id</span> <span class="o">=</span> <span class="n">extract_user_id</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">"llm_rate_limit:</span><span class="si">#{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">:</span><span class="si">#{</span><span class="no">Time</span><span class="p">.</span><span class="nf">current</span><span class="p">.</span><span class="nf">hour</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="n">count</span> <span class="o">=</span> <span class="vi">@redis</span><span class="p">.</span><span class="nf">incr</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="vi">@redis</span><span class="p">.</span><span class="nf">expire</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="mi">3600</span><span class="p">)</span> <span class="k">if</span> <span class="n">count</span> <span class="o">==</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">10</span>
+      <span class="k">return</span> <span class="p">[</span><span class="mi">429</span><span class="p">,</span> <span class="p">{},</span> <span class="p">[</span><span class="s2">"Rate limit exceeded"</span><span class="p">]]</span>
+    <span class="k">end</span>
+
+    <span class="vi">@app</span><span class="p">.</span><span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<h2>Time Estimate</h2>
+
+<p>25 minutes</p>
+
+    
+  </div>
+</div>
+
+<!-- Checkpoint Tab -->
+<div id="checkpoint-tab" class="tab-content">
+  <div class="content-section">
+    
+      
+      <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
+        <p><strong>Passing Score:</strong> 7 points</p>
+        <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
+      </div>
+
+      
+        <div class="question"
+             data-question-id="0"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="To estimate cost and ensure input fits within model context limits">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the primary reason to count tokens before making LLM API calls?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  To validate the input text is UTF-8 encoded
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  To estimate cost and ensure input fits within model context limits
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  To improve API response time
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  To encrypt the request payload
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Token counting lets you calculate API costs before making requests and prevents errors from exceeding context windows (e.g., GPT-4's 128K token limit). Each token costs money, and oversized inputs can cost $5+ per request or fail entirely.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="1"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Exponential backoff with jitter (e.g., 1s, 2s, 4s + random)">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the recommended retry strategy for handling 429 (rate limit) errors from LLM APIs?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  Retry immediately without delay
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  Retry once after 5 seconds
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  Exponential backoff with jitter (e.g., 1s, 2s, 4s + random)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Give up immediately and return an error
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Exponential backoff prevents thundering herd problems where many clients retry simultaneously. Jitter (random delay) further distributes retry attempts. This is the industry standard for handling rate limits.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="2"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 3 (2 points)</h4>
+          <p style="margin: 10px 0;">Where should you store LLM API keys in a Rails application, and why?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Store API keys in Rails encrypted credentials (rails credentials:edit) or environment variables, never in version control or client-side code. This prevents unauthorized access and cost overruns from leaked keys.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="3"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Controls randomness/creativity (0 = deterministic, 1 = creative)">
+          <h4>Question 4 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the purpose of the 'temperature' parameter in LLM API calls?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(3, 0)">
+                  Controls how long the API waits before timing out
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 1)">
+                  Sets the maximum number of tokens in the response
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 2)">
+                  Controls randomness/creativity (0 = deterministic, 1 = creative)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(3, 3)">
+                  Determines which GPU processes the request
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Temperature 0-0.3 produces consistent, factual outputs (ideal for structured data). Temperature 0.7-1.0 produces creative, varied responses (ideal for content generation). It's a key prompt engineering parameter.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="4"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">Write code to calculate the cost of a GPT-4o API call with 2,000 input tokens and 150 output tokens. (GPT-4o pricing: $0.0025/1K input, $0.01/1K output)</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">cost = (2000 * 0.0025 / 1000) + (150 * 0.01 / 1000) = 0.005 + 0.0015 = $0.0065 or cost = (2000 / 1000) * 0.0025 + (150 / 1000) * 0.01</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="5"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Keys can be extracted from client code, leading to abuse and unlimited costs">
+          <h4>Question 6 (1 points)</h4>
+          <p style="margin: 10px 0;">Why should you never send LLM API keys to browsers or mobile apps?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(5, 0)">
+                  Browsers don't support HTTPS connections
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 1)">
+                  Keys can be extracted from client code, leading to abuse and unlimited costs
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 2)">
+                  LLM APIs block requests from browsers
+                </div>
+              
+                <div class="choice" onclick="selectChoice(5, 3)">
+                  It violates GDPR regulations
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Client-side code is visible to users who can extract keys and make unlimited API calls, draining your budget. Always proxy requests through your backend with authentication and rate limiting.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Ensures the model returns valid JSON, making parsing reliable">
+          <h4>Question 7 (2 points)</h4>
+          <p style="margin: 10px 0;">What is the benefit of using 'response_format: { type: "json_object" }' in OpenAI API calls?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  Reduces API costs by 50%
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  Ensures the model returns valid JSON, making parsing reliable
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  Enables streaming responses
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  Increases the maximum token limit
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> JSON mode guarantees the response is valid JSON, preventing parsing errors. This is crucial for structured data extraction where you need consistent, machine-readable output.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 8 (2 points)</h4>
+          <p style="margin: 10px 0;">What caching strategy would you use to avoid repeat LLM API calls for identical inputs? Provide a Rails example.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Use Rails.cache.fetch with a hash of the input as the cache key: Rails.cache.fetch("llm:#{Digest::SHA256.hexdigest(text)}", expires_in: 24.hours) { api_call(text) }</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="For long-form content generation to improve perceived latency">
+          <h4>Question 9 (1 points)</h4>
+          <p style="margin: 10px 0;">When should you implement streaming responses for LLM API calls?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(8, 0)">
+                  Always, for all LLM requests
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 1)">
+                  Never, streaming is deprecated
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 2)">
+                  For long-form content generation to improve perceived latency
+                </div>
+              
+                <div class="choice" onclick="selectChoice(8, 3)">
+                  Only when using Anthropic's Claude
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Streaming displays partial responses as they're generated, making 20-30 second responses feel instant. Use it for chatbots, article generation, or any UI where users expect real-time feedback. Skip it for short responses or background jobs.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="An instruction that defines the AI's behavior, role, and output format">
+          <h4>Question 10 (1 points)</h4>
+          <p style="margin: 10px 0;">What is a 'system prompt' in LLM API integration?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(9, 0)">
+                  A prompt that checks system health before API calls
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 1)">
+                  An instruction that defines the AI's behavior, role, and output format
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 2)">
+                  A fallback message when the API is down
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 3)">
+                  A prompt visible only to system administrators
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> System prompts (role: 'system') set behavior, tone, and constraints for the AI. For example: 'You are a Rails code reviewer. Output JSON with issues array.' They persist across the conversation and guide all responses.
+              </div>
+            
+          
+        </div>
+      
+
+      <div style="margin-top: 30px; display: flex; gap: 10px;">
+        <button onclick="checkAnswers()" style="padding: 12px 24px; background: #CC0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600;">
+          Check Answers
+        </button>
+        <button onclick="resetQuiz()" style="padding: 12px 24px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+          Reset
+        </button>
+      </div>
+
+      <div class="score-display" data-passing="7"></div>
+    
+  </div>
+</div>
+
+<!-- References Tab -->
+<div id="references-tab" class="tab-content">
+  <div class="content-section">
+    
+      <p style="margin-bottom: 20px; color: var(--text-secondary);">
+        Curated sources to deepen your understanding. All references point to official documentation,
+        canonical books, or reputable technical content.
+      </p>
+      <ul class="reference-list">
+        
+          <li>
+            <a href="https://platform.openai.com/docs/api-reference" target="_blank">OpenAI API Documentation</a>
+            <div class="why">Official OpenAI API reference covering chat completions, embeddings, streaming, error handling, and rate limits. Essential for GPT-4 integration.</div>
+          </li>
+        
+          <li>
+            <a href="https://docs.anthropic.com/en/api/getting-started" target="_blank">Anthropic Claude API Documentation</a>
+            <div class="why">Complete guide to Claude API with examples for messages, streaming, vision, and prompt caching. Includes best practices for prompt engineering.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/alexrudall/ruby-openai" target="_blank">ruby-openai Gem</a>
+            <div class="why">Official Ruby client for OpenAI API with Rails integration examples, streaming support, and comprehensive error handling patterns.</div>
+          </li>
+        
+          <li>
+            <a href="https://cookbook.openai.com/articles/techniques_to_improve_reliability" target="_blank">OpenAI Cookbook — Best Practices for Prompt Engineering</a>
+            <div class="why">Proven techniques for improving prompt reliability: few-shot examples, chain-of-thought reasoning, structured outputs, and temperature tuning strategies.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/IAPark/tiktoken_ruby" target="_blank">tiktoken_ruby — Token Counting Library</a>
+            <div class="why">Ruby port of OpenAI's tiktoken for accurate token counting and text truncation. Essential for cost estimation before API calls.</div>
+          </li>
+        
+          <li>
+            <a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview" target="_blank">Anthropic Prompt Engineering Guide</a>
+            <div class="why">Comprehensive guide covering prompt structure, XML tags for Claude, output formatting, chain-of-thought prompting, and evaluation strategies.</div>
+          </li>
+        
+          <li>
+            <a href="https://platform.openai.com/docs/guides/rate-limits" target="_blank">OpenAI Rate Limits and Error Handling</a>
+            <div class="why">Official guide to rate limits, usage tiers, retry strategies with exponential backoff, and best practices for production integrations.</div>
+          </li>
+        
+      </ul>
+    
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="topic-navigation">
+  
+    <a href="content_moderation_ai.html" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">Content Moderation & Classification</div>
+      </div>
+    </a>
+  
+
+  
+    <a href="rag_systems.html" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">RAG Systems in Rails</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+
+  <script>
+    // Dark mode toggle with persistence
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      document.body.classList.add('dark-mode');
+      document.querySelector('.light-icon').style.display = 'none';
+      document.querySelector('.dark-icon').style.display = 'inline';
+    }
+
+    darkModeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      document.querySelector('.light-icon').style.display = isDark ? 'none' : 'inline';
+      document.querySelector('.dark-icon').style.display = isDark ? 'inline' : 'none';
+    });
+
+    // Progress tracking with localStorage
+    function markComplete(topicKey) {
+      const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+      if (!completed.includes(topicKey)) {
+        completed.push(topicKey);
+        localStorage.setItem('completed', JSON.stringify(completed));
+        updateProgress();
+      }
+    }
+
+    function isComplete(topicKey) {
+      const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+      return completed.includes(topicKey);
+    }
+
+    function updateProgress() {
+      const totalTopics = 59;
+      const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+      const percentage = (completed.length / totalTopics) * 100;
+
+      document.querySelectorAll('.progress-bar-fill').forEach(fill => {
+        fill.style.width = percentage + '%';
+      });
+
+      document.querySelectorAll('[data-topic-key]').forEach(card => {
+        const key = card.dataset.topicKey;
+        const badge = card.querySelector('.completion-badge');
+        if (badge && isComplete(key)) {
+          badge.classList.add('completed');
+        }
+      });
+    }
+
+    // Initialize progress on page load
+    updateProgress();
+  </script>
+</body>
+</html>

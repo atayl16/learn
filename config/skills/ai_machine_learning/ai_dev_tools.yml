@@ -1,0 +1,15 @@
+topic:
+  key: ai_dev_tools
+  name: AI Development Workflows
+  track_key: ai_machine_learning
+  depth_target: Working
+  prerequisites: []
+  objectives:
+    - Master AI code assistants (GitHub Copilot, Cursor, Claude Code)
+    - Use AI agents for code review and testing automation
+    - Apply prompt-driven development techniques effectively
+    - Leverage AI for debugging, refactoring, and documentation
+  key_terms: ["GitHub Copilot", "AI agents", "prompt-driven development", "code completion", "AI code review", "Claude Code"]
+  est_minutes_read: 10
+  est_minutes_exercise: 20
+  tags: ["ai-tools", "copilot", "agents", "productivity", "development-workflow"]

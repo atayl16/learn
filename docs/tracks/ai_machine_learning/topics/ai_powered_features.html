@@ -1,0 +1,2213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rails Seniority Coach</title>
+  <style>
+    :root {
+      /* Modern color palette */
+      --bg-primary: #f8f9fa;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f1f3f5;
+      --bg-elevated: #ffffff;
+
+      --text-primary: #212529;
+      --text-secondary: #6c757d;
+      --text-muted: #adb5bd;
+
+      --accent-primary: #d63384;
+      --accent-secondary: #0d6efd;
+      --accent-success: #198754;
+      --accent-warning: #ffc107;
+
+      --border: #dee2e6;
+      --border-light: #e9ecef;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.dark-mode {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #1f2937;
+      --bg-elevated: #21262d;
+
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+
+      --accent-primary: #ff6b9d;
+      --accent-secondary: #58a6ff;
+      --accent-success: #3fb950;
+      --accent-warning: #ffcf33;
+
+      --border: #30363d;
+      --border-light: #21262d;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      line-height: 1.7;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      transition: background 0.3s ease, color 0.3s ease;
+      font-size: 16px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header - Simplified & Clean */
+    header {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #c2255c 100%);
+      color: white;
+      padding: 14px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-md);
+    }
+
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    header .brand {
+      flex: 1;
+    }
+
+    header .brand a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: white;
+      transition: var(--transition);
+    }
+
+    header .brand a:hover {
+      opacity: 0.85;
+    }
+
+    header .brand-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    header p {
+      opacity: 0.9;
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* Dark Mode Toggle - Compact */
+    .dark-mode-toggle {
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: 20px;
+      transition: var(--transition);
+      flex-shrink: 0;
+      backdrop-filter: blur(10px);
+    }
+
+    .dark-mode-toggle:hover {
+      background: rgba(255,255,255,0.25);
+      border-color: rgba(255,255,255,0.3);
+      transform: scale(1.05);
+    }
+
+    /* Navigation - Improved */
+    nav {
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+      font-weight: 500;
+      font-size: 15px;
+    }
+
+    nav a:hover {
+      background: var(--bg-tertiary);
+      color: var(--accent-primary);
+      transform: translateY(-1px);
+    }
+
+    /* Cards - Professional Design */
+    .track-grid, .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+      margin: 28px 0;
+    }
+
+    .track-card, .topic-card {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .track-card::before, .topic-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .track-card:hover, .topic-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--accent-primary);
+    }
+
+    .track-card:hover::before, .topic-card:hover::before {
+      opacity: 1;
+    }
+
+    .track-card h3, .topic-card h3 {
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .track-card p, .topic-card p {
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .track-card a, .topic-card a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* Track Icon Badge */
+    .track-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+
+    /* Completion Badge - Enhanced */
+    .completion-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 28px;
+      opacity: 0;
+      transition: var(--transition);
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    .completion-badge.completed {
+      opacity: 1;
+      animation: completionPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes completionPop {
+      0% { transform: scale(0); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* Progress Bar - Modern Design */
+    .progress-bar {
+      height: 6px;
+      background: var(--border-light);
+      border-radius: 100px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px rgba(214, 51, 132, 0.3);
+    }
+
+    /* Badges - Polished Design */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 4px 4px 4px 0;
+      transition: var(--transition);
+    }
+
+    .badge-primary {
+      background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+      color: #4a148c;
+    }
+
+    .badge-success {
+      background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+      color: #1b5e20;
+    }
+
+    .badge-info {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      color: #01579b;
+    }
+
+    .badge:hover {
+      transform: scale(1.05);
+    }
+
+    /* Tabs - Modern Design */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid var(--border-light);
+      margin: 24px 0 20px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .tab {
+      padding: 12px 20px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 15px;
+      transition: var(--transition);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      white-space: nowrap;
+    }
+
+    .tab:hover {
+      color: var(--accent-primary);
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    }
+
+    .tab.active {
+      color: var(--accent-primary);
+      border-bottom-color: var(--accent-primary);
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Content Sections - Enhanced */
+    .content-section {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin: 20px 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .content-section h2 {
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      font-size: 24px;
+      font-weight: 700;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border-light);
+    }
+
+    .content-section h3 {
+      color: var(--text-primary);
+      margin: 24px 0 12px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .content-section p {
+      margin-bottom: 16px;
+      line-height: 1.75;
+      color: var(--text-primary);
+    }
+
+    .content-section ul, .content-section ol {
+      margin: 16px 0 16px 24px;
+      color: var(--text-primary);
+    }
+
+    .content-section li {
+      margin: 8px 0;
+      line-height: 1.7;
+    }
+
+    /* Objectives Section - Gradient Accent */
+    .objectives-section {
+      background: linear-gradient(135deg, rgba(214, 51, 132, 0.05) 0%, rgba(13, 110, 253, 0.05) 100%);
+      border-left: 4px solid var(--accent-primary);
+    }
+
+    body.dark-mode .objectives-section {
+      background: linear-gradient(135deg, rgba(255, 107, 157, 0.08) 0%, rgba(88, 166, 255, 0.08) 100%);
+      border-left-color: var(--accent-primary);
+    }
+
+    /* Code Blocks - Professional Styling */
+    code {
+      background: var(--bg-tertiary);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 14px;
+      color: var(--accent-secondary);
+      border: 1px solid var(--border-light);
+    }
+
+    pre {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      margin: 20px 0;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      border: none;
+      color: #d4d4d4;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* Buttons - Modern Design */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #c2255c 100%);
+      color: white;
+      box-shadow: 0 4px 14px rgba(214, 51, 132, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(214, 51, 132, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-elevated);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+
+    /* Quiz - Enhanced Design */
+    .quiz-question {
+      background: var(--bg-elevated);
+      border: 2px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin: 20px 0;
+      transition: var(--transition);
+    }
+
+    .quiz-question:hover {
+      border-color: var(--accent-primary);
+      box-shadow: var(--shadow-md);
+    }
+
+    .quiz-question h4 {
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .quiz-option {
+      display: block;
+      padding: 14px 18px;
+      margin: 8px 0;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      background: var(--bg-tertiary);
+      border: 2px solid transparent;
+    }
+
+    .quiz-option:hover {
+      background: var(--bg-elevated);
+      border-color: var(--accent-primary);
+      transform: translateX(4px);
+    }
+
+    .quiz-option.correct {
+      background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(25, 135, 84, 0.05) 100%);
+      border-color: var(--accent-success);
+    }
+
+    .quiz-option.incorrect {
+      background: rgba(220, 53, 69, 0.1);
+      border-color: #dc3545;
+    }
+
+    /* Score Display - Celebration */
+    .score-display {
+      background: linear-gradient(135deg, var(--accent-success) 0%, #059669 100%);
+      color: white;
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      display: none;
+      animation: slideUp 0.4s ease;
+    }
+
+    .score-display.show { display: block; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Topic Navigation - Enhanced */
+    .topic-navigation {
+      display: flex;
+      justify-content: space-between;
+      margin: 32px 0;
+      gap: 16px;
+    }
+
+    .nav-button {
+      flex: 1;
+      max-width: 300px;
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      background: var(--bg-elevated);
+      border: 2px solid var(--border-light);
+      color: var(--text-primary);
+      text-decoration: none;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+    }
+
+    .nav-button:hover {
+      border-color: var(--accent-primary);
+      background: var(--accent-primary);
+      color: white;
+      transform: translateX(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .nav-button.next:hover {
+      transform: translateX(4px);
+    }
+
+    /* Responsive Design - Mobile Optimized */
+    @media (max-width: 768px) {
+      .container { padding: 0 16px; }
+
+      header {
+        padding: 10px 0;
+      }
+
+      header .container {
+        gap: 12px;
+      }
+
+      header .brand-icon {
+        font-size: 24px;
+      }
+
+      header h1 {
+        font-size: 16px;
+      }
+
+      header p {
+        font-size: 11px;
+      }
+
+      .dark-mode-toggle {
+        padding: 6px 10px;
+        font-size: 18px;
+      }
+
+      nav {
+        margin: 12px 0;
+        gap: 8px;
+      }
+
+      nav a {
+        font-size: 14px;
+        padding: 8px 12px;
+      }
+
+      .track-grid, .topic-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .tabs {
+        gap: 4px;
+      }
+
+      .tab {
+        padding: 10px 14px;
+        font-size: 14px;
+      }
+
+      .content-section {
+        padding: 20px;
+        margin: 16px 0;
+      }
+
+      .content-section h2 {
+        font-size: 20px;
+      }
+
+      .content-section h3 {
+        font-size: 18px;
+      }
+
+      .topic-navigation {
+        flex-direction: column;
+      }
+
+      .nav-button {
+        max-width: 100%;
+      }
+    }
+
+    /* Smooth Scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Focus Styles for Accessibility */
+    *:focus-visible {
+      outline: 3px solid var(--accent-primary);
+      outline-offset: 2px;
+    }
+
+    /* Print Styles */
+    @media print {
+      header, nav, .dark-mode-toggle {
+        display: none;
+      }
+
+      body {
+        background: white;
+        color: black;
+      }
+
+      .content-section {
+        box-shadow: none;
+        border: 1px solid #ddd;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="brand">
+        <a href="../../../index.html">
+          <span class="brand-icon">💎</span>
+          <div>
+            <h1>Rails Seniority Coach</h1>
+            <p>Mid → Senior: 59 Topics Across 12 Tracks</p>
+          </div>
+        </a>
+      </div>
+      <button class="dark-mode-toggle" id="dark-mode-toggle" aria-label="Toggle dark mode">
+        <span class="light-icon">☀️</span>
+        <span class="dark-icon" style="display: none;">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <nav style="margin-bottom: 20px;">
+  <a href="../index.html">← AI & Machine Learning</a>
+</nav>
+
+<!-- Previous/Next Navigation -->
+<div class="topic-navigation">
+  
+    <a href="ai_dev_tools.html" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">AI Development Workflows</div>
+      </div>
+    </a>
+  
+
+  
+    <a href="content_moderation_ai.html" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">Content Moderation & Classification</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+<div style="margin-bottom: 30px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+    <div style="flex: 1;">
+      <h1>AI-Powered Search & Recommendations</h1>
+      <div style="margin: 15px 0;">
+        
+        
+          <span class="badge badge-working">Working</span>
+        
+        &nbsp;
+        <span style="color: var(--text-secondary);">
+          📖 12 min read &nbsp; | &nbsp; 💻 30 min exercise
+        </span>
+      </div>
+    </div>
+    <button
+      id="mark-complete-btn"
+      class="complete-button"
+      data-track-key="ai_machine_learning"
+      data-topic-key="ai_powered_features"
+      onclick="markTopicComplete('ai_machine_learning', 'ai_powered_features')">
+      Mark Complete
+    </button>
+  </div>
+
+  
+    <div class="content-section objectives-section">
+      <h3>Learning Objectives</h3>
+      <ul style="margin-left: 20px;">
+        
+          <li>Implement semantic search with embeddings and pgvector</li>
+        
+          <li>Build recommendation systems using similarity search</li>
+        
+          <li>Design hybrid search combining semantic and keyword matching</li>
+        
+          <li>Optimize vector queries for production performance</li>
+        
+      </ul>
+    </div>
+  
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" data-tab="overview-tab">📖 Overview</button>
+  <button class="tab" data-tab="exercise-tab">💻 Exercise</button>
+  <button class="tab" data-tab="checkpoint-tab">✅ Checkpoint</button>
+  <button class="tab" data-tab="references-tab">🔗 References</button>
+</div>
+
+<!-- Overview Tab -->
+<div id="overview-tab" class="tab-content active">
+  <div class="content-section">
+    
+      <h1>AI-Powered Search &amp; Recommendations</h1>
+
+<h2>What It Is</h2>
+
+<p>AI-powered search uses vector embeddings to find semantically similar content, not just exact keyword matches. Instead of traditional full-text search (PostgreSQL&#39;s <code>tsvector</code>, Elasticsearch), embeddings represent text as high-dimensional vectors (1536 floats for OpenAI&#39;s ada-002) where similar meanings cluster together. pgvector extends PostgreSQL with vector similarity operations, enabling semantic search, recommendation systems, and hybrid search (semantic + keyword) directly in your Rails app without external services.</p>
+
+<h2>Why It Matters</h2>
+
+<p>Keyword search fails when users phrase queries differently than your content (&quot;cheap flight&quot; vs &quot;affordable airfare&quot;). Embeddings capture meaning, so &quot;Rails performance optimization&quot; matches &quot;speeding up Ruby on Rails apps&quot; even without shared words. This improves search relevance, enables &quot;find similar&quot; features, and powers personalized recommendations. Using pgvector keeps vector data in PostgreSQL, avoiding the complexity of syncing to separate vector databases like Pinecone or Weaviate.</p>
+
+<h2>When to Use</h2>
+
+<ul>
+<li><strong>Semantic search:</strong> Find documents by meaning, not just keywords (e.g., search documentation, customer support tickets)</li>
+<li><strong>Similarity features:</strong> &quot;More like this&quot; recommendations (similar products, articles, job postings)</li>
+<li><strong>Hybrid search:</strong> Combine semantic similarity with keyword filters (e.g., semantic search + price range)</li>
+<li><strong>Content moderation:</strong> Detect similar spam/abuse patterns by comparing embeddings</li>
+<li><strong>Personalization:</strong> Recommend content based on user behavior embeddings</li>
+<li><strong>Duplicate detection:</strong> Find near-duplicate records despite phrasing differences</li>
+</ul>
+
+<h2>Three Common Pitfalls</h2>
+
+<ol>
+<li><strong>Re-generating embeddings on every query:</strong> Embeddings are expensive (0.0001 per 1K tokens for OpenAI). Generate once on content create/update, store in <code>vector</code> column, and reuse for queries. Only generate query embeddings at search time.</li>
+<li><strong>No hybrid search fallback:</strong> Pure semantic search can miss exact matches (product SKUs, acronyms). Always combine with keyword search using <code>OR</code> clauses or weighted ranking.</li>
+<li><strong>Missing indexes:</strong> Without an IVFFlat or HNSW index, pgvector scans every row. On 100K+ vectors, queries take seconds. Add indexes and tune <code>lists</code>/<code>m</code> parameters for production datasets.</li>
+</ol>
+
+<hr>
+
+<h2>Vector Embeddings Fundamentals</h2>
+
+<p>Embeddings convert text into arrays of floats that capture semantic meaning:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Input text</span>
+<span class="s2">"Rails performance optimization"</span>
+
+<span class="c1"># Embedding (simplified; real vectors have 1536 dimensions)</span>
+<span class="p">[</span><span class="mf">0.023</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.891</span><span class="p">,</span> <span class="mf">0.445</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="mf">0.129</span><span class="p">]</span>
+
+</code></pre></div>
+<p><strong>Similar texts have similar vectors:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="s2">"Rails performance optimization"</span>  <span class="err">→</span> <span class="p">[</span><span class="mf">0.02</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.89</span><span class="p">,</span> <span class="mf">0.44</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+<span class="s2">"Speed up Ruby on Rails apps"</span>     <span class="err">→</span> <span class="p">[</span><span class="mf">0.03</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.87</span><span class="p">,</span> <span class="mf">0.47</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>  <span class="c1"># Close in vector space</span>
+
+<span class="s2">"Cat photos"</span>                       <span class="err">→</span> <span class="p">[</span><span class="mf">0.76</span><span class="p">,</span> <span class="mf">0.12</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.34</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="c1"># Far away</span>
+
+</code></pre></div>
+<p><strong>Distance metrics</strong> (pgvector supports all three):</p>
+
+<table><thead>
+<tr>
+<th>Metric</th>
+<th>Formula</th>
+<th>Use Case</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Cosine Distance (<code>&lt;=&gt;</code>)</td>
+<td>1 - (A·B)/(‖A‖‖B‖)</td>
+<td>Default for OpenAI embeddings; measures angle</td>
+</tr>
+<tr>
+<td>L2 Distance (<code>&lt;-&gt;</code>)</td>
+<td>√Σ(A-B)²</td>
+<td>Euclidean distance; magnitude matters</td>
+</tr>
+<tr>
+<td>Inner Product (<code>&lt;#&gt;</code>)</td>
+<td>-A·B</td>
+<td>When vectors are normalized</td>
+</tr>
+</tbody></table>
+
+<p>For OpenAI embeddings, use <strong>cosine distance</strong> (<code>&lt;=&gt;</code>).</p>
+
+<hr>
+
+<h2>Setting Up pgvector</h2>
+
+<h3>Installation</h3>
+
+<p>Add to <code>Gemfile</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">gem</span> <span class="s1">'neighbor'</span>  <span class="c1"># Ruby interface for pgvector</span>
+
+</code></pre></div>
+<p>Enable pgvector extension:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate migration EnablePgvectorExtension
+<span class="c"># Edit migration file</span>
+
+</code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">EnablePgvectorExtension</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.1</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">enable_extension</span> <span class="s1">'vector'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div><div class="highlight"><pre class="highlight shell"><code>bin/rails db:migrate
+
+</code></pre></div>
+<h3>Adding Vector Columns</h3>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate migration AddEmbeddingToArticles
+
+</code></pre></div><div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">AddEmbeddingToArticles</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.1</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">add_column</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">:embedding</span><span class="p">,</span> <span class="ss">:vector</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">1536</span>  <span class="c1"># OpenAI ada-002 dimension</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Model setup:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_neighbors</span> <span class="ss">:embedding</span><span class="p">,</span> <span class="ss">dimensions: </span><span class="mi">1536</span><span class="p">,</span> <span class="ss">distance: </span><span class="s1">'cosine'</span>
+
+  <span class="n">after_save</span> <span class="ss">:generate_embedding</span><span class="p">,</span> <span class="ss">if: :content_changed?</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">generate_embedding</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">embeddings</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span>
+        <span class="ss">model: </span><span class="s1">'text-embedding-ada-002'</span><span class="p">,</span>
+        <span class="ss">input: </span><span class="p">[</span><span class="n">title</span><span class="p">,</span> <span class="n">body</span><span class="p">].</span><span class="nf">join</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+      <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">update_column</span><span class="p">(</span><span class="ss">:embedding</span><span class="p">,</span> <span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s1">'data'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'embedding'</span><span class="p">))</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Semantic Search Implementation</h2>
+
+<h3>Basic Similarity Search</h3>
+
+<p>Find articles similar to a query:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ArticlesController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">search</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="ss">:q</span><span class="p">]</span>
+    <span class="k">return</span> <span class="k">if</span> <span class="n">query</span><span class="p">.</span><span class="nf">blank?</span>
+
+    <span class="c1"># Generate query embedding</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">embeddings</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span> <span class="ss">model: </span><span class="s1">'text-embedding-ada-002'</span><span class="p">,</span> <span class="ss">input: </span><span class="n">query</span> <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">query_embedding</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s1">'data'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'embedding'</span><span class="p">)</span>
+
+    <span class="c1"># Find nearest neighbors</span>
+    <span class="vi">@articles</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">nearest_neighbors</span><span class="p">(</span>
+      <span class="ss">:embedding</span><span class="p">,</span> <span class="n">query_embedding</span><span class="p">,</span>
+      <span class="ss">distance: </span><span class="s1">'cosine'</span>
+    <span class="p">).</span><span class="nf">limit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Using Raw SQL</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Find articles with cosine distance &lt; 0.5</span>
+<span class="n">query_embedding</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.123</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.456</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="c1"># 1536 dimensions</span>
+
+<span class="no">Article</span><span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="s2">"*, embedding &lt;=&gt; '[</span><span class="si">#{</span><span class="n">query_embedding</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">','</span><span class="p">)</span><span class="si">}</span><span class="s2">]' AS distance"</span><span class="p">)</span>
+       <span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"embedding &lt;=&gt; '[</span><span class="si">#{</span><span class="n">query_embedding</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">','</span><span class="p">)</span><span class="si">}</span><span class="s2">]' &lt; ?"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+       <span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s2">"distance"</span><span class="p">)</span>
+       <span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Hybrid Search: Semantic + Keyword</h2>
+
+<p>Combine semantic similarity with keyword matching:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">hybrid_search</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">10</span><span class="p">)</span>
+    <span class="c1"># Generate embedding for semantic search</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">embeddings</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span> <span class="ss">model: </span><span class="s1">'text-embedding-ada-002'</span><span class="p">,</span> <span class="ss">input: </span><span class="n">query</span> <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">embedding</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s1">'data'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'embedding'</span><span class="p">)</span>
+
+    <span class="c1"># Combine semantic and keyword search with weighted ranking</span>
+    <span class="no">Article</span><span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="o">&lt;&lt;~</span><span class="no">SQL</span><span class="p">)</span><span class="sh">
+      *,
+      (
+        0.7 * (1 - (embedding &lt;=&gt; '[</span><span class="si">#{</span><span class="n">embedding</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">','</span><span class="p">)</span><span class="si">}</span><span class="sh">]')) +
+        0.3 * ts_rank(to_tsvector('english', title || ' ' || body), plainto_tsquery('</span><span class="si">#{</span><span class="n">query</span><span class="si">}</span><span class="sh">'))
+      ) AS hybrid_score
+</span><span class="no">    SQL</span>
+      <span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="s2">"embedding &lt;=&gt; '[</span><span class="si">#{</span><span class="n">embedding</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">','</span><span class="p">)</span><span class="si">}</span><span class="s2">]' &lt; 0.8 OR to_tsvector('english', title || ' ' || body) @@ plainto_tsquery(?)"</span><span class="p">,</span> <span class="n">query</span><span class="p">)</span>
+      <span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s2">"hybrid_score DESC"</span><span class="p">)</span>
+      <span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Weighting strategies:</strong><br>
+- 70% semantic, 30% keyword: Good default for natural language queries<br>
+- 50/50: Balanced for product search with SKUs/part numbers<br>
+- 90% semantic, 10% keyword: Exploratory &quot;find similar&quot; features</p>
+
+<hr>
+
+<h2>Recommendation Systems</h2>
+
+<h3>Content-Based Recommendations</h3>
+
+<p>Recommend articles similar to what a user read:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="k">def</span> <span class="nf">similar_articles</span><span class="p">(</span><span class="ss">limit: </span><span class="mi">5</span><span class="p">)</span>
+    <span class="no">Article</span><span class="p">.</span><span class="nf">nearest_neighbors</span><span class="p">(</span><span class="ss">:embedding</span><span class="p">,</span> <span class="n">embedding</span><span class="p">,</span> <span class="ss">distance: </span><span class="s1">'cosine'</span><span class="p">)</span>
+           <span class="p">.</span><span class="nf">where</span><span class="p">.</span><span class="nf">not</span><span class="p">(</span><span class="ss">id: </span><span class="nb">id</span><span class="p">)</span>
+           <span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Usage</span>
+<span class="vi">@article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+<span class="vi">@recommended</span> <span class="o">=</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">similar_articles</span>
+
+</code></pre></div>
+<h3>User-Based Recommendations</h3>
+
+<p>Aggregate user interaction embeddings:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_many</span> <span class="ss">:article_views</span>
+
+  <span class="k">def</span> <span class="nf">recommended_articles</span><span class="p">(</span><span class="ss">limit: </span><span class="mi">10</span><span class="p">)</span>
+    <span class="c1"># Average embeddings of viewed articles</span>
+    <span class="n">viewed_embeddings</span> <span class="o">=</span> <span class="n">article_views</span><span class="p">.</span><span class="nf">joins</span><span class="p">(</span><span class="ss">:article</span><span class="p">).</span><span class="nf">pluck</span><span class="p">(</span><span class="s1">'articles.embedding'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="no">Article</span><span class="p">.</span><span class="nf">none</span> <span class="k">if</span> <span class="n">viewed_embeddings</span><span class="p">.</span><span class="nf">empty?</span>
+
+    <span class="n">avg_embedding</span> <span class="o">=</span> <span class="n">viewed_embeddings</span><span class="p">.</span><span class="nf">transpose</span><span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">col</span><span class="o">|</span> <span class="n">col</span><span class="p">.</span><span class="nf">sum</span> <span class="o">/</span> <span class="n">viewed_embeddings</span><span class="p">.</span><span class="nf">size</span> <span class="p">}</span>
+
+    <span class="c1"># Find articles similar to user's interests</span>
+    <span class="no">Article</span><span class="p">.</span><span class="nf">nearest_neighbors</span><span class="p">(</span><span class="ss">:embedding</span><span class="p">,</span> <span class="n">avg_embedding</span><span class="p">,</span> <span class="ss">distance: </span><span class="s1">'cosine'</span><span class="p">)</span>
+           <span class="p">.</span><span class="nf">where</span><span class="p">.</span><span class="nf">not</span><span class="p">(</span><span class="ss">id: </span><span class="n">article_views</span><span class="p">.</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:article_id</span><span class="p">))</span>  <span class="c1"># Exclude already viewed</span>
+           <span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Indexing for Performance</h2>
+
+<p>Without indexes, pgvector performs exhaustive search (slow on large datasets).</p>
+
+<h3>IVFFlat Index (Fast, Less Accurate)</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">AddIvfIndexToArticles</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.1</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="c1"># Tune lists = rows / 1000 (100 lists for 100K rows)</span>
+    <span class="n">add_index</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">:embedding</span><span class="p">,</span>
+              <span class="ss">using: :ivfflat</span><span class="p">,</span>
+              <span class="ss">opclass: :vector_cosine_ops</span><span class="p">,</span>
+              <span class="ss">options: </span><span class="s1">'WITH (lists = 100)'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><strong>Trade-off:</strong> Faster queries, but may miss some nearest neighbors. Increase <code>lists</code> for accuracy, decrease for speed.</p>
+
+<h3>HNSW Index (More Accurate, Requires pgvector 0.5+)</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">add_index</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">:embedding</span><span class="p">,</span>
+          <span class="ss">using: :hnsw</span><span class="p">,</span>
+          <span class="ss">opclass: :vector_cosine_ops</span><span class="p">,</span>
+          <span class="ss">options: </span><span class="s1">'WITH (m = 16, ef_construction = 64)'</span>
+
+</code></pre></div>
+<p><strong>Parameters:</strong><br>
+- <code>m</code>: Max connections per layer (higher = more accurate, slower writes)<br>
+- <code>ef_construction</code>: Build-time search depth (higher = better index quality)</p>
+
+<p><strong>Query-time tuning:</strong></p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Increase recall at query time</span>
+<span class="no">Article</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="s2">"SET hnsw.ef_search = 100"</span><span class="p">)</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Measuring Similarity Quality</h2>
+
+<h3>Embedding Quality Check</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Check embedding distribution</span>
+<span class="no">Article</span><span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="s2">"AVG(array_length(embedding, 1)) as avg_dimensions"</span><span class="p">).</span><span class="nf">first</span>
+<span class="c1"># Should return 1536 for OpenAI ada-002</span>
+
+<span class="c1"># Check for null embeddings</span>
+<span class="no">Article</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">embedding: </span><span class="kp">nil</span><span class="p">).</span><span class="nf">count</span>
+
+</code></pre></div>
+<h3>Distance Distribution Analysis</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Find distance range for tuning thresholds</span>
+<span class="n">article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">first</span>
+<span class="no">Article</span><span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="s2">"embedding &lt;=&gt; '[</span><span class="si">#{</span><span class="n">article</span><span class="p">.</span><span class="nf">embedding</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">','</span><span class="p">)</span><span class="si">}</span><span class="s2">]' AS distance"</span><span class="p">)</span>
+       <span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s2">"distance"</span><span class="p">)</span>
+       <span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+       <span class="p">.</span><span class="nf">pluck</span><span class="p">(</span><span class="ss">:distance</span><span class="p">)</span>
+<span class="c1"># Distances typically range 0.0-1.0 for cosine</span>
+
+</code></pre></div>
+<h3>A/B Test Relevance</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Compare semantic vs keyword search CTR</span>
+<span class="k">class</span> <span class="nc">SearchLog</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">scope</span> <span class="ss">:semantic_searches</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="ss">search_type: </span><span class="s1">'semantic'</span><span class="p">)</span> <span class="p">}</span>
+  <span class="n">scope</span> <span class="ss">:keyword_searches</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="ss">search_type: </span><span class="s1">'keyword'</span><span class="p">)</span> <span class="p">}</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">click_through_rate</span>
+    <span class="n">where</span><span class="p">(</span><span class="ss">clicked: </span><span class="kp">true</span><span class="p">).</span><span class="nf">count</span><span class="p">.</span><span class="nf">to_f</span> <span class="o">/</span> <span class="n">count</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="no">SearchLog</span><span class="p">.</span><span class="nf">semantic_searches</span><span class="p">.</span><span class="nf">click_through_rate</span>
+<span class="c1"># vs</span>
+<span class="no">SearchLog</span><span class="p">.</span><span class="nf">keyword_searches</span><span class="p">.</span><span class="nf">click_through_rate</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Caching Strategies</h2>
+
+<h3>Cache Query Embeddings</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ArticlesController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">search</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="ss">:q</span><span class="p">]</span>
+    <span class="n">cache_key</span> <span class="o">=</span> <span class="s2">"query_embedding:</span><span class="si">#{</span><span class="no">Digest</span><span class="o">::</span><span class="no">SHA256</span><span class="p">.</span><span class="nf">hexdigest</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="n">query_embedding</span> <span class="o">=</span> <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="n">cache_key</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">1</span><span class="p">.</span><span class="nf">week</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">response</span> <span class="o">=</span> <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">embeddings</span><span class="p">(</span>
+        <span class="ss">parameters: </span><span class="p">{</span> <span class="ss">model: </span><span class="s1">'text-embedding-ada-002'</span><span class="p">,</span> <span class="ss">input: </span><span class="n">query</span> <span class="p">}</span>
+      <span class="p">)</span>
+      <span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s1">'data'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'embedding'</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="vi">@articles</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">nearest_neighbors</span><span class="p">(</span><span class="ss">:embedding</span><span class="p">,</span> <span class="n">query_embedding</span><span class="p">).</span><span class="nf">limit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Async Embedding Generation</h3>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">after_commit</span> <span class="ss">:regenerate_embedding_async</span><span class="p">,</span> <span class="ss">if: :content_changed?</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">regenerate_embedding_async</span>
+    <span class="no">GenerateEmbeddingJob</span><span class="p">.</span><span class="nf">perform_later</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">GenerateEmbeddingJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">article</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">embeddings</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span>
+        <span class="ss">model: </span><span class="s1">'text-embedding-ada-002'</span><span class="p">,</span>
+        <span class="ss">input: </span><span class="p">[</span><span class="n">article</span><span class="p">.</span><span class="nf">title</span><span class="p">,</span> <span class="n">article</span><span class="p">.</span><span class="nf">body</span><span class="p">].</span><span class="nf">join</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+      <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">article</span><span class="p">.</span><span class="nf">update_column</span><span class="p">(</span><span class="ss">:embedding</span><span class="p">,</span> <span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s1">'data'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'embedding'</span><span class="p">))</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<hr>
+
+<h2>Trade-offs Box</h2>
+
+<ul>
+<li><strong>Advantage:</strong> Semantic search understands meaning, improving relevance 2-5x over keyword search for natural language queries. pgvector keeps embeddings in PostgreSQL, avoiding external vector DB sync complexity.</li>
+<li><strong>Cost:</strong> Embedding generation costs money (0.0001/1K tokens OpenAI) and adds latency (50-200ms per request). Indexes consume disk space (1536 floats × 4 bytes × row count). HNSW indexes slow down writes.</li>
+<li><strong>When to skip:</strong> When exact keyword matching suffices (product SKUs, codes), datasets under 1,000 rows (full table scan is fast enough), or when embedding API costs exceed search value.</li>
+</ul>
+
+<hr>
+
+<h2>Debugging Checklist</h2>
+
+<p>When implementing semantic search:</p>
+
+<ol>
+<li>Verify pgvector extension: <code>SELECT * FROM pg_extension WHERE extname = &#39;vector&#39;</code></li>
+<li>Check embedding dimensions: <code>SELECT array_length(embedding, 1) FROM articles LIMIT 1</code> should return 1536</li>
+<li>Test distance calculation: Query with known similar content and verify distance &lt; 0.5</li>
+<li>Validate index usage: <code>EXPLAIN ANALYZE</code> should show &quot;Index Scan using articles_embedding_idx&quot;</li>
+<li>Monitor embedding generation: Log API response times and error rates</li>
+<li>Compare semantic vs keyword: A/B test CTR or relevance scores</li>
+<li>Audit null embeddings: <code>Article.where(embedding: nil).count</code> should be zero in production</li>
+<li>Check index parameters: Increase <code>lists</code> (IVFFlat) or <code>ef_search</code> (HNSW) if recall is low</li>
+<li>Profile query performance: Semantic queries should complete in &lt;100ms with indexes</li>
+<li>Validate hybrid search weights: Adjust semantic vs keyword ratio based on user feedback</li>
+</ol>
+
+<hr>
+
+<h2>One-Minute Recap</h2>
+
+<ul>
+<li>Vector embeddings represent text as high-dimensional arrays capturing semantic meaning</li>
+<li>pgvector adds vector similarity search to PostgreSQL without external databases</li>
+<li>Use cosine distance (<code>&lt;=&gt;</code>) for OpenAI embeddings; L2 for custom models</li>
+<li>Generate embeddings once on create/update; cache query embeddings</li>
+<li>Hybrid search combines semantic similarity with keyword matching for best results</li>
+<li>Add IVFFlat or HNSW indexes for 10-100x faster queries on large datasets</li>
+<li>Recommendations: find similar content or aggregate user interest embeddings</li>
+<li>Cost: 0.0001 per 1K tokens; generate async to avoid blocking requests</li>
+</ul>
+
+    
+  </div>
+</div>
+
+<!-- Exercise Tab -->
+<div id="exercise-tab" class="tab-content">
+  <div class="content-section">
+    
+      <h1>Exercise: Build Semantic Search with pgvector</h1>
+
+<h2>Objective</h2>
+
+<p>Implement semantic search for a blog platform using OpenAI embeddings and pgvector, then compare semantic vs keyword search quality.</p>
+
+<h2>Task</h2>
+
+<p>Build a Rails app that:</p>
+
+<ol>
+<li>Stores article embeddings in PostgreSQL using pgvector</li>
+<li>Generates embeddings automatically when articles are created/updated</li>
+<li>Implements semantic search that finds articles by meaning, not just keywords</li>
+<li>Creates a hybrid search combining semantic similarity + keyword matching</li>
+<li>Adds a &quot;similar articles&quot; recommendation feature</li>
+<li>Benchmarks query performance with and without indexes</li>
+</ol>
+
+<h2>Acceptance Criteria</h2>
+
+<ul>
+<li>[ ] PostgreSQL has pgvector extension enabled</li>
+<li>[ ] Articles table has <code>embedding</code> vector column (1536 dimensions)</li>
+<li>[ ] Embeddings generate automatically on article save using OpenAI API</li>
+<li>[ ] Semantic search returns relevant results for queries like &quot;Rails performance tips&quot;</li>
+<li>[ ] Hybrid search combines semantic and keyword results with weighted scoring</li>
+<li>[ ] &quot;Similar articles&quot; feature shows content-based recommendations</li>
+<li>[ ] IVFFlat index improves query performance on 100+ articles</li>
+<li>[ ] Comparison shows semantic search finding relevant content that keyword search misses</li>
+</ul>
+
+<h2>Verification Steps</h2>
+
+<p>Test semantic search vs keyword search:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Query: "Rails performance tips"</span>
+<span class="c1"># Semantic search should find articles containing:</span>
+<span class="c1"># - "Speed up Ruby on Rails applications"</span>
+<span class="c1"># - "Optimizing ActiveRecord queries"</span>
+<span class="c1"># - "Caching strategies for faster response times"</span>
+
+<span class="c1"># Even if they don't contain exact words "Rails performance tips"</span>
+
+<span class="c1"># Keyword search misses these but finds:</span>
+<span class="c1"># - "10 Tips for Rails Performance"  # Exact keyword match only</span>
+
+</code></pre></div>
+<p>Verify index improves performance:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Without index: 200-500ms on 1000 articles</span>
+<span class="c1"># With IVFFlat index: 10-50ms on 1000 articles</span>
+
+</code></pre></div>
+<h2>Setup Code</h2>
+
+<h3>Step 1: Create Rails App with PostgreSQL</h3>
+<div class="highlight"><pre class="highlight shell"><code>rails new semantic_search_demo <span class="nt">--database</span><span class="o">=</span>postgresql
+<span class="nb">cd </span>semantic_search_demo
+
+</code></pre></div>
+<p><strong>Enable pgvector:</strong></p>
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Install pgvector extension on PostgreSQL</span>
+<span class="c"># macOS: brew install pgvector</span>
+<span class="c"># Linux: apt-get install postgresql-14-pgvector</span>
+<span class="c"># Or use Docker: postgres:16 with pgvector</span>
+
+</code></pre></div>
+<p>Add gems to <code>Gemfile</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">gem</span> <span class="s1">'ruby-openai'</span>
+<span class="n">gem</span> <span class="s1">'neighbor'</span>
+<span class="n">gem</span> <span class="s1">'dotenv-rails'</span>
+
+</code></pre></div><div class="highlight"><pre class="highlight shell"><code>bundle <span class="nb">install</span>
+
+</code></pre></div>
+<p>Create <code>.env</code>:</p>
+<div class="highlight"><pre class="highlight plaintext"><code>OPENAI_API_KEY=sk-your-key-here
+
+</code></pre></div>
+<h3>Step 2: Enable pgvector Extension</h3>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate migration EnablePgvector
+
+</code></pre></div>
+<p>Edit <code>db/migrate/XXXXXX_enable_pgvector.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">EnablePgvector</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.1</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">enable_extension</span> <span class="s1">'vector'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div><div class="highlight"><pre class="highlight shell"><code>bin/rails db:create db:migrate
+
+</code></pre></div>
+<h3>Step 3: Create Articles Model</h3>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate model Article title:string body:text published_at:datetime
+
+</code></pre></div>
+<p>Edit the migration to add vector column:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">CreateArticles</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.1</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="n">create_table</span> <span class="ss">:articles</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">string</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">text</span> <span class="ss">:body</span><span class="p">,</span> <span class="ss">null: </span><span class="kp">false</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">datetime</span> <span class="ss">:published_at</span>
+      <span class="n">t</span><span class="p">.</span><span class="nf">vector</span> <span class="ss">:embedding</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">1536</span>  <span class="c1"># OpenAI ada-002 dimensions</span>
+
+      <span class="n">t</span><span class="p">.</span><span class="nf">timestamps</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div><div class="highlight"><pre class="highlight shell"><code>bin/rails db:migrate
+
+</code></pre></div>
+<h3>Step 4: Configure Article Model</h3>
+
+<p><code>app/models/article.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Article</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">has_neighbors</span> <span class="ss">:embedding</span><span class="p">,</span> <span class="ss">dimensions: </span><span class="mi">1536</span><span class="p">,</span> <span class="ss">distance: </span><span class="s1">'cosine'</span>
+
+  <span class="n">validates</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">:body</span><span class="p">,</span> <span class="ss">presence: </span><span class="kp">true</span>
+
+  <span class="n">after_save</span> <span class="ss">:generate_embedding_async</span><span class="p">,</span> <span class="ss">if: :content_changed?</span>
+
+  <span class="c1"># Semantic search</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">semantic_search</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">embedding</span> <span class="o">=</span> <span class="n">generate_query_embedding</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">none</span> <span class="k">if</span> <span class="n">embedding</span><span class="p">.</span><span class="nf">blank?</span>
+
+    <span class="n">nearest_neighbors</span><span class="p">(</span><span class="ss">:embedding</span><span class="p">,</span> <span class="n">embedding</span><span class="p">,</span> <span class="ss">distance: </span><span class="s1">'cosine'</span><span class="p">)</span>
+      <span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Hybrid search (70% semantic, 30% keyword)</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">hybrid_search</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">embedding</span> <span class="o">=</span> <span class="n">generate_query_embedding</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">keyword_search</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="ss">limit: </span><span class="n">limit</span><span class="p">)</span> <span class="k">if</span> <span class="n">embedding</span><span class="p">.</span><span class="nf">blank?</span>
+
+    <span class="nb">select</span><span class="p">(</span><span class="o">&lt;&lt;~</span><span class="no">SQL</span><span class="p">.</span><span class="nf">squish</span><span class="p">)</span><span class="sh">
+      articles.*,
+      (
+        0.7 * (1 - (embedding &lt;=&gt; '[</span><span class="si">#{</span><span class="n">embedding</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">','</span><span class="p">)</span><span class="si">}</span><span class="sh">]')) +
+        0.3 * ts_rank(
+          to_tsvector('english', title || ' ' || body),
+          plainto_tsquery('english', '</span><span class="si">#{</span><span class="n">sanitize_sql_like</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="si">}</span><span class="sh">')
+        )
+      ) AS relevance_score
+</span><span class="no">    SQL</span>
+      <span class="p">.</span><span class="nf">where</span><span class="p">(</span>
+        <span class="s2">"embedding &lt;=&gt; '[</span><span class="si">#{</span><span class="n">embedding</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">','</span><span class="p">)</span><span class="si">}</span><span class="s2">]' &lt; 0.8 OR "</span> <span class="p">\</span>
+        <span class="s2">"to_tsvector('english', title || ' ' || body) @@ plainto_tsquery('english', ?)"</span><span class="p">,</span>
+        <span class="n">query</span>
+      <span class="p">)</span>
+      <span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s1">'relevance_score DESC'</span><span class="p">)</span>
+      <span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Traditional keyword search</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">keyword_search</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">where</span><span class="p">(</span>
+      <span class="s2">"to_tsvector('english', title || ' ' || body) @@ plainto_tsquery('english', ?)"</span><span class="p">,</span>
+      <span class="n">query</span>
+    <span class="p">)</span>
+    <span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s2">"ts_rank(to_tsvector('english', title || ' ' || body), plainto_tsquery('english', ?)) DESC"</span><span class="p">,</span> <span class="n">query</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Similar articles</span>
+  <span class="k">def</span> <span class="nf">similar_articles</span><span class="p">(</span><span class="ss">limit: </span><span class="mi">5</span><span class="p">)</span>
+    <span class="k">return</span> <span class="no">Article</span><span class="p">.</span><span class="nf">none</span> <span class="k">if</span> <span class="n">embedding</span><span class="p">.</span><span class="nf">blank?</span>
+
+    <span class="no">Article</span><span class="p">.</span><span class="nf">nearest_neighbors</span><span class="p">(</span><span class="ss">:embedding</span><span class="p">,</span> <span class="n">embedding</span><span class="p">,</span> <span class="ss">distance: </span><span class="s1">'cosine'</span><span class="p">)</span>
+           <span class="p">.</span><span class="nf">where</span><span class="p">.</span><span class="nf">not</span><span class="p">(</span><span class="ss">id: </span><span class="nb">id</span><span class="p">)</span>
+           <span class="p">.</span><span class="nf">limit</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">content_changed?</span>
+    <span class="n">saved_change_to_title?</span> <span class="o">||</span> <span class="n">saved_change_to_body?</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">generate_embedding_async</span>
+    <span class="no">GenerateEmbeddingJob</span><span class="p">.</span><span class="nf">perform_later</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">generate_query_embedding</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    <span class="no">Rails</span><span class="p">.</span><span class="nf">cache</span><span class="p">.</span><span class="nf">fetch</span><span class="p">(</span><span class="s2">"embedding:</span><span class="si">#{</span><span class="no">Digest</span><span class="o">::</span><span class="no">SHA256</span><span class="p">.</span><span class="nf">hexdigest</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="ss">expires_in: </span><span class="mi">1</span><span class="p">.</span><span class="nf">week</span><span class="p">)</span> <span class="k">do</span>
+      <span class="n">client</span> <span class="o">=</span> <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">access_token: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'OPENAI_API_KEY'</span><span class="p">])</span>
+      <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="p">.</span><span class="nf">embeddings</span><span class="p">(</span>
+        <span class="ss">parameters: </span><span class="p">{</span>
+          <span class="ss">model: </span><span class="s1">'text-embedding-ada-002'</span><span class="p">,</span>
+          <span class="ss">input: </span><span class="n">query</span>
+        <span class="p">}</span>
+      <span class="p">)</span>
+      <span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s1">'data'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'embedding'</span><span class="p">)</span>
+    <span class="k">rescue</span> <span class="no">StandardError</span> <span class="o">=&gt;</span> <span class="n">e</span>
+      <span class="no">Rails</span><span class="p">.</span><span class="nf">logger</span><span class="p">.</span><span class="nf">error</span><span class="p">(</span><span class="s2">"Failed to generate embedding: </span><span class="si">#{</span><span class="n">e</span><span class="p">.</span><span class="nf">message</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+      <span class="kp">nil</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 5: Create Background Job</h3>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate job GenerateEmbedding
+
+</code></pre></div>
+<p><code>app/jobs/generate_embedding_job.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">GenerateEmbeddingJob</span> <span class="o">&lt;</span> <span class="no">ApplicationJob</span>
+  <span class="n">queue_as</span> <span class="ss">:default</span>
+  <span class="n">retry_on</span> <span class="no">StandardError</span><span class="p">,</span> <span class="ss">wait: </span><span class="mi">5</span><span class="p">.</span><span class="nf">seconds</span><span class="p">,</span> <span class="ss">attempts: </span><span class="mi">3</span>
+
+  <span class="k">def</span> <span class="nf">perform</span><span class="p">(</span><span class="n">article_id</span><span class="p">)</span>
+    <span class="n">article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">article_id</span><span class="p">)</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="p">[</span><span class="n">article</span><span class="p">.</span><span class="nf">title</span><span class="p">,</span> <span class="n">article</span><span class="p">.</span><span class="nf">body</span><span class="p">].</span><span class="nf">join</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="n">client</span> <span class="o">=</span> <span class="no">OpenAI</span><span class="o">::</span><span class="no">Client</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">access_token: </span><span class="no">ENV</span><span class="p">[</span><span class="s1">'OPENAI_API_KEY'</span><span class="p">])</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="p">.</span><span class="nf">embeddings</span><span class="p">(</span>
+      <span class="ss">parameters: </span><span class="p">{</span>
+        <span class="ss">model: </span><span class="s1">'text-embedding-ada-002'</span><span class="p">,</span>
+        <span class="ss">input: </span><span class="n">content</span>
+      <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="n">embedding</span> <span class="o">=</span> <span class="n">response</span><span class="p">.</span><span class="nf">dig</span><span class="p">(</span><span class="s1">'data'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'embedding'</span><span class="p">)</span>
+    <span class="n">article</span><span class="p">.</span><span class="nf">update_column</span><span class="p">(</span><span class="ss">:embedding</span><span class="p">,</span> <span class="n">embedding</span><span class="p">)</span> <span class="k">if</span> <span class="n">embedding</span><span class="p">.</span><span class="nf">present?</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 6: Seed Test Data</h3>
+
+<p><code>db/seeds.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Create diverse articles to test semantic search</span>
+<span class="n">articles_data</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="p">{</span>
+    <span class="ss">title: </span><span class="s2">"Speed Up Your Ruby on Rails Application"</span><span class="p">,</span>
+    <span class="ss">body: </span><span class="s2">"Learn techniques for optimizing Rails performance including caching, eager loading, and database query optimization."</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="ss">title: </span><span class="s2">"Understanding ActiveRecord N+1 Queries"</span><span class="p">,</span>
+    <span class="ss">body: </span><span class="s2">"Discover how to identify and fix N+1 query problems using includes, preload, and eager_load methods."</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="ss">title: </span><span class="s2">"Rails Caching Strategies for Faster Response Times"</span><span class="p">,</span>
+    <span class="ss">body: </span><span class="s2">"Explore fragment caching, Russian doll caching, and low-level caching to dramatically reduce page load times."</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="ss">title: </span><span class="s2">"Database Indexing Best Practices"</span><span class="p">,</span>
+    <span class="ss">body: </span><span class="s2">"Master PostgreSQL indexes to accelerate query performance with B-tree, GiST, and partial indexes."</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="ss">title: </span><span class="s2">"Introduction to React Hooks"</span><span class="p">,</span>
+    <span class="ss">body: </span><span class="s2">"Learn how to use useState, useEffect, and custom hooks in React applications for better state management."</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="ss">title: </span><span class="s2">"Building RESTful APIs in Rails"</span><span class="p">,</span>
+    <span class="ss">body: </span><span class="s2">"Create robust JSON APIs using Rails API mode, serializers, and authentication with JWT tokens."</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="ss">title: </span><span class="s2">"Docker for Ruby Developers"</span><span class="p">,</span>
+    <span class="ss">body: </span><span class="s2">"Package your Rails apps in containers using Docker and Docker Compose for consistent development environments."</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="ss">title: </span><span class="s2">"Machine Learning Basics with Python"</span><span class="p">,</span>
+    <span class="ss">body: </span><span class="s2">"Introduction to supervised learning, neural networks, and scikit-learn for data science beginners."</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="ss">title: </span><span class="s2">"PostgreSQL Full-Text Search"</span><span class="p">,</span>
+    <span class="ss">body: </span><span class="s2">"Implement search functionality using tsvector, tsquery, and GIN indexes for text-based queries."</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="ss">title: </span><span class="s2">"Deploying Rails to AWS"</span><span class="p">,</span>
+    <span class="ss">body: </span><span class="s2">"Step-by-step guide to deploying Ruby on Rails applications on EC2, RDS, and S3 with automated backups."</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+
+<span class="nb">puts</span> <span class="s2">"Creating articles..."</span>
+<span class="n">articles_data</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">data</span><span class="o">|</span>
+  <span class="no">Article</span><span class="p">.</span><span class="nf">create!</span><span class="p">(</span>
+    <span class="ss">title: </span><span class="n">data</span><span class="p">[</span><span class="ss">:title</span><span class="p">],</span>
+    <span class="ss">body: </span><span class="n">data</span><span class="p">[</span><span class="ss">:body</span><span class="p">],</span>
+    <span class="ss">published_at: </span><span class="nb">rand</span><span class="p">(</span><span class="mi">30</span><span class="p">).</span><span class="nf">days</span><span class="p">.</span><span class="nf">ago</span>
+  <span class="p">)</span>
+<span class="k">end</span>
+
+<span class="nb">puts</span> <span class="s2">"Created </span><span class="si">#{</span><span class="no">Article</span><span class="p">.</span><span class="nf">count</span><span class="si">}</span><span class="s2"> articles"</span>
+<span class="nb">puts</span> <span class="s2">"Waiting for embeddings to generate..."</span>
+<span class="nb">sleep</span> <span class="mi">5</span>  <span class="c1"># Wait for background jobs</span>
+<span class="nb">puts</span> <span class="s2">"Articles with embeddings: </span><span class="si">#{</span><span class="no">Article</span><span class="p">.</span><span class="nf">where</span><span class="p">.</span><span class="nf">not</span><span class="p">(</span><span class="ss">embedding: </span><span class="kp">nil</span><span class="p">).</span><span class="nf">count</span><span class="si">}</span><span class="s2">"</span>
+
+</code></pre></div><div class="highlight"><pre class="highlight shell"><code>bin/rails db:seed
+
+</code></pre></div>
+<h3>Step 7: Create Search Interface</h3>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate controller Articles index search show
+
+</code></pre></div>
+<p><code>app/controllers/articles_controller.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ArticlesController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="vi">@articles</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="ss">published_at: :desc</span><span class="p">).</span><span class="nf">limit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="vi">@article</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">find</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">])</span>
+    <span class="vi">@similar</span> <span class="o">=</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">similar_articles</span><span class="p">(</span><span class="ss">limit: </span><span class="mi">3</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">search</span>
+    <span class="vi">@query</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="ss">:q</span><span class="p">]</span>
+    <span class="vi">@search_type</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="ss">:type</span><span class="p">]</span> <span class="o">||</span> <span class="s1">'hybrid'</span>
+
+    <span class="k">if</span> <span class="vi">@query</span><span class="p">.</span><span class="nf">present?</span>
+      <span class="vi">@results</span> <span class="o">=</span> <span class="k">case</span> <span class="vi">@search_type</span>
+                 <span class="k">when</span> <span class="s1">'semantic'</span>
+                   <span class="no">Article</span><span class="p">.</span><span class="nf">semantic_search</span><span class="p">(</span><span class="vi">@query</span><span class="p">)</span>
+                 <span class="k">when</span> <span class="s1">'keyword'</span>
+                   <span class="no">Article</span><span class="p">.</span><span class="nf">keyword_search</span><span class="p">(</span><span class="vi">@query</span><span class="p">)</span>
+                 <span class="k">when</span> <span class="s1">'hybrid'</span>
+                   <span class="no">Article</span><span class="p">.</span><span class="nf">hybrid_search</span><span class="p">(</span><span class="vi">@query</span><span class="p">)</span>
+                 <span class="k">end</span>
+    <span class="k">else</span>
+      <span class="vi">@results</span> <span class="o">=</span> <span class="no">Article</span><span class="p">.</span><span class="nf">none</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p><code>config/routes.rb</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">Rails</span><span class="p">.</span><span class="nf">application</span><span class="p">.</span><span class="nf">routes</span><span class="p">.</span><span class="nf">draw</span> <span class="k">do</span>
+  <span class="n">resources</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">only: </span><span class="p">[</span><span class="ss">:index</span><span class="p">,</span> <span class="ss">:show</span><span class="p">]</span> <span class="k">do</span>
+    <span class="n">collection</span> <span class="k">do</span>
+      <span class="n">get</span> <span class="ss">:search</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="n">root</span> <span class="s1">'articles#index'</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<h3>Step 8: Create Views</h3>
+
+<p><code>app/views/articles/index.html.erb</code>:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="nt">&lt;h1&gt;</span>Articles<span class="nt">&lt;/h1&gt;</span>
+
+<span class="cp">&lt;%=</span> <span class="n">form_with</span><span class="p">(</span><span class="ss">url: </span><span class="n">search_articles_path</span><span class="p">,</span> <span class="ss">method: :get</span><span class="p">,</span> <span class="ss">local: </span><span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">f</span><span class="o">|</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">f</span><span class="p">.</span><span class="nf">text_field</span> <span class="ss">:q</span><span class="p">,</span> <span class="ss">placeholder: </span><span class="s2">"Search articles..."</span><span class="p">,</span> <span class="ss">value: </span><span class="n">params</span><span class="p">[</span><span class="ss">:q</span><span class="p">]</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">f</span><span class="p">.</span><span class="nf">select</span> <span class="ss">:type</span><span class="p">,</span> <span class="p">[[</span><span class="s1">'Hybrid'</span><span class="p">,</span> <span class="s1">'hybrid'</span><span class="p">],</span> <span class="p">[</span><span class="s1">'Semantic'</span><span class="p">,</span> <span class="s1">'semantic'</span><span class="p">],</span> <span class="p">[</span><span class="s1">'Keyword'</span><span class="p">,</span> <span class="s1">'keyword'</span><span class="p">]],</span> <span class="p">{},</span> <span class="p">{</span> <span class="ss">selected: </span><span class="n">params</span><span class="p">[</span><span class="ss">:type</span><span class="p">]</span> <span class="p">}</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">f</span><span class="p">.</span><span class="nf">submit</span> <span class="s2">"Search"</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+
+<span class="nt">&lt;ul&gt;</span>
+  <span class="cp">&lt;%</span> <span class="vi">@articles</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">article</span><span class="o">|</span> <span class="cp">%&gt;</span>
+    <span class="nt">&lt;li&gt;</span>
+      <span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="n">article</span><span class="p">.</span><span class="nf">title</span><span class="p">,</span> <span class="n">article_path</span><span class="p">(</span><span class="n">article</span><span class="p">)</span> <span class="cp">%&gt;</span>
+      <span class="nt">&lt;p&gt;</span><span class="cp">&lt;%=</span> <span class="n">truncate</span><span class="p">(</span><span class="n">article</span><span class="p">.</span><span class="nf">body</span><span class="p">,</span> <span class="ss">length: </span><span class="mi">200</span><span class="p">)</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
+    <span class="nt">&lt;/li&gt;</span>
+  <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;/ul&gt;</span>
+
+</code></pre></div>
+<p><code>app/views/articles/show.html.erb</code>:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="nt">&lt;h1&gt;</span><span class="cp">&lt;%=</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">title</span> <span class="cp">%&gt;</span><span class="nt">&lt;/h1&gt;</span>
+<span class="nt">&lt;p&gt;</span><span class="cp">&lt;%=</span> <span class="vi">@article</span><span class="p">.</span><span class="nf">body</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
+
+<span class="nt">&lt;h2&gt;</span>Similar Articles<span class="nt">&lt;/h2&gt;</span>
+<span class="nt">&lt;ul&gt;</span>
+  <span class="cp">&lt;%</span> <span class="vi">@similar</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">similar</span><span class="o">|</span> <span class="cp">%&gt;</span>
+    <span class="nt">&lt;li&gt;</span><span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="n">similar</span><span class="p">.</span><span class="nf">title</span><span class="p">,</span> <span class="n">article_path</span><span class="p">(</span><span class="n">similar</span><span class="p">)</span> <span class="cp">%&gt;</span><span class="nt">&lt;/li&gt;</span>
+  <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+<span class="nt">&lt;/ul&gt;</span>
+
+<span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s2">"Back"</span><span class="p">,</span> <span class="n">articles_path</span> <span class="cp">%&gt;</span>
+
+</code></pre></div>
+<p><code>app/views/articles/search.html.erb</code>:</p>
+<div class="highlight"><pre class="highlight erb"><code><span class="nt">&lt;h1&gt;</span>Search Results: <span class="cp">&lt;%=</span> <span class="vi">@query</span> <span class="cp">%&gt;</span><span class="nt">&lt;/h1&gt;</span>
+<span class="nt">&lt;p&gt;</span>Search type: <span class="cp">&lt;%=</span> <span class="vi">@search_type</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
+
+<span class="cp">&lt;%=</span> <span class="n">form_with</span><span class="p">(</span><span class="ss">url: </span><span class="n">search_articles_path</span><span class="p">,</span> <span class="ss">method: :get</span><span class="p">,</span> <span class="ss">local: </span><span class="kp">true</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">f</span><span class="o">|</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">f</span><span class="p">.</span><span class="nf">text_field</span> <span class="ss">:q</span><span class="p">,</span> <span class="ss">placeholder: </span><span class="s2">"Search articles..."</span><span class="p">,</span> <span class="ss">value: </span><span class="vi">@query</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">f</span><span class="p">.</span><span class="nf">select</span> <span class="ss">:type</span><span class="p">,</span> <span class="p">[[</span><span class="s1">'Hybrid'</span><span class="p">,</span> <span class="s1">'hybrid'</span><span class="p">],</span> <span class="p">[</span><span class="s1">'Semantic'</span><span class="p">,</span> <span class="s1">'semantic'</span><span class="p">],</span> <span class="p">[</span><span class="s1">'Keyword'</span><span class="p">,</span> <span class="s1">'keyword'</span><span class="p">]],</span> <span class="p">{},</span> <span class="p">{</span> <span class="ss">selected: </span><span class="vi">@search_type</span> <span class="p">}</span> <span class="cp">%&gt;</span>
+  <span class="cp">&lt;%=</span> <span class="n">f</span><span class="p">.</span><span class="nf">submit</span> <span class="s2">"Search"</span> <span class="cp">%&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+
+<span class="cp">&lt;%</span> <span class="k">if</span> <span class="vi">@results</span><span class="p">.</span><span class="nf">any?</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;ul&gt;</span>
+    <span class="cp">&lt;%</span> <span class="vi">@results</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">article</span><span class="o">|</span> <span class="cp">%&gt;</span>
+      <span class="nt">&lt;li&gt;</span>
+        <span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="n">article</span><span class="p">.</span><span class="nf">title</span><span class="p">,</span> <span class="n">article_path</span><span class="p">(</span><span class="n">article</span><span class="p">)</span> <span class="cp">%&gt;</span>
+        <span class="cp">&lt;%</span> <span class="k">if</span> <span class="n">article</span><span class="p">.</span><span class="nf">respond_to?</span><span class="p">(</span><span class="ss">:relevance_score</span><span class="p">)</span> <span class="cp">%&gt;</span>
+          <span class="nt">&lt;small&gt;</span>(Score: <span class="cp">&lt;%=</span> <span class="n">article</span><span class="p">.</span><span class="nf">relevance_score</span><span class="p">.</span><span class="nf">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="cp">%&gt;</span>)<span class="nt">&lt;/small&gt;</span>
+        <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+        <span class="nt">&lt;p&gt;</span><span class="cp">&lt;%=</span> <span class="n">truncate</span><span class="p">(</span><span class="n">article</span><span class="p">.</span><span class="nf">body</span><span class="p">,</span> <span class="ss">length: </span><span class="mi">200</span><span class="p">)</span> <span class="cp">%&gt;</span><span class="nt">&lt;/p&gt;</span>
+      <span class="nt">&lt;/li&gt;</span>
+    <span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;/ul&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">else</span> <span class="cp">%&gt;</span>
+  <span class="nt">&lt;p&gt;</span>No results found.<span class="nt">&lt;/p&gt;</span>
+<span class="cp">&lt;%</span> <span class="k">end</span> <span class="cp">%&gt;</span>
+
+<span class="cp">&lt;%=</span> <span class="n">link_to</span> <span class="s2">"Back"</span><span class="p">,</span> <span class="n">articles_path</span> <span class="cp">%&gt;</span>
+
+</code></pre></div>
+<h3>Step 9: Add Performance Index</h3>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails generate migration AddIndexToArticlesEmbedding
+
+</code></pre></div>
+<p>Edit migration:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">AddIndexToArticlesEmbedding</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span><span class="p">[</span><span class="mf">7.1</span><span class="p">]</span>
+  <span class="k">def</span> <span class="nf">change</span>
+    <span class="c1"># IVFFlat index for faster similarity search</span>
+    <span class="c1"># lists = rows / 1000 (use 10 for small datasets)</span>
+    <span class="n">add_index</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">:embedding</span><span class="p">,</span>
+              <span class="ss">using: :ivfflat</span><span class="p">,</span>
+              <span class="ss">opclass: :vector_cosine_ops</span><span class="p">,</span>
+              <span class="ss">options: </span><span class="s1">'WITH (lists = 10)'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div><div class="highlight"><pre class="highlight shell"><code>bin/rails db:migrate
+
+</code></pre></div>
+<h3>Step 10: Test and Compare</h3>
+
+<p>Start server:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails server
+
+</code></pre></div>
+<p>Visit <code>http://localhost:3000</code> and test searches:</p>
+
+<p><strong>Test Case 1: Semantic Understanding</strong><br>
+- Query: &quot;Rails performance tips&quot;<br>
+- Semantic/Hybrid: Should return articles about caching, N+1 queries, optimization<br>
+- Keyword: May only find exact &quot;performance&quot; matches</p>
+
+<p><strong>Test Case 2: Synonym Matching</strong><br>
+- Query: &quot;speeding up Ruby applications&quot;<br>
+- Semantic: Finds &quot;optimize&quot;, &quot;faster&quot;, &quot;performance&quot; articles<br>
+- Keyword: Misses these due to different wording</p>
+
+<p><strong>Test Case 3: Similar Articles</strong><br>
+- Click any article<br>
+- Verify &quot;Similar Articles&quot; shows related content</p>
+
+<h3>Step 11: Benchmark Performance</h3>
+
+<p>Create <code>lib/tasks/benchmark_search.rake</code>:</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">namespace</span> <span class="ss">:search</span> <span class="k">do</span>
+  <span class="n">desc</span> <span class="s2">"Benchmark semantic vs keyword search"</span>
+  <span class="n">task</span> <span class="ss">benchmark: :environment</span> <span class="k">do</span>
+    <span class="nb">require</span> <span class="s1">'benchmark'</span>
+
+    <span class="n">queries</span> <span class="o">=</span> <span class="p">[</span>
+      <span class="s2">"Rails performance tips"</span><span class="p">,</span>
+      <span class="s2">"caching strategies"</span><span class="p">,</span>
+      <span class="s2">"database optimization"</span><span class="p">,</span>
+      <span class="s2">"API development"</span>
+    <span class="p">]</span>
+
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== Search Performance Comparison ==="</span>
+    <span class="n">queries</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">query</span><span class="o">|</span>
+      <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">Query: </span><span class="si">#{</span><span class="n">query</span><span class="si">}</span><span class="s2">"</span>
+
+      <span class="no">Benchmark</span><span class="p">.</span><span class="nf">bm</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+        <span class="n">x</span><span class="p">.</span><span class="nf">report</span><span class="p">(</span><span class="s2">"Semantic"</span><span class="p">)</span> <span class="p">{</span> <span class="no">Article</span><span class="p">.</span><span class="nf">semantic_search</span><span class="p">(</span><span class="n">query</span><span class="p">).</span><span class="nf">to_a</span> <span class="p">}</span>
+        <span class="n">x</span><span class="p">.</span><span class="nf">report</span><span class="p">(</span><span class="s2">"Keyword"</span><span class="p">)</span> <span class="p">{</span> <span class="no">Article</span><span class="p">.</span><span class="nf">keyword_search</span><span class="p">(</span><span class="n">query</span><span class="p">).</span><span class="nf">to_a</span> <span class="p">}</span>
+        <span class="n">x</span><span class="p">.</span><span class="nf">report</span><span class="p">(</span><span class="s2">"Hybrid"</span><span class="p">)</span> <span class="p">{</span> <span class="no">Article</span><span class="p">.</span><span class="nf">hybrid_search</span><span class="p">(</span><span class="n">query</span><span class="p">).</span><span class="nf">to_a</span> <span class="p">}</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="nb">puts</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">=== Index Impact ==="</span>
+    <span class="no">Article</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="s2">"DROP INDEX IF EXISTS index_articles_on_embedding"</span><span class="p">)</span>
+    <span class="no">Benchmark</span><span class="p">.</span><span class="nf">bm</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+      <span class="n">x</span><span class="p">.</span><span class="nf">report</span><span class="p">(</span><span class="s2">"Without index"</span><span class="p">)</span> <span class="p">{</span> <span class="no">Article</span><span class="p">.</span><span class="nf">semantic_search</span><span class="p">(</span><span class="s2">"Rails"</span><span class="p">).</span><span class="nf">to_a</span> <span class="p">}</span>
+    <span class="k">end</span>
+
+    <span class="c1"># Recreate index</span>
+    <span class="no">Article</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="o">&lt;&lt;~</span><span class="no">SQL</span><span class="p">)</span><span class="sh">
+      CREATE INDEX index_articles_on_embedding ON articles
+      USING ivfflat (embedding vector_cosine_ops)
+      WITH (lists = 10)
+</span><span class="no">    SQL</span>
+
+    <span class="no">Benchmark</span><span class="p">.</span><span class="nf">bm</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+      <span class="n">x</span><span class="p">.</span><span class="nf">report</span><span class="p">(</span><span class="s2">"With index"</span><span class="p">)</span> <span class="p">{</span> <span class="no">Article</span><span class="p">.</span><span class="nf">semantic_search</span><span class="p">(</span><span class="s2">"Rails"</span><span class="p">).</span><span class="nf">to_a</span> <span class="p">}</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+</code></pre></div>
+<p>Run benchmark:</p>
+<div class="highlight"><pre class="highlight shell"><code>bin/rails search:benchmark
+
+</code></pre></div>
+<h2>Stretch (Optional)</h2>
+
+<ol>
+<li><strong>Implement Relevance Feedback:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Track which results users click</span>
+<span class="k">class</span> <span class="nc">SearchLog</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">belongs_to</span> <span class="ss">:article</span>
+
+  <span class="n">scope</span> <span class="ss">:positive_signals</span><span class="p">,</span> <span class="o">-&gt;</span> <span class="p">{</span> <span class="n">where</span><span class="p">(</span><span class="ss">clicked: </span><span class="kp">true</span><span class="p">)</span> <span class="p">}</span>
+<span class="k">end</span>
+
+<span class="c1"># Boost similar content in future searches</span>
+<span class="no">Article</span><span class="p">.</span><span class="nf">semantic_search</span><span class="p">(</span><span class="n">query</span><span class="p">).</span><span class="nf">reorder</span><span class="p">(</span>
+  <span class="no">Arel</span><span class="p">.</span><span class="nf">sql</span><span class="p">(</span><span class="s2">"CASE WHEN id IN (SELECT article_id FROM search_logs WHERE clicked = true) THEN 0.5 ELSE 1 END * (embedding &lt;=&gt; '[...]')"</span><span class="p">)</span>
+<span class="p">)</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Add Multi-Field Embeddings:</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Separate embeddings for title vs body for weighted search</span>
+<span class="n">add_column</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">:title_embedding</span><span class="p">,</span> <span class="ss">:vector</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">1536</span>
+<span class="n">add_column</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">:body_embedding</span><span class="p">,</span> <span class="ss">:vector</span><span class="p">,</span> <span class="ss">limit: </span><span class="mi">1536</span>
+
+<span class="c1"># Search with field-specific weights</span>
+<span class="no">Article</span><span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="o">&lt;&lt;~</span><span class="no">SQL</span><span class="p">)</span><span class="sh">
+  *, (0.4 * (title_embedding &lt;=&gt; '[...]') + 0.6 * (body_embedding &lt;=&gt; '[...]')) AS score
+</span><span class="no">SQL</span>
+
+</code></pre></div>
+<ol>
+<li><strong>Implement HNSW Index (pgvector 0.5+):</strong></li>
+</ol>
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">add_index</span> <span class="ss">:articles</span><span class="p">,</span> <span class="ss">:embedding</span><span class="p">,</span>
+          <span class="ss">using: :hnsw</span><span class="p">,</span>
+          <span class="ss">opclass: :vector_cosine_ops</span><span class="p">,</span>
+          <span class="ss">options: </span><span class="s1">'WITH (m = 16, ef_construction = 64)'</span>
+
+<span class="c1"># Query-time tuning</span>
+<span class="no">Article</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">execute</span><span class="p">(</span><span class="s2">"SET hnsw.ef_search = 100"</span><span class="p">)</span>
+
+</code></pre></div>
+<h2>Time Estimate</h2>
+
+<p>30 minutes</p>
+
+    
+  </div>
+</div>
+
+<!-- Checkpoint Tab -->
+<div id="checkpoint-tab" class="tab-content">
+  <div class="content-section">
+    
+      
+      <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 6px;">
+        <p><strong>Passing Score:</strong> 7 points</p>
+        <p style="margin-top: 5px; color: #666;">Answer the questions below and click "Check Answers" to see your score.</p>
+      </div>
+
+      
+        <div class="question"
+             data-question-id="0"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Embeddings capture meaning so similar concepts cluster together in vector space">
+          <h4>Question 1 (2 points)</h4>
+          <p style="margin: 10px 0;">Why do embeddings enable semantic search that keyword search cannot provide?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(0, 0)">
+                  Embeddings are faster to query than full-text indexes
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 1)">
+                  Embeddings capture meaning so similar concepts cluster together in vector space
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 2)">
+                  Embeddings use less disk space than keyword indexes
+                </div>
+              
+                <div class="choice" onclick="selectChoice(0, 3)">
+                  Embeddings automatically update when content changes
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Embeddings represent text as vectors where semantically similar content has similar coordinates, enabling 'Rails performance' to match 'optimize Ruby apps' despite different words. Keyword search only matches exact terms.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="1"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Cosine distance (<=>)">
+          <h4>Question 2 (2 points)</h4>
+          <p style="margin: 10px 0;">Which distance metric should you use with OpenAI embeddings in pgvector?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(1, 0)">
+                  Cosine distance (<=>)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 1)">
+                  L2 distance (<->)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 2)">
+                  Inner product (<#>)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(1, 3)">
+                  Manhattan distance
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> OpenAI embeddings are optimized for cosine distance, which measures the angle between vectors. L2 considers magnitude, and inner product is for normalized vectors. OpenAI's documentation specifies cosine.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="2"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="Once when created/updated, then reuse for all queries">
+          <h4>Question 3 (1 points)</h4>
+          <p style="margin: 10px 0;">When should you generate embeddings for an article?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(2, 0)">
+                  On every search query
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 1)">
+                  Once when created/updated, then reuse for all queries
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 2)">
+                  Daily via a cron job
+                </div>
+              
+                <div class="choice" onclick="selectChoice(2, 3)">
+                  Only when a user searches for it
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Embeddings are expensive (API cost, latency). Generate once on content change, store in vector column, and reuse. Only query embeddings are generated at search time.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="3"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 4 (2 points)</h4>
+          <p style="margin: 10px 0;">What is hybrid search and why is it better than pure semantic search?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Hybrid search combines semantic similarity (embeddings) with keyword matching (full-text search), typically with weighted scores (e.g., 70% semantic, 30% keyword). It's better because semantic search can miss exact matches like product SKUs or acronyms, while keyword search misses synonyms. Combining both gives comprehensive results.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="4"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="To avoid exhaustive full-table scans on large datasets">
+          <h4>Question 5 (2 points)</h4>
+          <p style="margin: 10px 0;">Why do you need an IVFFlat or HNSW index on embedding columns?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(4, 0)">
+                  To reduce disk space usage
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 1)">
+                  To avoid exhaustive full-table scans on large datasets
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 2)">
+                  To automatically update embeddings
+                </div>
+              
+                <div class="choice" onclick="selectChoice(4, 3)">
+                  To enable cosine distance calculations
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Without indexes, pgvector compares query embedding against every row (O(n)). On 100K+ rows, this takes seconds. IVFFlat/HNSW indexes cluster similar vectors, reducing search to O(log n) or better.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="5"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 6 (2 points)</h4>
+          <p style="margin: 10px 0;">Write Rails code to find the 5 most similar articles to a given article using cosine distance.</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Article.nearest_neighbors(:embedding, article.embedding, distance: 'cosine').where.not(id: article.id).limit(5)</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="6"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="1536">
+          <h4>Question 7 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the dimension of OpenAI's text-embedding-ada-002 model?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(6, 0)">
+                  512
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 1)">
+                  768
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 2)">
+                  1536
+                </div>
+              
+                <div class="choice" onclick="selectChoice(6, 3)">
+                  3072
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> OpenAI's ada-002 model outputs 1536-dimensional vectors. This must match your vector column limit when defining the schema.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="7"
+             data-kind="mcq"
+             data-points="2"
+             data-correct="Find nearest neighbors to the article's embedding vector">
+          <h4>Question 8 (2 points)</h4>
+          <p style="margin: 10px 0;">How should you implement content-based recommendations for 'similar articles'?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(7, 0)">
+                  Find articles with the most shared keywords
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 1)">
+                  Find articles by the same author
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 2)">
+                  Find nearest neighbors to the article's embedding vector
+                </div>
+              
+                <div class="choice" onclick="selectChoice(7, 3)">
+                  Find articles published on the same date
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> Content-based recommendations use embedding similarity. Articles with similar embeddings have similar meaning/topics, even if worded differently. This is more effective than keyword overlap.
+              </div>
+            
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="8"
+             data-kind="short"
+             data-points="2"
+             >
+          <h4>Question 9 (2 points)</h4>
+          <p style="margin: 10px 0;">Why should you cache query embeddings instead of generating them on every search request?</p>
+
+          
+            <div style="margin: 10px 0; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+              <strong>Sample Answer:</strong>
+              <p style="margin-top: 5px; color: #666; font-style: italic;">Generating embeddings costs money (0.0001 per 1K tokens for OpenAI) and adds 50-200ms latency per API call. Caching identical queries (using SHA256 hash of query text as key) avoids repeated API calls, reducing costs and improving response time.</p>
+            </div>
+          
+        </div>
+      
+        <div class="question"
+             data-question-id="9"
+             data-kind="mcq"
+             data-points="1"
+             data-correct="IVFFlat may miss some nearest neighbors (lower recall)">
+          <h4>Question 10 (1 points)</h4>
+          <p style="margin: 10px 0;">What is the trade-off of using IVFFlat indexes compared to exact search?</p>
+
+          
+            <div class="choices">
+              
+                <div class="choice" onclick="selectChoice(9, 0)">
+                  IVFFlat uses more memory
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 1)">
+                  IVFFlat is slower than exact search
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 2)">
+                  IVFFlat may miss some nearest neighbors (lower recall)
+                </div>
+              
+                <div class="choice" onclick="selectChoice(9, 3)">
+                  IVFFlat only works with L2 distance
+                </div>
+              
+            </div>
+            
+              <div class="explanation">
+                <strong>Explanation:</strong> IVFFlat is an approximate nearest neighbor algorithm. It clusters vectors and only searches relevant clusters, which is fast but may miss true nearest neighbors outside searched clusters. Increase 'lists' parameter to improve recall.
+              </div>
+            
+          
+        </div>
+      
+
+      <div style="margin-top: 30px; display: flex; gap: 10px;">
+        <button onclick="checkAnswers()" style="padding: 12px 24px; background: #CC0000; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600;">
+          Check Answers
+        </button>
+        <button onclick="resetQuiz()" style="padding: 12px 24px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+          Reset
+        </button>
+      </div>
+
+      <div class="score-display" data-passing="7"></div>
+    
+  </div>
+</div>
+
+<!-- References Tab -->
+<div id="references-tab" class="tab-content">
+  <div class="content-section">
+    
+      <p style="margin-bottom: 20px; color: var(--text-secondary);">
+        Curated sources to deepen your understanding. All references point to official documentation,
+        canonical books, or reputable technical content.
+      </p>
+      <ul class="reference-list">
+        
+          <li>
+            <a href="https://platform.openai.com/docs/guides/embeddings" target="_blank">OpenAI — Embeddings API Documentation</a>
+            <div class="why">Official guide to text-embedding-ada-002 model, dimensions, pricing, and best practices for semantic search.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/pgvector/pgvector" target="_blank">pgvector GitHub Repository</a>
+            <div class="why">Official pgvector extension for PostgreSQL with installation, indexing strategies (IVFFlat, HNSW), and performance tuning.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/ankane/neighbor" target="_blank">Neighbor Gem — Ruby Interface for pgvector</a>
+            <div class="why">Rails integration for pgvector with has_neighbors, nearest_neighbors methods, and ActiveRecord support.</div>
+          </li>
+        
+          <li>
+            <a href="https://supabase.com/docs/guides/ai/vector-embeddings" target="_blank">Supabase — Vector Embeddings Guide</a>
+            <div class="why">Comprehensive tutorial on embeddings, similarity search, and hybrid search with PostgreSQL and pgvector.</div>
+          </li>
+        
+          <li>
+            <a href="https://github.com/openai/openai-cookbook/blob/main/examples/Question_answering_using_embeddings.ipynb" target="_blank">OpenAI Cookbook — Question Answering with Embeddings</a>
+            <div class="why">Real-world examples of semantic search, chunking strategies, and relevance ranking with embeddings.</div>
+          </li>
+        
+          <li>
+            <a href="https://www.pinecone.io/learn/vector-embeddings/" target="_blank">Pinecone — What are Vector Embeddings?</a>
+            <div class="why">Beginner-friendly explanation of embeddings, distance metrics (cosine, L2, dot product), and use cases.</div>
+          </li>
+        
+          <li>
+            <a href="https://www.deeplearning.ai/short-courses/vector-databases-embeddings-applications/" target="_blank">Andrew Ng — Vector Databases Course</a>
+            <div class="why">Free course covering embeddings, similarity search, and vector databases for AI applications including RAG systems.</div>
+          </li>
+        
+      </ul>
+    
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="topic-navigation">
+  
+    <a href="ai_dev_tools.html" class="nav-button prev">
+      <span class="arrow">←</span>
+      <div>
+        <div class="label">Previous</div>
+        <div class="title">AI Development Workflows</div>
+      </div>
+    </a>
+  
+
+  
+    <a href="content_moderation_ai.html" class="nav-button next">
+      <div>
+        <div class="label">Next</div>
+        <div class="title">Content Moderation & Classification</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  
+</div>
+
+
+  <script>
+    // Dark mode toggle with persistence
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme');
+
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      document.body.classList.add('dark-mode');
+      document.querySelector('.light-icon').style.display = 'none';
+      document.querySelector('.dark-icon').style.display = 'inline';
+    }
+
+    darkModeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      document.querySelector('.light-icon').style.display = isDark ? 'none' : 'inline';
+      document.querySelector('.dark-icon').style.display = isDark ? 'inline' : 'none';
+    });
+
+    // Progress tracking with localStorage
+    function markComplete(topicKey) {
+      const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+      if (!completed.includes(topicKey)) {
+        completed.push(topicKey);
+        localStorage.setItem('completed', JSON.stringify(completed));
+        updateProgress();
+      }
+    }
+
+    function isComplete(topicKey) {
+      const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+      return completed.includes(topicKey);
+    }
+
+    function updateProgress() {
+      const totalTopics = 59;
+      const completed = JSON.parse(localStorage.getItem('completed') || '[]');
+      const percentage = (completed.length / totalTopics) * 100;
+
+      document.querySelectorAll('.progress-bar-fill').forEach(fill => {
+        fill.style.width = percentage + '%';
+      });
+
+      document.querySelectorAll('[data-topic-key]').forEach(card => {
+        const key = card.dataset.topicKey;
+        const badge = card.querySelector('.completion-badge');
+        if (badge && isComplete(key)) {
+          badge.classList.add('completed');
+        }
+      });
+    }
+
+    // Initialize progress on page load
+    updateProgress();
+  </script>
+</body>
+</html>

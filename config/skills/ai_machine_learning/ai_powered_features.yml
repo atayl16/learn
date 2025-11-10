@@ -1,0 +1,15 @@
+topic:
+  key: ai_powered_features
+  name: AI-Powered Search & Recommendations
+  track_key: ai_machine_learning
+  depth_target: Working
+  prerequisites: ["llm_api_integration"]
+  objectives:
+    - Implement semantic search with embeddings and pgvector
+    - Build recommendation systems using similarity search
+    - Design hybrid search combining semantic and keyword matching
+    - Optimize vector queries for production performance
+  key_terms: ["embeddings", "vector search", "pgvector", "cosine similarity", "semantic search", "hybrid search"]
+  est_minutes_read: 12
+  est_minutes_exercise: 30
+  tags: ["ai", "embeddings", "search", "recommendations", "pgvector"]

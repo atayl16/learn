@@ -1,0 +1,28 @@
+references:
+  - title: "OpenAI API Documentation"
+    url: "https://platform.openai.com/docs/api-reference"
+    why: "Official OpenAI API reference covering chat completions, embeddings, streaming, error handling, and rate limits. Essential for GPT-4 integration."
+
+  - title: "Anthropic Claude API Documentation"
+    url: "https://docs.anthropic.com/en/api/getting-started"
+    why: "Complete guide to Claude API with examples for messages, streaming, vision, and prompt caching. Includes best practices for prompt engineering."
+
+  - title: "ruby-openai Gem"
+    url: "https://github.com/alexrudall/ruby-openai"
+    why: "Official Ruby client for OpenAI API with Rails integration examples, streaming support, and comprehensive error handling patterns."
+
+  - title: "OpenAI Cookbook — Best Practices for Prompt Engineering"
+    url: "https://cookbook.openai.com/articles/techniques_to_improve_reliability"
+    why: "Proven techniques for improving prompt reliability: few-shot examples, chain-of-thought reasoning, structured outputs, and temperature tuning strategies."
+
+  - title: "tiktoken_ruby — Token Counting Library"
+    url: "https://github.com/IAPark/tiktoken_ruby"
+    why: "Ruby port of OpenAI's tiktoken for accurate token counting and text truncation. Essential for cost estimation before API calls."
+
+  - title: "Anthropic Prompt Engineering Guide"
+    url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview"
+    why: "Comprehensive guide covering prompt structure, XML tags for Claude, output formatting, chain-of-thought prompting, and evaluation strategies."
+
+  - title: "OpenAI Rate Limits and Error Handling"
+    url: "https://platform.openai.com/docs/guides/rate-limits"
+    why: "Official guide to rate limits, usage tiers, retry strategies with exponential backoff, and best practices for production integrations."

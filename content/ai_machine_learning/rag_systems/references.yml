@@ -1,0 +1,28 @@
+references:
+  - title: "OpenAI Embeddings API Documentation"
+    url: "https://platform.openai.com/docs/guides/embeddings"
+    why: "Official guide to generating embeddings with OpenAI's models, including text-embedding-3-small and best practices for RAG."
+
+  - title: "pgvector GitHub Repository and Documentation"
+    url: "https://github.com/pgvector/pgvector"
+    why: "Comprehensive reference for installing and using pgvector in PostgreSQL, including indexing strategies and similarity operators."
+
+  - title: "LangChain RAG Tutorial"
+    url: "https://python.langchain.com/docs/use_cases/question_answering/"
+    why: "Detailed walkthrough of RAG architectures, chunking strategies, and retrieval patterns (Python-focused but conceptually applicable to Rails)."
+
+  - title: "Pinecone Learning Center — What is Retrieval-Augmented Generation?"
+    url: "https://www.pinecone.io/learn/retrieval-augmented-generation/"
+    why: "Clear explanation of RAG concepts, architecture diagrams, and comparison with fine-tuning approaches."
+
+  - title: "Anthropic Claude API — Prompt Engineering for RAG"
+    url: "https://docs.anthropic.com/claude/docs/prompt-engineering#retrieval-augmented-generation"
+    why: "Best practices for structuring prompts with retrieved context, managing token limits, and improving answer quality."
+
+  - title: "Rails Guides — Active Job Basics"
+    url: "https://guides.rubyonrails.org/active_job_basics.html"
+    why: "Essential guide for implementing background jobs to handle document indexing and embedding generation asynchronously."
+
+  - title: "ruby-openai Gem Documentation"
+    url: "https://github.com/alexrudall/ruby-openai"
+    why: "Ruby client library for OpenAI API with examples for embeddings, chat completions, and streaming responses in Rails."

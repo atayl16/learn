@@ -1,0 +1,94 @@
+checkpoint:
+  passing_score: 7
+  questions:
+    - kind: mcq
+      points: 2
+      prompt: "What is the primary purpose of RAG (Retrieval-Augmented Generation)?"
+      choices:
+        - "To fine-tune LLMs on custom datasets"
+        - "To combine semantic search with LLMs to ground responses in specific data"
+        - "To reduce LLM API costs by caching responses"
+        - "To train embeddings models on domain-specific text"
+      correct: "To combine semantic search with LLMs to ground responses in specific data"
+      why: "RAG retrieves relevant documents from a knowledge base and uses them as context for LLM generation, providing grounded, accurate answers based on specific data sources."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is the optimal chunk size range for most RAG systems?"
+      choices:
+        - "50-100 tokens with no overlap"
+        - "200-500 tokens with 10-20% overlap"
+        - "1000-2000 tokens with 50% overlap"
+        - "Single sentences (10-30 tokens) with 5-token overlap"
+      correct: "200-500 tokens with 10-20% overlap"
+      why: "This range balances context preservation with retrieval precision. Smaller chunks lose context; larger chunks lose specificity. Overlap ensures important information isn't split across chunk boundaries."
+
+    - kind: mcq
+      points: 1
+      prompt: "Which PostgreSQL extension enables vector storage and similarity search?"
+      choices:
+        - "pg_trgm"
+        - "pgvector"
+        - "pg_search"
+        - "postgis"
+      correct: "pgvector"
+      why: "pgvector adds vector data types and similarity search operators (cosine, L2, inner product) to PostgreSQL, making it suitable for storing and querying embeddings."
+
+    - kind: short
+      points: 2
+      prompt: "What SQL operator does pgvector use for cosine distance similarity search?"
+      sample_answer: "The <=> operator for cosine distance (or <-> for L2 distance, <#> for inner product)."
+
+    - kind: mcq
+      points: 2
+      prompt: "Why should RAG systems combine vector similarity with metadata filtering?"
+      choices:
+        - "Metadata filtering makes vector search faster"
+        - "It reduces embedding generation costs"
+        - "It ensures results are relevant to user context (date, category, permissions)"
+        - "PostgreSQL requires metadata filters for vector operations"
+      correct: "It ensures results are relevant to user context (date, category, permissions)"
+      why: "Pure vector search may return semantically similar but contextually wrong results. Metadata filters (date ranges, categories, access control) narrow results to the user's specific needs."
+
+    - kind: mcq
+      points: 1
+      prompt: "What is the dimension size of OpenAI's text-embedding-3-small model?"
+      choices:
+        - "768"
+        - "1024"
+        - "1536"
+        - "3072"
+      correct: "1536"
+      why: "text-embedding-3-small produces 1536-dimensional vectors, which must match your vector column limit in PostgreSQL."
+
+    - kind: short
+      points: 2
+      prompt: "In a RAG pipeline, what are the two main phases (offline and online)?"
+      sample_answer: "Indexing pipeline (offline): ingest documents, chunk, generate embeddings, store vectors. Query pipeline (online): generate query embedding, search vectors, retrieve context, generate answer with LLM."
+
+    - kind: mcq
+      points: 2
+      prompt: "What is Reciprocal Rank Fusion (RRF) used for in hybrid search?"
+      choices:
+        - "Compressing embeddings to reduce storage costs"
+        - "Combining and re-ranking results from vector and keyword search"
+        - "Filtering duplicate chunks from search results"
+        - "Normalizing embedding vectors before storage"
+      correct: "Combining and re-ranking results from vector and keyword search"
+      why: "RRF merges ranked lists from different search methods by assigning scores based on rank position, producing a unified ranking that leverages strengths of both approaches."
+
+    - kind: mcq
+      points: 1
+      prompt: "What temperature setting is recommended for RAG-based factual Q&A?"
+      choices:
+        - "0.0 for deterministic outputs"
+        - "0.3 for mostly factual with minor variation"
+        - "0.7 for balanced creativity"
+        - "1.0 for maximum creativity"
+      correct: "0.3 for mostly factual with minor variation"
+      why: "Lower temperatures (0.0-0.3) reduce randomness, keeping responses close to the provided context. RAG systems prioritize accuracy over creativity."
+
+    - kind: short
+      points: 1
+      prompt: "What Rails pattern should you use to index large document collections asynchronously?"
+      sample_answer: "Background jobs (ActiveJob/Sidekiq) to process document chunking and embedding generation outside the request-response cycle."

@@ -1,0 +1,28 @@
+references:
+  - title: "OpenAI — Embeddings API Documentation"
+    url: "https://platform.openai.com/docs/guides/embeddings"
+    why: "Official guide to text-embedding-ada-002 model, dimensions, pricing, and best practices for semantic search."
+
+  - title: "pgvector GitHub Repository"
+    url: "https://github.com/pgvector/pgvector"
+    why: "Official pgvector extension for PostgreSQL with installation, indexing strategies (IVFFlat, HNSW), and performance tuning."
+
+  - title: "Neighbor Gem — Ruby Interface for pgvector"
+    url: "https://github.com/ankane/neighbor"
+    why: "Rails integration for pgvector with has_neighbors, nearest_neighbors methods, and ActiveRecord support."
+
+  - title: "Supabase — Vector Embeddings Guide"
+    url: "https://supabase.com/docs/guides/ai/vector-embeddings"
+    why: "Comprehensive tutorial on embeddings, similarity search, and hybrid search with PostgreSQL and pgvector."
+
+  - title: "OpenAI Cookbook — Question Answering with Embeddings"
+    url: "https://github.com/openai/openai-cookbook/blob/main/examples/Question_answering_using_embeddings.ipynb"
+    why: "Real-world examples of semantic search, chunking strategies, and relevance ranking with embeddings."
+
+  - title: "Pinecone — What are Vector Embeddings?"
+    url: "https://www.pinecone.io/learn/vector-embeddings/"
+    why: "Beginner-friendly explanation of embeddings, distance metrics (cosine, L2, dot product), and use cases."
+
+  - title: "Andrew Ng — Vector Databases Course"
+    url: "https://www.deeplearning.ai/short-courses/vector-databases-embeddings-applications/"
+    why: "Free course covering embeddings, similarity search, and vector databases for AI applications including RAG systems."
