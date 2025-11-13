@@ -1413,6 +1413,29 @@ rails generate react:install
       document.querySelector('.dark-icon').style.display = isDark ? 'inline' : 'none';
     });
 
+    // Tab switching functionality
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabId = tab.dataset.tab;
+
+        // Hide all tab content
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+
+        // Remove active class from all tabs
+        document.querySelectorAll('.tab').forEach(t => {
+          t.classList.remove('active');
+        });
+
+        // Show selected tab content
+        document.getElementById(tabId).classList.add('active');
+
+        // Mark clicked tab as active
+        tab.classList.add('active');
+      });
+    });
+
     // Progress tracking with localStorage
     function markComplete(topicKey) {
       const completed = JSON.parse(localStorage.getItem('completed') || '[]');
