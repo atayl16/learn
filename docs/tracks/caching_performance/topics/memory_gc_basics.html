@@ -1851,6 +1851,46 @@ bin/rails db:migrate
       });
     });
 
+    // Hide tabs with no content
+    function hideEmptyTabs() {
+      const tabs = document.querySelectorAll('.tab');
+      let firstVisibleTab = null;
+
+      tabs.forEach(tab => {
+        const tabId = tab.dataset.tab;
+        const content = document.getElementById(tabId);
+
+        if (content) {
+          // Check if content section has meaningful text (more than just whitespace/minimal HTML)
+          const textContent = content.textContent.trim();
+          const hasContent = textContent.length > 50; // More than 50 chars of text
+
+          if (!hasContent) {
+            tab.style.display = 'none';
+            content.style.display = 'none';
+          } else if (!firstVisibleTab) {
+            firstVisibleTab = tab;
+          }
+        }
+      });
+
+      // If the initially active tab is hidden, activate the first visible tab
+      const activeTab = document.querySelector('.tab.active');
+      if (activeTab && activeTab.style.display === 'none' && firstVisibleTab) {
+        activeTab.classList.remove('active');
+        firstVisibleTab.classList.add('active');
+
+        const firstVisibleContent = document.getElementById(firstVisibleTab.dataset.tab);
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        if (firstVisibleContent) {
+          firstVisibleContent.classList.add('active');
+        }
+      }
+    }
+
+    // Run on page load
+    hideEmptyTabs();
+
     // Progress tracking with localStorage
     function markComplete(topicKey) {
       const completed = JSON.parse(localStorage.getItem('completed') || '[]');
